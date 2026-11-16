@@ -1,18 +1,11 @@
 // Dados do mapa das obras: lê a geocodificação por bairro e monta a lista de obras com localização.
-import { existsSync, readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { caminhoCarteira } from '../carteira/carga.ts';
+import geoExemplo from '../../../data/exemplo/carteira/geo-bairros.json' with { type: 'json' };
 import type { Carteira, Projeto } from '../carteira/tipos.ts';
 import { farol, fimDaMacroetapaAtual, valorProjeto } from '../carteira/visoes.ts';
 import { categoriaObra, espalharSobrepostos, localizarProjeto, situacaoMapa, type GeoBairros, type SituacaoMapa } from './geo.ts';
 import type { CategoriaObra, Localizacao, PrecisaoLocal } from './tipos.ts';
 
-export function carregarGeoBairros(): GeoBairros {
-  const arquivo = join(dirname(caminhoCarteira()), 'geo-bairros.json');
-  if (!existsSync(arquivo)) return { bairros: {} };
-  const g = JSON.parse(readFileSync(arquivo, 'utf8')) as GeoBairros;
-  return { ...g, bairros: g.bairros ?? {} };
-}
+export function carregarGeoBairros(): GeoBairros { return geoExemplo as GeoBairros; }
 
 export interface ObraBasica {
   id: string;

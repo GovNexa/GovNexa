@@ -1,10 +1,9 @@
 ---
 import '../../styles/carteira.css';
 import { carregarCarteira } from '../../lib/carteira/carga.ts';
-import { repositorio } from '../../lib/repositorio/index.ts';
 import { ACOES_FILTRO, ROTULO_ACAO, ROTULO_ORIGEM } from '../../lib/log/tipos.ts';
 
-const registros = await repositorio().listarHistorico();
+const registros = await Astro.locals.repositorio.listarHistorico();
 const nomes = new Map(carregarCarteira().projetos.map((p) => [p.id, p.nome]));
 const lista = registros.map((r) => (r.projeto_nome || r.projeto_id === '*' ? r : { ...r, projeto_nome: nomes.get(r.projeto_id) ?? null }));
 // JSON dentro de <script type="application/json">: "</" e "<!--" nunca fecham nem comentam o script.

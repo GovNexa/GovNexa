@@ -25,6 +25,9 @@ function objeto(texto: string): Record<string, unknown> {
   return valor as Record<string, unknown>;
 }
 export async function verificarAccess(token: string | null, dominio: string, aud: string): Promise<boolean> {
+  return !!await claimsAccess(token, dominio, aud);
+}
+export async function claimsAccess(token: string | null, dominio: string, aud: string): Promise<Record<string, unknown> | false> {
   try {
     if (!token || !aud || !/^[a-z0-9][a-z0-9.-]*[a-z0-9]$/i.test(dominio)) return false;
     const partes = token.split('.');
@@ -46,7 +49,7 @@ export async function verificarAccess(token: string | null, dominio: string, aud
     const jwk = entrada.chaves.find(k => k.kid === header.kid && k.kty === 'RSA' && (!k.alg || k.alg === 'RS256') && (!k.use || k.use === 'sig'));
     if (!jwk) return false;
     const chave = await crypto.subtle.importKey('jwk', jwk, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['verify']);
-    return await crypto.subtle.verify('RSASSA-PKCS1-v1_5', chave, bytes(assinatura), new TextEncoder().encode(`${cab}.${corpo}`));
+    return await crypto.subtle.verify('RSASSA-PKCS1-v1_5', chave, bytes(assinatura), new TextEncoder().encode(`${cab}.${corpo}`)) ? claims : false;
   } catch {
     return false;
   }

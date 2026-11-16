@@ -6,15 +6,13 @@ import QuadroTarefas from '../../../components/cronograma/QuadroTarefas.astro';
 import Dependencias from '../../../components/cronograma/Dependencias.astro';
 import { carregarCarteira } from '../../../lib/carteira/carga.ts';
 import { carregarCronogramas } from '../../../lib/cronograma/carga.ts';
-import type { Cronograma } from '../../../lib/cronograma/tipos.ts';
 import { analisarDependencias, cascataDoProjeto } from '../../../lib/cronograma/dependencias.ts';
 import { etapasDoCronograma, resumoCronograma, rotuloRitmo } from '../../../lib/cronograma/visoes.ts';
 import { br } from '../../../lib/dados/formato.ts';
 
-export function getStaticPaths() {
-  return carregarCronogramas().cronogramas.map((c) => ({ params: { id: c.id }, props: { cronograma: c } }));
-}
-const { cronograma: c } = Astro.props as { cronograma: Cronograma };
+export const prerender = false;
+const c = carregarCronogramas().cronogramas.find(c => c.id === Astro.params.id);
+if (!c) return new Response('Página não encontrada', { status: 404 });
 const hoje = new Date().toISOString().slice(0, 10);
 const r = resumoCronograma(c, hoje);
 const projeto = c.projeto_id ? carregarCarteira().projetos.find((p) => p.id === c.projeto_id) : undefined;

@@ -1,2 +1,3 @@
 # Somente desenvolvimento local. Nunca configurar esta liberação em produção.
 ACESSO_LOCAL_LIVRE=1
+DEV_EMAIL=dev@exemplo.invalid

@@ -4,12 +4,10 @@ import Platform from '../../../layouts/Platform.astro';
 import Fluxo from '../../../components/fluxo/Fluxo.astro';
 import { ROTULO_SITUACAO, NOS as NOS_GERAIS } from '../../../lib/govnexa/fluxo.ts';
 import { SUBFLUXOS } from '../../../lib/govnexa/subfluxos.ts';
-import type { Subfluxo } from '../../../lib/govnexa/subfluxos.ts';
 
-export function getStaticPaths() {
-  return SUBFLUXOS.map((s) => ({ params: { id: s.id }, props: { sub: s } }));
-}
-const { sub } = Astro.props as { sub: Subfluxo };
+export const prerender = false;
+const sub = SUBFLUXOS.find(s => s.id === Astro.params.id);
+if (!sub) return new Response('Página não encontrada', { status: 404 });
 const etapaGeral = NOS_GERAIS.find((n) => n.id === sub.no);
 const excecoes = sub.nos.filter((n) => n.tipo === 'excecao').length;
 ---

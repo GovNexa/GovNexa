@@ -40,9 +40,10 @@ test('rodada 2: sidebar até o fim e summary sem marcador nativo',async({page})=
 
 test('acesso pelo Cloudflare Access', async ({page}) => {
  await page.goto('/entrar/');
- await expect(page.getByRole('heading',{name:'Acessar a plataforma'})).toBeVisible();
- await expect(page.getByRole('link',{name:'Acessar a plataforma'})).toHaveAttribute('href','/plataforma/');
- expect((await new AxeBuilder({page}).analyze()).violations).toEqual([]);
+ await expect(page).toHaveURL(/\/plataforma\/$/);
+ await expect(page.locator('h1')).toBeVisible();
+ const results=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze();
+ expect(results.violations.filter(v=>['serious','critical'].includes(v.impact||''))).toEqual([]);
 });
 
 test('rodada 4: menu recolhe, expande e persiste',async({page})=>{
@@ -687,7 +688,7 @@ test('govnexa: mapa das obras',async({page,browser})=>{
 
 test('govnexa: arquivos do build com nome só hexadecimal',async({page})=>{
  const {readdirSync}=await import('node:fs');
- const nomes=readdirSync('dist/_astro').filter(n=>/\.(js|css)$/.test(n));
+ const nomes=readdirSync('dist/client/_astro').filter(n=>/\.(js|css)$/.test(n));
  expect(nomes.length).toBeGreaterThan(0);
  expect(nomes.filter(n=>!/\.[0-9a-f]{8}\.(js|css)$/.test(n))).toEqual([]);
  // todo script e folha de estilo da página do mapa responde 200

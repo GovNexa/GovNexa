@@ -4,17 +4,16 @@ import Platform from '../../../layouts/Platform.astro';
 import { carregarCarteira } from '../../../lib/carteira/carga.ts';
 import { carregarCronogramas } from '../../../lib/cronograma/carga.ts';
 import { carregarSalas } from '../../../lib/sala/carga.ts';
-import { ROTULO_CADENCIA, ROTULO_ESCALONAMENTO, ROTULO_SITUACAO_RAID, ROTULO_SITUACAO_SALA, ROTULO_TIPO_SALA, type ItemRaid, type Sala, type TipoRaid } from '../../../lib/sala/tipos.ts';
+import { ROTULO_CADENCIA, ROTULO_ESCALONAMENTO, ROTULO_SITUACAO_RAID, ROTULO_SITUACAO_SALA, ROTULO_TIPO_SALA, type ItemRaid, type TipoRaid } from '../../../lib/sala/tipos.ts';
 import { AVISO_SIMULACAO_SALA } from '../../../lib/sala/simulacao.ts';
 import { nomeEtapa } from '../../../lib/carteira/simulacao.ts';
 import { farol } from '../../../lib/carteira/visoes.ts';
 import { dataBr, indicadoresSala, pautaReuniao, textoPrazo } from '../../../lib/sala/visoes.ts';
 import { diasEntre } from '../../../lib/cronograma/visoes.ts';
 
-export function getStaticPaths() {
-  return carregarSalas().salas.map((s) => ({ params: { id: s.id }, props: { sala: s } }));
-}
-const { sala: s } = Astro.props as { sala: Sala };
+export const prerender = false;
+const s = carregarSalas().salas.find(s => s.id === Astro.params.id);
+if (!s) return new Response('Página não encontrada', { status: 404 });
 const hoje = new Date().toISOString().slice(0, 10);
 const carteira = carregarCarteira();
 const cronogramas = carregarCronogramas().cronogramas;
@@ -46,7 +45,7 @@ const estaVencido = (i: ItemRaid) => (i.situacao === 'aberto' || i.situacao === 
 const ordenar = (l: ItemRaid[]) => [...l].sort((a, b) => (a.prazo ?? '9999') < (b.prazo ?? '9999') ? -1 : (a.prazo ?? '9999') > (b.prazo ?? '9999') ? 1 : 0);
 ---
 <Platform title={s.titulo} slug="projetos-sala">
-  <div class="section-head">
+  <p class="pill">Dados de exemplo</p><div class="section-head">
     <div>
       <h1>{s.titulo}</h1>
       <p class="muted"><a href="/plataforma/projetos-sala/">← Todas as salas de guerra</a></p>
