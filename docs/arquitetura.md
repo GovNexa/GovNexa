@@ -1,5 +1,7 @@
 # Arquitetura — bloco Captação
 
+> **Nota de 16/11/2026:** documento anterior à migração. Onde diz Vercel, hoje é Cloudflare Workers; o login é o Cloudflare Access; o banco é o Cloudflare D1. Situação atual no README e em docs/govnexa/historico.md.
+
 Resumo vivo (detalhes e decisões em `plano-execucao.md`).
 
 - **Frontend:** Astro + TypeScript, páginas estáticas (rodam em qualquer hospedagem: Vercel hoje; Hostinger ou servidor próprio depois).
