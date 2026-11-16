@@ -14,7 +14,7 @@
     "sei:ler": "node scripts/sei-ler.ts",
     "importar:cronogramas": "node scripts/importar-cronogramas.ts",
     "geocodificar": "node scripts/geocodificar-bairros.ts",
-    "cf:dev": "astro build && wrangler dev",
+    "cf:dev": "astro build && wrangler dev --infer-origin-from-routes=false",
     "cf:types": "wrangler types",
     "db:local": "node scripts/db-local.mjs"
   },
