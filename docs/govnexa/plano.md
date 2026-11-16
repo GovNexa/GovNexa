@@ -33,7 +33,7 @@ O sistema está no ar com os dados reais da planilha (334 projetos e 13 cronogra
 
 | Data | Entrega | PR |
 | --- | --- | --- |
-| 16/11 | Etapa 3.5: importação das planilhas do repositório privado (rotina do GitHub com conferência e gravação separadas; códigos repetidos avisados; não apaga, não sobrescreve localização, compromisso nem projeto alterado no sistema) | GovNexa #8 |
+| 16/11 | Etapa 3.5: importação das planilhas do repositório privado (rotina do GitHub com conferência e gravação separadas; códigos repetidos avisados; não apaga, não sobrescreve localização, compromisso nem projeto alterado no sistema) | GovNexa #9 |
 | 16/11 | Leitura do banco otimizada (só a guia aberta é montada; cache de 30 s por prefeitura): páginas da plataforma de ~400 ms para ~20 ms; erro 1102 do plano gratuito explicado (publicada em 16/11, versão 2e1114fa) | GovNexa #6 |
 | 16/11 | Plano e histórico trazidos para o repositório novo, atualizados para a migração; referências ao repositório antigo retiradas | GovNexa #5 |
 | 16/11 | Correção: login pelo Access recusava todos em produção | GovNexa #4 |

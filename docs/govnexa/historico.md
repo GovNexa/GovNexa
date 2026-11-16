@@ -110,7 +110,7 @@ Por que ainda não é automático: o navegador não deixa uma página do GovNexa
 
 1. **3.3, usuários:** tela de usuários e sincronização com o grupo do Access.
 2. **3.4, documentos:** armazenamento no R2 e regras de remoção lógica.
-3. **3.5, importação:** feita (novo #8). Falta a primeira gravação em produção: depende dos segredos do Cloudflare no repositório de dados.
+3. **3.5, importação:** feita (novo #9). Falta a primeira gravação em produção: depende dos segredos do Cloudflare no repositório de dados.
 4. **SEI automático:** leitura diária dos links guardados no D1, por Cron Trigger. Sem contornar captcha, e documento restrito continua entrando por PDF.
 5. **Leitura de PDF no navegador** para documentos restritos (biblioteca `pdfjs-dist`, da Mozilla).
 6. **Projeto × oportunidade:** sugestão de programas abertos para cada projeto.
@@ -190,7 +190,7 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 
 | Situação | O que aprendemos |
 | --- | --- |
-| Reimportar a planilha pode apagar o que foi feito no sistema (16/11, novo #8) | A revisão independente achou que o upsert da planilha sobrescreveria colunas que o sistema também grava (etapa, datas, localização, compromisso) e que um código reaproveitado pela planilha poderia virar outro projeto. A rotina agora preserva localização e compromisso, **pula** o projeto já alterado no sistema e **para tudo** se um código mudar de órgão. Antes de a gravação de verdade existir no sistema (3.3 em diante), revisar de novo quem manda em cada coluna. |
+| Reimportar a planilha pode apagar o que foi feito no sistema (16/11, novo #9) | A revisão independente achou que o upsert da planilha sobrescreveria colunas que o sistema também grava (etapa, datas, localização, compromisso) e que um código reaproveitado pela planilha poderia virar outro projeto. A rotina agora preserva localização e compromisso, **pula** o projeto já alterado no sistema e **para tudo** se um código mudar de órgão. Antes de a gravação de verdade existir no sistema (3.3 em diante), revisar de novo quem manda em cada coluna. |
 | Código repetido na planilha (16/11) | A planilha da carteira repete o código 450 (SECAP e SEINFRA). Sem aviso, os dois viravam o mesmo `P-450` e um apagava o outro no banco. O importador agora para, e a correção combinada fica em `planilhas/codigos-corrigidos.json`. Quando a planilha for corrigida na origem, apague a linha. |
 | Testar a importação só com dados fictícios engana (16/11) | A prova de que a rotina funciona foi feita com as planilhas reais num banco **local** (334 projetos, 13 cronogramas, 725 etapas, iguais à produção) e depois apagada. Banco local com dados reais quebra os testes de interface: limpar `.wrangler/state` depois. |
 | Erro 1102 "Worker exceeded resource limits" ao abrir `/plataforma/` (16/11) | A plataforma com banco foi publicada antes de o plano Workers Paid valer para o Worker. No plano gratuito o limite é 10 ms de CPU por acesso; cada página gastava ~400 ms. Conferir sempre em Faturamento › Assinaturas **da conta do GovNexa** (o login enxerga também a conta pessoal). |
@@ -216,7 +216,7 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 | novo #2 | 16/11/2026 | Etapa 1: Cloudflare Worker com Access e marca GovNexa |
 | novo #3 | 16/11/2026 | Etapa 3 (3.1 e 3.2): banco D1, plataforma lendo o banco, porte do PR #45 e README |
 | novo #4 | 16/11/2026 | Correção: login pelo Access recusava todos em produção |
-| novo #8 | 16/11/2026 | Etapa 3.5: importação das planilhas |
+| novo #9 | 16/11/2026 | Etapa 3.5: importação das planilhas |
 | novo #7 | 16/11/2026 | Registro da publicação da otimização e do repositório de dados |
 | novo #6 | 16/11/2026 | Leitura do banco otimizada (desempenho) |
 | novo #5 | 16/11/2026 | Plano e histórico trazidos para o repositório novo, atualizados para a migração (este PR) |
@@ -282,7 +282,7 @@ mesclado em 16/11/2026 · branch `agente/codex/access-redirect`
 redirect: 'error' não é aceito pelo runtime do Workers; troca para 'manual' (não-200 = indisponível) e registra o motivo de cada recusa (sem dados sensíveis). test:dados 238/238; revisão: APROVADO.
 
 
-#### novo #8 — Etapa 3.5: importação das planilhas
+#### novo #9 — Etapa 3.5: importação das planilhas
 
 Rotina `scripts/importar-planilhas.ts` e workflow do repositório de dados. Regras de segurança dos dados e testes no CHANGELOG e no README (seção 6).
 
