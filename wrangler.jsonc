@@ -23,7 +23,7 @@
     "enabled": true
   },
   "vars": {
-    "ACCESS_TEAM_DOMAIN": "",
+    "ACCESS_TEAM_DOMAIN": "equipegovnexa.cloudflareaccess.com",
     "ACCESS_AUD": ""
   }
 }

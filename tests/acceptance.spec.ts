@@ -24,7 +24,7 @@ test('rodada 2: documentos filtram e geram rascunho local',async({page})=>{
  await page.goto('/plataforma/documentos/');await page.locator('[data-tab="TR"]').click();for(const row of await page.locator('[data-row]:visible').all())await expect(row).toHaveAttribute('data-bucket','TR');await page.getByRole('button',{name:'Gerar rascunho',exact:true}).click();await page.getByLabel('Objeto',{exact:true}).fill('Material escolar');await page.getByLabel('Secretaria',{exact:true}).selectOption('Educação');await page.getByLabel('Justificativa',{exact:true}).fill('Atender a rede municipal');await page.getByRole('button',{name:'Gerar exemplo local'}).click();await expect(page.locator('#doc-text')).toContainText('Material escolar');await expect(page.locator('#doc-text')).toContainText('Atender a rede municipal');await page.getByRole('button',{name:'Fechar',exact:true}).click();await expect(page.locator('#doc-dialog')).toBeHidden();
 });
 test('rodada 2: preços calculam resultados e salvam somente no navegador',async({page})=>{
- await page.goto('/plataforma/banco-de-precos/');await expect(page.locator('#price-stats .card')).toHaveCount(4);await page.locator('[data-table-search]').fill('Alimentos');await expect(page.locator('#price-stats')).toContainText('R$');await page.getByRole('button',{name:'Salvar pesquisa',exact:true}).click();expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-price-search')!).query)).toBe('Alimentos');await page.locator('[data-table-search]').fill('inexistente');await expect(page.locator('#price-stats')).toContainText('Sem resultados');await page.goto('/plataforma/atas/');await expect(page.locator('.status').getByText(/Vencida/).first()).toBeVisible();await expect(page.locator('.status').getByText(/Vigente/).first()).toBeVisible();
+ await page.goto('/plataforma/banco-de-precos/');await expect(page.locator('#price-stats .card')).toHaveCount(4);await page.locator('[data-table-search]').fill('Alimentos');await expect(page.locator('#price-stats')).toContainText('R$');await page.getByRole('button',{name:'Salvar pesquisa',exact:true}).click();expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('govnexa-price-search')!).query)).toBe('Alimentos');await page.locator('[data-table-search]').fill('inexistente');await expect(page.locator('#price-stats')).toContainText('Sem resultados');await page.goto('/plataforma/atas/');await expect(page.locator('.status').getByText(/Vencida/).first()).toBeVisible();await expect(page.locator('.status').getByText(/Vigente/).first()).toBeVisible();
 });
 test('rodada 2: importação, relatórios e conta',async({page})=>{
  for(const slug of ['produtos','fornecedores','enderecos','locais-de-entrega']){await page.goto(`/plataforma/${slug}/`);await page.getByRole('button',{name:'Importar planilha'}).click();await expect(page.locator('#import-dialog')).toBeVisible();await page.locator('#import-dialog').getByRole('button',{name:'Fechar'}).click();}
@@ -322,7 +322,7 @@ test('govnexa: sala de guerra incluir e retirar',async({page})=>{
 test('govnexa: tema escolhido se mantém ao trocar de guia',async({page})=>{
  for(const [esquema,escolhido] of [['light','dark'],['dark','light']] as const){
   await page.emulateMedia({colorScheme:esquema});await page.goto('/plataforma/projetos/');
-  await page.evaluate(t=>{localStorage.setItem('atlas-theme',t);document.documentElement.dataset.theme=t},escolhido);
+  await page.evaluate(t=>{localStorage.setItem('govnexa-theme',t);document.documentElement.dataset.theme=t},escolhido);
   for(const nome of ['Carteira de projetos','Kanban por macroetapa','Fluxo do sistema','Histórico de alterações','Projetos · Início']){
    await page.locator('.sidebar').getByRole('link',{name:nome,exact:true}).click();await page.waitForLoadState('domcontentloaded');
    await expect(page.locator('html'),nome).toHaveAttribute('data-theme',escolhido);
@@ -571,7 +571,7 @@ test('govnexa: menu lateral com blocos que abrem e fecham',async({page})=>{
 test('govnexa: menu no celular com menu recolhido salvo continua reabrindo blocos',async({page})=>{
  await page.setViewportSize({width:390,height:844});
  await page.goto('/plataforma/projetos/');
- await page.evaluate(()=>{localStorage.setItem('atlas-sidebar','true');localStorage.setItem('govnexa-menu-estado',JSON.stringify({'m:Licitações':false}))});
+ await page.evaluate(()=>{localStorage.setItem('govnexa-sidebar','true');localStorage.setItem('govnexa-menu-estado',JSON.stringify({'m:Licitações':false}))});
  await page.reload();
  await page.locator('#drawer-toggle').click();
  const bloco=page.locator('.sidebar button[data-sec="m:Licitações"]');
