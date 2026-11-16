@@ -2,7 +2,7 @@
 // carteira.json, importacao.json e conciliacao.md. O console mostra só contagens (a planilha tem dados internos).
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { basename, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import ExcelJS from 'exceljs';
 import { municipioAtivo } from '../src/lib/municipio-ativo.ts';
@@ -343,9 +343,64 @@ function lerBase(aba: Aba, projetos: Projeto[]) {
   return { registros, casadasSei, casadasNome, semPar };
 }
 
+// ---------- códigos repetidos ----------
+
+/** Correção combinada para um código repetido: o projeto daquele órgão passa a ter o código `novo`. */
+export interface CorrecaoCodigo { codigo: number; orgao: string; novo: number; motivo?: string }
+export interface CodigoRepetido { codigo: number; linhas: number[]; orgaos: string[]; resolvido: boolean; novo?: number }
+
+const chaveOrgao = (o: string | null | undefined): string => String(o ?? '').trim().toLowerCase();
+
+/** Lê e valida o arquivo de correções (lista de { codigo, orgao, novo, motivo? }). */
+export function lerCorrecoes(caminho: string): CorrecaoCodigo[] {
+  const lista = JSON.parse(readFileSync(caminho, 'utf8'));
+  if (!Array.isArray(lista)) throw new Error(`${basename(caminho)}: deve ser uma lista de correções.`);
+  return lista.map((c, i) => {
+    const ok = c && Number.isInteger(c.codigo) && Number.isInteger(c.novo) && c.novo > 0 && typeof c.orgao === 'string' && c.orgao.trim() !== '';
+    if (!ok) throw new Error(`${basename(caminho)}: correção ${i + 1} inválida (precisa de codigo, orgao e novo).`);
+    return { codigo: c.codigo, orgao: c.orgao, novo: c.novo, ...(typeof c.motivo === 'string' ? { motivo: c.motivo } : {}) };
+  });
+}
+
+/** Acha códigos repetidos na PIPELINE e aplica as correções combinadas (muda id e codigo_legado do projeto corrigido).
+ * Código repetido sem correção fica `resolvido: false`: quem importa deve parar, porque dois projetos com o mesmo id
+ * se apagariam no banco. Os avisos só trazem código, linha e órgão (nunca nomes). */
+export function resolverCodigosRepetidos(projetos: Projeto[], correcoes: CorrecaoCodigo[] = []): { repetidos: CodigoRepetido[]; naoUsadas: CorrecaoCodigo[]; erros: string[] } {
+  const grupos = new Map<number, Projeto[]>();
+  for (const p of projetos) grupos.set(p.codigo_legado, [...(grupos.get(p.codigo_legado) ?? []), p]);
+  const existentes = new Set(grupos.keys());
+  const erros: string[] = [];
+  const usadosPorCorrecao = new Set<number>();
+  for (const c of correcoes) {
+    if (existentes.has(c.novo)) erros.push(`Correção do código ${c.codigo} (${c.orgao}): o código novo ${c.novo} já existe na planilha.`);
+    if (usadosPorCorrecao.has(c.novo)) erros.push(`O código novo ${c.novo} aparece em mais de uma correção.`);
+    usadosPorCorrecao.add(c.novo);
+  }
+  const usadas = new Set<CorrecaoCodigo>();
+  const repetidos: CodigoRepetido[] = [];
+  for (const [codigo, grupo] of [...grupos].sort((a, b) => a[0] - b[0])) {
+    if (grupo.length < 2) continue;
+    const rep: CodigoRepetido = { codigo, linhas: grupo.map((p) => p.origem.linha), orgaos: grupo.map((p) => p.orgao ?? '(sem órgão)'), resolvido: false };
+    let sobraram = grupo.length;
+    for (const p of grupo) {
+      const c = correcoes.find((x) => x.codigo === codigo && chaveOrgao(x.orgao) === chaveOrgao(p.orgao) && !usadas.has(x));
+      if (!c || erros.length) continue;
+      usadas.add(c);
+      p.id = `P-${c.novo}`;
+      p.codigo_legado = c.novo;
+      rep.novo = c.novo;
+      sobraram--;
+    }
+    rep.resolvido = sobraram <= 1;
+    repetidos.push(rep);
+  }
+  projetos.sort((a, b) => a.codigo_legado - b.codigo_legado);
+  return { repetidos, naoUsadas: correcoes.filter((c) => !usadas.has(c)), erros };
+}
+
 // ---------- importação completa ----------
 
-export async function importarCarteira(op: { planilha: string; saida: string; agora?: Date; anonimizar?: boolean; autor?: string }): Promise<{ carteira: Carteira; relatorio: object }> {
+export async function importarCarteira(op: { planilha: string; saida: string; agora?: Date; anonimizar?: boolean; autor?: string; correcoes?: CorrecaoCodigo[] }): Promise<{ carteira: Carteira; relatorio: object }> {
   const buf = readFileSync(op.planilha);
   const hash = createHash('sha256').update(buf).digest('hex');
   const agora = (op.agora ?? new Date()).toISOString();
@@ -353,6 +408,13 @@ export async function importarCarteira(op: { planilha: string; saida: string; ag
   await wb.xlsx.readFile(op.planilha);
 
   const pipe = lerPipeline(new Aba(wb, 'PIPELINE', 1));
+  const codigos = resolverCodigosRepetidos(pipe.projetos, op.correcoes ?? []);
+  if (codigos.erros.length) throw new Error(codigos.erros.join(' '));
+  const pendentes = codigos.repetidos.filter((r) => !r.resolvido);
+  if (pendentes.length) {
+    const lista = pendentes.map((r) => `${r.codigo} (linhas ${r.linhas.join(', ')}; órgãos ${r.orgaos.join(', ')})`).join('; ');
+    throw new Error(`Códigos repetidos na aba PIPELINE sem correção: ${lista}. Combine a correção em codigos-corrigidos.json (codigo, orgao, novo).`);
+  }
   const base = lerBase(new Aba(wb, 'BASE_OPERACIONAL', 4), pipe.projetos);
   const projetos = pipe.projetos;
 
@@ -433,6 +495,8 @@ export async function importarCarteira(op: { planilha: string; saida: string; ag
     },
     totais: { valor_total: valorTotal, valor_obra: valorObra, por_macroetapa: porMacro, por_orgao: porOrgao, por_ano: porAno },
     conciliacao,
+    codigos_repetidos: codigos.repetidos,
+    correcoes_nao_usadas: codigos.naoUsadas,
     pendencias_por_tipo: pendTipo,
   };
 
@@ -481,6 +545,8 @@ function montarTipo() {
       por_ano: Record<string, { subtotal: number; federal: number; municipal: number; outros: number }>;
     };
     conciliacao: { regra: string; esperado: number | null; encontrado: number; diferenca: number | null; ok: boolean; informativo?: boolean }[];
+    codigos_repetidos?: CodigoRepetido[];
+    correcoes_nao_usadas?: CorrecaoCodigo[];
     pendencias_por_tipo: Record<string, number>;
   };
 }
@@ -496,6 +562,12 @@ function relatorioMd(rel: object): string {
   L.push('## Conferências', '', '| Regra | Esperado | Encontrado | Diferença | Resultado |', '|---|---:|---:|---:|---|');
   for (const c of r.conciliacao) L.push(`| ${c.regra} | ${c.esperado ?? '-'} | ${c.encontrado} | ${c.diferenca ?? '-'} | ${c.informativo ? 'Informativo' : c.ok ? 'Confere' : 'DIVERGE'} |`);
   L.push('', 'A conferência "Fontes por ano = subtotal" considera só os projetos que detalham a fonte (federal, municipal, outros) por ano; nos demais a planilha não detalha a fonte por ano.');
+  if (r.codigos_repetidos?.length || r.correcoes_nao_usadas?.length) {
+    L.push('', '## Códigos repetidos na planilha', '');
+    for (const c of r.codigos_repetidos ?? []) L.push(`- Código ${c.codigo} nas linhas ${c.linhas.join(', ')} (órgãos ${c.orgaos.join(', ')}): ${c.resolvido ? `corrigido, um dos projetos passou a ter o código ${c.novo}` : 'SEM CORREÇÃO'}.`);
+    for (const c of r.correcoes_nao_usadas ?? []) L.push(`- Correção sem efeito: código ${c.codigo} (${c.orgao}) → ${c.novo}. A planilha não repete mais esse código; pode tirar a correção do arquivo.`);
+    L.push('', 'Corrija o código na própria planilha quando puder: assim a correção deixa de ser necessária.');
+  }
   L.push('', '## Aba PIPELINE', '', `- Linhas com conteúdo: ${r.abas.PIPELINE.linhas_com_conteudo}`, `- Projetos importados: ${r.abas.PIPELINE.projetos}`, `- Linhas ignoradas: ${r.abas.PIPELINE.ignoradas.length}`, '');
   if (r.abas.PIPELINE.ignoradas.length) {
     L.push('| Linha | Motivo |', '|---:|---|');
@@ -533,12 +605,15 @@ if (executadoDireto) {
   };
   const planilha = pega('--planilha');
   if (!planilha) {
-    console.error('Uso: node scripts/importar-carteira.ts --planilha <caminho> [--saida <pasta>] [--autor <nome>] [--anonimizar]');
+    console.error('Uso: node scripts/importar-carteira.ts --planilha <caminho> [--saida <pasta>] [--autor <nome>] [--anonimizar] [--corrigir-codigos <arquivo.json>]');
     process.exit(1);
   }
   const saida = pega('--saida') ?? join('.govnexa-dados', String(municipioAtivo().codigo_ibge));
   try {
-    const { carteira, relatorio } = await importarCarteira({ planilha, saida, anonimizar: args.includes('--anonimizar'), autor: pega('--autor') });
+    // Correções de códigos repetidos: o arquivo informado, ou codigos-corrigidos.json na mesma pasta da planilha.
+    const arquivoCorrecoes = pega('--corrigir-codigos') ?? join(dirname(resolve(planilha)), 'codigos-corrigidos.json');
+    const correcoes = existsSync(arquivoCorrecoes) ? lerCorrecoes(arquivoCorrecoes) : [];
+    const { carteira, relatorio } = await importarCarteira({ planilha, saida, anonimizar: args.includes('--anonimizar'), autor: pega('--autor'), correcoes });
     const rel = relatorio as Relatorio;
     console.log(`Importação concluída: ${carteira.projetos.length} projetos, ${rel.abas.PIPELINE.ignoradas.length} linhas ignoradas, ${rel.abas.BASE_OPERACIONAL.casadas_sei + rel.abas.BASE_OPERACIONAL.casadas_nome} registros da base casados, ${rel.abas.BASE_OPERACIONAL.sem_par.length} sem par.`);
     console.log(`Arquivos gravados em: ${saida}`);

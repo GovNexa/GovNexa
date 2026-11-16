@@ -172,6 +172,7 @@ function montarInicio(): Modulo {
 }
 
 /** Troca o item 'projetos-carteira' do catálogo pelo módulo completo montado a partir da Carteira. */
-export function comCarteira<T extends { slug: string }>(lista: T[]): T[] {
-  return lista.map((m) => (m.slug === 'projetos-carteira' ? (montarCarteira() as unknown as T) : m.slug === 'projetos' ? (montarInicio() as unknown as T) : m));
+/** Monta só a guia pedida (`somente`); sem `somente`, monta todas. */
+export function comCarteira<T extends { slug: string }>(lista: T[], somente?: string): T[] {
+  return lista.map((m) => (somente !== undefined && m.slug !== somente ? m : m.slug === 'projetos-carteira' ? (montarCarteira() as unknown as T) : m.slug === 'projetos' ? (montarInicio() as unknown as T) : m));
 }

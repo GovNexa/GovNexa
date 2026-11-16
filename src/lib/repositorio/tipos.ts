@@ -14,6 +14,8 @@ export type ResultadoCriacaoProjeto =
 
 export interface RepositorioProjetos {
   podeGravar: boolean;
+  /** Prefeitura de que este repositório lê e grava (chave do cache; preenchida por `repositorioDoUsuario`). */
+  prefeituraId?: number;
   listarProjetos(): Promise<Projeto[]>;
   obterProjeto(id: string): Promise<Projeto | null>;
   historico(projetoId: string): Promise<RegistroHistorico[]>;

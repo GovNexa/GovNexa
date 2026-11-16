@@ -64,6 +64,7 @@ function montarCronogramas(): Modulo {
 }
 
 /** Troca o item 'projetos-cronogramas' do catálogo pelo módulo completo montado a partir dos Cronogramas. */
-export function comCronogramas<T extends { slug: string }>(lista: T[]): T[] {
-  return lista.map((m) => (m.slug === 'projetos-cronogramas' ? (montarCronogramas() as unknown as T) : m));
+/** Monta só a guia pedida (`somente`); sem `somente`, monta todas. */
+export function comCronogramas<T extends { slug: string }>(lista: T[], somente?: string): T[] {
+  return lista.map((m) => (somente !== undefined && m.slug !== somente ? m : m.slug === 'projetos-cronogramas' ? (montarCronogramas() as unknown as T) : m));
 }

@@ -6,7 +6,8 @@ if (process.argv.slice(2).length) throw new Error('db:local não aceita argument
 mkdirSync('.tmp', { recursive: true });
 const env = { ...process.env, TMPDIR: resolve('.tmp'), WRANGLER_LOG_PATH: resolve('.tmp/wrangler.log') };
 function executar(comando, args) {
- const r = spawnSync(comando, args, { stdio: 'inherit', env });
+ // shell: true — no Windows `npx` é npx.cmd e sem shell o script saía sem mensagem (como já faz scripts/build-exemplo.mjs).
+ const r = spawnSync(comando, args, { stdio: 'inherit', env, shell: true });
  if (r.status !== 0) process.exit(r.status ?? 1);
 }
 for (const db of ['DB_CENTRAL', 'DB_PREFEITURA_5208707']) executar('npx', ['wrangler', 'd1', 'migrations', 'apply', db, '--local']);
