@@ -1,6 +1,6 @@
-// Gera o SQL da carga inicial (carteira + cronogramas + histórico de alterações) para o PostgreSQL. Uso apenas local;
+// Gera SQL de carga local para PostgreSQL (padrão) ou D1/SQLite (--dialeto sqlite);
 // o arquivo gerado contém dados da prefeitura e NÃO vai para o repositório.
-//   node scripts/gerar-sql-carga.ts --dados <pasta> --saida <arquivo.sql> [--nome "Goiânia"] [--uf GO]
+//   node scripts/gerar-sql-carga.ts --dados <pasta> --saida <arquivo.sql> [--nome "Goiânia"] [--uf GO] [--dialeto postgres|sqlite]
 // A pasta pode ter carteira.json (e cronogramas.json, historico.json) direto nela ou em carteira/, cronogramas/ e historico/.
 // Histórico: registros de projeto presentes na carteira vão para evento_projeto; os demais (carga da planilha, projetos
 // retirados) vão para evento_sistema. Os dois são imutáveis: ON CONFLICT (id) DO NOTHING (rodar de novo não duplica).
@@ -17,6 +17,9 @@ function arg(nome: string): string | undefined {
   const i = process.argv.indexOf(`--${nome}`);
   return i >= 0 ? process.argv[i + 1] : undefined;
 }
+const dialeto = arg('dialeto') ?? 'postgres';
+if (!['postgres', 'sqlite'].includes(dialeto)) throw new Error('Dialeto inválido.');
+const sqlite = dialeto === 'sqlite';
 const dados = arg('dados');
 const saida = arg('saida');
 if (!dados || !saida) {
@@ -54,19 +57,20 @@ function num(v: unknown): string {
   return String(v);
 }
 const bool = (v: unknown): string => (v === null || v === undefined ? 'NULL' : v ? 'true' : 'false');
-const json = (v: unknown): string => (v === null || v === undefined ? 'NULL' : `${txt(JSON.stringify(v))}::jsonb`);
-const arr = (v: string[] | null | undefined): string => `ARRAY[${(v ?? []).map(txt).join(', ')}]::text[]`;
+const json = (v: unknown): string => (v === null || v === undefined ? 'NULL' : `${txt(JSON.stringify(v))}${sqlite ? '' : '::jsonb'}`);
+const arr = (v: string[] | null | undefined): string => sqlite ? txt(JSON.stringify(v ?? [])) : `ARRAY[${(v ?? []).map(txt).join(', ')}]::text[]`;
 
 function upsert(tabela: string, pk: string[], cols: Record<string, string>): string {
   const nomes = Object.keys(cols);
   const atualiza = nomes.filter((c) => !pk.includes(c)).map((c) => `${c} = EXCLUDED.${c}`);
+  if (sqlite && tabela === 'projeto') atualiza.push('revisao = projeto.revisao + 1');
   return (
     `INSERT INTO ${tabela} (${nomes.join(', ')}) VALUES (${nomes.map((c) => cols[c]).join(', ')})\n` +
     `  ON CONFLICT (${pk.join(', ')}) DO UPDATE SET ${atualiza.join(', ')};`
   );
 }
 
-const linhas: string[] = ['-- Gerado por scripts/gerar-sql-carga.ts (uso local; não versionar).', 'BEGIN;', `SET app.prefeitura_id = '${ibge}';`];
+const linhas: string[] = ['-- Gerado por scripts/gerar-sql-carga.ts (uso local; não versionar).', ...(sqlite ? [] : ['BEGIN;', `SET app.prefeitura_id = '${ibge}';`])];
 linhas.push(upsert('prefeitura', ['id'], { id: num(ibge), nome: txt(arg('nome') ?? `Município ${ibge}`), uf: txt(arg('uf') ?? 'GO') }));
 
 for (const p of carteira.projetos) {
@@ -80,6 +84,7 @@ for (const p of carteira.projetos) {
       solicitacoes_financeiras: txt(p.solicitacoes_financeiras), valores: json(p.valores), recurso: json(p.recurso),
       datas: json(p.datas), por_ano: json(p.por_ano), atualizacao: json(p.atualizacao), operacional: json(p.operacional),
       pendencias: arr(p.pendencias), origem: json(p.origem),
+      ...(sqlite ? { compromisso: txt(p.compromisso), localizacao: json(p.localizacao) } : {}),
     }),
   );
 }
@@ -113,7 +118,7 @@ for (const h of historico) {
     nEventoProjeto++;
     linhas.push(
       `INSERT INTO evento_projeto (id, prefeitura_id, projeto_id, tipo, origem, autor, em, de, para, campos, motivo, forcado, descricao) VALUES (` +
-        [txt(h.id), num(ibge), txt(h.projeto_id), txt(h.tipo), txt(h.origem), txt(h.autor), txt(h.em), txt(h.de), txt(h.para), json(h.campos), txt(h.motivo), bool(h.forcado ?? false), txt(h.descricao)].join(', ') +
+        [txt(h.id), num(ibge), txt(h.projeto_id), txt(h.tipo), txt(h.origem), txt(h.autor), txt(new Date(h.em).toISOString()), txt(h.de), txt(h.para), json(h.campos), txt(h.motivo), bool(h.forcado ?? false), txt(h.descricao)].join(', ') +
         `)
   ON CONFLICT (id) DO NOTHING;`,
     );
@@ -125,12 +130,12 @@ for (const h of historico) {
     if (h.forcado) detalhes.forcado = true;
     linhas.push(
       `INSERT INTO evento_sistema (id, prefeitura_id, tipo, origem, autor, em, descricao, detalhes) VALUES (` +
-        [txt(h.id), num(ibge), txt(h.tipo), txt(h.origem), txt(h.autor), txt(h.em), txt(h.descricao), Object.keys(detalhes).length ? json(detalhes) : 'NULL'].join(', ') +
+        [txt(h.id), num(ibge), txt(h.tipo), txt(h.origem), txt(h.autor), txt(new Date(h.em).toISOString()), txt(h.descricao), Object.keys(detalhes).length ? json(detalhes) : 'NULL'].join(', ') +
         `)
   ON CONFLICT (id) DO NOTHING;`,
     );
   }
 }
-linhas.push('COMMIT;', '');
+linhas.push(...(sqlite ? [] : ['COMMIT;']), '');
 writeFileSync(saida, linhas.join('\n'), 'utf8');
 console.log(`SQL gerado em ${saida}: ${carteira.projetos.length} projetos, ${cronogramas?.cronogramas.length ?? 0} cronogramas, ${nEventoProjeto} eventos de projeto, ${nEventoSistema} eventos de sistema.`);

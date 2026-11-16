@@ -613,12 +613,12 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  await expect(page.locator('#mapa path.leaflet-interactive').first()).toBeAttached();
  const antes=await numero();
  expect(antes).toBeGreaterThanOrEqual(2);
- await page.screenshot({path:'C:/Users/ANIEL_~1/AppData/Local/Temp/claude/4a02c2d203f7e454/dc8f7733-5c4f-49f8-90a6-ea4344865340/scratchpad/mapa-1280.png',fullPage:false});
+ await page.screenshot({path:'test-results/mapa-1280.png',fullPage:false});
  await page.locator('#mapa .leaflet-marker-icon').first().click();
  const popup=page.locator('.leaflet-popup-content');
  await expect(popup.getByRole('link',{name:'Abrir a ficha'})).toHaveAttribute('href',/^\/plataforma\/projetos-carteira\/\?q=/);
  await expect(popup.getByRole('link',{name:'Editar localização'})).toBeVisible();
- await page.screenshot({path:'C:/Users/ANIEL_~1/AppData/Local/Temp/claude/4a02c2d203f7e454/dc8f7733-5c4f-49f8-90a6-ea4344865340/scratchpad/mapa-popup.png'});
+ await page.screenshot({path:'test-results/mapa-popup.png'});
  await page.keyboard.press('Escape');
  await page.locator('#mapa').getByRole('button',{name:'Em execução'}).click();
  await expect(page.locator('#mapa').getByRole('button',{name:'Em execução'})).toHaveAttribute('aria-pressed','false');
@@ -636,13 +636,13 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  await tp.locator('#mapa').scrollIntoViewIfNeeded();
  await tp.locator('#mapa .leaflet-marker-icon').first().tap();
  await expect(tp.locator('.leaflet-popup-content').getByRole('link',{name:'Abrir a ficha'})).toBeVisible();
- await tp.screenshot({path:'C:/Users/ANIEL_~1/AppData/Local/Temp/claude/4a02c2d203f7e454/dc8f7733-5c4f-49f8-90a6-ea4344865340/scratchpad/mapa-390.png'});
+ await tp.screenshot({path:'test-results/mapa-390.png'});
  await touch.close();
  // tela de localização: trocar para ruas e trechos, desenhar 2 pontos e salvar (simulação)
  await page.goto('/plataforma/projetos-localizacao/?id=P-905');
  await expect(page.locator('h1')).toHaveText('Localização e fotos');
  await expect(page.locator('#lp-enviar-fotos')).toBeDisabled();
- await page.screenshot({path:'C:/Users/ANIEL_~1/AppData/Local/Temp/claude/4a02c2d203f7e454/dc8f7733-5c4f-49f8-90a6-ea4344865340/scratchpad/localizacao-1280.png'});
+ await page.screenshot({path:'test-results/localizacao-1280.png'});
  await page.getByRole('radio',{name:/Ruas e trechos/}).check();
  await page.getByLabel('Rua (obrigatório)').fill('Avenida Exemplo');
  await page.getByRole('button',{name:/Desenhar no mapa/}).click();
@@ -672,7 +672,7 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  await page.setViewportSize({width:390,height:844});
  await page.goto('/plataforma/projetos-localizacao/?id=P-905');
  await expect(page.locator('#lp-loc .leaflet-container')).toBeVisible();
- await page.screenshot({path:'C:/Users/ANIEL_~1/AppData/Local/Temp/claude/4a02c2d203f7e454/dc8f7733-5c4f-49f8-90a6-ea4344865340/scratchpad/localizacao-390.png'});
+ await page.screenshot({path:'test-results/localizacao-390.png'});
  await page.setViewportSize({width:1280,height:900});
  for(const caminho of ['/plataforma/gestao/','/plataforma/projetos-localizacao/?id=P-905']){
   await page.goto(caminho);

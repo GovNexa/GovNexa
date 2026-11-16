@@ -71,3 +71,17 @@ Desenho lógico para os módulos Projetos, Contratação e Gestão. O banco de p
 - O repositório só contém `data/exemplo/`, com uma prefeitura fictícia, usada nos testes e nas demonstrações.
 - Sem `GOVNEXA_DADOS`, o sistema usa os dados de exemplo e mostra o aviso "dados de exemplo".
 - A camada de acesso (mesmo padrão de `src/lib/dados/`) é a única que lê os arquivos; na Fase 3 ela passa a ler o PostgreSQL sem mudar as telas.
+
+## D1
+
+O banco central mantém prefeituras, usuários e importações; cada prefeitura tem um banco D1 próprio
+(com carteira, cronogramas, eventos, documentos e fotos). Todo acesso do repositório também filtra
+por `prefeitura_id`; não há RLS ou GRANT no SQLite. Projeto e histórico são gravados no mesmo batch.
+Uma revisão por projeto recusa atualização concorrente baseada em leitura antiga.
+Objetos e listas são TEXT JSON com CHECK(json_valid); valores monetários permanecem números nos
+objetos JSON, com semântica REAL em reais, sem conversão para centavos. Datas são TEXT ISO; momentos
+são ISO-8601 UTC. Identificadores UUID de documentos e fotos são TEXT gerados no código com
+crypto.randomUUID(); os códigos legados dos projetos continuam preservados.
+Triggers BEFORE UPDATE/DELETE impedem reescrever ou apagar eventos; a visão log_alteracoes reúne
+eventos de projeto e de sistema. Fotos e documentos guardam chaves R2, nunca URLs públicas.
+A carga local aceita `--dialeto sqlite`, sem BEGIN/COMMIT, com upserts idempotentes.
