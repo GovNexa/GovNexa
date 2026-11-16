@@ -18,10 +18,15 @@ test('Worker: Access RS256, falha fechada, cache e rotas', async () => {
   Date.now = () => agora;
   let chaves = [jwk];
   let consultas = 0, assets = 0;
-  globalThis.fetch = async (url) => {
+  let statusChaves = 200;
+  const avisos: unknown[][] = [];
+  const warnOriginal = console.warn;
+  console.warn = (...args) => { avisos.push(args); };
+  globalThis.fetch = async (url, options) => {
+    assert.equal(options?.redirect, 'manual');
     assert.equal(String(url), 'https://access.example/cdn-cgi/access/certs');
     consultas++;
-    return Response.json({ keys: chaves });
+    return Response.json({ keys: chaves }, { status: statusChaves });
   };
   const central = bancoTeste('central'), municipal = bancoTeste();
   central.sqlite.exec("INSERT INTO usuario(id,email,nome,perfil,prefeitura_id) VALUES('teste','dev@exemplo.invalid','','admin',5208707)");
@@ -112,7 +117,19 @@ test('Worker: Access RS256, falha fechada, cache e rotas', async () => {
     assert.equal((await chamar(await token({}, par.privateKey, { kid: 'enc' }))).status, 403);
     assert.equal((await chamar(await token({}, par.privateKey, { kid: 'outro-kid' }))).status, 403);
     assert.equal(consultas, antesTroca + 1);
-  } finally { central.sqlite.close(); municipal.sqlite.close(); globalThis.fetch = original; Date.now = relogio; }
+    for (const status of [201, 301, 302, 307, 308, 503]) {
+      agora += 300_000;
+      statusChaves = status;
+      const resposta = await chamar(await token({ exp: Math.floor(agora / 1000) + 300 }));
+      assert.equal(resposta.status, 403);
+      assert.deepEqual(avisos.at(-1), ['[access] recusado: jwks_indisponivel']);
+    }
+    for (const motivo of ['sem_token', 'formato', 'alg', 'iss', 'aud', 'exp', 'nbf', 'kid_desconhecido', 'assinatura']) {
+      assert.ok(avisos.some(args => args[0] === `[access] recusado: ${motivo}`), motivo);
+    }
+    assert.ok(avisos.some(args => args[0] === '[access] sem cadastro ativo'));
+    assert.ok(avisos.every(args => args.length === 1 && /^\[access\] (recusado: (sem_token|formato|alg|iss|aud|exp|nbf|jwks_indisponivel|kid_desconhecido|assinatura|erro)|sem cadastro ativo)$/.test(String(args[0]))));
+  } finally { central.sqlite.close(); municipal.sqlite.close(); globalThis.fetch = original; Date.now = relogio; console.warn = warnOriginal; }
 });
 
 test('Snapshots de dados são isolados por requisição concorrente, inclusive banco vazio', async () => {

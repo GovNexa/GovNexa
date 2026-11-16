@@ -34,7 +34,10 @@ export async function atender(request: Request, env: Env, next: (usuario?: Usuar
  }
  try {
  const usuario = email ? await obterUsuarioAtivoPorEmail(env.DB_CENTRAL,email) : null;
- if(!usuario) return resposta(403,'Sem permissão',undefined,`<p>${escapar(email ?? '')}</p><p>Procure um administrador.</p>`);
+ if(!usuario) {
+  console.warn('[access] sem cadastro ativo');
+  return resposta(403,'Sem permissão',undefined,`<p>${escapar(email ?? '')}</p><p>Procure um administrador.</p>`);
+ }
  let repositorio: RepositorioProjetos;
  try { repositorio = await repositorioDoUsuario(env,usuario); }
  catch { return resposta(503,'Serviço indisponível'); }
