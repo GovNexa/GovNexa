@@ -56,10 +56,10 @@ export function eventosDaAgenda(hoje: Date = new Date()): Evento[] {
 
 export function gerarAgendaIcs(hoje: Date = new Date()): string {
   const agora = hoje.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
-  const linhas: string[] = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Atlas Conecta//Captacao//PT-BR', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:Atlas Conecta - Captacao', 'X-WR-TIMEZONE:America/Sao_Paulo'];
+  const linhas: string[] = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//GovNexa//Captacao//PT-BR', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:GovNexa - Captacao', 'X-WR-TIMEZONE:America/Sao_Paulo'];
   for (const e of eventosDaAgenda(hoje)) {
     linhas.push(
-      'BEGIN:VEVENT', `UID:${e.uid}@atlas-conecta`, `DTSTAMP:${agora}`,
+      'BEGIN:VEVENT', `UID:${e.uid}@govnexa.com.br`, `DTSTAMP:${agora}`,
       `DTSTART;VALUE=DATE:${ymd(e.data)}`, `DTEND;VALUE=DATE:${ymd(mais1(e.data))}`,
       `SUMMARY:${esc(e.titulo)}`, `DESCRIPTION:${esc(e.descricao)}`, `CATEGORIES:${esc(e.categoria)}`, 'TRANSP:TRANSPARENT',
       'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${esc(e.titulo)}`, 'TRIGGER:-P30D', 'END:VALARM',

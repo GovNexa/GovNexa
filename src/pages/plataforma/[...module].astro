@@ -27,7 +27,7 @@ document.addEventListener('astro:page-load',()=>{
 
 document.querySelector('[data-doc-open="true"]')?.addEventListener('click',()=>document.querySelector<HTMLDialogElement>('#doc-dialog')!.showModal());
 document.querySelector<HTMLFormElement>('#draft-form')?.addEventListener('submit',e=>{e.preventDefault();const d=new FormData(e.currentTarget as HTMLFormElement);document.querySelector('#doc-text')!.textContent=`${d.get('kind')} — Rascunho de exemplo. Objeto: ${d.get('object')}. Secretaria: ${d.get('department')}. Justificativa: ${d.get('reason')}. Estimativa e requisitos deverão ser definidos pela equipe técnica. Protótipo: nada é gravado.`;});
-document.querySelector('[data-offer-add]')?.addEventListener('click',e=>{const id=Number((e.currentTarget as HTMLElement).dataset.offerAdd);try{const basket:number[]=JSON.parse(sessionStorage.getItem('atlas-basket')||'[]');if(!basket.includes(id))basket.push(id);sessionStorage.setItem('atlas-basket',JSON.stringify(basket))}catch{}});
+document.querySelector('[data-offer-add]')?.addEventListener('click',e=>{const id=Number((e.currentTarget as HTMLElement).dataset.offerAdd);try{const basket:number[]=JSON.parse(sessionStorage.getItem('govnexa-basket')||'[]');if(!basket.includes(id))basket.push(id);sessionStorage.setItem('govnexa-basket',JSON.stringify(basket))}catch{}});
 
 });
 </script>

@@ -24,7 +24,7 @@ Escopo: aplicação Astro (páginas estáticas + funções de login na Vercel), 
 4. **Dados públicos**: o repositório é público; só entram dados públicos. As citações do DOU têm CPFs de terceiros mascarados (LGPD) e o teste de contrato `npm run test:dados` falha se aparecer CPF ou dado bancário em `data/core`.
 
 ## Passos para ativar o Rate Limiting no Vercel Firewall
-1. Entre em https://vercel.com/dashboard e abra o projeto do Atlas Conecta.
+1. Entre em https://vercel.com/dashboard e abra o projeto GovNexa.
 2. Clique em **Firewall** (menu do projeto).
 3. Clique em **Configure** e depois em **Add Rule** (regra personalizada).
 4. Condição: **Request Path** *equals* `/api/login`. Em **Then**, escolha **Rate Limit**: por exemplo 10 requisições por minuto por IP; ação **Deny** (ou *Challenge*).

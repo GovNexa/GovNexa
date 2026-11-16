@@ -1,6 +1,6 @@
 # Especificação — guia "Projetos" (Fase 4 do Plano Mestre)
 
-Atlas Conecta, bloco Captação. Documento de especificação: **nenhum código foi escrito**. Data: 2026-11-09. Base: `plano-execucao.md`, `arquitetura.md`, `esquema-postgres.sql` (tabelas `projeto` e `projeto_versao`), `regras-alertas.md`, `src/lib/dados/detalhes.ts`, `data/core/*.json` e o Plano Mestre (Parte 5.5). Obs.: `docs/seguranca.md` ainda não existe; as regras de segurança abaixo seguem o vetor 7 (prompt injection) da linha de base global e devem ser consolidadas nesse arquivo.
+GovNexa, bloco Captação. Documento de especificação: **nenhum código foi escrito**. Data: 2026-11-09. Base: `plano-execucao.md`, `arquitetura.md`, `esquema-postgres.sql` (tabelas `projeto` e `projeto_versao`), `regras-alertas.md`, `src/lib/dados/detalhes.ts`, `data/core/*.json` e o Plano Mestre (Parte 5.5). Obs.: `docs/seguranca.md` ainda não existe; as regras de segurança abaixo seguem o vetor 7 (prompt injection) da linha de base global e devem ser consolidadas nesse arquivo.
 
 Decisões já tomadas e respeitadas aqui: PostgreSQL no futuro; **um único usuário** por enquanto (perfis por secretaria só na etapa do banco); **o login não é alterado**; sem serviço pago obrigatório; telas atrás de `src/lib/dados/` (hoje JSON, amanhã banco).
 

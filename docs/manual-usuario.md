@@ -1,4 +1,4 @@
-# Manual do usuário: bloco Captação (Atlas Conecta)
+# Manual do usuário: bloco Captação (GovNexa)
 
 **Versão provisória, atualizada em 10/11/2026.** Os limites, pesos e textos marcados como *provisório* ainda serão definidos com o dono do produto.
 
@@ -25,7 +25,7 @@ O bloco **Captação** reúne, em um só lugar, o que a Prefeitura precisa saber
 
 ## 2. Como acessar
 
-1. Entre na Plataforma do Atlas Conecta com o seu acesso habitual.
+1. Entre na Plataforma GovNexa com o seu acesso habitual.
 2. No menu, clique em **Plataforma**.
 3. Clique em **Captação**.
 4. Aparecem sete guias, nesta ordem: **Principal**, **Oportunidades**, **Acompanhamento**, **Alertas**, **Comparativo**, **Qualidade dos dados** e **Projetos**.
