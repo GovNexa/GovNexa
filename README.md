@@ -37,8 +37,8 @@ São módulos independentes que conversam entre si:
 - O site público é pré-renderizado. A plataforma é montada em cada acesso pelo Worker e lê o banco D1.
 - Os dados operacionais ficam em Cloudflare D1, um banco por prefeitura, com um banco central para cadastros e importações.
 - O MVP não usa IA. A IA fica para a Fase 5, sempre com revisão humana.
-- **Requisito mínimo:** transcrições dos áudios do dono, reunião com a equipe e planilhas-base. Esses insumos ficam na pasta local `Doc Referencia/`, que **nunca** vai para o Git.
-- **Plano completo:** [docs/govnexa/plano.md](docs/govnexa/plano.md), de conhecimento de todos os envolvidos, com fases, decisões, riscos e rastreabilidade. A seção "Andamento" do plano é atualizada a cada entrega.
+- **Documentação de continuidade:** leia [plano adaptado](docs/govnexa/plano.md) e [histórico adaptado](docs/govnexa/historico.md), além deste README. As versões integrais ficam no repositório privado de dados.
+- **Ordem de leitura:** README, plano, histórico, [CLAUDE.md](CLAUDE.md).
 - **Este README é a fonte para dar continuidade.** Ele é atualizado em toda entrega: situação, funcionalidades, decisões e pendências. A regra está no [CLAUDE.md](CLAUDE.md).
 
 ### 1.1 Problema, visão e princípios
@@ -433,8 +433,12 @@ Detalhes em [docs/seguranca.md](docs/seguranca.md).
 
 ## 15. Documentação
 
+Ordem de leitura: README, [plano](docs/govnexa/plano.md), [histórico](docs/govnexa/historico.md), [CLAUDE.md](CLAUDE.md). As versões integrais do plano e do histórico ficam no repositório privado de dados.
+
 | Arquivo | Conteúdo |
 | --- | --- |
+| [docs/govnexa/plano.md](docs/govnexa/plano.md) | Plano público adaptado do sistema |
+| [docs/govnexa/historico.md](docs/govnexa/historico.md) | Regras do dono e lições técnicas; histórico público adaptado |
 | [CLAUDE.md](CLAUDE.md) | Regras de trabalho no repositório |
 | [docs/govnexa/plano.md](docs/govnexa/plano.md) | **Plano completo do GovNexa** (detalhe de tudo que o README resume) |
 | [docs/govnexa/historico.md](docs/govnexa/historico.md) | **Histórico completo**: linha do tempo, evolução dos %, regras do dono, testes do SEI, o que vem a seguir, lições técnicas e todos os PRs |

@@ -1,82 +1,16 @@
 # GovNexa — Planejamento do Sistema (v1)
 
-> **Plano oficial do GovNexa, versionado no repositório para toda a equipe.** Versão inicial de 15/11/2026; a seção "Andamento" é atualizada a cada entrega (regra no `CLAUDE.md`).
+> Plano público adaptado do GovNexa. A versão integral fica no repositório privado de dados.
 > O resumo para quem chega está no `README.md`. Este documento é o detalhe: atores, módulos, regras, prazos, integrações, segurança, roteiro, riscos e rastreabilidade.
-> Pessoas são citadas só por papel; nenhum dado pessoal entra aqui.
+> Dados internos e pessoais não entram neste documento.
 
-> **Atualização de 16/11/2026: migração para o Cloudflare e para o repositório `GovNexa/GovNexa`.**
-> O texto abaixo é o plano aprovado. Onde ele fala de Vercel ou PostgreSQL, vale hoje o seguinte:
-> - **Hospedagem:** Cloudflare Workers, no endereço https://govnexa.com.br (antes Vercel).
-> - **Login:** Cloudflare Access (antes, funções de login da Vercel).
-> - **Banco de dados:** Cloudflare D1, com um banco central e um banco por prefeitura (antes, PostgreSQL planejado).
-> - **Arquivos e fotos:** Cloudflare R2.
-> - **Dados reais:** nunca no repositório. A pasta `data/carga-real/` foi retirada de todo o histórico, e os dados reais entram pelo D1.
-> - **Repositório antigo (`SLo0th1/Atlas_Conecta`):** congelado. Todo o trabalho segue só neste repositório.
-> - **Publicação em produção:** só com ordem expressa do dono (regras no `CLAUDE.md`).
-
-## Andamento · última atualização em 16/11/2026, após a migração para o Cloudflare
-
-O sistema está no ar com os dados reais da planilha (334 projetos e 13 cronogramas do GEPP); gravação de alterações depende do banco de dados. O que mudou em cada entrega está em `docs/CHANGELOG.md`.
-
-| Fase | O que entrega | Situação | % |
-| --- | --- | --- | --- |
-| Planejamento | Plano, decisões, rastreabilidade, Fluxo, fluxos detalhados, mapa de impacto | Fluxos detalhados e mapa de impacto publicados; caixas do Fluxo cabem na raia; zoom no Fluxo | 97% |
-| 0 · Base e identidade | Marca GovNexa, menu por módulos, tema estável, paginação compacta | Publicada; menu lateral com blocos que abrem e fecham (começam fechados) | 100% |
-| 1 · Carteira de Projetos | Carga real, Carteira, ficha, Kanban, Gantt, Visão por órgão, celular | Publicada com dados reais | 100% |
-| 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, Kanban e Pendências (simulação), Histórico, Sala de guerra | Publicada em simulação (Novo projeto no ar, fora do menu lateral); gravar depende do banco | 95% |
-| 2 · Cronograma e equipe | Cronogramas, quadro de tarefas, Onde está parado | Publicada com a Reunião semanal e as dependências entre etapas (atraso em cascata); leitura do SEI em simulação (a leitura diária depende do banco) | 90% |
-| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis, isolamento por prefeitura | Tabelas em produção e carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas pronta (3.5; falta a 1ª gravação em produção). Falta: usuários (3.3) e documentos (3.4) | 75% |
-| 4 · Contratação, convênios e Gestão | Lei 14.133, cláusula suspensiva, alertas, painel do prefeito | Em construção: Prazos da Lei 14.133, Painel do prefeito, Mapa das obras e Central de alertas publicados; Licitação em detalhe com as datas reais do SEI em simulação; falta a leitura automática (banco) e o PNCP | 75% |
-| 5 · Integrações e inteligência | PNCP, SIMEC, SISMOB, preços, WhatsApp, IA | Em construção: WhatsApp em simulação (permissão por número, relatório, perguntas e modelos para a Meta); envio real depende do banco e da conta do WhatsApp Business | 10% |
-
-**Entregas (mais recentes primeiro)**
-
-| Data | Entrega | PR |
-| --- | --- | --- |
-| 16/11 | Etapa 3.5: importação das planilhas do repositório privado (rotina do GitHub com conferência e gravação separadas; códigos repetidos avisados; não apaga, não sobrescreve localização, compromisso nem projeto alterado no sistema) | GovNexa #9 |
-| 16/11 | Leitura do banco otimizada (só a guia aberta é montada; cache de 30 s por prefeitura): páginas da plataforma de ~400 ms para ~20 ms; erro 1102 do plano gratuito explicado (publicada em 16/11, versão 2e1114fa) | GovNexa #6 |
-| 16/11 | Plano e histórico trazidos para o repositório novo, atualizados para a migração; referências ao repositório antigo retiradas | GovNexa #5 |
-| 16/11 | Correção: login pelo Access recusava todos em produção | GovNexa #4 |
-| 16/11 | Etapa 3 (3.1 e 3.2): banco D1, plataforma lendo o banco, porte da Licitação em detalhe, README | GovNexa #3 |
-| 16/11 | Etapa 1: Cloudflare Worker com Access e marca GovNexa | GovNexa #2 |
-| 16/11 | Etapa 0: regras do fluxo com executores e preparo para a Cloudflare | GovNexa #1 |
-| 16/11 | Histórico completo no repositório antigo (docs/govnexa/historico.md) | antigo #49 |
-| 16/11 | Plano completo no repositório, de conhecimento de todos (docs/govnexa/plano.md) | antigo #48 |
-| 16/11 | README completo no repositório (história, princípios, roteiro, situação, funcionalidades, decisões, pendências) e regra no CLAUDE.md: toda entrega atualiza o README (publicado) | #46, #47 |
-| 16/11 | Licitação em detalhe (simulação): fases da Lei 14.133 com as datas reais do SEI a partir da página salva, fase atual, duração, prazo de publicidade e projeto da carteira (publicado) | #45 |
-| 16/11 | Fluxo: zoom (diminuir, aumentar, ajustar à tela; padrão menor em telas largas) e legenda recolhida (publicado) | #44 |
-| 16/11 | Processos no SEI em simulação (leitor da página pública, documentos-chave, etapa sugerida, onde está e há quantos dias; links por projeto); caixas do Fluxo na largura da raia; menu com blocos fechados (publicado) | #43 |
-| 16/11 | Dependências entre etapas e atraso em cascata; Central de alertas (Gestão › Alertas); modelos do WhatsApp para a Meta; lista de obras sem localização (publicado) | #42 |
-| 15/11 | WhatsApp da Gestão: números autorizados, permissão por número, relatório automático e prévia de perguntas (simulação; publicado) | #41 |
-| 15/11 | Correção: mapa em branco no site (arquivo do build que a Vercel não servia) (publicado) | #40 |
-| 15/11 | Mapa das obras no painel do prefeito; Localização e fotos (ponto ou ruas e trechos, em simulação); migração 004 preparada (publicado) | #39 |
-| 15/11 | Correção: religa o Painel do prefeito, perdido na junção do #34 (publicado) | #38 |
-| 15/11 | Testes do menu lateral no celular (publicado) | #37 |
-| 15/11 | Menu lateral com blocos e sub-blocos que abrem e fecham (publicado) | #36 |
-| 15/11 | Prazos da Lei 14.133: prazos legais, metas internas e cálculo em dias úteis (publicado) | #35 |
-| 15/11 | Reunião semanal: pauta automática, decisões, ações e ata em PDF (publicado) | #34 |
-| 15/11 | Painel do prefeito na guia Gestão (publicado) | #33 |
-| 15/11 | Regras de trabalho no repositório (CLAUDE.md) (publicado) | #32 |
-| 15/11 | Novo projeto fora do menu lateral (publicado) | #31 |
-| 15/11 | Novo projeto, 6 fluxos detalhados com exceções, mapa de impacto, paginação compacta, Sala de guerra (incluir/retirar), correção do celular | #30 |
-| 15/11 | Carga real da planilha, tabelas em cartões no celular, correção do tema, Sala de guerra | #27, #28 |
-| 15/11 | Fluxo do sistema com exportação em PDF | #25, #26 |
-| 15/11 | Histórico de alterações (log) | #24 |
-| 15/11 | Cronogramas, Onde está parado, Pendências de etapa, Kanban com simulação, banco preparado | #23 |
-| 15/11 | Tabelas sem rolagem, Início com resumo real | #21 |
-| 15/11 | Carteira, Kanban, Gantt, Visão por órgão | #20 |
-| 15/11 | Rede de segurança da publicação | #19 |
-| 15/11 | Marca GovNexa e menu por módulos | #18 |
-
-**Última atualização (16/11/2026, 16h43):** publicado o #42: dependências entre etapas com atraso em cascata, Central de alertas, modelos do WhatsApp para aprovação da Meta e lista de obras sem localização. Decidido em 16/11: manter a dependência deduzida pela ordem e pelas datas (opção A); a regra será revista quando o fluxo for validado com o cliente, com as dependências e os subprocessos. Reteste do link do SEI (09h07): links válidos, sem captcha. Publicado o #43: Processos no SEI em simulação, Fluxo legível e menu com blocos fechados. Publicado o #44: zoom no Fluxo e legenda recolhida. Publicados o #46 e o #47: README completo no repositório, com a regra de atualizá-lo em toda entrega. Publicado o #45: Licitação em detalhe. Próximo: leitura do SEI por PDF.
-
-**Depende do dono:** banco de dados na Vercel (dono da conta); gancho de publicação (VERCEL\_DEPLOY\_HOOK); validação do Fluxo com as áreas.
+Situação atual: ver [README, seção 2](../../README.md#2-situação-atual-16112026).
 
 ## 1. Sumário executivo
 
-O GovNexa — Inteligência para a gestão pública — será a base única da carteira de projetos da Prefeitura de Goiânia, do desejo do gestor à obra entregue. Ele substitui a planilha de obras prioritárias e conecta captação de recursos, contratação (Lei 14.133/2021) e o painel do prefeito.
+O GovNexa — Inteligência para a gestão pública — será a base única da carteira de projetos da prefeitura piloto, do desejo do gestor à obra entregue. Ele substitui a planilha de obras prioritárias e conecta captação de recursos, contratação (Lei 14.133/2021) e o painel do prefeito.
 
-**Problema.** Hoje a carteira (cerca de 400 projetos) vive em planilhas editadas à mão. Cronogramas por obra ficam em abas separadas e painéis são montados manualmente a cada semana. Ninguém responde de imediato: onde está parado, com quem, há quantos dias, e quanto do orçamento não tem fonte.
+**Problema.** Hoje a carteira (uma carteira de projetos) vive em planilhas editadas à mão. Cronogramas por obra ficam em abas separadas e painéis são montados manualmente a cada semana. Ninguém responde de imediato: onde está parado, com quem, há quantos dias, e quanto do orçamento não tem fonte.
 
 **Visão.** Um projeto é cadastrado uma vez e todas as telas são visões dele: carteira, Kanban, Gantt, captação, licitação e painel. O sistema calcula status, prazos e alertas; a equipe só registra fatos (iniciou, concluiu, enviou, voltou).
 
@@ -92,7 +26,7 @@ O GovNexa — Inteligência para a gestão pública — será a base única da c
 
 **Decisões já tomadas**
 
-**Escopo de produto.** A Prefeitura de Goiânia é o piloto; depois o GovNexa será comercializado para outras prefeituras, cada uma com acesso e dados próprios e isolados (seção 11.5).
+**Escopo de produto.** A prefeitura piloto é o piloto; depois o GovNexa será comercializado para outras prefeituras, cada uma com acesso e dados próprios e isolados (seção 11.5).
 
 | Tema | Decisão |
 | --- | --- |
@@ -102,23 +36,23 @@ O GovNexa — Inteligência para a gestão pública — será a base única da c
 | Guia Projetos da Captação | Continua na Captação (parecer de elegibilidade) e referencia o módulo Projetos |
 | Painel do prefeito | Guia Gestão, que reúne todos os módulos ativos |
 | Primeira entrega | Carteira de Projetos (substituir a planilha) |
-| Dados | Planejado para PostgreSQL; o MVP roda em JSON até a produção |
+| Dados | Cloudflare D1, um banco por prefeitura e um central; PostgreSQL/Supabase apenas como plano B |
 | IA | Fora do MVP; prevista em fase posterior |
 | Texto "Área de comprador" | Sai da página |
 | Privacidade | Nenhum nome de pessoa em código, documentos ou repositório; referências por papel |
 
 ## 2. Atores e perfis de uso
 
-Seis perfis cobrem todos os usos; no MVP haverá um único usuário com acesso total (decisão já tomada), e os perfis entram com o banco de dados.
+Seis perfis cobrem todos os usos. O acesso usa Cloudflare Access e cadastro ativo no banco central; durante a construção, todos são admin.
 
 | Perfil | Quem é | O que precisa ver | O que faz no sistema |
 | --- | --- | --- | --- |
 | Prefeito / Gabinete | Decisor de governo | Foto atual de cada projeto, licitações em curso (empresa, colocação, valor), medições, previsões de entrega | Consulta; recebe notificações (fase futura: WhatsApp) |
-| Gestor de portfólio (GEPP/SECAP) | Coordena a carteira e a reunião semanal | Tudo, com farol e o que mudou na semana | Cadastra e prioriza projetos, distribui responsáveis, conduz a reunião, força portão de fase com justificativa |
+| Gestor de portfólio (equipe gestora) | Coordena a carteira e a reunião semanal | Tudo, com farol e o que mudou na semana | Cadastra e prioriza projetos, distribui responsáveis, conduz a reunião, força portão de fase com justificativa |
 | Responsável / técnico | Engenheiro, arquiteto, analista | Suas tarefas, prazos e bloqueios | Registra início, conclusão, envio e retorno de etapas; anexa documentos |
 | Equipe de captação | Busca e acompanha recursos federais | Oportunidades, convênios, cláusulas suspensivas, prazos | Liga projeto a oportunidade, registra proposta e convênio |
 | Equipe de contratação / agente de contratação | Conduz a licitação (Lei 14.133) | Funil de licitações, prazos legais, colocados | Registra publicação, sessão, propostas, habilitação, recursos e homologação |
-| Secretaria parceira / órgão externo | SMS, SME, SEINFRA, PGM e outros | Itens do seu órgão e o que está com ele | Atualiza as pendências que lhe cabem (fase com perfis) |
+| Secretaria parceira / órgão externo | secretarias e órgãos parceiros | Itens do seu órgão e o que está com ele | Atualiza as pendências que lhe cabem (fase com perfis) |
 |  |  |  |  |
 
 **Regra de uso.** O sistema é desenhado para quem tem dificuldade com planilha: fichas em texto, campos essenciais na primeira tela, botões de ação rápida (Iniciar, Concluir, Enviar ao órgão, Registrar retorno, Abrir bloqueio) e nenhuma barra de rolagem lateral.
@@ -167,7 +101,7 @@ Todo projeto percorre as mesmas nove macroetapas, com os nomes padronizados da p
 | 05 – Execução | 8 Execução |
 | 06 – Conclusão | 9 Entrega |
 
-A carteira oficial é a aba PIPELINE (334 projetos, 16 órgãos), completada pela BASE\_OPERACIONAL (116 obras da SEINFRA: situação, reunião, providências, cronograma físico e financeiro, rateio regional), casadas por SEI e nome.
+A carteira é complementada por informações operacionais de situação, providências, cronogramas e rateios, relacionadas por identificadores de processo e projeto.
 
 ```mermaid
 flowchart LR
@@ -207,7 +141,7 @@ O módulo Projetos guarda a carteira inteira e é a primeira entrega: ele precis
 
 ### 5.1 Hierarquia
 
-Portfólio → Programa (opcional, ex.: "29 UBS") → Projeto → Macroetapa → Etapa (tarefa com dono) → Ciclo (cada ida e volta de uma mesma etapa).
+Portfólio → Programa (opcional, por domínio próprio da prefeitura"29 UBS") → Projeto → Macroetapa → Etapa (tarefa com dono) → Ciclo (cada ida e volta de uma mesma etapa).
 
 ### 5.2 Classificação do projeto (nova, vinda da reunião)
 
@@ -228,7 +162,7 @@ Abas da ficha: Resumo · Valores e recursos · Cronograma (Kanban/Gantt) · Capt
 
 ### 5.4 Cronograma, Kanban e Gantt
 
-- **Modelos por tipo de obra:** o projeto nasce de um modelo (UPA, UBS, CMEI, escola, praça, pavimentação, ponte, drenagem, reforma, serviço). O modelo de saúde já existe nas planilhas do GEPP (8 fases, cerca de 70 etapas). Os demais se criam por cópia.
+- **Modelos por tipo de obra:** o projeto nasce de um modelo (UPA, UBS, CMEI, escola, praça, pavimentação, ponte, drenagem, reforma, serviço). O modelo de saúde já existe nas planilhas do equipe gestora (8 fases, cerca de 70 etapas). Os demais se criam por cópia.
 - **Dependências:** cada etapa declara predecessoras; mudar uma data reprograma as sucessoras na projeção, sem tocar na linha de base.
 - **Gantt geral:** uma linha por projeto, barras por macroetapa, com previsto × projetado × real, losangos nos marcos e a linha "hoje".
 - **Gantt do projeto:** etapas, caminho crítico destacado e setas de dependência.
@@ -264,13 +198,13 @@ Concedente (ministério) · número e sistema de origem · objeto · valor globa
 ### 6.3 Cláusula suspensiva: o primeiro alerta
 
 - O convênio é assinado, mas o dinheiro só é liberado depois de cumprida a exigência (projeto executivo, orçamento, licença ambiental, termo de referência, titularidade da área). Se o prazo vencer sem cumprimento, o convênio é extinto.
-- Cada exigência vira uma tarefa com dono, ligada à etapa correspondente do cronograma do projeto (ex.: "licença ambiental" = etapa 1.2.2).
+- Cada exigência vira uma tarefa com dono, ligada à etapa correspondente do cronograma do projeto (por domínio próprio da prefeitura"licença ambiental" = etapa 1.2.2).
 - Alertas a 90, 60, 30 e 15 dias do vencimento, e quando a etapa ligada atrasa a ponto de comprometer o prazo.
 - Base normativa: Portaria Conjunta MGI/MF/CGU nº 33/2023 (art. 24 e seguintes) e alterações; o prazo máximo e as regras de prorrogação serão conferidos no texto oficial antes da implementação. O prazo efetivo de cada convênio vem do próprio instrumento.
 
 ### 6.4 Saldo sem fonte
 
-Para cada projeto: orçamento atual − (repasses + contrapartida + outras fontes garantidas). Exemplo da reunião: obra de R$ 6 mi com R$ 3 mi de repasse e R$ 0,5 mi de contrapartida = **R$ 2,5 mi sem fonte**, alerta vermelho. Um convênio pode financiar várias contratações, e uma contratação pode não ter convênio (recurso próprio).
+Para cada projeto: orçamento atual − (repasses + contrapartida + outras fontes garantidas). Exemplo da reunião: obra de valor da carteira com valor da carteira de repasse e valor da carteira de contrapartida = **valor da carteira sem fonte**, alerta vermelho. Um convênio pode financiar várias contratações, e uma contratação pode não ter convênio (recurso próprio).
 
 ### 6.5 Fontes de convênio
 
@@ -284,7 +218,7 @@ Um convênio está em uma única fonte, nunca em duas. Fontes complementares já
 
 ### 6.6 Elaboração de proposta com apoio de IA (fase posterior)
 
-Preencher o formulário padrão do Transferegov (justificativa, benefício social, resultado esperado) com indicadores de Goiânia ligados ao tema; o usuário revisa tudo antes de usar. Fica fora do MVP por decisão já tomada; antes da IA, o sistema oferece modelos de texto e os indicadores já coletados.
+Preencher o formulário padrão do Transferegov (justificativa, benefício social, resultado esperado) com indicadores de município piloto ligados ao tema; o usuário revisa tudo antes de usar. Fica fora do MVP por decisão já tomada; antes da IA, o sistema oferece modelos de texto e os indicadores já coletados.
 
 ## 7. Módulo Contratação (Lei 14.133/2021)
 
@@ -293,7 +227,7 @@ A Contratação acompanha cada processo licitatório do pedido à ordem de servi
 ### 7.1 Relações
 
 - Um projeto pode ter várias contratações (projeto, obra, supervisão, equipamentos).
-- Uma licitação pode ter vários **lotes**, e cada lote pode atender um projeto diferente (ex.: 4 CMEIs numa licitação).
+- Uma licitação pode ter vários **lotes**, e cada lote pode atender um projeto diferente (por domínio próprio da prefeitura4 CMEIs numa licitação).
 - Um convênio pode financiar várias contratações; uma contratação pode ser só com recurso próprio.
 - Formas: licitação (pregão, concorrência), adesão a ata, dispensa, inexigibilidade, credenciamento, contrapartida de empreendedor (termo de compensação) e chamamento público (organização social).
 
@@ -330,8 +264,8 @@ A Contratação acompanha cada processo licitatório do pedido à ordem de servi
 
 **Prazo da lei × prazo da prefeitura.** A prefeitura define metas internas mais curtas que a lei, para ter folga diante de imprevistos. O sistema trata dois tipos de prazo legal de forma diferente:
 
-- **Prazo máximo (teto)** — ex.: decisão de recurso, publicação do contrato no PNCP, cláusula suspensiva. A meta interna é menor; passou da meta = alerta amarelo; o planejado ou o real **ultrapassar o limite legal = alerta vermelho de destaque**, no topo do painel e para o gestor.
-- **Prazo mínimo (piso)** — ex.: publicidade do edital (art. 55) e prazo para recurso. Aqui encurtar é ilegal: o sistema impede marcar a abertura antes do mínimo e alerta se o cronograma planejar menos. A folga interna vai nas etapas anteriores (edital pronto antes), nunca no prazo do licitante.
+- **Prazo máximo (teto)** — por domínio próprio da prefeituradecisão de recurso, publicação do contrato no PNCP, cláusula suspensiva. A meta interna é menor; passou da meta = alerta amarelo; o planejado ou o real **ultrapassar o limite legal = alerta vermelho de destaque**, no topo do painel e para o gestor.
+- **Prazo mínimo (piso)** — por domínio próprio da prefeiturapublicidade do edital (art. 55) e prazo para recurso. Aqui encurtar é ilegal: o sistema impede marcar a abertura antes do mínimo e alerta se o cronograma planejar menos. A folga interna vai nas etapas anteriores (edital pronto antes), nunca no prazo do licitante.
 
 Todo prazo legal fica como parâmetro com sua referência na lei e é conferido no texto oficial antes da implementação. Para o PNCP, a lei dá 20 dias úteis em licitação; os 10 dias da especificação de cronograma ficam como meta interna.
 
@@ -372,7 +306,7 @@ A guia Gestão mostra a foto atual de tudo o que está ativo em todos os módulo
 | Funil de licitações | Em preparação → ajustes finais → publicadas → em julgamento → concluídas, com quantidade, valor e economia | Contratação |
 | Licitações em julgamento | Empresa à frente e sua colocação (1º ao 7º), valor da proposta, segunda colocada, fase recursal e próximo prazo | Contratação |
 | Próximos marcos | Próximos 15 dias: envio à PGM, publicação, abertura, contrarrazões, OS | Todos |
-| Onde está parado | Por órgão e por empresa: itens, dias acumulados, o mais antigo (ex.: "Aguardando PGM: 4") | Projetos + Contratação |
+| Onde está parado | Por órgão e por empresa: itens, dias acumulados, o mais antigo (por domínio próprio da prefeitura"Aguardando PGM: 4") | Projetos + Contratação |
 | Obras em execução | Avanço físico × financeiro, medições pagas e pendentes, previsão de entrega | Contratação |
 | Previsões | Fim da licitação, início e entrega da obra, projetado × linha de base | Projetos |
 | Recursos federais | Convênios ativos, saldo a liberar, cláusulas suspensivas a vencer, saldo sem fonte | Captação |
@@ -415,7 +349,7 @@ O usuário registra fatos e o sistema deriva o resto; só três status são manu
 
 ### 9.3 Datas
 
-- Dias úteis com calendário de feriados nacionais, de Goiás e de Goiânia; cada etapa define se conta dias úteis ou corridos.
+- Dias úteis com calendário de feriados nacionais, de Goiás e de município piloto; cada etapa define se conta dias úteis ou corridos.
 - Data vazia nunca entra em cálculo (acaba com os números negativos da planilha).
 - Entrega projetada = fim da contratação + dias de obra, recalculada a cada mudança.
 - Linha de base versionada: a primeira nasce ao aprovar o planejamento; cada nova versão exige motivo (aditivo, fato externo, replanejamento).
@@ -424,8 +358,8 @@ O usuário registra fatos e o sistema deriva o resto; só três status são manu
 
 - Saldo sem fonte = orçamento atual − fontes garantidas.
 - Economia = estimado − proposto ou contratado.
-- Rateio por região soma 100%; é proibido lançar o valor integral em duas regiões (erro que inflou a planilha em R$ 773 mi).
-- Previsão física e financeira por ano soma o valor do projeto (tolerância de R$ 1); sem distribuição, todo o valor vai ao ano previsto com o aviso "distribuição presumida".
+- Rateio por região soma 100%; é proibido lançar o valor integral em duas regiões (erro que inflou a planilha em valor da carteira).
+- Previsão física e financeira por ano soma o valor do projeto (tolerância de valor da carteira); sem distribuição, todo o valor vai ao ano previsto com o aviso "distribuição presumida".
 - Valor de anteprojeto (2%, parametrizável) calculado, não digitado.
 
 ### 9.5 Priorização (pesos configuráveis)
@@ -469,28 +403,28 @@ A carteira começa pela importação das duas planilhas atuais, com relatório d
 | Planilha | O que traz | Regras de importação |
 | --- | --- | --- |
 | Obras prioritárias (9 abas) | Carteira, campos manuais, pipeline, cronograma físico-financeiro 2026–2029, rateio regional, painel | Dados brutos preservados; junção pelo número do item (ou SEI + título); "-" vira vazio, nunca zero; datas em formatos mistos normalizadas ou marcadas como ambíguas; linhas de total e células com erro ficam como "ignoradas" e entram na conciliação |
-| Cronogramas GEPP (15 abas, uma por obra) | Etapas, responsáveis, datas previstas e reais | Uma aba = um projeto; etapas casadas com o modelo por semelhança de nome, com confirmação; repetições ("2ª entrega") viram ciclos; colunas calculadas são recalculadas |
+| Cronogramas equipe gestora (15 abas, uma por obra) | Etapas, responsáveis, datas previstas e reais | Uma aba = um projeto; etapas casadas com o modelo por semelhança de nome, com confirmação; repetições ("2ª entrega") viram ciclos; colunas calculadas são recalculadas |
 
 - Reimportar o mesmo arquivo não duplica nada; um arquivo novo gera uma lista de diferenças para aprovação.
-- **Conciliação obrigatória antes do corte:** a planilha soma R$ 2,53 bi na base e a soma regional chega a R$ 3,30 bi por um erro de rateio. A base oficial são as planilhas; os relatórios recebidos (por órgão e de licitações) são só exemplo de conteúdo e não entram na conciliação. O relatório de importação explica cada diferença item a item; nada é "corrigido" em silêncio.
+- **Conciliação obrigatória antes do corte:** a planilha soma valor da carteira na base e a soma regional chega a valor da carteira por um erro de rateio. A base oficial são as planilhas; os relatórios recebidos (por órgão e de licitações) são só exemplo de conteúdo e não entram na conciliação. O relatório de importação explica cada diferença item a item; nada é "corrigido" em silêncio.
 - Nomes de pessoas nas colunas de providências são convertidos em responsáveis cadastrados; o repositório de código nunca recebe a planilha nem nomes.
 
-### 10.2 SEI da Prefeitura de Goiânia
+### 10.2 SEI da prefeitura piloto
 
 Situação verificada em 15/11/2026:
 
-- Instância em `sei.goiania.go.gov.br` (versão 2.29, inferida dos arquivos da página).
+- Instância pública do sistema de processos da prefeitura piloto.
 - Existe **Pesquisa Pública** sem login (número do processo, texto, interessado, órgão, unidade, tipo, período), protegida por **captcha de imagem**.
 - Não há API, serviço web ou dados abertos anunciados. O SEI tem um serviço web oficial (SOAP), mas ele só atende sistemas cadastrados pela administração do SEI e endereços de rede autorizados.
 
 Caminhos, em ordem de prioridade (o objetivo é o máximo de automação com poucos cliques, sem contornar captcha):
 
 1. **Importação de PDF (decidida; base do MVP).** O usuário gera no SEI o PDF do processo e arrasta para a ficha do projeto. O sistema lê o texto, identifica número, andamentos, datas, unidades e documentos (edital, parecer, ata, homologação, contrato, OS) e mostra as atualizações propostas; o usuário confirma com um clique. PDF escaneado sem texto exige reconhecimento de texto (fase posterior).
-2. **Releitura automática do link público do processo (testada em 15/11/2026; recomendada).** A pesquisa pública do SEI gera, para cada processo, uma página de exibição com um código próprio. Teste com um processo de licitação da SEINFRA: depois de obtido, o link abriu sem captcha e trouxe tipo e data do processo, a lista de documentos (258: número, tipo, data e unidade) e a lista de andamentos (443: data, hora, unidade e descrição). O conteúdo dos documentos restritos não aparece, e o botão "Gerar PDF" pede captcha. Funcionamento: o usuário faz a pesquisa uma vez, cola o link na ficha, e o GovNexa relê a página uma vez por dia, um processo por vez. Com isso sabe onde o processo está, há quantos dias, e quando surge um documento-chave pelo tipo (edital, parecer, homologação, contrato), e propõe a atualização da etapa. Reteste em 16/11/2026, às 09h07, um dia depois: os dois links continuam válidos e abrem sem captcha. Processo da SEINFRA: 258 documentos e 443 andamentos, último em 21/01/2026. Processo da SECAP: 324 documentos e 50 andamentos, último em 12/11/2026; um documento público voltou como PDF direto. O link público pode ser guardado na ficha; se algum dia expirar, o GovNexa avisa e pede um link novo. O conteúdo do documento continua entrando por PDF (caminho 1).
+2. **Releitura automática do link público do processo (testada em 15/11/2026; recomendada).** A pesquisa pública do SEI gera, para cada processo, uma página de exibição com um código próprio. Teste com um processo de licitação da secretaria responsável: depois de obtido, o link abriu sem captcha e trouxe tipo e data do processo, a lista de documentos (258: número, tipo, data e unidade) e a lista de andamentos (443: data, hora, unidade e descrição). O conteúdo dos documentos restritos não aparece, e o botão "Gerar PDF" pede captcha. Funcionamento: o usuário faz a pesquisa uma vez, cola o link na ficha, e o GovNexa relê a página uma vez por dia, um processo por vez. Com isso sabe onde o processo está, há quantos dias, e quando surge um documento-chave pelo tipo (edital, parecer, homologação, contrato), e propõe a atualização da etapa. Reteste em 16/11/2026, às 09h07, um dia depois: os dois links continuam válidos e abrem sem captcha. Processo da secretaria responsável: 258 documentos e 443 andamentos, último em 21/01/2026. Processo da secretaria responsável: 324 documentos e 50 andamentos, último em 12/11/2026; um documento público voltou como PDF direto. O link público pode ser guardado na ficha; se algum dia expirar, o GovNexa avisa e pede um link novo. O conteúdo do documento continua entrando por PDF (caminho 1).
 3. **Botão "Enviar ao GovNexa" no navegador (a validar).** Para servidores já logados no SEI: um atalho no navegador lê a tela do processo aberta (andamentos e lista de documentos) e envia ao GovNexa em um clique. Alcança também processos restritos que o servidor já pode ver, sem guardar senha.
 4. **Serviço web oficial do SEI (opcional, futuro).** Continua sendo a via mais estável, se a prefeitura quiser cadastrar o GovNexa.
 
-**Regra decidida: documento público é automático, documento restrito entra por PDF.** Para cada processo vinculado, o GovNexa relê a página pública todo dia (andamentos e lista de documentos). Documento marcado como público tem o conteúdo lido automaticamente: confirmado em 15/11/2026 com um processo de licitação da SECAP (324 documentos públicos, 50 andamentos), em que o link de cada documento devolveu o PDF direto, sem captcha e com texto legível. A lista de tipos permite reconhecer cada peça do fluxo: DFD, ETP, matriz de risco, projeto básico, minutas, ART, licença ambiental, declarações de orçamento e despachos. O DFD cita o número de outro processo SEI (o do convênio), o que permite ligar automaticamente processo de contratação e convênio. Documento restrito aparece na lista com tipo, data e unidade, e a ficha mostra "conteúdo restrito: enviar PDF"; o usuário arrasta o PDF quando precisar do conteúdo. No processo testado, todos os documentos estavam restritos provisoriamente, para reclassificação do nível de acesso.
+**Regra decidida: documento público é automático, documento restrito entra por PDF.** Para cada processo vinculado, o GovNexa relê a página pública todo dia (andamentos e lista de documentos). Documento marcado como público tem o conteúdo lido automaticamente: confirmado em 15/11/2026 com um processo de licitação da secretaria responsável (324 documentos públicos, 50 andamentos), em que o link de cada documento devolveu o PDF direto, sem captcha e com texto legível. A lista de tipos permite reconhecer cada peça do fluxo: DFD, ETP, matriz de risco, projeto básico, minutas, ART, licença ambiental, declarações de orçamento e despachos. O DFD cita o número de outro processo SEI (o do convênio), o que permite ligar automaticamente processo de contratação e convênio. Documento restrito aparece na lista com tipo, data e unidade, e a ficha mostra "conteúdo restrito: enviar PDF"; o usuário arrasta o PDF quando precisar do conteúdo. No processo testado, todos os documentos estavam restritos provisoriamente, para reclassificação do nível de acesso.
 
 **Cuidados da leitura automática.** Documentos públicos trazem dados pessoais de servidores (nome, matrícula, e-mail, telefone). O GovNexa guarda só o necessário para a gestão (tipo, data, unidade, números de processo, valores e prazos) e mascara dados pessoais no texto armazenado. Para não sobrecarregar o SEI, baixa apenas documentos novos de tipos-chave, um de cada vez, com intervalo entre acessos. O link de cada processo ainda precisa ser confirmado como válido nos dias seguintes.
 
@@ -521,16 +455,19 @@ O maior risco imediato não é técnico: o repositório de código é público e
 
 ### 11.1 Dados e privacidade
 
-- **Separação código × dado:** a carteira real (projetos, valores, responsáveis) fica fora do repositório público: no MVP, num arquivo local ou armazenamento privado; em produção, no banco de dados. A pasta de referências (planilhas, áudio, vídeo) fica fora do Git.
-- **Pessoas:** servidores aparecem por nome só dentro do sistema autenticado, com finalidade de gestão (LGPD, execução de política pública); nunca em código, documentação ou exemplos. Sem CPF de servidor no cadastro.
-- **Empresas licitantes:** razão social, CNPJ e valores são informação pública da licitação; sócios e dados bancários não são guardados.
-- **Credenciais:** nenhuma senha em código, chat ou documento; chaves só como segredo do ambiente.
+- Dados reais nunca entram no repositório público. A carteira real fica no D1 da prefeitura; planilhas ficam no repositório privado de dados e são importadas por rotina do GitHub, com aviso de códigos repetidos.
+- Insumos do cliente são privados e ficam fora do repositório. Exemplos publicados são fictícios e identificados como tais.
+- Pessoas aparecem por papel nos documentos e exemplos. Dados pessoais operacionais ficam restritos ao sistema autenticado e à finalidade de gestão pública.
+- Empresas licitantes: guardar somente informações necessárias ao processo; não guardar dados bancários.
+- Credenciais ficam em configuração protegida, nunca no código ou nos documentos.
 
 ### 11.2 Acesso
 
-- Login atual mantido como está (decisão vigente); perfis por papel (seção 2) entram com o banco de dados.
+- Autenticação por Cloudflare Access, com código por e-mail, mais cadastro ativo no banco central. Não há login próprio.
+- Perfis: admin, gestor, editor e leitura; durante a construção, todos são admin.
+- O cadastro e a administração de usuários são feitos pela tela do sistema e sincronizados com um grupo do Access.
 - Toda alteração registra autor, data, valor anterior e novo; campos sensíveis exigem motivo.
-- O painel do prefeito e as notificações só mostram dados a quem tem perfil para vê-los.
+- O painel e as notificações só mostram dados a quem tem perfil para vê-los.
 
 ### 11.3 Linha de base de segurança (9 vetores)
 
@@ -538,14 +475,14 @@ Cada entrega passa pela verificação de: XSS, rotas de API expostas, chaves exp
 
 ### 11.4 Governança
 
-- **Dono do produto:** gestão de portfólio (GEPP/SECAP) decide prioridades, modelos de cronograma e parâmetros de alerta.
+- **Dono do produto:** gestão de portfólio (equipe gestora) decide prioridades, modelos de cronograma e parâmetros de alerta.
 - **Data de corte:** quando a importação estiver conciliada, a planilha vira somente leitura e o sistema passa a ser a fonte oficial.
 - **Rotina:** reunião semanal conduzida pelo sistema; revisão mensal dos parâmetros (prazos, pesos do score) e dos modelos.
 - **Mudanças no sistema:** feitas em branches próprios, revisadas e mescladas pelo dono do repositório.
 
-### 11.5 Piloto em Goiânia e produto para outras prefeituras
+### 11.5 Piloto em município piloto e produto para outras prefeituras
 
-Goiânia é o piloto; depois o GovNexa será oferecido a outras prefeituras, cada uma com seu acesso e seus dados. Isso vale desde a primeira linha de código: nada pode depender de Goiânia estar escrito no sistema.
+município piloto é o piloto; depois o GovNexa será oferecido a outras prefeituras, cada uma com seu acesso e seus dados. Isso vale desde a primeira linha de código: nada pode depender de município piloto estar escrito no sistema.
 
 - **Isolamento total por prefeitura:** cada município é um cliente separado; nenhum usuário, consulta, painel, exportação ou notificação enxerga dado de outro. No banco, todo registro leva o município e o isolamento é imposto pelo próprio banco, não só pela tela.
 - **Tudo que é local vira configuração:** órgãos e siglas, regiões, feriados municipais, modelos de cronograma, minutas de edital, parâmetros de alerta, pesos do score, tabelas de orçamento estaduais (GOINFRA é de Goiás; outro estado usa a sua), endereço do SEI ou do sistema de processos local, logotipo e nome no cabeçalho.
@@ -554,15 +491,15 @@ Goiânia é o piloto; depois o GovNexa será oferecido a outras prefeituras, cad
 - **Módulos contratáveis:** cada prefeitura liga só os módulos que contratar; a guia Gestão mostra apenas os ativos (já previsto na seção 3).
 - **LGPD e contrato:** a prefeitura é a controladora dos dados e o fornecedor do GovNexa é o operador; o contrato precisa prever finalidade, segurança, incidentes, exportação completa dos dados a qualquer momento e devolução ou exclusão ao fim do contrato.
 - **Venda ao setor público:** prefeituras contratam por licitação, dispensa ou adesão a ata; ter o piloto documentado (resultados, tempo poupado) e as exigências comuns de software público (hospedagem no Brasil, acessibilidade, segurança, suporte) facilita esse caminho.
-- **Dados do piloto:** os dados de Goiânia são da Prefeitura de Goiânia e nunca entram em demonstrações para outros municípios; demonstração usa base fictícia.
+- **Dados do piloto:** os dados de município piloto são da prefeitura piloto e nunca entram em demonstrações para outros municípios; demonstração usa base fictícia.
 
-**Endereço por prefeitura: subdomínio (recomendado).** Cada prefeitura acessa pelo seu subdomínio, por exemplo `goiania.govnexa.com.br` (exemplo; o domínio já foi adquirido, e o endereço atual se mantém até nova decisão). O subdomínio identifica a prefeitura e leva sua marca; quem garante o isolamento continua sendo o banco e o controle de acesso.
+**Endereço por prefeitura: subdomínio (recomendado).** Cada prefeitura acessa por subdomínio em `govnexa.com.br`. O subdomínio identifica a prefeitura e leva sua marca; quem garante o isolamento continua sendo o banco e o controle de acesso.
 
 - A prefeitura é identificada pelo endereço no servidor, nunca por um parâmetro que o usuário possa trocar.
 - O login vale só no subdomínio onde foi feito (cookie de sessão restrito ao subdomínio): entrar em uma prefeitura não dá acesso a outra.
 - Cada usuário pertence a uma prefeitura; acesso a mais de uma (suporte, consultoria) é exceção explícita e registrada.
 - Certificado de segurança curinga e DNS curinga cobrem novos municípios sem trabalho manual; nomes reservados (www, api, admin, demo) não podem ser usados por prefeituras.
-- Opcional para quem exigir: domínio da própria prefeitura apontando para o sistema (ex.: `govnexa.goiania.go.gov.br`).
+- Opcional para quem exigir: domínio da própria prefeitura apontando para o sistema.
 - `demo.govnexa…` com base fictícia para apresentações comerciais.
 
 ## 12. Roteiro de implantação e critérios de aceite
@@ -624,7 +561,7 @@ O risco que mais derruba sistemas como este é a equipe voltar para a planilha; 
 7. **Requisito de programa não confirmado no parecer de captação.** Recomendo bloqueante.
 8. **Data de corte da planilha.** Recomendo definir após a conciliação, com quatro semanas de uso em paralelo.
 9. **Origem dos totais** : resolvido. A base são as planilhas; os relatórios recebidos foram só exemplo de conteúdo.
-10. **Hospedagem de produção e banco.** Recomendo PostgreSQL em ambiente da prefeitura ou serviço gerenciado no Brasil, a decidir antes da Fase 4.
+10. **Hospedagem de produção e banco.** Cloudflare Workers + GitHub e Cloudflare D1, um por prefeitura e central para prefeituras, usuários e importações. PostgreSQL/Supabase somente como plano B.
 11. **Pedido à TI do serviço web do SEI.** Decidido: não será pedido agora; a liberação é improvável hoje e pode ocorrer no futuro. O SEI segue por link público e PDF.
 
 **Decisões de produto (piloto e comercialização)**
@@ -632,7 +569,7 @@ O risco que mais derruba sistemas como este é a equipe voltar para a planilha; 
 - **Hospedagem multiprefeitura.** Recomendo uma instalação única com isolamento por prefeitura imposto no banco, e instalação dedicada como opção para quem exigir; alternativa: uma instalação por prefeitura desde o início (mais cara de manter).
 - **Titularidade e marca.** Definir quem detém o GovNexa e o código antes de oferecer a outra prefeitura; o repositório hoje é público e compartilhado.
 - **Modelo comercial.** Assinatura por módulo e por porte do município é o formato mais comum; a definir.
-- **Risco específico:** regras e nomes de Goiânia (órgãos, GOINFRA, formato do SEI) embutidos no código travariam a venda; mitigação: tudo local como configuração e um segundo município de teste (fictício) desde a fase 1.
+- **Risco específico:** regras e nomes de município piloto (órgãos, GOINFRA, formato do SEI) embutidos no código travariam a venda; mitigação: tudo local como configuração e um segundo município de teste (fictício) desde a fase 1.
 
 ### 13.3 Recomendações finais
 
@@ -641,46 +578,20 @@ O risco que mais derruba sistemas como este é a equipe voltar para a planilha; 
 - Trazer a contratação logo depois, porque é o que o prefeito mais acompanha.
 - Deixar IA, WhatsApp e tabelas de preço para depois que a base estiver confiável.
 
-## 14. Rastreabilidade dos requisitos (áudios e planilhas)
+## 14. Rastreabilidade dos requisitos
 
-Cada pedido das transcrições e dos modelos das planilhas tem destino no roteiro; este quadro é conferido a cada fase. Situação em 15/11/2026.
+Os requisitos abaixo vêm de insumos do cliente (privados, fora do repositório). A tabela registra somente o pedido e seu destino no sistema.
 
-| Requisito | Fonte | Onde entra | Situação |
-| --- | --- | --- | --- |
-| Ver de relance o que está em planejamento, contratação ou avançando | Áudio de princípios | Fase 1: Início de Projetos e Kanban | Feito |
-| Gantt dos projetos por macroetapa | Áudio de princípios | Fase 1: Gantt geral | Feito |
-| Macroetapas com os nomes e as datas finais da planilha geral | Áudio de princípios; aba PIPELINE | Fase 1 | Feito |
-| Kanban com os valores globais no topo das colunas | Reunião | Fase 1 | Feito |
-| Cadastrar todos os projetos (cerca de 400) a partir da planilha | Reunião | Fase 1: importador (334 da aba PIPELINE + BASE\_OPERACIONAL) | Feito (carga real aguarda decisão de publicação) |
-| Telas simples, sem barra de rolagem, fichas em texto | Reunião | Regra de interface com teste | Feito |
-| Saldo sem fonte (orçamento maior que repasse + contrapartida) | Reunião | Fase 1: cálculo na ficha; alerta na Fase 4 | Parcial |
-| Projeto nasce no cadastro e anda ou volta por Kanban, ficha, pendência ou SEI, integrado | Dono (15/11) | Etapa 1.5: motor de movimentação e repositório | Em execução (gravação depende do banco) |
-| Projetos "desejo" (só com recurso externo) separados dos que serão executados | Reunião | Etapa 1.5: campo compromisso (decidido, condicionado, ideia) | A fazer (a planilha não tem o campo) |
-| Com quem está cada tarefa e o que está na mão de cada colaborador | Áudio de princípios | Fase 2: cronogramas por projeto, etapas com responsável e unidade | Em execução |
-| Em que ponto da contratação está (projeto e orçamento, jurídico…) | Áudio de princípios | Fase 2: etapas dos cronogramas do GEPP | Em execução |
-| Predecessoras e etapas em paralelo | Áudio de princípios | Fase 2: modelos de cronograma com dependências | A fazer (a planilha do GEPP não traz dependências) |
-| Medir tempo e volume por colaborador; evitar sobrecarga | Áudio de princípios | Fase 2 (contagem); Fase 5 (horas) | A fazer |
-| SEI: atualizar a partir do processo público e do PDF | Dono | Fase 2 (leitura do link público) e PDF | A fazer |
-| Captar recursos: convênios, alertas e prazos máximos | Áudio de princípios; reunião | Módulo Captação (Transferegov) | Feito; SIMEC e SISMOB na Fase 4/5 |
-| Projeto × oportunidade com sugestão | Reunião | Fase 4 | A fazer |
-| Cláusula suspensiva com prazo e os cinco alertas | Reunião | Fase 4 | A fazer |
-| Ficha do convênio: concedente, empenho, aditivos, contrapartida, valor global | Reunião | Fase 4 | Parcial (Captação já mostra parte) |
-| Fluxo da Lei 14.133: peças técnicas, minuta por modelo, jurídico, PNCP, colocados até o 7º | Reunião | Fase 4 | A fazer |
-| Painel do prefeito: etapa de cada projeto, empresa e valor da proposta, 2ª colocada, foto atual e histórico | Áudios | Fase 4 (guia Gestão) | A fazer |
-| Medições, avanço físico e financeiro, previsões | Reunião | Fase 4 | A fazer |
-| WhatsApp para o prefeito em linguagem simples | Reunião | Fase 5 | A fazer |
-| IA para proposta (formulário do Transferegov), ETP e minutas | Reunião | Fase 5 (sem IA no MVP) | A fazer |
-| Orçamento por SINAPI e GOINFRA | Reunião | Fase 5 | A fazer |
-| \
-Reunião semanal, providências e ações | Aba BASE\_OPERACIONAL; especificação de portfólio | Fase 2 (modo reunião) | A fazer (dados já importados) |
-| Log de toda alteração no ciclo de vida, com tela e filtros (o quê, quem, quando) | Dono (15/11) | Etapa 1.5: registro gerado pelo motor; tela de log | Em execução |
+| Pedido | Onde está no sistema |
+| --- | --- |
+| Consultar carteira e macroetapas | Projetos: Carteira, Kanban e Gantt |
+| Acompanhar cronograma, responsáveis e bloqueios | Projetos: ficha, cronogramas e Onde está parado |
+| Registrar movimentações e histórico | Projetos: motor de movimentação e Histórico |
+| Acompanhar recursos, convênios e prazos | Captação: oportunidades, convênios e alertas |
+| Acompanhar contratação e prazos legais | Licitações/Contratação: fases, prazos e alertas |
+| Consultar situação consolidada | Gestão: Painel do prefeito e Central de alertas |
+| Importar planilhas e apontar códigos repetidos | Rotina do GitHub a partir do repositório privado de dados |
+| Integrar leitura de processos e documentos | Projetos: SEI e documentos |
+| Usar acesso por perfil e município | Cloudflare Access, cadastro central e D1 isolado por prefeitura |
 
-## Fontes
-
-Insumos internos: áudio de princípios, reunião de entendimento, mapas mentais, anotações, planilha de obras prioritárias, cronogramas do GEPP, especificações de portfólio e de cronograma, relatório por órgão e painel de licitações (pasta de referência local, fora do repositório).
-
-- [Lei 14.133/2021](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm) (prazos dos arts. 55, 59, 94, 125, 140 e 165 a conferir no texto antes da implementação)
-- [SEI da Prefeitura de Goiânia](https://www.goiania.go.gov.br/sei/) e [Pesquisa Pública](https://sei.goiania.go.gov.br/sei/modulos/pesquisa/md_pesq_processo_pesquisar.php?acao_externa=protocolo_pesquisar&acao_origem_externa=protocolo_pesquisar&id_orgao_acesso_externo=0) (páginas abertas em 15/11/2026)
-- [Portaria Conjunta MGI/MF/CGU nº 33/2023](https://www.lex.com.br/portaria-conjunta-mgi-e-mf-e-cgu-no-33-de-30-de-agosto-de-2023/) (localizada por busca; prazo máximo da cláusula suspensiva a conferir no texto oficial)
-- [Web services do Obrasgov.br](https://www.gov.br/transferegov/pt-br/obrasgov/doc/documentacao-dos-web-services-obrasgov-v-1-4-2_final.pdf) (localizado por busca; avaliar para obras de saúde)
-- [Pacote rsei: serviço web SOAP do SEI](https://cran.r-project.org/web/packages/rsei/index.html) (localizado por busca; confirma que o serviço exige sistema cadastrado e rede autorizada)
+Fontes de conteúdo: insumos do cliente (privados, fora do repositório) e legislação pública aplicável.
