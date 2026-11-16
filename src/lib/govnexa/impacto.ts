@@ -6,7 +6,7 @@
 export const TRANSVERSAL = [
   'src/layouts/**', 'src/styles/**', 'src/components/DataTable.astro', 'src/components/Icon.astro',
   'src/lib/govnexa/catalogo.ts', 'src/lib/marca.ts', 'src/lib/municipio-ativo.ts', 'src/pages/plataforma/[...module].astro',
-  'middleware.ts', 'api/**', 'lib/**', 'vercel.json', 'astro.config.*', 'package.json',
+  'worker/**', 'wrangler.jsonc', 'public/_headers', 'astro.config.*', 'package.json',
 ];
 
 /** Mapa das obras e localização: pertence ao Painel do prefeito (mapa) e ao Cadastro do projeto (editor de localização). */

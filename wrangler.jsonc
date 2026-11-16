@@ -1,0 +1,29 @@
+{
+  "name": "govnexa",
+  "account_id": "6a5f95eb22f96f4b448c06f11cb281c6",
+  "compatibility_date": "2026-11-01",
+  "main": "worker/index.ts",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "html_handling": "force-trailing-slash",
+    "run_worker_first": [
+      "/plataforma",
+      "/plataforma/*",
+      "/entrar",
+      "/entrar/*",
+      "/api",
+      "/api/*",
+      "/sair",
+      "/sair/"
+    ]
+  },
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "ACCESS_TEAM_DOMAIN": "equipegovnexa.cloudflareaccess.com",
+    "ACCESS_AUD": "07172f6dfb695c95b9c08710223fcc081711f891836aee2c7243e6e4bc2bd1e4"
+  }
+}

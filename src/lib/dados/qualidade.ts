@@ -96,7 +96,7 @@ export function montarQualidade(): Modulo {
       { titulo: 'Motivo e ação', itens: [a.motivo, a.acao] },
       { titulo: 'Última tentativa de coleta', itens: [`Resultado: ${a.resultado}`, ...(a.ultimaTentativa ? [`Quando: ${dia(a.ultimaTentativa)}`] : []), ...(a.erro ? [`Erro: ${a.erro}`] : [])] },
     ],
-    links: [{ rotulo: `Ficha técnica da fonte (docs/fontes/${a.cfg.ficha}.md)`, url: `https://github.com/SLo0th1/Atlas_Conecta/blob/main/docs/fontes/${a.cfg.ficha}.md` }],
+    links: [{ rotulo: `Ficha técnica da fonte (docs/fontes/${a.cfg.ficha}.md)`, url: `https://github.com/GovNexa/GovNexa/blob/main/docs/fontes/${a.cfg.ficha}.md` }],
   }));
   return {
     slug: 'captacao-qualidade', title: 'Qualidade dos dados', group: 'Captação',

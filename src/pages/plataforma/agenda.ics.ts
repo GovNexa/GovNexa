@@ -1,4 +1,4 @@
-// Agenda iCalendar dos prazos do bloco Captação. Fica sob /plataforma/, portanto protegida pelo login (middleware).
+// Agenda iCalendar dos prazos do bloco Captação. Fica sob /plataforma/, portanto protegida pelo Cloudflare Access.
 import type { APIRoute } from 'astro';
 import { gerarAgendaIcs } from '../../lib/dados/agenda.ts';
 

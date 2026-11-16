@@ -1,6 +1,6 @@
 # Plano de execução — Fase 0 (Fundação e descoberta)
 
-Bloco **Captação** do Atlas Conecta. Documento de planejamento: **nenhum código foi escrito**. Aguarda confirmação do dono do produto antes da execução.
+Bloco **Captação** do GovNexa. Documento de planejamento: **nenhum código foi escrito**. Aguarda confirmação do dono do produto antes da execução.
 
 Data: 2026-11-09 · Base: Plano Mestre (Partes 1 a 9) + decisões do dono desta sessão.
 

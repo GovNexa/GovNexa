@@ -24,7 +24,7 @@ test('rodada 2: documentos filtram e geram rascunho local',async({page})=>{
  await page.goto('/plataforma/documentos/');await page.locator('[data-tab="TR"]').click();for(const row of await page.locator('[data-row]:visible').all())await expect(row).toHaveAttribute('data-bucket','TR');await page.getByRole('button',{name:'Gerar rascunho',exact:true}).click();await page.getByLabel('Objeto',{exact:true}).fill('Material escolar');await page.getByLabel('Secretaria',{exact:true}).selectOption('Educação');await page.getByLabel('Justificativa',{exact:true}).fill('Atender a rede municipal');await page.getByRole('button',{name:'Gerar exemplo local'}).click();await expect(page.locator('#doc-text')).toContainText('Material escolar');await expect(page.locator('#doc-text')).toContainText('Atender a rede municipal');await page.getByRole('button',{name:'Fechar',exact:true}).click();await expect(page.locator('#doc-dialog')).toBeHidden();
 });
 test('rodada 2: preços calculam resultados e salvam somente no navegador',async({page})=>{
- await page.goto('/plataforma/banco-de-precos/');await expect(page.locator('#price-stats .card')).toHaveCount(4);await page.locator('[data-table-search]').fill('Alimentos');await expect(page.locator('#price-stats')).toContainText('R$');await page.getByRole('button',{name:'Salvar pesquisa',exact:true}).click();expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('atlas-price-search')!).query)).toBe('Alimentos');await page.locator('[data-table-search]').fill('inexistente');await expect(page.locator('#price-stats')).toContainText('Sem resultados');await page.goto('/plataforma/atas/');await expect(page.locator('.status').getByText(/Vencida/).first()).toBeVisible();await expect(page.locator('.status').getByText(/Vigente/).first()).toBeVisible();
+ await page.goto('/plataforma/banco-de-precos/');await expect(page.locator('#price-stats .card')).toHaveCount(4);await page.locator('[data-table-search]').fill('Alimentos');await expect(page.locator('#price-stats')).toContainText('R$');await page.getByRole('button',{name:'Salvar pesquisa',exact:true}).click();expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('govnexa-price-search')!).query)).toBe('Alimentos');await page.locator('[data-table-search]').fill('inexistente');await expect(page.locator('#price-stats')).toContainText('Sem resultados');await page.goto('/plataforma/atas/');await expect(page.locator('.status').getByText(/Vencida/).first()).toBeVisible();await expect(page.locator('.status').getByText(/Vigente/).first()).toBeVisible();
 });
 test('rodada 2: importação, relatórios e conta',async({page})=>{
  for(const slug of ['produtos','fornecedores','enderecos','locais-de-entrega']){await page.goto(`/plataforma/${slug}/`);await page.getByRole('button',{name:'Importar planilha'}).click();await expect(page.locator('#import-dialog')).toBeVisible();await page.locator('#import-dialog').getByRole('button',{name:'Fechar'}).click();}
@@ -38,15 +38,12 @@ test('rodada 2: sidebar até o fim e summary sem marcador nativo',async({page})=
  await page.setViewportSize({width:1280,height:700});await page.goto('/plataforma/gestao-publica/');const sidebar=await page.locator('.sidebar').boundingBox();const workspace=await page.locator('.workspace').boundingBox();expect(sidebar!.height).toBeCloseTo(700-112,0);expect(sidebar!.y).toBeGreaterThanOrEqual(80);await page.evaluate(()=>scrollTo(0,document.body.scrollHeight));const after=await page.locator('.sidebar').boundingBox();expect(after!.y).toBeGreaterThanOrEqual(80);expect(after!.y+after!.height).toBeLessThanOrEqual(700);expect(workspace!.height).toBeGreaterThan(0);for(const summary of await page.locator('summary').all())expect(await summary.evaluate(e=>getComputedStyle(e).listStyleType)).toBe('none');await page.screenshot({path:test.info().outputPath('rodada2-sidebar-fullpage.png'),fullPage:true});
 });
 
- test('login tem campos acessíveis e passa no axe', async ({page}) => {
-  await page.goto('/entrar/?erro=1&next=%2Fplataforma%2Fprocessos%2F');
-  await expect(page.getByLabel('E-mail', {exact:true})).toHaveAttribute('autocomplete', 'username');
-  await expect(page.getByLabel('Senha', {exact:true})).toHaveAttribute('type', 'password');
-  await expect(page.getByRole('alert')).toBeVisible();
-  await expect(page.locator('input[name="next"]')).toHaveValue('/plataforma/processos/');
-  expect((await new AxeBuilder({page}).analyze()).violations).toEqual([]);
+test('acesso pelo Cloudflare Access', async ({page}) => {
+ await page.goto('/entrar/');
+ await expect(page.getByRole('heading',{name:'Acessar a plataforma'})).toBeVisible();
+ await expect(page.getByRole('link',{name:'Acessar a plataforma'})).toHaveAttribute('href','/plataforma/');
+ expect((await new AxeBuilder({page}).analyze()).violations).toEqual([]);
 });
-
 
 test('rodada 4: menu recolhe, expande e persiste',async({page})=>{
  await page.goto('/plataforma/');const toggle=page.locator('#sidebar-toggle');await expect(toggle).toHaveAttribute('aria-expanded','true');await toggle.click();await expect(toggle).toHaveAttribute('aria-expanded','false');await expect(toggle).toHaveAccessibleName('Expandir menu');await expect(page.locator('.sidebar')).toHaveAttribute('data-closed','true');await page.reload();await expect(toggle).toHaveAttribute('aria-expanded','false');await toggle.click();await expect(toggle).toHaveAttribute('aria-expanded','true');await expect(toggle).toHaveAccessibleName('Recolher menu');await page.reload();await expect(toggle).toHaveAttribute('aria-expanded','true');
@@ -54,15 +51,11 @@ test('rodada 4: menu recolhe, expande e persiste',async({page})=>{
 test('rodada 4: paginação informa intervalo e avança',async({page})=>{
  await page.goto('/plataforma/processos/');await expect(page.locator('[data-table-range]')).toHaveText('Mostrando 1–10 de 12');const first=await page.locator('[data-row]:visible').first().textContent();await page.getByRole('button',{name:'Próxima',exact:true}).click();await expect(page.locator('[data-table-range]')).toHaveText('Mostrando 11–12 de 12');expect(await page.locator('[data-row]:visible').first().textContent()).not.toBe(first);await expect(page.locator('[data-table]')).toBeFocused();await expect(page.locator('[data-table-next]')).toBeDisabled();
 });
-test('rodada 4: login mostra e oculta senha',async({page})=>{
- await page.goto('/entrar/');const password=page.getByLabel('Senha',{exact:true});await password.fill('exemplo-local');await page.getByRole('button',{name:'Mostrar senha',exact:true}).click();await expect(password).toHaveAttribute('type','text');await expect(page.locator('#password-toggle')).toHaveAttribute('aria-pressed','true');await page.getByRole('button',{name:'Ocultar senha',exact:true}).click();await expect(password).toHaveAttribute('type','password');await expect(password).toHaveValue('exemplo-local');await expect(page.locator('#password-toggle')).toHaveAttribute('aria-pressed','false');
-});
-
 test('govnexa: marca e módulos na plataforma',async({page})=>{
  for(const path of ['/plataforma/projetos/','/plataforma/gestao/']){const response=await page.goto(path);expect(response?.status(),path).toBe(200);await expect(page.locator('h1'),path).toHaveCount(1);}
  await page.goto('/plataforma/');await expect(page).toHaveTitle(/GovNexa/);
  const side=page.locator('.sidebar');for(const t of ['Projetos','Captação','Licitações','Gestão'])await expect(side).toContainText(t);await expect(side).not.toContainText('Área do comprador');
- await page.goto('/entrar/');await expect(page).toHaveTitle(/Atlas/);
+ await page.goto('/entrar/');await expect(page).toHaveTitle(/GovNexa/);
 });
 test('govnexa: carteira, kanban, gantt e órgãos',async({page})=>{
  const paginas=['/plataforma/projetos-carteira/','/plataforma/projetos-kanban/','/plataforma/projetos-gantt/','/plataforma/projetos-orgaos/'];
@@ -329,7 +322,7 @@ test('govnexa: sala de guerra incluir e retirar',async({page})=>{
 test('govnexa: tema escolhido se mantém ao trocar de guia',async({page})=>{
  for(const [esquema,escolhido] of [['light','dark'],['dark','light']] as const){
   await page.emulateMedia({colorScheme:esquema});await page.goto('/plataforma/projetos/');
-  await page.evaluate(t=>{localStorage.setItem('atlas-theme',t);document.documentElement.dataset.theme=t},escolhido);
+  await page.evaluate(t=>{localStorage.setItem('govnexa-theme',t);document.documentElement.dataset.theme=t},escolhido);
   for(const nome of ['Carteira de projetos','Kanban por macroetapa','Fluxo do sistema','Histórico de alterações','Projetos · Início']){
    await page.locator('.sidebar').getByRole('link',{name:nome,exact:true}).click();await page.waitForLoadState('domcontentloaded');
    await expect(page.locator('html'),nome).toHaveAttribute('data-theme',escolhido);
@@ -578,7 +571,7 @@ test('govnexa: menu lateral com blocos que abrem e fecham',async({page})=>{
 test('govnexa: menu no celular com menu recolhido salvo continua reabrindo blocos',async({page})=>{
  await page.setViewportSize({width:390,height:844});
  await page.goto('/plataforma/projetos/');
- await page.evaluate(()=>{localStorage.setItem('atlas-sidebar','true');localStorage.setItem('govnexa-menu-estado',JSON.stringify({'m:Licitações':false}))});
+ await page.evaluate(()=>{localStorage.setItem('govnexa-sidebar','true');localStorage.setItem('govnexa-menu-estado',JSON.stringify({'m:Licitações':false}))});
  await page.reload();
  await page.locator('#drawer-toggle').click();
  const bloco=page.locator('.sidebar button[data-sec="m:Licitações"]');
@@ -692,7 +685,7 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  }
 });
 
-test('govnexa: arquivos do build com nome só hexadecimal (a Vercel não serviu simulacao.mqF-P3E_.js)',async({page})=>{
+test('govnexa: arquivos do build com nome só hexadecimal',async({page})=>{
  const {readdirSync}=await import('node:fs');
  const nomes=readdirSync('dist/_astro').filter(n=>/\.(js|css)$/.test(n));
  expect(nomes.length).toBeGreaterThan(0);
