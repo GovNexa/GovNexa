@@ -1,5 +1,12 @@
 # Changelog
 
+## GovNexa — Importação das planilhas (etapa 3.5, Fase 3)
+- 2026-11-16: rotina `scripts/importar-planilhas.ts` (`npm run importar:planilhas`): lê a pasta de planilhas (carteira e cronogramas), confere, gera o SQL e, só com `--destino local|remoto`, grava no D1 e registra a carga (linha em `importacao` no banco central e um evento único de carga no histórico). Padrão: só conferir. Reproduz a carga de produção com as planilhas reais: 334 projetos, 13 cronogramas, 725 etapas.
+- 2026-11-16: códigos repetidos na planilha da carteira (hoje o 450, SECAP e SEINFRA) são detectados e a rotina para com a lista (código, linhas e órgãos); a correção combinada fica em `codigos-corrigidos.json` (`importar-carteira.ts`: `resolverCodigosRepetidos`, `lerCorrecoes`, `--corrigir-codigos`). Relatório ganha a seção "Códigos repetidos".
+- 2026-11-16: regras que protegem o banco: nunca apaga projeto que saiu da planilha; não sobrescreve `localizacao` e `compromisso`; pula projeto já alterado no sistema; para tudo se um código mudar de órgão; recusa planilha incompleta ou com muitos projetos novos; etapas que saíram do cronograma são removidas (`gerar-sql-carga.ts`: `preservar`, `DELETE` de etapas, `--sem-historico`).
+- 2026-11-16: workflow `Importar planilhas` no repositório privado `GovNexa/govnexa-dados`: conferir ao subir planilha; gravar só à mão, em job separado com ambiente `producao`, instalação sem scripts de pacotes e sem guardar credenciais. Relatório só com contagens, códigos, linhas e órgãos.
+- 2026-11-16: revisão independente (Opus) achou riscos de integridade, identidade de código e cadeia de fornecimento; corrigidos. 15 testes novos em `tests/importacao/planilhas.test.ts`, incluindo gravação em banco de teste.
+
 ## GovNexa — Otimização publicada (Fase 3)
 - 2026-11-16, 19h35: a otimização da leitura do banco (PR #6) foi publicada no Cloudflare por ordem do dono (versão 2e1114fa; a anterior, b7e101fa, fica para rollback). Conferido sem login: `/` e `www` 200, `/plataforma/` 302 para o Access, `/api/` 404, cabeçalhos de segurança presentes. O repositório privado de dados (`GovNexa/govnexa-dados`) foi conferido: privado, com permissão de escrita; só tem a documentação, faltam as planilhas em `planilhas/` (etapa 3.5).
 

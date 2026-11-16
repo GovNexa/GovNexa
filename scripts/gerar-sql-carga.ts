@@ -1,6 +1,6 @@
 // Gera SQL de carga local para PostgreSQL (padrão) ou D1/SQLite (--dialeto sqlite);
 // o arquivo gerado contém dados da prefeitura e NÃO vai para o repositório.
-//   node scripts/gerar-sql-carga.ts --dados <pasta> --saida <arquivo.sql> [--nome "Goiânia"] [--uf GO] [--dialeto postgres|sqlite]
+//   node scripts/gerar-sql-carga.ts --dados <pasta> --saida <arquivo.sql> [--nome "Goiânia"] [--uf GO] [--dialeto postgres|sqlite] [--sem-historico]
 // A pasta pode ter carteira.json (e cronogramas.json, historico.json) direto nela ou em carteira/, cronogramas/ e historico/.
 // Histórico: registros de projeto presentes na carteira vão para evento_projeto; os demais (carga da planilha, projetos
 // retirados) vão para evento_sistema. Os dois são imutáveis: ON CONFLICT (id) DO NOTHING (rodar de novo não duplica).
@@ -37,7 +37,8 @@ if (!caminhoCarteira) {
   process.exit(1);
 }
 const caminhoCrono = achar('cronogramas.json');
-const caminhoHist = achar('historico.json');
+const semHistorico = process.argv.includes('--sem-historico'); // rotina de importação: não regrava o histórico da planilha
+const caminhoHist = semHistorico ? null : achar('historico.json');
 
 const carteira = JSON.parse(readFileSync(caminhoCarteira, 'utf8')) as Carteira;
 const cronogramas = caminhoCrono ? (JSON.parse(readFileSync(caminhoCrono, 'utf8')) as Cronogramas) : null;
@@ -60,9 +61,10 @@ const bool = (v: unknown): string => (v === null || v === undefined ? 'NULL' : v
 const json = (v: unknown): string => (v === null || v === undefined ? 'NULL' : `${txt(JSON.stringify(v))}${sqlite ? '' : '::jsonb'}`);
 const arr = (v: string[] | null | undefined): string => sqlite ? txt(JSON.stringify(v ?? [])) : `ARRAY[${(v ?? []).map(txt).join(', ')}]::text[]`;
 
-function upsert(tabela: string, pk: string[], cols: Record<string, string>): string {
+/** `preservar`: colunas gravadas só na inclusão; numa reimportação NÃO são sobrescritas (o sistema, não a planilha, é quem as preenche). */
+function upsert(tabela: string, pk: string[], cols: Record<string, string>, preservar: string[] = []): string {
   const nomes = Object.keys(cols);
-  const atualiza = nomes.filter((c) => !pk.includes(c)).map((c) => `${c} = EXCLUDED.${c}`);
+  const atualiza = nomes.filter((c) => !pk.includes(c) && !preservar.includes(c)).map((c) => `${c} = EXCLUDED.${c}`);
   if (sqlite && tabela === 'projeto') atualiza.push('revisao = projeto.revisao + 1');
   return (
     `INSERT INTO ${tabela} (${nomes.join(', ')}) VALUES (${nomes.map((c) => cols[c]).join(', ')})\n` +
@@ -85,7 +87,7 @@ for (const p of carteira.projetos) {
       datas: json(p.datas), por_ano: json(p.por_ano), atualizacao: json(p.atualizacao), operacional: json(p.operacional),
       pendencias: arr(p.pendencias), origem: json(p.origem),
       ...(sqlite ? { compromisso: txt(p.compromisso), localizacao: json(p.localizacao) } : {}),
-    }),
+    }, sqlite ? ['compromisso', 'localizacao'] : []),
   );
 }
 
@@ -96,6 +98,14 @@ for (const c of cronogramas?.cronogramas ?? []) {
       projeto_id: txt(c.projeto_id), casamento: txt(c.casamento), pendencias: arr(c.pendencias),
     }),
   );
+  if (sqlite) {
+    // Etapas que saíram da planilha deixam de existir no banco (etapas só vêm da planilha; nada é editado no sistema).
+    const ordens = c.fases.flatMap((f) => f.etapas.map((e) => e.ordem));
+    linhas.push(
+      `DELETE FROM etapa_cronograma WHERE prefeitura_id = ${num(ibge)} AND cronograma_id = ${txt(c.id)}` +
+        (ordens.length ? ` AND ordem NOT IN (${ordens.map(num).join(', ')});` : ';'), // cronograma sem nenhuma etapa: apaga todas as antigas
+    );
+  }
   for (const fase of c.fases) {
     for (const e of fase.etapas) {
       linhas.push(

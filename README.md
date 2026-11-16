@@ -93,7 +93,7 @@ São módulos independentes que conversam entre si:
    - Astro 7 + `@astrojs/cloudflare`: site público pré-renderizado; `/plataforma/` montada a cada acesso no Worker, lendo D1. `worker/entrypoint.ts` trata `/entrar`, `/sair` e `/api`; `src/middleware.ts` valida o login e escolhe o banco.
    - Cloudflare D1 (SQLite): um banco por prefeitura (`govnexa-5208707` para Goiânia) e banco central `govnexa-central` para prefeituras, usuários e importações. Migrações atuais em `db/d1/central` e `db/d1/prefeitura`; `db/migracoes/` é a referência PostgreSQL antiga. O histórico é imutável; fotos e documentos só têm remoção lógica. Arquivos ficam no R2 `govnexa-documentos`. Supabase/PostgreSQL é apenas plano B.
    - Login com Cloudflare Access (equipe `equipegovnexa`, código por e-mail) e cadastro ativo no banco central. Perfis: admin, gestor, editor e leitura; durante a construção, todos os usuários são admin. Quem passa no Access, mas não está cadastrado, vê "Sem permissão".
-   - Carga inicial no D1 de produção em 16/11: 334 projetos, 13 cronogramas e 725 etapas. O código 450 estava repetido (SECAP e SEINFRA); o da SECAP virou 506. Planilhas novas serão importadas do repositório privado `GovNexa/govnexa-dados` por uma rotina do GitHub, a fazer na etapa 3.5.
+   - Carga inicial no D1 de produção em 16/11: 334 projetos, 13 cronogramas e 725 etapas. O código 450 estava repetido (SECAP e SEINFRA); o da SECAP virou 506. Planilhas novas são importadas do repositório privado `GovNexa/govnexa-dados` por uma rotina do GitHub (etapa 3.5, ver a seção 6).
    - Marca GovNexa no site público, login e plataforma. Contato: contato@govnexa.com.br.
 
 ### 1.3 Roteiro por fases
@@ -117,7 +117,7 @@ São módulos independentes que conversam entre si:
 | 1 · Carteira de Projetos | Carteira, ficha, Kanban, Gantt, Visão por órgão, celular | Entregue; carga inicial no D1 | 100% |
 | 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, Kanban e Pendências, Histórico, Sala de guerra | Telas prontas; algumas gravações ainda são simulação | 95% |
 | 2 · Cronograma e equipe | Cronogramas, quadro de tarefas, Onde está parado, Reunião semanal, dependências, SEI | Telas entregues; leitura automática do SEI a fazer | 90% |
-| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis e isolamento por prefeitura | Tabelas em produção, carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. A fazer: usuários (3.3), documentos (3.4) e importação de planilhas (3.5) | 60% |
+| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis e isolamento por prefeitura | Tabelas em produção, carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas pronta (3.5; falta a primeira gravação em produção). A fazer: usuários (3.3) e documentos (3.4) | 75% |
 | 4 · Contratação, convênios e Gestão | Lei 14.133, alertas, painel do prefeito, licitação em detalhe | Prazos da lei, painel, mapa, Central de alertas e Licitação em detalhe; parte ainda em simulação | 75% |
 | 5 · Integrações e inteligência | PNCP, SIMEC, SISMOB, preços, WhatsApp, IA | WhatsApp em simulação | 10% |
 
@@ -125,6 +125,7 @@ São módulos independentes que conversam entre si:
 
 | Data | O que | Referência |
 | --- | --- | --- |
+| 16/11 | Etapa 3.5: importação das planilhas (rotina, regras de segurança dos dados, avisos e testes) | PR #9 |
 | 16/11 | Otimização publicada (versão 2e1114fa); repositório privado de dados conferido | PR #7 |
 | 16/11 | Leitura do banco otimizada: só a guia aberta é montada e cache de 30 s (páginas de ~400 ms para ~20 ms) | PR #6 |
 | 16/11 | Plano e histórico completos trazidos para o repositório novo; repositório antigo congelado | PR #5 |
@@ -264,8 +265,30 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 
 1. **Usuários (3.3):** tela de usuários e sincronização com um grupo do Access.
 2. **Documentos (3.4):** arquivos no R2, com remoção lógica.
-3. **Importação de planilhas (3.5):** rotina do GitHub a partir do repositório privado de dados e aviso de códigos repetidos.
+3. **Importação de planilhas (3.5):** feita; falta só a primeira gravação em produção (ver a seção 6).
 4. **SEI automático:** Cron Trigger do Worker para leitura e gravação no D1.
+
+### Importação das planilhas (etapa 3.5)
+
+- **Onde ficam:** pasta `planilhas/` do repositório privado `GovNexa/govnexa-dados`:
+  - `Projeto_obras_prioritarias.xlsx` (carteira) e `GEPP - Cronograma por Projeto - ....xlsx` (cronogramas);
+  - `codigos-corrigidos.json`, com as correções de códigos repetidos (hoje: o 450 da SECAP vira 506, como na carga inicial).
+  - Para atualizar, troque o arquivo mantendo o nome.
+- **Como roda:** GitHub Actions do repositório de dados, `Importar planilhas`.
+  - Ao subir uma planilha, ele só **confere** e mostra o relatório. Nada vai ao banco.
+  - Para **gravar** em produção: Actions › Importar planilhas › Run workflow › "Gravar no banco de produção?" = sim.
+  - O código é `scripts/importar-planilhas.ts` (também roda no computador: `npm run importar:planilhas -- --planilhas <pasta> --destino nenhum|local|remoto`).
+- **Regras de segurança dos dados** (cada uma tem teste):
+  1. Nunca apaga projeto que saiu da planilha: só avisa.
+  2. Nunca sobrescreve localização e compromisso, que o sistema preenche.
+  3. Projeto já alterado no sistema (tem evento que não veio de importação) é **pulado** e listado.
+  4. Um código só pode continuar do mesmo órgão. Se `P-450` era da SEINFRA no banco e a planilha o traz como da SECAP, a rotina **para tudo** e não grava nada.
+  5. Código repetido na planilha sem correção combinada para a rotina e avisa (código, linhas e órgãos).
+  6. Planilha com menos da metade dos projetos do banco, ou com muitos projetos novos de uma vez, é recusada.
+  7. Etapa que saiu do cronograma deixa de existir no banco; as dos outros cronogramas não são tocadas.
+  8. Não regrava o histórico: registra um evento único de carga e uma linha em `importacao` (banco central).
+  9. Relatório, console e erros trazem só contagens, códigos, linhas e órgãos, nunca nomes nem valores.
+- **Limite conhecido:** cada importação soma 1 à `revisao` dos projetos atualizados. Quem estiver editando um deles na hora pode receber "alterado por outra pessoa".
 
 ## 7. Decisões já tomadas (não reabrir sem o dono)
 
@@ -290,7 +313,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 
 | Pendência | Para quê |
 | --- | --- |
-| Colocar as planilhas da carteira e dos cronogramas na pasta `planilhas/` do repositório privado `GovNexa/govnexa-dados` (hoje só tem a documentação) | Etapa 3.5: a rotina de importação lê dali |
+| Criar a chave do Cloudflare e cadastrar os segredos `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` no repositório `GovNexa/govnexa-dados` | Etapa 3.5: permite a rotina gravar as planilhas no banco de produção |
 | Validar o Fluxo com as áreas e com o cliente | Confirmar etapas, dependências e subprocessos |
 | Fornecer o decreto de feriados de Goiânia | Contagem exata dos dias úteis |
 | Configurar conta oficial do WhatsApp Business e aprovar modelos | Envio real de relatórios |
@@ -299,7 +322,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 
 1. **3.3 — usuários:** criar a tela e sincronizar o cadastro com grupo do Access.
 2. **3.4 — documentos:** concluir o armazenamento no R2 e as regras de remoção lógica.
-3. **3.5 — importação:** ler planilhas do repositório privado e avisar códigos repetidos.
+3. **3.5 — importação:** feita (rotina, regras e testes); falta ligar os segredos e fazer a primeira gravação.
 4. Automatizar a leitura do SEI com Cron Trigger.
 5. Desligar a hospedagem antiga.
 
@@ -375,7 +398,7 @@ Os coletores diário e mensal de Captação continuam no GitHub Actions. A publi
 | Atualizar dados do bloco Captação | Todo dia, 09h30 (Brasília) | Roda coletores e abre PR do ramo `dados-atualizados` |
 | Atualizar dados mensais | Dia 5 de cada mês | Atualiza INEP, SINISA e CNES e abre PR do ramo `dados-mensais-atualizados` |
 | Portal da Transparência | Manual | Coleta de convênios pela API, com chave em segredo do GitHub |
-| Importação de planilhas | A fazer (etapa 3.5) | Lê o repositório privado de dados e avisa códigos repetidos |
+| Importação de planilhas | Pronta; falta a 1ª gravação em produção (etapa 3.5) | Lê o repositório privado de dados, avisa códigos repetidos e não sobrescreve o que foi feito no sistema |
 | Leitura automática do SEI | A fazer | Cron Trigger no Worker lê links públicos e grava no D1 |
 
 Os PRs de dados automáticos precisam de revisão e merge, como qualquer outro. Os dados reais ficam no banco, não neste repositório público.
@@ -392,7 +415,7 @@ Nenhum valor secreto fica no código. Só os nomes e a finalidade:
 | Domínios `govnexa.com.br` e `www.govnexa.com.br` | `wrangler.jsonc` | Domínios do Worker |
 | `ACESSO_LOCAL_LIVRE`, `DEV_EMAIL` | `.dev.vars` local | Desenvolvimento local; nunca configurar a liberação em produção |
 | `PORTAL_TRANSPARENCIA_CHAVE` | Segredo do GitHub | Coletor de convênios; precisa ser cadastrado de novo no repositório novo |
-| Token da Cloudflare | Segredo do repositório privado de dados | Acesso da rotina de importação, ainda a fazer |
+| `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` | Segredos do repositório privado `GovNexa/govnexa-dados` (ambiente `producao`) | Só a rotina de gravação da importação usa; a conferência não precisa. A criar pelo dono |
 
 Não reutilize variáveis de autenticação ou publicação da arquitetura antiga. Colaboradores não recebem valores de segredos.
 
