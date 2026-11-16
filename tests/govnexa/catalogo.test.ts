@@ -20,7 +20,7 @@ test('menu por módulo na ordem esperada', () => {
 });
 test('nome da marca', () => {
   assert.equal(nomeDaMarca(true), 'GovNexa');
-  assert.equal(nomeDaMarca(false), 'Atlas Goiânia Conecta');
+  assert.equal(nomeDaMarca(false), 'GovNexa');
 });
 test('município ativo', () => {
   const m = municipioAtivo();

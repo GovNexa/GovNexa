@@ -1,8 +1,8 @@
-# Atlas Goiânia Conecta · GovNexa
+# GovNexa
 
-Portal público **Atlas Goiânia Conecta** e plataforma de gestão pública **GovNexa** (piloto: Prefeitura de Goiânia).
+Portal público e plataforma de gestão pública **GovNexa** (piloto: Prefeitura de Goiânia).
 
-- Produção: https://atlas.gestaonexus.com.br (Vercel, publica sozinho a cada atualização do `main`)
+- Produção: https://govnexa.com.br (Vercel, publica sozinho a cada atualização do `main`)
 - Repositório: público. Só entram código, dados públicos e dados fictícios.
 
 ## O que tem aqui
