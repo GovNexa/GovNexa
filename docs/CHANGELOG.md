@@ -1,5 +1,8 @@
 # Changelog
 
+## GovNexa — Plano e histórico no repositório novo
+- 2026-11-16: docs/govnexa/plano.md e docs/govnexa/historico.md trazidos do repositório antigo (congelado) e atualizados para a migração: nota de mudanças no plano (Workers, Access, D1, R2, dados reais fora do repositório), Fase 3 em 60%, linha do tempo e % com a migração, regras novas do dono, o que vem a seguir pós-migração (texto anterior preservado na seção 5.5) e os PRs do repositório novo. Referências que mandavam ao repositório antigo retiradas; documentos com Vercel ganham nota da migração.
+
 ## GovNexa — Repositório novo (GovNexa/GovNexa)
 - 2026-11-16: `data/carga-real/` (carteira, cronogramas e histórico reais da prefeitura) retirada de todo o histórico do Git antes de tornar o repositório público; os dados reais entram pelo banco (D1). Sem a pasta, o sistema usa `data/exemplo`. Pasta no `.gitignore`.
 ## GovNexa — Licitação em detalhe (simulação, Fase 4)

@@ -4,7 +4,11 @@ Portal público e plataforma de gestão pública **GovNexa**. O piloto é a Pref
 
 - **Produção:** https://govnexa.com.br e https://www.govnexa.com.br (Cloudflare Worker).
 - **Repositório:** [GovNexa/GovNexa](https://github.com/GovNexa/GovNexa), público. Só entram código, dados públicos e dados fictícios; dados reais nunca entram.
-- **Leia primeiro:** as seções "Situação atual", "O que funciona de verdade e o que é simulação" e "Regras de trabalho".
+- **Para continuar o projeto, leia nesta ordem:**
+  1. este README: o que é, onde estamos, o que falta;
+  2. [docs/govnexa/plano.md](docs/govnexa/plano.md): como o sistema deve ser, em detalhe (com a nota da migração para o Cloudflare);
+  3. [docs/govnexa/historico.md](docs/govnexa/historico.md): tudo o que aconteceu, as regras do dono com data, os testes do SEI, o que vem a seguir, as lições técnicas e todos os PRs (do repositório novo e do antigo);
+  4. [CLAUDE.md](CLAUDE.md): as regras de trabalho.
 
 Situação descrita em **16/11/2026**.
 
@@ -34,7 +38,7 @@ São módulos independentes que conversam entre si:
 - Os dados operacionais ficam em Cloudflare D1, um banco por prefeitura, com um banco central para cadastros e importações.
 - O MVP não usa IA. A IA fica para a Fase 5, sempre com revisão humana.
 - **Requisito mínimo:** transcrições dos áudios do dono, reunião com a equipe e planilhas-base. Esses insumos ficam na pasta local `Doc Referencia/`, que **nunca** vai para o Git.
-- **Plano completo:** documento privado do dono, com fases, decisões, riscos e rastreabilidade. Peça o link ao dono. A seção "Andamento" do plano é atualizada a cada entrega.
+- **Plano completo:** [docs/govnexa/plano.md](docs/govnexa/plano.md), de conhecimento de todos os envolvidos, com fases, decisões, riscos e rastreabilidade. A seção "Andamento" do plano é atualizada a cada entrega.
 - **Este README é a fonte para dar continuidade.** Ele é atualizado em toda entrega: situação, funcionalidades, decisões e pendências. A regra está no [CLAUDE.md](CLAUDE.md).
 
 ### 1.1 Problema, visão e princípios
@@ -121,6 +125,7 @@ São módulos independentes que conversam entre si:
 
 | Data | O que | Referência |
 | --- | --- | --- |
+| 16/11 | Plano e histórico completos trazidos para o repositório novo; repositório antigo congelado | PR #5 |
 | 16/11 | Regras e preparo do repositório novo | PR #1 |
 | 16/11 | Worker, Access e marca GovNexa | PR #2 |
 | 16/11 | D1, plataforma lendo o banco e adaptação da Licitação em detalhe | branch `etapa-3`; PR #45 já incorporado |
@@ -323,6 +328,8 @@ npm run cf:dev
 
 ## 10. Regras de trabalho
 
+As lições técnicas (armadilhas já enfrentadas, como o mapa em branco por nome de arquivo, o CORS do SEI e o fuso de Brasília) estão em [docs/govnexa/historico.md](docs/govnexa/historico.md), seção 6.
+
 As regras completas estão em [CLAUDE.md](CLAUDE.md). Resumo:
 
 1. Comece da versão atual e trabalhe em uma branch própria.
@@ -406,6 +413,8 @@ Detalhes em [docs/seguranca.md](docs/seguranca.md).
 | Arquivo | Conteúdo |
 | --- | --- |
 | [CLAUDE.md](CLAUDE.md) | Regras de trabalho no repositório |
+| [docs/govnexa/plano.md](docs/govnexa/plano.md) | **Plano completo do GovNexa** (detalhe de tudo que o README resume) |
+| [docs/govnexa/historico.md](docs/govnexa/historico.md) | **Histórico completo**: linha do tempo, evolução dos %, regras do dono, testes do SEI, o que vem a seguir, lições técnicas e todos os PRs |
 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | Histórico de mudanças |
 | [docs/govnexa/visao-geral.md](docs/govnexa/visao-geral.md) | Módulos, macroetapas, roteiro e regras de código |
 | [docs/govnexa/modelo-dados.md](docs/govnexa/modelo-dados.md) | Modelo de dados; seção D1 descreve os bancos atuais |
