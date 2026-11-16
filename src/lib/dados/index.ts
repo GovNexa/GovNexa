@@ -1,8 +1,6 @@
 // Camada de dados do bloco Captação.
 // As telas usam SOMENTE estas funções. Hoje elas leem JSON (data/); na etapa do banco,
 // troca-se a implementação por PostgreSQL (docs/esquema-postgres.sql) sem mudar as telas.
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 
 export interface Proveniencia {
   fonte: string;
@@ -82,8 +80,8 @@ export interface RepositorioCaptacao {
   statusColetas(): Documento | undefined;
 }
 
-const raiz = process.cwd();
-const ler = <T>(caminho: string): T => JSON.parse(readFileSync(join(raiz, caminho), 'utf8')) as T;
+import { arquivos } from './arquivos.ts';
+const ler = <T>(caminho: string): T => (() => { if (!(caminho in arquivos)) throw new Error('Conjunto indisponível'); return arquivos[caminho] as T; })();
 const cache = new Map<string, unknown>();
 const opcional = (caminho: string): Documento | undefined => {
   try {

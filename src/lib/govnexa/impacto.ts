@@ -15,7 +15,7 @@ const MAPA = ['src/lib/mapa/**', 'src/components/mapa/**', 'src/styles/mapa.css'
 /** Etapa do mapa geral (id de fluxo.ts) → partes do código. */
 export const COMPONENTES: Record<string, string[]> = {
   inicio: ['src/lib/carteira/modulos.ts', 'src/lib/carteira/visoes.ts'],
-  planilha: ['scripts/importar-carteira.ts', 'scripts/importar-cronogramas.ts', 'scripts/lib/**', 'scripts/baixar-dados.mjs', 'src/lib/carteira/carga.ts', 'src/lib/cronograma/carga.ts'],
+  planilha: ['scripts/importar-carteira.ts', 'scripts/importar-cronogramas.ts', 'scripts/lib/**', 'src/lib/carteira/carga.ts', 'src/lib/cronograma/carga.ts'],
   cadastro: ['src/components/carteira/NovoProjeto.astro', 'src/lib/carteira/movimentacao.ts', 'src/lib/carteira/tipos.ts', 'src/lib/repositorio/**', 'db/migracoes/**', ...MAPA],
   estruturacao: ['src/lib/carteira/macroetapas.ts', 'src/components/carteira/Kanban.astro', 'src/lib/carteira/modulos.ts'],
   precisaRecurso: ['src/lib/carteira/visoes.ts'],
@@ -29,11 +29,11 @@ export const COMPONENTES: Record<string, string[]> = {
   preparatorio: ['src/lib/carteira/macroetapas.ts', 'src/lib/cronograma/**'],
   juridico: ['src/lib/cronograma/visoes.ts', 'src/components/cronograma/Parado.astro'],
   sei: ['scripts/importar-cronogramas.ts', 'scripts/sei-ler.ts', 'src/lib/sei/**', 'src/components/sei/**'],
-  publicacao: ['src/data/modules.json', 'src/lib/prazos/**', 'src/components/prazos/**', 'data/config/feriados.json', 'data/config/prazos-internos.json'],
+  publicacao: ['src/data/modules.json', 'src/lib/licitacao/**', 'src/components/licitacao/**', 'src/lib/prazos/**', 'src/components/prazos/**', 'data/config/feriados.json', 'data/config/prazos-internos.json'],
   pncp: [],
-  julgamento: ['src/data/modules.json'],
+  julgamento: ['src/data/modules.json', 'src/lib/licitacao/**', 'src/components/licitacao/**'],
   habilitado: ['src/data/modules.json'],
-  homologacao: ['src/data/modules.json', 'src/lib/prazos/**', 'src/components/prazos/**', 'data/config/feriados.json', 'data/config/prazos-internos.json'],
+  homologacao: ['src/data/modules.json', 'src/lib/licitacao/**', 'src/components/licitacao/**', 'src/lib/prazos/**', 'src/components/prazos/**', 'data/config/feriados.json', 'data/config/prazos-internos.json'],
   mobilizacao: ['src/lib/carteira/macroetapas.ts', 'src/components/carteira/Kanban.astro'],
   execucao: ['src/lib/carteira/macroetapas.ts', 'src/components/carteira/Gantt.astro'],
   conclusao: ['src/lib/carteira/macroetapas.ts'],

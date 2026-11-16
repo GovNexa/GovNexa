@@ -1,6 +1,5 @@
 // Testes do importador da carteira com planilha SINTÉTICA (nenhum dado real).
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -154,11 +153,9 @@ test('arquivos de saída existem e conciliação tem as regras', () => {
   assert.match(readFileSync(join(saida, 'conciliacao.md'), 'utf8'), /Conferências/);
 });
 
-test('baixar-dados sem variáveis usa o exemplo e sai com código 0', () => {
-  const env = Object.fromEntries(Object.entries(process.env).filter(([k]) => !k.startsWith('GOVNEXA_')));
-  const r = spawnSync(process.execPath, ['scripts/baixar-dados.mjs'], { env, encoding: 'utf8' });
-  assert.equal(r.status, 0);
-  assert.match(r.stdout, /usando dados de exemplo/);
+test('Build não baixa dados reais', () => {
+  const pacote = JSON.parse(readFileSync('package.json', 'utf8'));
+  assert.doesNotMatch(pacote.scripts.build, /baixar-dados/);
 });
 
 test('SEI "-" é ausente, sem pendência', () => {
