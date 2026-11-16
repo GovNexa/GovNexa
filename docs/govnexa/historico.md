@@ -97,9 +97,9 @@ Por que ainda não é automático: o navegador não deixa uma página do GovNexa
 
 ### 5.2 Pendências do dono (fora do código)
 
-1. Dar a ordem para publicar a otimização da leitura do banco (novo #6).
+1. (Feito) Otimização da leitura do banco publicada em 16/11/2026, às 19h35 (novo #6, versão 2e1114fa). A versão anterior, `b7e101fa`, fica guardada para `wrangler rollback`, que só com ordem do dono.
 2. (Feito) Workers Paid assinado na conta do GovNexa em 16/11; a plataforma com banco já está no ar.
-3. Dar acesso ao repositório privado de dados, para a rotina de importação.
+3. (Feito) Acesso ao repositório privado `GovNexa/govnexa-dados` conferido em 16/11/2026: privado, com permissão de escrita para a conta do desenvolvimento; hoje só tem a documentação. Falta colocar as planilhas em `planilhas/` (etapa 3.5).
 4. Validar o Fluxo do sistema com as áreas e o cliente.
 5. Fornecer o decreto de feriados de Goiânia, para a contagem exata de dias úteis.
 6. Conta oficial do WhatsApp Business na Meta e aprovação dos 3 modelos de mensagem.
@@ -212,6 +212,7 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 | novo #2 | 16/11/2026 | Etapa 1: Cloudflare Worker com Access e marca GovNexa |
 | novo #3 | 16/11/2026 | Etapa 3 (3.1 e 3.2): banco D1, plataforma lendo o banco, porte do PR #45 e README |
 | novo #4 | 16/11/2026 | Correção: login pelo Access recusava todos em produção |
+| novo #7 | 16/11/2026 | Registro da publicação da otimização e do repositório de dados |
 | novo #6 | 16/11/2026 | Leitura do banco otimizada (desempenho) |
 | novo #5 | 16/11/2026 | Plano e histórico trazidos para o repositório novo, atualizados para a migração (este PR) |
 
@@ -275,6 +276,10 @@ mesclado em 16/11/2026 · branch `agente/codex/access-redirect`
 
 redirect: 'error' não é aceito pelo runtime do Workers; troca para 'manual' (não-200 = indisponível) e registra o motivo de cada recusa (sem dados sensíveis). test:dados 238/238; revisão: APROVADO.
 
+
+#### novo #7 — Registro da publicação da otimização
+
+Documentação: otimização publicada (versão 2e1114fa) e repositório privado de dados conferido.
 
 #### novo #6 — Leitura do banco otimizada (desempenho)
 
