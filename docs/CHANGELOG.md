@@ -1,5 +1,9 @@
 # Changelog
 
+## GovNexa — Leitura do banco otimizada (desempenho, Fase 3)
+- 2026-11-16: a plataforma montava TODAS as guias (ficha dos 334 projetos, cronogramas, Captação…) a cada acesso e lia o banco inteiro de novo: ~400 ms de processamento por página (534 ms de CPU P90 em produção) e o erro 1102 "Worker exceeded resource limits" no plano gratuito. Agora (1) só a guia aberta é montada (`modulosComDadosReais`, `comCarteira` e `comCronogramas` ganham o parâmetro `somente`) e (2) a leitura do banco (carteira, cronogramas e histórico) fica em cache de 30 s por prefeitura (`src/lib/repositorio/cache.ts`), limpo na hora em qualquer gravação; só o resultado pronto é guardado (esperar a leitura de outro acesso pode travar no Workers) e leitura que termina depois de uma gravação não é guardada. As telas que ainda consultavam o banco direto (lista vazia de projetos, histórico) passam a usar a leitura em cache. Medido no Worker local com 348 projetos: Início 408 → 22 ms, Gestão 418 → 27 ms, Captação 378 → 25 ms, Fluxo 380 → 17 ms, Cronogramas 199 → 18 ms, Carteira 434 → 190 ms (a ficha de todos os projetos é montada nessa guia).
+- 2026-11-16: `scripts/db-local.mjs` passa a rodar no Windows (`shell: true`); sem isso o banco local e os testes de interface não subiam. `src/middleware.ts` e `src/lib/repositorio/cache.ts` entram no mapa de impacto como transversais.
+
 ## GovNexa — Plano e histórico no repositório novo
 - 2026-11-16: docs/govnexa/plano.md e docs/govnexa/historico.md trazidos do repositório antigo (congelado) e atualizados para a migração: nota de mudanças no plano (Workers, Access, D1, R2, dados reais fora do repositório), Fase 3 em 60%, linha do tempo e % com a migração, regras novas do dono, o que vem a seguir pós-migração (texto anterior preservado na seção 5.5) e os PRs do repositório novo. Referências que mandavam ao repositório antigo retiradas; documentos com Vercel ganham nota da migração.
 

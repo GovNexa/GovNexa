@@ -7,6 +7,8 @@ export const TRANSVERSAL = [
   'src/layouts/**', 'src/styles/**', 'src/components/DataTable.astro', 'src/components/Icon.astro',
   'src/lib/govnexa/catalogo.ts', 'src/lib/marca.ts', 'src/lib/municipio-ativo.ts', 'src/pages/plataforma/[...module].astro',
   'worker/**', 'wrangler.jsonc', 'public/_headers', 'astro.config.*', 'package.json',
+  'src/middleware.ts', 'src/lib/repositorio/cache.ts', // lê o banco e entrega os dados a todas as telas da plataforma
+  'scripts/db-local.mjs', // banco local de exemplo, usado pelos testes de interface
 ];
 
 /** Mapa das obras e localização: pertence ao Painel do prefeito (mapa) e ao Cadastro do projeto (editor de localização). */

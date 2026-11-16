@@ -117,7 +117,7 @@ São módulos independentes que conversam entre si:
 | 1 · Carteira de Projetos | Carteira, ficha, Kanban, Gantt, Visão por órgão, celular | Entregue; carga inicial no D1 | 100% |
 | 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, Kanban e Pendências, Histórico, Sala de guerra | Telas prontas; algumas gravações ainda são simulação | 95% |
 | 2 · Cronograma e equipe | Cronogramas, quadro de tarefas, Onde está parado, Reunião semanal, dependências, SEI | Telas entregues; leitura automática do SEI a fazer | 90% |
-| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis e isolamento por prefeitura | Tabelas em produção, carga feita; plataforma lendo D1 pronta e testada, aguarda publicação. A fazer: usuários (3.3), documentos (3.4) e importação de planilhas (3.5) | 60% |
+| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis e isolamento por prefeitura | Tabelas em produção, carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada aguarda publicação. A fazer: usuários (3.3), documentos (3.4) e importação de planilhas (3.5) | 60% |
 | 4 · Contratação, convênios e Gestão | Lei 14.133, alertas, painel do prefeito, licitação em detalhe | Prazos da lei, painel, mapa, Central de alertas e Licitação em detalhe; parte ainda em simulação | 75% |
 | 5 · Integrações e inteligência | PNCP, SIMEC, SISMOB, preços, WhatsApp, IA | WhatsApp em simulação | 10% |
 
@@ -125,6 +125,7 @@ São módulos independentes que conversam entre si:
 
 | Data | O que | Referência |
 | --- | --- | --- |
+| 16/11 | Leitura do banco otimizada: só a guia aberta é montada e cache de 30 s (páginas de ~400 ms para ~20 ms) | PR #6 |
 | 16/11 | Plano e histórico completos trazidos para o repositório novo; repositório antigo congelado | PR #5 |
 | 16/11 | Regras e preparo do repositório novo | PR #1 |
 | 16/11 | Worker, Access e marca GovNexa | PR #2 |
@@ -248,7 +249,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Leitura real no D1:** carteira, cronogramas e histórico da carga inicial.
 - **Captação:** leitura de dados públicos.
 - **Ainda é simulação:** cadastro, Kanban, pendências, reunião, sala de guerra, SEI na interface e WhatsApp. Essas partes passam a gravar de verdade nas próximas entregas da etapa 3.
-- A tela da plataforma está pronta e testada para ler D1, mas aguarda publicação.
+- A plataforma lê o D1 em produção desde 16/11/2026. A leitura foi otimizada (só a guia aberta é montada e a leitura do banco fica em cache de 30 s); a otimização aguarda a ordem de publicação.
 - Acesso à plataforma exige Cloudflare Access e cadastro ativo no banco central. A prefeitura não é escolhida pela URL.
 
 ### SEI automático
@@ -288,8 +289,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 
 | Pendência | Para quê |
 | --- | --- |
-| Assinar Workers Paid (US$ 5/mês) | Uso dos recursos de produção |
-| Dar ordem para publicar a versão com banco | Colocar a plataforma D1 no ar |
+| Dar a ordem para publicar a otimização da leitura do banco (PR #6) | Páginas de ~400 ms para ~20 ms e menos custo no Workers |
 | Dar acesso do outro desenvolvedor ao repositório privado de dados | Preparar a rotina de importação |
 | Validar o Fluxo com as áreas e com o cliente | Confirmar etapas, dependências e subprocessos |
 | Fornecer o decreto de feriados de Goiânia | Contagem exata dos dias úteis |
