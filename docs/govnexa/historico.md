@@ -97,13 +97,13 @@ Por que ainda não é automático: o navegador não deixa uma página do GovNexa
 
 ### 5.2 Pendências do dono (fora do código)
 
-1. Assinar o plano Workers Paid do Cloudflare (US$ 5/mês), para os recursos de produção.
-2. Dar a ordem para publicar a versão com banco.
+1. Dar a ordem para publicar a otimização da leitura do banco (novo #6).
+2. (Feito) Workers Paid assinado na conta do GovNexa em 16/11; a plataforma com banco já está no ar.
 3. Dar acesso ao repositório privado de dados, para a rotina de importação.
 4. Validar o Fluxo do sistema com as áreas e o cliente.
 5. Fornecer o decreto de feriados de Goiânia, para a contagem exata de dias úteis.
 6. Conta oficial do WhatsApp Business na Meta e aprovação dos 3 modelos de mensagem.
-7. Arquivar o repositório antigo no GitHub (Settings › Archive) e desligar a hospedagem antiga na Vercel.
+7. Desligar a hospedagem antiga na Vercel. Arquivar o repositório antigo no GitHub (Settings › Archive) fica a cargo do outro desenvolvedor, dono da conta `SLo0th1`.
 
 ### 5.3 Próximas entregas
 
@@ -189,6 +189,9 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 
 | Situação | O que aprendemos |
 | --- | --- |
+| Erro 1102 "Worker exceeded resource limits" ao abrir `/plataforma/` (16/11) | A plataforma com banco foi publicada antes de o plano Workers Paid valer para o Worker. No plano gratuito o limite é 10 ms de CPU por acesso; cada página gastava ~400 ms. Conferir sempre em Faturamento › Assinaturas **da conta do GovNexa** (o login enxerga também a conta pessoal). |
+| Todas as guias montadas a cada acesso (16/11, novo #6) | Na plataforma dinâmica, `[...module].astro` montava todas as guias (ficha dos 334 projetos, cronogramas, Captação) a cada clique, herança do tempo em que o site era estático e montava tudo uma vez no build. Montar só a guia aberta e guardar a leitura do banco por 30 s derrubou as páginas de ~400 para ~20 ms. Dados em cache são compartilhados: nenhuma tela pode alterá-los no lugar. Medir sempre no Worker local com um banco do tamanho da produção (~350 projetos). |
+| `npm run db:local` não funcionava no Windows | O script chamava `npx` sem shell e saía sem mensagem, e os testes de interface não subiam. Corrigido com `shell: true`. |
 | Mapa em branco no site, com teste local verde (#40) | A Vercel não servia um arquivo de build com nome terminado em `_`. O build passou a usar nomes só hexadecimais (`hashCharacters: 'hex'`), e há um teste para isso. Depois de um merge que traz módulo novo para o navegador, abrir a página publicada e conferir que todo `/_astro/*` responde 200. Uma hipótese de correção só vale se o teste novo falhar sem a correção. |
 | SEI no navegador | Uma página do GovNexa não pode ler o SEI direto (CORS). Leitura automática só no servidor; no navegador, só com a página salva pela pessoa. |
 | Data de "hoje" | O site é estático: datas e faróis precisam ser recalculados no navegador, no fuso de Brasília (`hojeEmBrasilia()`). |
@@ -209,6 +212,7 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 | novo #2 | 16/11/2026 | Etapa 1: Cloudflare Worker com Access e marca GovNexa |
 | novo #3 | 16/11/2026 | Etapa 3 (3.1 e 3.2): banco D1, plataforma lendo o banco, porte do PR #45 e README |
 | novo #4 | 16/11/2026 | Correção: login pelo Access recusava todos em produção |
+| novo #6 | 16/11/2026 | Leitura do banco otimizada (desempenho) |
 | novo #5 | 16/11/2026 | Plano e histórico trazidos para o repositório novo, atualizados para a migração (este PR) |
 
 #### novo #1 — Etapa 0: regras do fluxo com executores e preparo para a Cloudflare
@@ -271,6 +275,10 @@ mesclado em 16/11/2026 · branch `agente/codex/access-redirect`
 
 redirect: 'error' não é aceito pelo runtime do Workers; troca para 'manual' (não-200 = indisponível) e registra o motivo de cada recusa (sem dados sensíveis). test:dados 238/238; revisão: APROVADO.
 
+
+#### novo #6 — Leitura do banco otimizada (desempenho)
+
+Plataforma: só a guia aberta é montada e a leitura do banco fica em cache de 30 s por prefeitura (limpo em toda gravação). Páginas de ~400 ms para ~20 ms (Carteira 434 → 190 ms). Detalhes no CHANGELOG.
 
 ### 7.2 Repositório antigo (`SLo0th1/Atlas_Conecta`, congelado em 16/11/2026)
 
