@@ -22,6 +22,26 @@
   "observability": {
     "enabled": true
   },
+  "d1_databases": [
+    {
+      "binding": "DB_CENTRAL",
+      "database_name": "govnexa-central",
+      "database_id": "64090bfd-b5ad-4360-a022-70d64fdb4b54",
+      "migrations_dir": "db/d1/central"
+    },
+    {
+      "binding": "DB_PREFEITURA_5208707",
+      "database_name": "govnexa-5208707",
+      "database_id": "cabbeb81-bfe9-4729-bd6c-b4d5b35674e8",
+      "migrations_dir": "db/d1/prefeitura"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "DOCUMENTOS",
+      "bucket_name": "govnexa-documentos"
+    }
+  ],
   "vars": {
     "ACCESS_TEAM_DOMAIN": "equipegovnexa.cloudflareaccess.com",
     "ACCESS_AUD": "07172f6dfb695c95b9c08710223fcc081711f891836aee2c7243e6e4bc2bd1e4"
