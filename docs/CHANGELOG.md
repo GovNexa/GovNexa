@@ -1,5 +1,8 @@
 # Changelog
 
+## GovNexa — Repositório novo (GovNexa/GovNexa)
+- 2026-11-16: `data/carga-real/` (carteira, cronogramas e histórico reais da prefeitura) retirada de todo o histórico do Git antes de tornar o repositório público; os dados reais entram pelo banco (D1). Sem a pasta, o sistema usa `data/exemplo`. Pasta no `.gitignore`.
+
 ## GovNexa — Fluxo do sistema: zoom e leitura
 - 2026-11-16: zoom no Fluxo (diminuir, aumentar, Ajustar à tela, Tamanho padrão; Ctrl + roda do mouse sobre o diagrama), lembrado no navegador; padrão 100% (o diagrama geral com 1000 px, menor que antes em telas largas) e, no celular, ajustado à tela; com zoom maior a rolagem é dentro do quadro, sem rolagem lateral da página. Legenda e lista de fluxos detalhados começam recolhidas (abrem com um clique; no PDF saem abertas).
 

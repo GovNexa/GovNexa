@@ -21,3 +21,6 @@ Doc Referencia/
 
 # GovNexa: dados reais da carteira (baixados do repositorio privado no build ou gerados pelo importador). Nunca publicar.
 .govnexa-dados/
+
+# Dados reais da prefeitura: nunca publicar (retirados do histórico em 2026-11-16)
+data/carga-real/

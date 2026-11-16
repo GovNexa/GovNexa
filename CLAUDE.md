@@ -21,7 +21,7 @@ Valem para todas as pessoas e para toda sessão do Claude Code que desenvolver n
 ## 4. Cuidados
 - Não alterar o login (`api/`, `lib/session.ts`, `middleware.ts`, `src/pages/entrar.astro`) nem `vercel.json` sem autorização do dono.
 - A pasta local `Doc Referencia/` (insumos internos) nunca vai para o repositório.
-- `data/carga-real/` é publicação **temporária** dos dados da planilha; será retirada quando houver banco de dados.
+- Dados reais da prefeitura nunca vão para o repositório (público). `data/carga-real/` foi retirada de todo o histórico em 2026-11-16; os dados reais entram pelo banco (D1). O código ainda aceita a pasta local, que fica no `.gitignore`.
 - Testes usam sempre os dados fictícios de `data/exemplo` (`GOVNEXA_EXEMPLO=1`).
 - Nunca colocar senhas ou chaves no código; usar variáveis de ambiente/segredos.
 
