@@ -19,6 +19,11 @@
       "/sair/*"
     ]
   },
+  "workers_dev": false,
+  "routes": [
+    { "pattern": "govnexa.com.br", "custom_domain": true },
+    { "pattern": "www.govnexa.com.br", "custom_domain": true }
+  ],
   "observability": {
     "enabled": true
   },
