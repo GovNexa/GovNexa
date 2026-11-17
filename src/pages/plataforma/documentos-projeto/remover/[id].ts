@@ -15,8 +15,9 @@ export const POST: APIRoute = async ({ request, params, locals, redirect }) => {
   const pode = podeEnviar(contexto);
   if (!pode.ok) return redirect(`${BASE}?r=${codigoDe(pode)}`, 303);
   // O formulário só leva o código do projeto: corpo grande é abuso e não é lido.
-  const tamanho = Number(request.headers.get('content-length'));
-  if (!Number.isFinite(tamanho) || tamanho < 0 || tamanho > 4096) return redirect(`${BASE}?r=tamanho`, 303);
+  const cabecalhoTamanho = request.headers.get('content-length');
+  const tamanho = Number(cabecalhoTamanho);
+  if (cabecalhoTamanho === null || !Number.isFinite(tamanho) || tamanho < 0 || tamanho > 4096) return redirect(`${BASE}?r=tamanho`, 303);
   const form = await request.formData().catch(() => null);
   const projeto = String(form?.get('projeto') ?? '');
   const base = ID_PROJETO.test(projeto) ? `${BASE}projeto/${encodeURIComponent(projeto)}/` : BASE;

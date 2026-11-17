@@ -41,7 +41,11 @@ export async function enviarDocumento(c: Contexto, projetoId: string, nome: stri
   if (repetido) return falha(409, `Este arquivo já foi enviado neste projeto (“${repetido.nome_original}”).`);
   const id = crypto.randomUUID();
   const chave = `${c.repositorio.prefeituraId}/${projetoId}/${id}`;
-  await c.bucket!.put(chave, arquivo, { httpMetadata: { contentType: v.mime } });
+  try {
+    await c.bucket!.put(chave, arquivo, { httpMetadata: { contentType: v.mime } });
+  } catch {
+    return falha(503, 'Armazenamento de documentos indisponível.');
+  }
   try {
     await docs.registrar({ id, projeto_id: projetoId, nome_original: v.nome, chave_r2: chave, tipo_mime: v.mime, tamanho_bytes: arquivo.size, sha256: hash, enviado_por: c.usuario.email });
   } catch (erro) {

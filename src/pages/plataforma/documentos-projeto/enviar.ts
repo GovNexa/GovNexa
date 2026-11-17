@@ -1,6 +1,6 @@
 export const prerender = false;
 // POST /plataforma/documentos-projeto/enviar/ — envia um arquivo para um projeto. Protegido pelo Cloudflare Access (rota sob /plataforma/).
-// Ordem de conferência: origem, perfil, projeto e tamanho ANTES de abrir o formulário (assim quem não pode não gasta memória do Worker).
+// Ordem de conferência: origem, perfil e tamanho ANTES de abrir o formulário (o projeto vem no corpo e é conferido depois) (assim quem não pode não gasta memória do Worker).
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 import { enviarDocumento, podeEnviar, type BucketR2 } from '../../../lib/documentos/servico.ts';

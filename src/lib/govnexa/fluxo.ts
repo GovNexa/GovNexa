@@ -55,7 +55,7 @@ const T = {
   parecer: { rotulo: 'Projetos (parecer de elegibilidade)', url: '/plataforma/captacao-projetos/' },
   processos: { rotulo: 'Processos / Licitações', url: '/plataforma/processos/' },
   prazos: { rotulo: 'Prazos da Lei 14.133', url: '/plataforma/licitacoes-prazos/' },
-  documentos: { rotulo: 'Documentos da licitação', url: '/plataforma/documentos-projeto/' },
+  documentos: { rotulo: 'Documentos da licitação', url: '/plataforma/documentos/' },
   gestao: { rotulo: 'Gestão · Painel', url: '/plataforma/gestao/' },
   whatsapp: { rotulo: 'WhatsApp', url: '/plataforma/gestao-whatsapp/' },
   sei: { rotulo: 'Processos no SEI', url: '/plataforma/projetos-sei/' },

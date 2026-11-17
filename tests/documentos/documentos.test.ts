@@ -154,7 +154,7 @@ test('limite: a 31ª tentativa na hora é recusada (429)', async () => {
   const outroUsuario = { ...c, usuario: { ...usuario('editor'), email: 'outro@x.gov.br' } };
   assert.equal((await enviarDocumento(outroUsuario, 'P-1', 'novo.pdf', pdfB('novo')) as any).ok, true);
 });
-test('corrida: dois envios iguais ao mesmo tempo gravam um só e limpam o outro no R2', async () => {
+test('corrida: dois envios iguais ao mesmo tempo gravam um só (a trava do banco é provada no teste do índice)', async () => {
   const { c, bucket, banco } = montar();
   const [a, b] = await Promise.all([enviarDocumento(c, 'P-1', 'a.pdf', pdfB('igual')), enviarDocumento(c, 'P-1', 'b.pdf', pdfB('igual'))]);
   assert.equal([a, b].filter((r) => r.ok).length, 1);
@@ -168,8 +168,32 @@ test('remoção: a segunda remoção do mesmo documento não vale (decide pelas 
   assert.equal((await removerDocumento(c, id)).ok, true);
   assert.equal((await removerDocumento(c, id)).ok, false);
 });
-test('arquivo grande: só o começo é lido para conferir o tipo', async () => {
+test('acima de 25 MB é recusado lendo só 16 bytes do arquivo', async () => {
   const { c } = montar();
-  const grande = new Uint8Array(LIMITE_BYTES + 1); grande.set(pdf());
-  assert.equal((await enviarDocumento(c, 'P-1', 'g.pdf', new Blob([grande as unknown as BlobPart])) as any).status, 400);
+  let lidos = 0;
+  const falso = {
+    size: LIMITE_BYTES + 1,
+    slice: (a: number, b: number) => { lidos += b - a; return new Blob([pdf() as unknown as BlobPart]); },
+    arrayBuffer: async () => { lidos += LIMITE_BYTES + 1; return new ArrayBuffer(0); },
+    stream: () => { lidos += LIMITE_BYTES + 1; return new Blob([]).stream(); },
+  } as unknown as Blob;
+  assert.equal((await enviarDocumento(c, 'P-1', 'g.pdf', falso) as any).status, 400);
+  assert.equal(lidos, 16);
+});
+test('índice único: dois ativos iguais no projeto são barrados; removido libera; outro projeto pode', () => {
+  const { banco } = montar();
+  banco.sqlite.exec("INSERT INTO projeto (prefeitura_id, id, codigo_legado, nome, orgao, valores, recurso, datas, por_ano, atualizacao, operacional, origem, sei, pendencias) VALUES (5208707, 'P-2', 2, 'Obra 2', 'SEINFRA', '{}','{}','{}','{}','{}','{}','{}','[]','[]')");
+  const h = 'a'.repeat(64);
+  const ins = (id: string, proj: string) => banco.sqlite.prepare("INSERT INTO documento (id, prefeitura_id, projeto_id, nome_original, chave_r2, tipo_mime, tamanho_bytes, sha256, enviado_por) VALUES (?, 5208707, ?, 'x.pdf', ?, 'application/pdf', 10, ?, 'u@x')").run(id, proj, 'k' + id, h);
+  ins('d1', 'P-1');
+  assert.throws(() => ins('d2', 'P-1'), /UNIQUE/);
+  ins('d3', 'P-2');
+  banco.sqlite.exec("UPDATE documento SET removido_em = '2026-01-01T00:00:00.000Z' WHERE id = 'd1'");
+  ins('d4', 'P-1');
+});
+test('envio: falha no R2 devolve 503 sem registrar no banco', async () => {
+  const { c, banco, bucket } = montar();
+  bucket.put = async () => { throw new Error('R2 fora'); };
+  assert.equal((await enviarDocumento(c, 'P-1', 'a.pdf', pdfB()) as any).status, 503);
+  assert.equal((banco.sqlite.prepare('SELECT count(*) AS n FROM documento').get() as any).n, 0);
 });
