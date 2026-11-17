@@ -1,7 +1,7 @@
 # Atualização diária dos dados do bloco Captação (coletores públicos, sem chaves).
 # Roda todo dia depois das publicações das fontes (CAUC e Transferegov atualizam ~11h UTC) e, manualmente, quando necessário.
 # SEGURANÇA/FLUXO: grava só em data/core, na branch "dados-atualizados" (nunca na main) e tenta abrir/atualizar um Pull Request.
-# O merge na main (que republica o site na Vercel) continua sendo decisão do dono. Para publicar sem revisão,
+# O merge na main continua sendo decisão do dono (a publicação no Cloudflare só acontece com ordem expressa dele). Para publicar sem revisão,
 # o dono pode trocar a branch de destino por "main" (ver o passo "Enviar para a branch de dados").
 # Fora deste fluxo (não automatizáveis): DOU (ZIP baixado no navegador) e MDS (captcha); Portal da Transparência (histórico, workflow próprio).
 name: Atualizar dados do bloco Captação

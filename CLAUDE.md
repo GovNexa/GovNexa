@@ -32,9 +32,13 @@ O `README.md` é a fonte para dar continuidade: quem baixar o repositório preci
   - **seção 7:** decisões novas do dono;
   - **seção 8:** pendências e próximos passos.
 - **Mudança de direção do produto:** princípio novo, módulo novo ou nova regra de comportamento entra nas seções 1.1 a 1.3, com a data.
-- **Fora do README:** nomes de pessoas, credenciais, links privados e conteúdo da pasta `Doc Referencia/`.
+- **Plano** em `docs/govnexa/plano.md` (versão pública, sem dado interno): toda decisão, regra ou requisito novo entra na seção correspondente no mesmo PR. A versão integral fica no repositório privado `GovNexa/govnexa-dados` (`docs/plano-completo.md`).
+- **Histórico** em `docs/govnexa/historico.md` (público e curto): regra nova do dono e lição técnica entram com a data. O histórico integral (testes do SEI com processos reais, números da carteira, todos os PRs) fica no repositório privado (`docs/historico-completo.md`).
+- **Fora do README, do plano e do histórico públicos:** nomes de pessoas, credenciais, links privados, números internos da prefeitura, processos reais do SEI e conteúdo da pasta `Doc Referencia/`.
 - **Este arquivo (`CLAUDE.md`) é versionado:** quando uma regra de trabalho mudar, atualize-o no mesmo PR.
-- **Repositório antigo:** o outro desenvolvedor continua no `SLo0th1/Atlas_Conecta`; o Claude compara (`git log 1398059..atlas/main` no remoto `atlas`) e traz as mudanças para cá, adaptando ao Worker, ao D1 e à marca.
+- **Histórico** em `docs/govnexa/historico.md`: toda entrega acrescenta o seu PR (seção 7.1) e atualiza os % (seção 2). Regra nova do dono entra na seção 3, decisão pendente e próximos passos na seção 5, e lição técnica na seção 6, sempre com a data.
+- **Plano completo** em `docs/govnexa/plano.md`, de conhecimento de todos: toda entrega atualiza a seção "Andamento" (situação e % por fase, linha na tabela de entregas). Decisão, regra ou requisito novo entra na seção correspondente do plano, com a data.
+- **Repositório antigo (`SLo0th1/Atlas_Conecta`): congelado desde 16/11/2026.** Todo o trabalho segue só neste repositório; nada é trazido nem enviado para o antigo.
 
 ## 5. Cuidados
 - Não alterar o login nem a configuração de publicação (`wrangler.jsonc`, `_headers`, regras do Access; até a migração terminar, também `api/`, `lib/session.ts`, `middleware.ts`, `src/pages/entrar.astro` e `vercel.json`) sem autorização do dono.
@@ -44,7 +48,7 @@ O `README.md` é a fonte para dar continuidade: quem baixar o repositório preci
 - Testes usam sempre os dados fictícios de `data/exemplo` (`GOVNEXA_EXEMPLO=1`).
 - Nunca colocar senhas ou chaves no código; usar variáveis de ambiente/segredos.
 
-Mais contexto: `README.md` (comece por ele), `docs/govnexa/visao-geral.md`, `docs/govnexa/modelo-dados.md` e `docs/CHANGELOG.md`.
+Mais contexto: `README.md` (comece por ele), `docs/govnexa/plano.md` (plano), `docs/govnexa/historico.md` (regras do dono e lições), `docs/govnexa/visao-geral.md`, `docs/govnexa/modelo-dados.md` e `docs/CHANGELOG.md`.
 
 # Parte B · Regras do cérebro (Claude Code)
 

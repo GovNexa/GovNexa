@@ -83,9 +83,11 @@ function alertas(): Modulo | null {
 }
 
 /** Substitui as guias de exemplo do bloco Captação pelas versões com dados reais (quando a carga existe). */
-export function modulosComDadosReais<T extends { slug: string }>(base: T[]): (T | Modulo)[] {
-  const substitutos: Record<string, Modulo | null> = {
-    captacao: montarPrincipal(gerarAlertas()), 'captacao-projetos': montarProjetos(), 'captacao-qualidade': montarQualidade(), 'captacao-comparativo': montarComparativo(), 'captacao-oportunidades': oportunidades(), 'captacao-acompanhamento': acompanhamento(), 'captacao-alertas': alertas(),
+export function modulosComDadosReais<T extends { slug: string }>(base: T[], somente?: string): (T | Modulo)[] {
+  // Cada guia só é montada quando é pedida: montar todas a cada acesso gastava ~400 ms de processamento no Worker.
+  const substitutos: Record<string, () => Modulo | null> = {
+    captacao: () => montarPrincipal(gerarAlertas()), 'captacao-projetos': () => montarProjetos(), 'captacao-qualidade': () => montarQualidade(), 'captacao-comparativo': () => montarComparativo(), 'captacao-oportunidades': () => oportunidades(), 'captacao-acompanhamento': () => acompanhamento(), 'captacao-alertas': () => alertas(),
   };
-  return base.map((m) => substitutos[m.slug] ?? m);
+  // `somente` = slug da guia aberta; as demais ficam como metadado (nome, grupo, slug). Sem `somente`, monta todas (testes e scripts).
+  return base.map((m) => (somente !== undefined && m.slug !== somente ? m : substitutos[m.slug]?.() ?? m));
 }

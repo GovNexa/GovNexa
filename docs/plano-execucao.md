@@ -1,5 +1,7 @@
 # Plano de execução — Fase 0 (Fundação e descoberta)
 
+> **Nota de 16/11/2026:** documento anterior à migração. Onde diz Vercel, hoje é Cloudflare Workers; o login é o Cloudflare Access; o banco é o Cloudflare D1. Situação atual no README e em docs/govnexa/historico.md.
+
 Bloco **Captação** do GovNexa. Documento de planejamento: **nenhum código foi escrito**. Aguarda confirmação do dono do produto antes da execução.
 
 Data: 2026-11-09 · Base: Plano Mestre (Partes 1 a 9) + decisões do dono desta sessão.

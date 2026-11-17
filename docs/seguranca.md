@@ -1,5 +1,7 @@
 # Revisão de segurança — 9 vetores (2026-11-10)
 
+> **Nota de 16/11/2026:** documento anterior à migração. Onde diz Vercel, hoje é Cloudflare Workers; o login é o Cloudflare Access; o banco é o Cloudflare D1. Situação atual no README e em docs/govnexa/historico.md.
+
 Escopo: aplicação Astro (páginas estáticas + funções de login na Vercel), coletores, workflows do GitHub Actions e a nova camada de dados. Regra de referência: linha de base de segurança do dono (9 vetores). Cada vetor foi checado explicitamente.
 
 | # | Vetor | Resultado | Onde | O que foi feito |
