@@ -1,5 +1,8 @@
 # Changelog
 
+## GovNexa — Símbolo G como ícone do sistema
+- 2026-11-17: símbolo G do logo (componente `src/components/SimboloGovNexa.astro`) no ícone da aba do navegador (`public/favicon.svg`), no ícone de atalho de celular/tablet (`public/apple-touch-icon.png`), no canto da plataforma, no painel do login e no rodapé. Cor do navegador no celular: azul-marinho da marca.
+
 ## Correção: rodapé da plataforma não fica mais atrás do menu
 - 2026-11-17: o rodapé da plataforma passa a respeitar o limite do menu lateral, recolhido ou expandido (o menu é fixo a partir de 1050 px e cobria o começo do texto). Teste novo (`tests/menu-sobreposicao.spec.ts`) percorre todas as telas do menu, nos dois estados e em três larguras, e falha se qualquer texto ou controle ficar atrás do menu.
 

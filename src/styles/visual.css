@@ -193,3 +193,8 @@ td button[data-detail]{white-space:nowrap;min-width:max-content}.table-wrap td:l
 .app-org strong{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;line-height:1.2}
 /* Rodapé da plataforma respeita o limite do menu lateral (fixo a partir de 1050px), recolhido ou expandido. */
 @media(min-width:1050px){.app-footer{margin-left:282px;padding-left:1.5rem;transition:margin-left 220ms}:root[data-sidebar=recolhido] .app-footer{margin-left:120px}}
+/* Símbolo G do GovNexa nos selos (aba, plataforma, login e rodapé): quadrado azul-marinho, G branco e alvo laranja. */
+.appbar .mark{display:inline-grid;place-items:center;width:40px;height:40px;padding:0;border-radius:11px;background:#002E47}
+.footer-mark{border-color:#ffffff33}
+.login-brand-mark{border-color:#ffffff33!important}
+.simbolo-gx{display:block;flex:none}

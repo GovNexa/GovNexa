@@ -3,11 +3,12 @@ import Icon from '../Icon.astro';
 import '../../styles/login.css';
 
 const { heading, description } = Astro.props;
+import SimboloGovNexa from '../SimboloGovNexa.astro';
 ---
 <section class="login-layout" aria-labelledby="login-heading">
   <aside class="login-intro">
     <div class="login-brand">
-      <span class="login-brand-mark" aria-hidden="true">G</span>
+      <span class="login-brand-mark" aria-hidden="true"><SimboloGovNexa tamanho={30} fundo="escuro"/></span>
       <span><strong>GovNexa</strong><small>Inteligência para a gestão pública</small></span>
     </div>
     <div class="login-intro-copy">
