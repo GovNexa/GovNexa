@@ -47,7 +47,8 @@ const moeda = (valor: number | null) => valor === null
 const inteiro = (valor: number | null) => valor === null ? '—' : Math.round(valor).toLocaleString('pt-BR');
 const percentual = (valor: number | null) => valor === null ? '—' : `${valor.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`;
 const textoBR = (texto: string) => texto.replace(/(\d{4})-(\d{2})-(\d{2})/g, '$3/$2/$1').replace(/(\d+)\.(\d+)%/g, '$1,$2%').replace(/\b\d{4,}(?= (?:de|projetos|convênios|etapas|dias)\b)/g, (numero) => Number(numero).toLocaleString('pt-BR'));
-const secundario = (cartao: Cartao) => textoBR(cartao.id === 'cauc' ? `${inteiro(cartao.valorPrincipal)} pendências · consulta ${cartao.secundario.split('consulta: ')[1] ?? 'sem data'}` : cartao.secundario || '—');
+const vazios: Partial<Record<Cartao["id"], string>> = { execucao: "Nenhum projeto em execução", contratacao: "Nenhum projeto em contratação", entregas: "Nenhuma entrega prevista em 90 dias" };
+const secundario = (cartao: Cartao) => cartao.valorPrincipal === 0 && vazios[cartao.id] ? vazios[cartao.id]! : textoBR(cartao.id === 'cauc' ? `${inteiro(cartao.valorPrincipal)} pendências · consulta ${cartao.secundario.split('consulta: ')[1] ?? 'sem data'}` : cartao.secundario || '—');
 const valorCartao = (cartao: Cartao) => cartao.id === 'cauc' ? (cartao.valorPrincipal === null ? '—' : cartao.situacao === 'ok' ? 'Regular' : 'Com pendência') : cartao.valorPrincipal === null
   ? '—'
   : cartao.unidade === 'reais'
@@ -81,6 +82,28 @@ const linkItem = (item: { id: string; link: string }, cartao: Cartao) =>
   cartao.abrangencia === 'municipio' ? item.link : valorFicha(item.id);
 const barra = (quebras: Quebra[]) => Math.max(0, ...quebras.map((quebra) => quebra.valor ?? 0));
 const filtrosAtivos = (chave: keyof Filtros) => filtros[chave] ?? '';
+// Conservador: gravidade vem apenas dos cartões críticos; sem inferir novos alertas.
+// Decisões entram somente quando vinculadas a itens de cartões críticos; não inferir gravidade.
+const calculos: Record<Cartao['id'], string> = {
+carteira: 'Quantidade de projetos nos filtros atuais.',
+execucao: 'Projetos na macroetapa 05; percentual ponderado pelos valores conhecidos.',
+contratacao: 'Projetos nas macroetapas 02 e 03; alertas dos prazos legais cadastrados.',
+entregas: 'Projetos com encerramento previsto nos próximos 90 dias.',
+atencao: 'Projetos não concluídos com farol vermelho.',
+falta_financiar: 'Soma dos saldos sem fonte identificáveis dos projetos não concluídos.',
+convenios: 'Quantidade em execução informada no resumo da coleta.',
+convenios_risco: 'Convênios em execução com alerta ou vigência futura em até 180 dias; saldo não desembolsado.',
+cauc: 'Pendências da coleta; Regular exige situação regular e lista de pendências vazia.',
+oportunidades: 'Programas elegíveis com prazo nos próximos 30 dias.',
+};
+const criticos = dashboard.cartoes.filter(c => c.situacao === 'critico');
+const pontos = [
+  ...criticos.map(c => ({ id: c.id, texto: `${c.titulo}: ${valorCartao(c)} · ${secundario(c)}` })),
+  ...dashboard.decisoes.flatMap(d => {
+    const cartao = criticos.find(c => c.detalhe.itens.some(i => i.id === d.id));
+    return cartao ? [{ id: cartao.id, texto: `${d.nome}: ${textoBR(d.motivo)}` }] : [];
+  }),
+].slice(0, 3);
 const linkEtapa = '/plataforma/projetos-kanban/';
 ---
 
@@ -90,12 +113,21 @@ const linkEtapa = '/plataforma/projetos-kanban/';
       <p class="pd-sobretitulo">{municipio.nomeExibicao}</p>
       <h1>Visão geral da prefeitura</h1>
       <p class="pd-atualizado">Atualizado em <time datetime={new Date().toISOString()}>{atualizado}</time></p>
+      <p class="pd-atualizacao" role="status" data-atualizacao hidden></p>
     </div>
+    <button class="pd-apresentar" type="button" data-atualizar hidden>Atualizar agora</button>
     <button class="pd-apresentar" type="button" data-apresentar>
-      <Icon name="eye" size={20} />Apresentar
+      <span data-apresentar-texto>Apresentar</span>
     </button>
   </header>
 
+  <div data-pd-faixa>
+    {criticos.length > 0 && <aside class="pd-alertas" aria-label="Pontos de atenção">
+      <strong>Pontos de atenção</strong>
+      <ul>{pontos.map(p => <li><a href={urlCom(filtros, p.id)} title={p.texto}>{p.texto}</a></li>)}</ul>
+    </aside>}
+  </div>
+  <div data-pd-conteudo>
   <div class="pd-fontes-linha">
     <p>Fontes: {dashboard.fontes.map((fonte, indice) => `${['Carteira', 'Cronogramas', 'Transferegov', 'CAUC', 'Programas'][indice]} ${dataFonte(fonte.data)}`).join(' · ')}</p>
     <details><summary>Ver fontes</summary><ul class="pd-fontes">{dashboard.fontes.map((fonte) => <li>{fonte.nome} · {dataFonte(fonte.data)}</li>)}</ul></details>
@@ -137,19 +169,20 @@ const linkEtapa = '/plataforma/projetos-kanban/';
   <section class="pd-indicadores" aria-labelledby="pd-indicadores">
     <h2 id="pd-indicadores" class="sr-only">Indicadores</h2>
     <div class="pd-cartoes">
-      {dashboard.cartoes.map((cartao) => (
+      {dashboard.cartoes.map((cartao, indice) => (
         <a
           class={`pd-cartao pd-situacao-${cartao.situacao}`}
           href={urlCom(filtros, cartao.id)}
-          data-cartao={cartao.id}
+          data-cartao={cartao.id} style={`--pd-atraso:${indice * 45}ms`}
         >
           <span class="pd-cartao-titulo">{cartao.titulo}</span>
-          <strong class:list={["pd-numero", { "pd-numero-longo": valorCartao(cartao).length > 6, "pd-numero-texto": cartao.id === "cauc" }]}>{valorCartao(cartao)}</strong>
+          <strong class:list={["pd-numero", { "pd-numero-longo": valorCartao(cartao).length > 6, "pd-numero-texto": cartao.id === "cauc" }]} data-final={valorCartao(cartao)} data-valor={cartao.id !== "cauc" ? cartao.valorPrincipal : undefined} data-unidade={cartao.unidade}>{valorCartao(cartao)}</strong>
           <span class="pd-secundario">{secundario(cartao)}</span>
-          <span class="pd-situacao">
+          <span class="pd-situacao" data-indicador={cartao.situacao}>
             <Icon name={situacoes[cartao.situacao].icone} size={18} />
             {situacoes[cartao.situacao].rotulo}
           </span>
+          <span class="pd-calculo">Como é calculado: {calculos[cartao.id]}</span>
           {cartao.abrangencia === 'municipio' && <span class="pd-abrangencia">Toda a prefeitura</span>}
         </a>
       ))}
@@ -205,6 +238,7 @@ const linkEtapa = '/plataforma/projetos-kanban/';
       : <p class="pd-vazio">Nenhuma região disponível para os filtros atuais.</p>}
   </section>
 
+  </div>
   {cartaoSelecionado && (
     <>
       <a class="pd-overlay" href={limparPainel} aria-label="Fechar detalhes"></a>
@@ -227,12 +261,14 @@ const linkEtapa = '/plataforma/projetos-kanban/';
             </button>
           </form>
         </header>
+        <div class="pd-skeleton" aria-hidden="true"></div>
         <div class="pd-painel-corpo">
           <div class="pd-resumo-cartao">
             {Object.entries(cartaoSelecionado.detalhe.resumo).slice(0, 3).map(([chave, valor]) => (
               <div><span>{labelResumo[chave] ?? chave}</span><strong>{formatResumo(chave, valor)}</strong></div>
             ))}
           </div>
+          <section class="pd-calculo-painel"><h3>Como é calculado</h3><p>{calculos[cartaoSelecionado.id]}</p></section>
           {([
             ['Órgão', cartaoSelecionado.detalhe.quebras.porOrgao],
             ['Região', cartaoSelecionado.detalhe.quebras.porRegiao],
@@ -274,7 +310,6 @@ const linkEtapa = '/plataforma/projetos-kanban/';
     </>
   )}
 
-  <button class="pd-sair-apresentacao" type="button" data-sair-apresentacao hidden>Sair da apresentação</button>
   <p class="sr-only" role="status" aria-live="polite" data-apresentacao-status></p>
 </div>
 
@@ -315,15 +350,96 @@ document.addEventListener('astro:page-load', () => {
   }
 
   const apresentar = document.querySelector<HTMLButtonElement>('[data-apresentar]');
-  const sair = document.querySelector<HTMLButtonElement>('[data-sair-apresentacao]');
   const status = document.querySelector<HTMLElement>('[data-apresentacao-status]');
   const root = document.querySelector<HTMLElement>('[data-prefeito-dashboard]');
+
+  if (!root) return;
+  const motion = matchMedia('(prefers-reduced-motion: reduce)');
+  const ativos = new Map<HTMLElement, () => void>();
+  const finalizar = () => { for (const limpar of ativos.values()) limpar(); ativos.clear(); };
+  motion.addEventListener('change', finalizar, { signal: lifecycle.signal });
+  window.addEventListener('beforeprint', finalizar, { signal: lifecycle.signal });
+  root.classList.add('pd-efeitos');
+  if (!motion.matches && !matchMedia('print').matches) {
+    const observer = new IntersectionObserver(entries => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const el = entry.target as HTMLElement;
+        observer.unobserve(el);
+        const valor = Number(el.dataset.valor);
+        const inicio = performance.now();
+        const camada = document.createElement("span");
+        camada.className = "pd-contagem-visual";
+        camada.setAttribute("aria-hidden", "true");
+        const suporte = document.createElement("span");
+        suporte.className = "pd-contagem";
+        el.before(suporte);
+        suporte.append(el, camada);
+        el.style.opacity = "0";
+        const limpar = () => { el.style.removeProperty("opacity"); suporte.replaceWith(el); };
+        ativos.set(el, limpar);
+        const passo = (agora: number) => {
+          if (!ativos.has(el)) return;
+          const fracao = (agora - inicio) / 800;
+          if (fracao >= 1 || lifecycle.signal.aborted) { limpar(); ativos.delete(el); return; }
+          const v = valor * fracao;
+          camada.textContent = el.dataset.unidade === 'reais'
+            ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact', maximumFractionDigits: 1 }).format(v)
+            : el.dataset.unidade === 'percentual' ? v.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%' : Math.round(v).toLocaleString('pt-BR');
+          requestAnimationFrame(passo);
+        };
+        requestAnimationFrame(passo);
+      }
+    });
+    root.querySelectorAll('.pd-numero[data-valor]').forEach(el => observer.observe(el));
+    lifecycle.signal.addEventListener('abort', () => observer.disconnect(), { once: true });
+  }
+  const indicador = root.querySelector<HTMLElement>('[data-atualizacao]')!;
+  const botao = root.querySelector<HTMLButtonElement>('[data-atualizar]')!;
+  indicador.hidden = botao.hidden = false;
+  let ultima = Date.now(), falhou = false, buscando = false;
+  const relogio = () => { indicador.textContent = falhou ? 'Sem conexão, tentando de novo' : `Atualizado há ${Math.floor((Date.now() - ultima) / 60000)} min`; };
+  const atualizar = async () => {
+    if (buscando || document.hidden) return;
+    buscando = true; botao.disabled = true;
+    try {
+      const resposta = await fetch(location.href, { cache: 'no-store', signal: lifecycle.signal });
+      if (!resposta.ok || resposta.redirected) throw new Error('Resposta inválida');
+      const novo = new DOMParser().parseFromString(await resposta.text(), 'text/html');
+      const seletores = ['[data-pd-faixa]', '[data-pd-conteudo]'];
+      if (seletores.some(s => !novo.querySelector(s))) throw new Error('Dashboard ausente');
+      finalizar();
+      const anteriores = new Map([...root.querySelectorAll<HTMLElement>('[data-cartao]')].map(c => [c.dataset.cartao, c.querySelector<HTMLElement>('.pd-numero')!.dataset.valor]));
+      // Conservador: preservar o painel aberto e seu foco; renovar faixa, cartões e listas.
+      for (const seletor of seletores) root.querySelector(seletor)!.replaceChildren(...Array.from(novo.querySelector(seletor)!.childNodes));
+      for (const c of root.querySelectorAll<HTMLElement>('[data-cartao]')) {
+        const numero = c.querySelector<HTMLElement>('.pd-numero')!;
+        const antes = anteriores.get(c.dataset.cartao), depois = numero.dataset.valor;
+        if (antes !== depois && antes !== undefined && depois !== undefined) {
+          numero.classList.add('pd-mudou');
+          numero.dataset.direcao = Number(depois) > Number(antes) ? '↑' : '↓';
+          window.setTimeout(() => { numero.classList.remove('pd-mudou'); delete numero.dataset.direcao; }, 4000);
+        }
+      }
+      ultima = Date.now(); falhou = false;
+    } catch { if (!lifecycle.signal.aborted) falhou = true; }
+    finally { buscando = false; botao.disabled = false; relogio(); }
+  };
+  botao.addEventListener('click', atualizar, { signal: lifecycle.signal });
+  const tick = () => { if (document.hidden) return; relogio(); if (Date.now() - ultima >= 300000) void atualizar(); };
+  const intervalo = window.setInterval(tick, 15000);
+  document.addEventListener('visibilitychange', tick, { signal: lifecycle.signal });
+  lifecycle.signal.addEventListener('abort', () => { clearInterval(intervalo); finalizar(); }, { once: true });
+  relogio();
+
   const sincronizarApresentacao = () => {
     const ativa = document.fullscreenElement === root;
     document.body.classList.toggle('dashboard-presenting', ativa);
-    if (sair) sair.hidden = !ativa;
+    const texto = apresentar?.querySelector('[data-apresentar-texto]');
+    if (texto) texto.textContent = ativa ? 'Sair da apresentação' : 'Apresentar';
   };
   apresentar?.addEventListener('click', async () => {
+    if (document.fullscreenElement === root) { await document.exitFullscreen(); return; }
     if (!root || !document.fullscreenEnabled) {
       if (status) status.textContent = 'A apresentação em tela cheia não está disponível neste navegador.';
       return;
@@ -335,13 +451,8 @@ document.addEventListener('astro:page-load', () => {
       if (status) status.textContent = 'Não foi possível iniciar a apresentação em tela cheia.';
     }
   }, { signal: lifecycle.signal });
-  sair?.addEventListener('click', async () => {
-    if (!document.fullscreenElement) return;
-    try {
-      await document.exitFullscreen();
-    } catch {
-      if (status) status.textContent = 'Não foi possível sair da apresentação em tela cheia.';
-    }
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && document.fullscreenElement === root) void document.exitFullscreen();
   }, { signal: lifecycle.signal });
   document.addEventListener('fullscreenchange', sincronizarApresentacao, { signal: lifecycle.signal });
   sincronizarApresentacao();

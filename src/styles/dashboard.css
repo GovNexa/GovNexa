@@ -140,3 +140,90 @@ body.dashboard-presenting .workspace>.notice{display:none!important}
 @media(min-width:1000px) and (max-height:800px){.pd-cartoes{gap:.5rem}.pd-cartao{padding:.5rem;gap:.15rem}.prefeito-dashboard{gap:.6rem}}
 @media(min-width:2200px){.pd-filtros label,.pd-filtros select,.pd-filtros button,.pd-limpar,.pd-atualizado,.pd-sobretitulo,.pd-apresentar{font-size:1em}.pd-cartoes{gap:1em}}
 @media(max-width:650px){.pd-fontes-linha{flex-wrap:wrap;gap:0}.pd-cartoes{grid-template-columns:minmax(0,1fr)}.pd-painel .pd-barras-painel>li{grid-template-columns:minmax(0,1fr) minmax(30px,.6fr) auto;gap:.4rem}}
+
+/* Efeitos progressivos: HTML permanece final sem JavaScript. */
+[data-pd-conteudo]{display:grid;gap:inherit;min-width:0}
+.pd-cabecalho{flex-wrap:wrap}.pd-cabecalho>div{flex:1}
+.pd-alertas{display:flex;align-items:center;gap:.75em;min-width:0;height:44px;box-sizing:border-box;padding:0 .5em;border:2px solid var(--text);border-radius:10px;background:var(--surface)}
+.pd-alertas strong{flex:none;font-size:max(16px,.8em);white-space:nowrap}
+.pd-alertas ul{display:flex;flex:1;min-width:0;gap:.5em;margin:0;padding:0;list-style:none}
+.pd-alertas li{flex:1;min-width:0}
+.pd-alertas a{display:block;min-width:0;padding:.3em .5em;border-radius:6px;background:var(--bg);color:var(--text);font-size:max(16px,.8em);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pd-alertas a:focus-visible{outline:2px solid currentColor;outline-offset:1px}
+.pd-atualizacao{margin:0;color:var(--muted)}
+[data-apresentar]{width:clamp(16rem,12vw,30rem);white-space:nowrap;flex:none}
+.pd-cartao{position:relative;cursor:pointer;transition:transform 160ms,box-shadow 160ms}
+.pd-cartao:hover,.pd-cartao:focus-visible{transform:translateY(-2px);box-shadow:0 8px 20px #0003}
+.pd-calculo{display:none;position:absolute;bottom:0;left:0;right:0;z-index:20;padding:.7em;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;font-size:max(16px,.75em);box-shadow:0 8px 20px #0003}
+.pd-cartao:hover .pd-calculo,.pd-cartao:focus-visible .pd-calculo{display:block}
+[data-indicador="critico"]{border:2px solid currentColor;border-radius:6px;padding:.1em .3em;width:fit-content}
+[data-indicador="atencao"]{border-bottom:2px solid currentColor;width:fit-content}
+.pd-numero.pd-mudou{background:var(--text);color:var(--surface);border-radius:6px}
+.pd-numero.pd-mudou:after{content:attr(data-direcao);font-size:.5em;margin-left:.2em}
+.pd-skeleton{display:none}
+@media(prefers-reduced-motion:no-preference){
+.pd-efeitos .pd-cartao{animation:pd-cartao-entrar 240ms ease-out var(--pd-atraso) both}
+[data-indicador="critico"]{animation:pd-pulso 2.4s ease-in-out infinite}
+.pd-efeitos .pd-skeleton{display:block;position:absolute;inset:100px 1rem 1rem;background:linear-gradient(var(--soft) 45%,var(--surface) 45%);background-size:100% 90px;z-index:2;pointer-events:none;animation:pd-skeleton 240ms step-end forwards}
+@keyframes pd-cartao-entrar{from{opacity:0;translate:0 8px}to{opacity:1;translate:0 0}}
+@keyframes pd-pulso{50%{box-shadow:0 0 0 3px var(--line)}}
+@keyframes pd-skeleton{to{visibility:hidden}}
+}
+.prefeito-dashboard:fullscreen{height:100dvh;overflow:hidden;align-content:start;padding:1.2vw;gap:.6em}
+.prefeito-dashboard:fullscreen .pd-filtros,.prefeito-dashboard:fullscreen .pd-fontes-linha,.prefeito-dashboard:fullscreen [data-pd-conteudo]>.pd-secao,.prefeito-dashboard:fullscreen .pd-resumos{display:none}
+.prefeito-dashboard:fullscreen{box-sizing:border-box}
+.prefeito-dashboard:fullscreen [data-pd-conteudo]{grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;align-items:start}
+.prefeito-dashboard:fullscreen [data-pd-conteudo]>.pd-secao:has(>#pd-funil),.prefeito-dashboard:fullscreen .pd-resumos{display:grid}
+.prefeito-dashboard:fullscreen .pd-indicadores{grid-column:1/-1}
+.prefeito-dashboard:fullscreen .pd-cartoes{grid-template-rows:repeat(2,auto);align-items:start}
+.prefeito-dashboard:fullscreen .pd-cartao{align-content:start;max-height:32vh;box-sizing:border-box}
+.prefeito-dashboard:fullscreen .pd-cartao-titulo{font-size:clamp(1.2rem,1.2vw,2.4rem)}
+.prefeito-dashboard:fullscreen .pd-numero,.prefeito-dashboard:fullscreen .pd-contagem-visual{font-size:clamp(3rem,5vw,9rem)}
+.prefeito-dashboard:fullscreen .pd-numero-longo,.prefeito-dashboard:fullscreen .pd-contagem:has(.pd-numero-longo)>.pd-contagem-visual{font-size:clamp(2rem,15cqi,7rem)}
+.prefeito-dashboard:fullscreen .pd-numero-texto{font-size:clamp(2rem,13cqi,5rem)}
+.prefeito-dashboard:fullscreen .pd-resumos{grid-template-columns:minmax(0,1fr);gap:clamp(6px,1vh,20px)}
+.prefeito-dashboard:fullscreen section:has(>#pd-decisoes){order:-1}
+.prefeito-dashboard:fullscreen section:has(>#pd-parado){display:none}
+.prefeito-dashboard:fullscreen .pd-cabecalho{flex-wrap:nowrap;text-align:left}
+.prefeito-dashboard:fullscreen .pd-cabecalho>div{display:grid;grid-template-columns:auto 1fr;gap:.2em 1em;align-items:baseline}
+.prefeito-dashboard:fullscreen .pd-sobretitulo{display:block;grid-column:1/-1;font-size:clamp(1rem,.7vw,1.6rem)}
+.prefeito-dashboard:fullscreen .pd-atualizado{display:none}
+.prefeito-dashboard:fullscreen .pd-apresentar{min-width:14rem;min-height:48px;flex:none;font-size:clamp(1rem,.8vw,2rem)}
+/* Sete linhas de funil e até três decisões cabem abaixo dos cartões. */
+.prefeito-dashboard:fullscreen .pd-secao{padding:clamp(8px,1vh,20px)}
+.prefeito-dashboard:fullscreen .pd-secao h2{font-size:clamp(20px,2.2vh,40px);line-height:1.2;margin:0 0 .6vh}
+.prefeito-dashboard:fullscreen .pd-legenda{display:none}
+.prefeito-dashboard:fullscreen .pd-barras{gap:.2vh}
+.prefeito-dashboard:fullscreen .pd-barras a{grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:clamp(6px,.6vw,24px);height:3vh;min-height:0;font-size:clamp(16px,1.6vh,32px);line-height:1.2}
+.prefeito-dashboard:fullscreen .pd-barra-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prefeito-dashboard:fullscreen .pd-barra-dados{font-size:inherit;white-space:nowrap}
+.prefeito-dashboard:fullscreen .pd-barra-trilho{height:clamp(6px,.8vh,16px)}
+.prefeito-dashboard:fullscreen .pd-lista{gap:.3vh}
+.prefeito-dashboard:fullscreen .pd-lista li{display:flex;align-items:center;gap:.6em;height:3vh;padding:0;min-width:0;font-size:clamp(16px,1.6vh,32px);line-height:1.2}
+.prefeito-dashboard:fullscreen .pd-lista li:nth-child(n+4){display:none}
+.prefeito-dashboard:fullscreen .pd-lista a{display:block;flex:1;min-width:0;min-height:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prefeito-dashboard:fullscreen .pd-lista li>span{flex:1;min-width:0;font-size:inherit;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(min-height:1400px){.prefeito-dashboard:fullscreen section:has(>#pd-parado){display:block}}
+.pd-painel .pd-calculo-painel{flex:none;padding:0}
+.pd-calculo-painel h3{margin:0 0 .4rem;font-size:1.1rem}
+.pd-calculo-painel p{margin:0}
+@media(prefers-reduced-motion:reduce){.prefeito-dashboard *{animation:none!important;transition:none!important;translate:none!important}.pd-cartao:hover,.pd-cartao:focus-visible{transform:none}}
+@media print{.prefeito-dashboard *{animation:none!important;transition:none!important;transform:none!important;translate:none!important}.pd-skeleton,.pd-calculo,[data-atualizar],[data-apresentar],.pd-sair-apresentacao,.pd-atualizacao{display:none!important}.pd-numero.pd-mudou{background:none;color:inherit}.pd-numero:after{content:none!important}}
+
+/* Limites da faixa e contagem visual independente do texto acessível. */
+[data-pd-faixa],.pd-cabecalho>div,.pd-alertas,.pd-alertas ul,.pd-alertas li{min-width:0;max-width:100%}
+.pd-alertas,.pd-alertas ul{overflow:hidden}
+.pd-contagem{position:relative;display:block;min-width:0}
+.pd-contagem>.pd-numero{display:block}
+.pd-contagem-visual{position:absolute;inset:0;pointer-events:none;font-size:clamp(2.5rem,1rem + 3vw,7rem);line-height:1.1;white-space:nowrap}
+.pd-contagem:has(.pd-numero-longo)>.pd-contagem-visual{font-size:clamp(1.5rem,16cqi,7rem)}
+@media(min-width:1000px) and (max-height:800px){
+ .prefeito-dashboard:has(.pd-alertas) .pd-fontes-linha{display:none}
+ .pd-cabecalho:has([data-atualizacao]:not([hidden])) .pd-atualizado{display:none}
+}
+@media(max-width:650px){
+ .pd-alertas{height:auto;flex-wrap:wrap;padding:.5em}
+ .pd-alertas ul{flex:1 1 100%;flex-wrap:wrap}
+ .pd-alertas li{flex:1 1 100%}
+ .pd-alertas a{white-space:normal;overflow-wrap:anywhere}
+}

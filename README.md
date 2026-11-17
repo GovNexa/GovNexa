@@ -121,6 +121,8 @@ São módulos independentes que conversam entre si:
 | 4 · Contratação, convênios e Gestão | Lei 14.133, alertas, dashboard do prefeito, licitação em detalhe | Prazos da lei, dashboard em três níveis, filtros e modo apresentação; mapa, Central de alertas e Licitação em detalhe; parte ainda em simulação | 75% |
 | 5 · Integrações e inteligência | PNCP, SIMEC, SISMOB, preços, WhatsApp, IA | WhatsApp em simulação | 10% |
 
+Dashboard local: efeitos progressivos, alertas críticos e atualização a cada 5 minutos implementados; sem publicação nesta ordem.
+
 ### Entregas recentes
 
 | Data | O que | Referência |
@@ -142,6 +144,12 @@ O detalhe das entregas está em [docs/CHANGELOG.md](docs/CHANGELOG.md).
 No início (/plataforma/), todos os módulos do menu ficam retraídos: o dashboard não pertence a um módulo. Nas outras telas, a sanfona abre somente o módulo e o sub-bloco da página atual. Nome, iniciais, Meu perfil e Sair ficam apenas no cabeçalho; os links da conta têm alvos de toque de pelo menos 44 px.
 
 Legenda: **Disponível** = leitura ou operação disponível. **Simulação** = as regras rodam, mas a gravação real ainda será ligada nas próximas partes da etapa 3. **Demonstrativo** = protótipo com dados fictícios.
+
+### Dashboard: efeitos, alertas e atualização automática
+
+Os dez cartões entram em sequência e contam até o valor calculado em cerca de 800 ms quando visíveis. Sem JavaScript, com movimento reduzido ou na impressão, os valores finais permanecem disponíveis. Campos ausentes continuam “—”. Críticos têm indicador com ícone e texto e faixa de até três links; atenção usa indicador estático. Hover e foco explicam o cálculo, também disponível no painel, cujo esqueleto dura 240 ms.
+
+“Atualizar agora” e a consulta automática a cada cinco minutos renovam faixa, cartões e listas sem recarregar; números alterados recebem seta e realce por quatro segundos. O painel aberto é preservado. Aba oculta pausa consultas; falhas mantêm os dados e informam nova tentativa. A apresentação limita a altura dos cartões, amplia a tipografia e mostra funil e decisões abaixo. O botão do cabeçalho alterna para Sair da apresentação; Esc também sai. Dicas ficam dentro dos cartões e o cálculo aparece compacto abaixo do resumo no painel.
 
 ### Tema claro/escuro
 
