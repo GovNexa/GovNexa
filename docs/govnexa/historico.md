@@ -6,6 +6,7 @@ A versão integral do histórico é privada e fica fora do repositório público
 
 | Data | Regra |
 | --- | --- |
+| 17/11/2026 | Conferir o repositório durante o trabalho, e não só ao abrir a sessão: antes de tarefa nova, branch, commit, PR e publicação, buscar as novidades e atualizar a pasta sempre que possível. Vale para todos os desenvolvedores (`CLAUDE.md`, seção 1.1). |
 | 17/11/2026 | Login próprio com senha e aplicativo autenticador obrigatório; convite pelo administrador. Access segue padrão até troca expressa. Redefinir senha encerra sessões e exige login; redefinir 2FA exige novo aplicativo. |
 | 09/11/2026 | Manter a arquitetura atual (Astro + TypeScript, JSON); coletores em Node/TypeScript; GitHub Actions como agendador; banco futuro PostgreSQL; multimunicípio (Goiânia só como configuração); portável para outro servidor. |
 | 09/11/2026 | Trabalhar sempre em branch própria, com PR; o merge na `main` é sempre do dono. Commit e push de branches de trabalho autorizados. |
