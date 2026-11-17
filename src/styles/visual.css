@@ -39,3 +39,24 @@ td button[data-detail]{white-space:nowrap;min-width:max-content}.table-wrap td:l
 .sidebar .eyebrow:has(.side-sec){margin:1rem 0 .2rem}.sidebar h2:has(.side-sec){margin:.8rem 0 .2rem}
 @media(min-width:701px){.collapsed .side-sec-corpo[hidden]{display:block!important}}
 @media(prefers-reduced-motion:reduce){.sidebar .side-seta{transition:none}}
+.sidebar .eyebrow:has(.side-sec),.sidebar h2:has(.side-sec){font-size:.86rem;font-weight:600;letter-spacing:normal;text-transform:none;color:inherit}
+.sidebar .side-sec{font-size:.86rem;font-weight:600;letter-spacing:normal;text-transform:none}
+.sidebar .side-sec svg{width:18px;height:18px;flex-shrink:0}
+.sidebar .side-sec-label{flex:1}
+.sidebar .side-module-rail{display:none}
+@media(min-width:701px){
+ .platform>.sidebar{display:flex;flex-direction:column}
+ .platform>.sidebar .side-links{position:static;flex:1;max-height:none;overflow:auto}
+ .platform.collapsed>.sidebar .logo-card{display:none}
+ .platform.collapsed>.sidebar .sidebar-top{justify-content:center}
+ .platform.collapsed>.sidebar .side-links{display:none!important}
+ .platform.collapsed>.sidebar .side-module-rail{display:grid;flex:1;align-content:start;justify-items:center;gap:.45rem;padding:.75rem 0}
+ .platform.collapsed>.sidebar .side-module-icon{position:relative;display:grid;place-items:center;width:48px;height:48px;padding:.65rem;border-radius:8px;font-size:0}
+ .platform.collapsed>.sidebar .side-module-icon svg{width:22px;height:22px;flex-shrink:0}
+ .platform.collapsed>.sidebar .side-module-icon[data-current=true]{background:var(--soft);font-weight:750}
+ .platform.collapsed>.sidebar .side-module-tooltip{position:absolute;left:calc(100% + .55rem);top:50%;z-index:40;display:none;transform:translateY(-50%);padding:.35rem .65rem;border:1px solid var(--line);border-radius:6px;background:var(--text);color:var(--bg);font-size:.8rem;white-space:nowrap;pointer-events:none}
+ .platform.collapsed>.sidebar .side-module-icon:hover .side-module-tooltip,.platform.collapsed>.sidebar .side-module-icon:focus .side-module-tooltip{display:block}
+ .platform.collapsed>.sidebar .sidebar-help{display:flex;justify-content:center;padding:.65rem}
+ .platform.collapsed>.sidebar .sidebar-help .side-label{display:none}
+}
+@media(max-width:700px){.sidebar.drawer-open[data-closed=true] .side-links{display:block}}
