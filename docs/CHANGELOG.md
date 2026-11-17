@@ -1,5 +1,11 @@
 # Changelog
 
+## GovNexa — Auditoria de layout de todas as páginas (17/11/2026)
+- Auditoria de 79 páginas em 4 situações (computador claro e escuro, tablet 1024×768, celular 390 px): rolagem, sobreposição, cortes, alvos de toque, texto pequeno, contraste e fotos.
+- Corrigido: um único aviso no topo da plataforma; rodapé da plataforma no fim da janela em páginas curtas; círculos decorativos dos cartões atrás do texto; abas numa linha com rolagem no celular; tabelas em cartões até 1100 px e coluna "Detalhes" sem corte no computador; e-mails longos quebram na própria coluna (Usuários); cabeçalho público numa linha no celular; Perfil/Configurações com rótulo "Foto" e campos vazios com dicas; alvos de toque de 44 px em telas de toque; texto informativo com no mínimo 11 px; nomes acessíveis começando pelo texto visível.
+- Mantido por decisão do outro desenvolvedor: link de voltar antes do aviso em Documentos do projeto (teste `documentos.spec.ts`).
+- Pendente (já existia na main): `acceptance.spec.ts` "mapa das obras" depende da ordem dos testes, porque a carga local preserva localizações gravadas por outros testes.
+
 ## Entrega B1: página do projeto e localização gravando no banco
 - 2026-11-17: página nova `/plataforma/projeto/<código>/`, com tudo o que o sistema sabe de um projeto (resumo, valores e recursos, datas, localização, documentos, cronograma e histórico), aberta pela Carteira, pelo mapa e pela tela de documentos.
 - A tela Localização e fotos deixa de ser simulação: o ponto ou os trechos são gravados no banco (rota `POST /plataforma/projeto/localizacao/<código>/`), só por quem tem perfil de editor, gestor ou administrador, e cada alteração entra no Histórico.

@@ -235,7 +235,7 @@ const muni = municipioAtivo();
     </div>
     <div class="workspace" data-current-module={menu.find((mod) => mod.current)?.id}>
       <slot name="contexto" />
-      <p class="notice">{avisoDados}</p>
+      <p class="notice"><span>{avisoDados}</span><span>Dados de exemplo nos módulos demonstrativos, salas, reuniões, WhatsApp e mapa por bairro.</span></p>
       <slot />
     </div>
   </div>

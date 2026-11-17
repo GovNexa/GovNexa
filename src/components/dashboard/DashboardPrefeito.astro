@@ -200,7 +200,7 @@ const linkEtapa = '/plataforma/projetos-kanban/';
     <ul class="pd-barras" aria-label="Funil por macroetapa">
       {dashboard.funil.map((etapa) => (
         <li>
-          <a href={linkEtapa} aria-label={`${etapa.nome}: ${inteiro(etapa.qtd)} projetos`}>
+          <a href={linkEtapa}>
             <span class="pd-barra-label">{etapa.nome}</span>
             <span class="pd-barra-trilho"><span style={`width:${escala(etapa.qtd, Math.max(0, ...dashboard.funil.map((item) => item.qtd)))}`}></span></span>
             <span class="pd-barra-dados">{inteiro(etapa.qtd)} · {moeda(etapa.valor)}</span>

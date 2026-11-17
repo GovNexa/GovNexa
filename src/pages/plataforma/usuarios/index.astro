@@ -71,7 +71,7 @@ const erro=['ultimo_admin','email_existente','proprio','email_falhou','dados','f
   .usr-tabela td>details{flex:1;min-width:0}
   @media(min-width:721px){.usr-tabela table{table-layout:fixed}}
   .usr-tabela table{width:100%;border-collapse:collapse}
-  .usr-tabela th,.usr-tabela td{text-align:left;padding:.5rem .6rem;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+  .usr-tabela th,.usr-tabela td{box-sizing:border-box;min-width:0;text-align:left;padding:.5rem .6rem;border-bottom:1px solid var(--line);white-space:normal;overflow-wrap:anywhere}
   .usr-tabela thead th{color:var(--muted)}
   .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   @media (max-width:720px){
