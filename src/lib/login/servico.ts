@@ -41,7 +41,7 @@ export function servicoLogin(env:EnvLogin, request:Request, waitUntil?: (tarefa:
   }catch{await evento('origem_publica_invalida',u.id);throw new ErroAdmin('email_falhou','Envio de e-mail indisponível.');}
   const t=await criarToken(db,u.id,tipo,autor);
   const url=new URL('/entrar/definir-senha/',origem);url.searchParams.set('token',t.token);url.searchParams.set('tipo',tipo);
-  await despacharEmail({para:u.email,...modeloLink(tipo,url.href,t.expira)},u.id,'envio_email_falhou',autor!==null);
+  await despacharEmail({para:u.email,...modeloLink(tipo,url.href,t.expira,u.nome)},u.id,'envio_email_falhou',autor!==null);
   await evento(tipo,u.id);
  }
  async function sessao(valor:string,etapa?:string) {const s=await obterSessao(db,valor);if(!s || (etapa && s.etapa!==etapa))return null;const u=await usuario(s.usuario_id);if(!u?.ativo){if(u)await revogarSessoes(db,u.id);return null;}return {s,u};}
