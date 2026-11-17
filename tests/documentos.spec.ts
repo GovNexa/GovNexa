@@ -16,6 +16,11 @@ test('documentos: enviar, baixar como anexo, recusar tipo falso e remover', asyn
   });
   expect(ordem).toBe(true);
   await expect(page.locator('.doc-contexto')).toContainText(PROJETO);
+  // Rodapé e aviso de dados dizem a mesma origem.
+  const aviso = (await page.locator('.workspace > .notice').textContent()) ?? '';
+  const origem = aviso.includes('dados de exemplo') ? 'Dados de exemplo' : 'Dados do banco da prefeitura';
+  expect(aviso.includes('dados de exemplo') || aviso.includes('Dados do banco da prefeitura')).toBe(true);
+  await expect(page.locator('.app-footer [data-origem-dados]')).toHaveText(origem);
   const nome = `termo-${Date.now()}.pdf`;
   await page.setInputFiles('#doc-arquivo', { name: nome, mimeType: 'application/pdf', buffer: pdf(nome) });
   await page.getByRole('button', { name: 'Enviar', exact: true }).click();
