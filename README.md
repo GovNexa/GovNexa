@@ -125,6 +125,7 @@ São módulos independentes que conversam entre si:
 
 | Data | O que | Referência |
 | --- | --- | --- |
+| 17/11 | Página inicial nova do site público: apresenta o GovNexa como gestão de projetos públicos, com o ciclo do projeto por rolagem, módulos e entrada da plataforma (animações com GSAP, empacotado no próprio site) | novo PR |
 | 17/11 | Etapa 3.3 (opção B): guia Usuários, lista somente leitura de quem tem acesso (só administrador) | novo PR |
 | 17/11 | Etapa 3.4 publicada: migração 0002 aplicada e documentos no ar | PR #10 e #13 |
 | 16/11 | Etapa 3.4: documentos de projeto no R2 (envio, download como anexo e remoção lógica) | PR #10 |
@@ -365,6 +366,8 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **PDFs de referência:** são exemplo de conteúdo, não meta visual. A base são as planilhas.
 - **Privacidade:** nomes de pessoas da reunião não entram no projeto; números de WhatsApp são cadastrados por cargo ou equipe; "Interessados" do SEI não são lidos; nomes em andamentos são mascarados.
 - **Histórico:** imutável. Fotos e documentos têm remoção lógica.
+- **Página inicial (17/11/2026):** apresenta o GovNexa como gestão de projetos públicos; não lista as fontes de dados nem a forma de leitura dos processos; o título dos módulos não traz número.
+- **Animações do site (17/11/2026):** biblioteca `gsap` 3.13.0, empacotada no próprio site. A licença é a padrão da GSAP, gratuita para uso comercial, mas não é de código aberto.
 
 ## 8. Pendências e próximos passos
 
