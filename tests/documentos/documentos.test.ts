@@ -1,0 +1,175 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { bancoTeste } from '../helpers/d1.ts';
+import { repositorioD1ParaTestes } from '../../src/lib/repositorio/index.ts';
+import { cabecalhoDownload, nomeSeguro, validarArquivo, LIMITE_BYTES } from '../../src/lib/documentos/regras.ts';
+import { baixarDocumento, enviarDocumento, removerDocumento, type BucketR2, type Contexto } from '../../src/lib/documentos/servico.ts';
+import { mesmaOrigem } from '../../src/lib/documentos/http.ts';
+import { codigoDe, MENSAGENS } from '../../src/lib/documentos/mensagens.ts';
+import type { Usuario } from '../../src/lib/usuarios/index.ts';
+
+const pdf = (extra = 'a') => new TextEncoder().encode(`%PDF-1.7 ${extra}`);
+const pdfB = (extra = 'a') => new Blob([pdf(extra) as unknown as BlobPart]);
+const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3]);
+const zip = new Uint8Array([0x50, 0x4b, 0x03, 0x04, 1, 2]);
+
+function bucketFalso(): BucketR2 & { itens: Map<string, Uint8Array> } {
+  const itens = new Map<string, Uint8Array>();
+  return {
+    itens,
+    async put(k, v) { itens.set(k, v instanceof Blob ? new Uint8Array(await v.arrayBuffer()) : v instanceof Uint8Array ? v : new Uint8Array(v)); return null; },
+    async get(k) { const v = itens.get(k); return v ? { size: v.byteLength, body: new Response(v as unknown as BodyInit).body! } : null; },
+    async delete(k) { itens.delete(k); },
+  };
+}
+const usuario = (perfil: Usuario['perfil'], pref = 5208707): Usuario => ({ id: 'u1', email: `${perfil}@x.gov.br`, nome: 'N', cargo: null, perfil, prefeitura_id: pref, ativo: true, criado_em: '', atualizado_em: '' });
+function montar(perfil: Usuario['perfil'] = 'editor', pref = 5208707, bancoExistente?: ReturnType<typeof bancoTeste>) {
+  const banco = bancoExistente ?? bancoTeste('prefeitura');
+  banco.sqlite.exec(`INSERT OR IGNORE INTO prefeitura (id, nome, uf) VALUES (${pref}, 'Teste', 'GO')`);
+  banco.sqlite.exec(`INSERT OR IGNORE INTO projeto (prefeitura_id, id, codigo_legado, nome, orgao, valores, recurso, datas, por_ano, atualizacao, operacional, origem, sei, pendencias) VALUES (${pref}, 'P-1', 1, 'Obra', 'SEINFRA', '{}','{}','{}','{}','{}','{}','{}','[]','[]')`);
+  const repositorio = { ...repositorioD1ParaTestes(banco.db, pref), prefeituraId: pref };
+  const bucket = bucketFalso();
+  const c: Contexto = { usuario: usuario(perfil, pref), repositorio, bucket };
+  return { banco, bucket, c };
+}
+
+test('regras: aceita tipos permitidos e recusa o resto', () => {
+  assert.equal(validarArquivo('a.pdf', pdf()).ok, true);
+  assert.equal(validarArquivo('a.PNG', png).ok, true);
+  assert.equal(validarArquivo('a.xlsx', zip).ok, true);
+  for (const nome of ['a.svg', 'a.html', 'a.exe', 'a.js', 'a', 'a.pdf.exe']) assert.equal(validarArquivo(nome, pdf()).ok, false, nome);
+});
+test('regras: o conteúdo precisa combinar com a extensão', () => {
+  assert.equal(validarArquivo('a.pdf', png).ok, false);
+  assert.equal(validarArquivo('a.png', pdf()).ok, false);
+  assert.equal(validarArquivo('a.jpg', new TextEncoder().encode('<script>alert(1)</script>')).ok, false);
+});
+test('regras: vazio e acima de 25 MB são recusados', () => {
+  assert.equal(validarArquivo('a.pdf', new Uint8Array(0)).ok, false);
+  const grande = new Uint8Array(LIMITE_BYTES + 1); grande.set(pdf());
+  assert.match((validarArquivo('a.pdf', grande) as { erro: string }).erro, /25 MB/);
+  const limite = new Uint8Array(LIMITE_BYTES); limite.set(pdf());
+  assert.equal(validarArquivo('a.pdf', limite).ok, true);
+});
+test('regras: nome seguro remove caminho, controle e limita o tamanho', () => {
+  assert.equal(nomeSeguro('..\\..\\etc/passwd.pdf'), 'passwd.pdf');
+  assert.equal(nomeSeguro('a\r\nb".pdf'), 'ab.pdf');
+  assert.equal(nomeSeguro('.oculto.pdf'), 'oculto.pdf');
+  const n = nomeSeguro('x'.repeat(300) + '.pdf');
+  assert.ok(n.length <= 120 && n.endsWith('.pdf'));
+  const h = cabecalhoDownload('Relatório "final"; 2026.pdf');
+  assert.ok(h.startsWith('attachment;') && !/[\r\n]/.test(h) && h.includes("filename*=UTF-8''Relat%C3%B3rio"));
+});
+test('origem: só aceita pedido da própria página', () => {
+  const req = (origin?: string) => new Request('https://govnexa.com.br/plataforma/documentos-projeto/enviar/', { method: 'POST', headers: origin ? { origin } : {} });
+  assert.equal(mesmaOrigem(req('https://govnexa.com.br')), true);
+  assert.equal(mesmaOrigem(req('https://outro.com')), false);
+  assert.equal(mesmaOrigem(req()), false);
+  assert.equal(mesmaOrigem(req('nao-e-url')), false);
+});
+
+test('envio: grava no R2 e no banco; chave gerada pelo sistema', async () => {
+  const { c, bucket, banco } = montar();
+  const r = await enviarDocumento(c, 'P-1', 'Termo.pdf', pdfB());
+  assert.equal(r.ok, true);
+  const linhas = banco.sqlite.prepare('SELECT * FROM documento').all() as any[];
+  assert.equal(linhas.length, 1);
+  assert.match(linhas[0].chave_r2, /^5208707\/P-1\/[0-9a-f-]{36}$/);
+  assert.ok(bucket.itens.has(linhas[0].chave_r2));
+  assert.equal(linhas[0].enviado_por, 'editor@x.gov.br');
+  assert.equal(linhas[0].tipo_mime, 'application/pdf');
+});
+test('envio: perfil leitura não envia; projeto inexistente ou inválido é recusado', async () => {
+  const { c } = montar('leitura');
+  assert.equal((await enviarDocumento(c, 'P-1', 'a.pdf', pdfB()) as any).status, 403);
+  const { c: c2 } = montar('editor');
+  assert.equal((await enviarDocumento(c2, 'P-999', 'a.pdf', pdfB()) as any).status, 404);
+  assert.equal((await enviarDocumento(c2, '../x', 'a.pdf', pdfB()) as any).status, 404);
+});
+test('envio: arquivo repetido no mesmo projeto é recusado; sem R2 dá 503', async () => {
+  const { c } = montar();
+  assert.equal((await enviarDocumento(c, 'P-1', 'a.pdf', pdfB('x'))).ok, true);
+  assert.equal((await enviarDocumento(c, 'P-1', 'b.pdf', pdfB('x')) as any).status, 409);
+  assert.equal((await enviarDocumento({ ...c, bucket: undefined }, 'P-1', 'c.pdf', pdfB('y')) as any).status, 503);
+});
+test('envio: se o banco falhar, o arquivo do R2 é apagado', async () => {
+  const { c, bucket } = montar();
+  const docs = c.repositorio.documentos!;
+  c.repositorio = { ...c.repositorio, documentos: { ...docs, registrar: async () => { throw new Error('falhou'); } } };
+  assert.equal((await enviarDocumento(c, 'P-1', 'a.pdf', pdfB()) as any).status, 503);
+  assert.equal(bucket.itens.size, 0);
+});
+test('download: devolve como anexo; outra prefeitura não enxerga', async () => {
+  const { c, banco } = montar();
+  const id = ((await enviarDocumento(c, 'P-1', 'Termo ç.pdf', pdfB())) as any).id as string;
+  const res = await baixarDocumento(c, id) as Response;
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get('content-disposition')!, /^attachment;/);
+  assert.equal(res.headers.get('x-content-type-options'), 'nosniff');
+  assert.equal(res.headers.get('content-type'), 'application/pdf');
+  assert.equal((await res.text()).startsWith('%PDF'), true);
+  const outra = montar('admin', 3550308, banco);
+  assert.equal((await baixarDocumento({ ...outra.c, bucket: c.bucket }, id) as any).status, 404);
+  assert.equal((await baixarDocumento(c, 'nao-e-uuid') as any).status, 404);
+});
+test('remoção: só lógica, some da lista e do download, arquivo permanece e guarda quem removeu', async () => {
+  const { c, banco, bucket } = montar();
+  const id = ((await enviarDocumento(c, 'P-1', 'a.pdf', pdfB())) as any).id as string;
+  assert.equal((await removerDocumento({ ...c, usuario: usuario('leitura') }, id) as any).status, 403);
+  assert.equal((await removerDocumento(c, id)).ok, true);
+  assert.equal((await removerDocumento(c, id) as any).status, 404);
+  assert.equal((await baixarDocumento(c, id) as any).status, 404);
+  assert.equal((await c.repositorio.documentos!.listar('P-1')).length, 0);
+  const linha = banco.sqlite.prepare('SELECT removido_em, removido_por FROM documento').get() as any;
+  assert.ok(linha.removido_em);
+  assert.equal(linha.removido_por, 'editor@x.gov.br');
+  assert.equal(bucket.itens.size, 1);
+  assert.throws(() => banco.sqlite.exec('DELETE FROM documento'), /Remoção só lógica/);
+});
+test('mensagens: todo código devolvido existe na tabela', () => {
+  for (const s of [403, 404, 409, 413, 503]) assert.ok(MENSAGENS[codigoDe({ ok: false, status: s, erro: '' })]);
+  for (const e of ['O arquivo passa de 25 MB.', 'Tipo não aceito.', 'O conteúdo não corresponde', 'Informe']) assert.ok(MENSAGENS[codigoDe({ ok: false, status: 400, erro: e })]);
+});
+
+test('nome: barra invertida sozinha também é cortada', () => {
+  assert.equal(nomeSeguro('a\\b.pdf'), 'b.pdf');
+});
+test('isolamento: outra prefeitura não lista nem remove', async () => {
+  const { c, banco } = montar();
+  const id = ((await enviarDocumento(c, 'P-1', 'a.pdf', pdfB())) as any).id as string;
+  const outra = montar('admin', 3550308, banco);
+  assert.equal((await outra.c.repositorio.documentos!.listar('P-1')).length, 0);
+  assert.equal((await removerDocumento(outra.c, id) as any).status, 404);
+  const linha = banco.sqlite.prepare('SELECT removido_em FROM documento WHERE id = ?').get(id) as any;
+  assert.equal(linha.removido_em, null);
+  assert.equal((await c.repositorio.documentos!.listar('P-1')).length, 1);
+});
+test('limite: a 31ª tentativa na hora é recusada (429)', async () => {
+  const { c, banco } = montar();
+  for (let i = 0; i < 30; i++) {
+    banco.sqlite.prepare(`INSERT INTO documento (id, prefeitura_id, projeto_id, nome_original, chave_r2, tipo_mime, tamanho_bytes, sha256, enviado_por) VALUES (?, 5208707, 'P-1', 'x.pdf', ?, 'application/pdf', 10, ?, 'editor@x.gov.br')`)
+      .run(`00000000-0000-4000-8000-${String(i).padStart(12, '0')}`, `k${i}`, i.toString(16).padStart(64, '0'));
+  }
+  assert.equal((await enviarDocumento(c, 'P-1', 'novo.pdf', pdfB('novo')) as any).status, 429);
+  const outroUsuario = { ...c, usuario: { ...usuario('editor'), email: 'outro@x.gov.br' } };
+  assert.equal((await enviarDocumento(outroUsuario, 'P-1', 'novo.pdf', pdfB('novo')) as any).ok, true);
+});
+test('corrida: dois envios iguais ao mesmo tempo gravam um só e limpam o outro no R2', async () => {
+  const { c, bucket, banco } = montar();
+  const [a, b] = await Promise.all([enviarDocumento(c, 'P-1', 'a.pdf', pdfB('igual')), enviarDocumento(c, 'P-1', 'b.pdf', pdfB('igual'))]);
+  assert.equal([a, b].filter((r) => r.ok).length, 1);
+  assert.equal([a, b].filter((r) => !r.ok && (r as any).status === 409).length, 1);
+  assert.equal(bucket.itens.size, 1);
+  assert.equal((banco.sqlite.prepare('SELECT count(*) AS n FROM documento').get() as any).n, 1);
+});
+test('remoção: a segunda remoção do mesmo documento não vale (decide pelas linhas alteradas)', async () => {
+  const { c } = montar();
+  const id = ((await enviarDocumento(c, 'P-1', 'a.pdf', pdfB())) as any).id as string;
+  assert.equal((await removerDocumento(c, id)).ok, true);
+  assert.equal((await removerDocumento(c, id)).ok, false);
+});
+test('arquivo grande: só o começo é lido para conferir o tipo', async () => {
+  const { c } = montar();
+  const grande = new Uint8Array(LIMITE_BYTES + 1); grande.set(pdf());
+  assert.equal((await enviarDocumento(c, 'P-1', 'g.pdf', new Blob([grande as unknown as BlobPart])) as any).status, 400);
+});
