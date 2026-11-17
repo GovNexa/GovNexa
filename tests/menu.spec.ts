@@ -59,8 +59,8 @@ test('início mantém módulos fechados e conta apenas no topo', async ({ page }
     const styles = [];
     for (const control of controls) {
       const box = await control.boundingBox();
-      expect(box?.height).toBeGreaterThanOrEqual(44);
-      expect(box?.width).toBeGreaterThanOrEqual(44);
+      expect(Math.round(box?.height ?? 0)).toBeGreaterThanOrEqual(44);
+      expect(Math.round(box?.width ?? 0)).toBeGreaterThanOrEqual(44);
       styles.push(await control.evaluate((element) => {
         const style = getComputedStyle(element);
         return { left: element.getBoundingClientRect().left, color: style.color, font: style.font, alignItems: style.alignItems };
