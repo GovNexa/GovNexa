@@ -1,48 +1,8 @@
-# GovNexa — Histórico completo do desenvolvimento
+# GovNexa — Histórico adaptado
 
-Registro de **tudo o que foi feito e de como o sistema evoluiu**, para quem vai dar continuidade. Complementa o [README](../../README.md) (onde estamos e o que falta) e o [plano completo](plano.md) (como o sistema deve ser).
+A versão integral do histórico é privada e fica fora do repositório público. Este resumo reúne regras do dono e lições técnicas para continuidade.
 
-- **Seção 1:** linha do tempo das etapas do produto.
-- **Seção 2:** evolução do andamento por fase (% ao longo das entregas).
-- **Seção 3:** regras e preferências dadas pelo dono ao longo do caminho (com data).
-- **Seção 4:** testes do SEI.
-- **Seção 5:** o que vem a seguir: decisões pendentes, pendências do dono, próximas entregas e a mudança para o repositório novo e o Cloudflare.
-- **Seção 6:** lições técnicas, para não repetir erros.
-- **Seção 7:** todos os PRs, com a descrição completa de cada um: os do repositório novo (7.1) e os do antigo, congelado (7.2).
-
-Regra: toda entrega acrescenta o seu PR na seção 7.1 (e atualiza a seção 2 quando mudar algum %). Ver `CLAUDE.md`, regra 4.
-
-## 1. Linha do tempo
-
-| Período | Etapa | PRs | O que aconteceu |
-| --- | --- | --- | --- |
-| 09–10/11/2026 | Atlas · bloco Captação, Fase 0 e 1 | #1 a #3, #5 a #17 | Fundação (fontes, IBGE, temas, telas, camada de dados), coletores (CAUC, SICONFI, Transferegov, FNS, Portal da Transparência, INEP, CNES, SINISA, DOU), telas com dados reais, detalhes, comparativo entre capitais, agenda iCalendar, qualidade dos dados, parecer determinístico (R01–R21), testes de interface, atualização diária e mensal |
-| 13/11/2026 | Segurança | #4 | Limite de tentativas de login, escape de JSON-LD, cabeçalhos e CSP, revisão dos 9 vetores |
-| 15/11/2026 | **Virada para o GovNexa** | #18 a #22 | Áudios do dono e reunião com a equipe mudam o foco para a gestão da carteira: nome GovNexa, começar pelo módulo Projetos, módulos independentes e integrados. Fase 0 (marca, menu por módulos, município por configuração), rotina de publicação, Fase 1 (Carteira, Kanban, Gantt, Visão por órgão), telas sem rolagem, README |
-| 15/11/2026 | Fases 1.5 e 2 | #23 a #37 | Cronogramas do GEPP, onde está parado, pendências de etapa e motor de movimentação (simulação), banco preparado, histórico de alterações, Fluxo do sistema (BPMN) e PDF, carga real temporária, sala de guerra, novo projeto, fluxos detalhados, mapa de impacto, regras do repositório (CLAUDE.md), painel do prefeito, reunião semanal, prazos da Lei 14.133, menu com blocos |
-| 16/11/2026 | Fases 4 e 5 | #38 a #42 | Painel religado, mapa das obras, correção do mapa em branco na Vercel, WhatsApp (simulação), dependências entre etapas, Central de alertas, modelos do WhatsApp para a Meta, obras sem localização |
-| 16/11/2026 | SEI e licitações | #43 a #45 | Reteste do link público do SEI (válido, sem captcha), Processos no SEI, Fluxo legível com zoom, menu com blocos fechados, Licitação em detalhe |
-| 16/11/2026 | Documentação para continuidade | antigo #46 a #49 | README completo, regra de README sempre atualizado, plano completo no repositório e este histórico |
-| 16/11/2026 | **Migração para o Cloudflare e para o repositório `GovNexa/GovNexa`** | novo #1 a #5 | Repositório novo copiado com o histórico, já sem os dados reais (`data/carga-real/` retirada de todo o histórico). Worker no Cloudflare com os domínios govnexa.com.br e www, login pelo Cloudflare Access, marca GovNexa também no site público, banco D1 (central e Goiânia) com a carga feita, plataforma lendo o D1 e R2 para arquivos. Fluxo com executores (Codex e Copilot), revisão pelo Claude e `main` protegida. O repositório antigo foi **congelado** por decisão do dono, e todo o trabalho segue só no novo. |
-
-## 2. Evolução do andamento por fase (%)
-
-Fotos do quadro "Andamento" do plano ao longo das entregas.
-
-| Fase | 15/11 (após #30–#32) | 15/11 (após #34–#37) | 16/11 (após #38–#41) | 16/11 (após #42) | 16/11 (após #43) | 16/11 (após #45) | 16/11 (repositório novo, D1) |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Planejamento | 97% | 97% | 97% | 97% | 97% | 97% | 97% |
-| 0 · Base e identidade | 100% | 100% | 100% | 100% | 100% | 100% | 100% |
-| 1 · Carteira de Projetos | 100% | 100% | 100% | 100% | 100% | 100% | 100% |
-| 1.5 · Cadastro, movimentação, log, sala de guerra | 92% | 95% | 95% | 95% | 95% | 95% | 95% |
-| 2 · Cronograma e equipe | 65% | 78% | 78% | 85% | 90% | 90% | 90% |
-| 3 · Produção com banco | 30% | 30% | 30% | 30% | 30% | 30% | 60% |
-| 4 · Contratação, convênios e Gestão | 0% | 30% | 50% | 65% | 65% | 75% | 75% |
-| 5 · Integrações e inteligência | 0% | 0% | 10% | 10% | 10% | 10% | 10% |
-
-A Fase 3 ficou em 30% enquanto o banco dependia da conta do dono. Com a migração, o banco passou a ser o Cloudflare D1: tabelas em produção, carga feita e plataforma lendo o D1, com 60% e publicação aguardando ordem do dono. O preparo anterior em PostgreSQL 16 (migrações `db/migracoes/`) serviu de base para o modelo.
-
-## 3. Regras e preferências do dono (em ordem)
+## Regras do dono
 
 | Data | Regra |
 | --- | --- |
@@ -1265,3 +1225,27 @@ mesclado em 16/11/2026 · branch `govnexa-plano`
 
 #### Testes
 - Só documentação. Conferidos: nenhuma menção a pessoa, e-mail, código de processo do SEI ou senha; links internos do README existem.
+| 15/11/2026 | O GovNexa começa pelo módulo Projetos; módulos independentes se integram pela referência ao projeto. Sem IA no MVP. Goiânia é piloto de produto para várias prefeituras. |
+| 15/11/2026 | Projeto nasce no cadastro e pode avançar ou voltar por qualquer tela, sempre pela mesma regra e com histórico. |
+| 15/11/2026 | Interface simples, responsiva e sem rolagem horizontal; toda mudança de fluxo atualiza o mapa Fluxo do sistema. |
+| 15/11/2026 | A Lei 14.133 define o teto; metas internas podem ser menores e prazos-piso não podem ser reduzidos. |
+| 16/11/2026 | Dependências de etapas seguem a ordem e as datas até validação do fluxo com o cliente. |
+| 16/11/2026 | README atualizado em toda entrega; documentar situação, funcionalidades, decisões e próximos passos. |
+| 16/11/2026 | Hospedagem Cloudflare + GitHub; Worker com site público e plataforma. O domínio é govnexa.com.br e a marca GovNexa aparece em todo o produto. |
+| 16/11/2026 | Cloudflare D1: um banco por prefeitura e um central para prefeituras, usuários e importações; PostgreSQL/Supabase somente como plano B. |
+| 16/11/2026 | Cloudflare Access com código por e-mail e cadastro ativo no banco central; perfis admin, gestor, editor e leitura. Todos são admin durante a construção. Tela de usuários sincronizada com grupo do Access; sem login próprio. |
+| 16/11/2026 | Dados reais nunca entram no repositório público. Carteira real no D1; planilhas no repositório privado, importadas por rotina do GitHub com aviso de código repetido. O código 450 foi alterado para 506. |
+
+## Lições técnicas
+
+| Situação | Lição |
+| --- | --- |
+| Navegação entre serviços | Workers não aceita `fetch` com `redirect: 'error'`; tratar redirecionamentos conforme a resposta do serviço. |
+| Carga de CPU | O plano grátis do Workers pode exceder 10 ms de CPU nas telas da plataforma (Error 1102); usar Workers Paid. |
+| Rotas locais | `wrangler dev` precisa de `--infer-origin-from-routes=false` quando há rotas de domínio configuradas. |
+| Consultas D1 | D1 limita padrões GLOB/LIKE a 50 bytes; validar o tamanho e dividir ou restringir a busca. |
+| Leitura do SEI | O navegador não lê diretamente outro site por CORS; a leitura automática precisa ocorrer no servidor. Nunca contornar captcha. |
+| Datas | Datas e faróis devem ser recalculados no navegador no fuso de Brasília. |
+| Dados do navegador | Validar forma, tamanho e datas ao ler arquivos ou dados do navegador; mostrar conteúdo como texto. |
+| Arquivos CRLF | Scripts de edição precisam aceitar finais de linha CRLF. |
+| Verificação do site | Conferir localmente as rotas e recursos gerados após mudanças no build. |

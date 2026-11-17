@@ -1,27 +1,392 @@
 ---
-import Base from './Base.astro';import Icon from '../components/Icon.astro';import modules from '../data/modules.json';import {municipioAtivo} from '../lib/municipio-ativo.ts';import {catalogoCompleto,menuPorModulo} from '../lib/govnexa/catalogo.ts';import {carregarCarteira} from '../lib/carteira/carga.ts';const fonteCarteira=carregarCarteira().fonte;const avisoDados=fonteCarteira.ficticio?'Ambiente de homologação · dados de exemplo · nada é gravado.':'Dados do banco da prefeitura';const {title,slug}=Astro.props;const menuIcons:Record<string,string>={"": "layout-grid", "processos": "briefcase", "cotacoes": "receipt", "solicitacoes": "inbox", "recursos": "message-square", "diligencias": "search-check", "documentos": "sparkles", "captacao": "trend", "captacao-oportunidades": "search", "captacao-acompanhamento": "gauge", "captacao-alertas": "bell", "captacao-qualidade": "database", "captacao-comparativo": "bar-chart", "captacao-projetos": "clipboard-check", "gestao-publica": "gauge", "pareceres": "clipboard-check", "banco-de-precos": "database", "atas": "archive", "piloto-automatico": "zap", "marketplace": "store", "produtos": "package", "fornecedores": "users", "enderecos": "map-pin", "locais-de-entrega": "truck", "relatorios": "bar-chart", "perfil": "user", "configuracoes": "settings", "minha-cotacao": "receipt", "pedidos": "inbox", "negociacoes": "message-square", "embarcacoes": "truck", "projetos": "briefcase", "projetos-carteira": "clipboard-check", "projetos-localizacao": "map-pin", "projetos-kanban": "layout-grid", "projetos-gantt": "bar-chart", "projetos-orgaos": "users", "projetos-cronogramas": "trend", "projetos-parado": "bell", "projetos-pendencias": "inbox", "projetos-log": "file", "projetos-reuniao": "users", "projetos-sala": "message-square", "projetos-fluxo": "grid", "projetos-novo": "plus", "projetos-sei": "file", "licitacoes-detalhe": "clipboard-check", "gestao": "gauge", "gestao-whatsapp": "message-square", "gestao-alertas": "bell", "licitacoes-prazos": "gauge"};const menu=menuPorModulo(catalogoCompleto(modules));const muni=municipioAtivo();
+import Base from './Base.astro';
+import Icon from '../components/Icon.astro';
+import modules from '../data/modules.json';
+import { municipioAtivo } from '../lib/municipio-ativo.ts';
+import { catalogoCompleto, menuPorModulo } from '../lib/govnexa/catalogo.ts';
+import { carregarCarteira } from '../lib/carteira/carga.ts';
+
+const fonteCarteira = carregarCarteira().fonte;
+const avisoDados = fonteCarteira.ficticio
+  ? 'Ambiente de homologação · dados de exemplo · nada é gravado.'
+  : 'Dados do banco da prefeitura';
+const { title, slug } = Astro.props;
+const usuario = Astro.locals.usuario;
+const userName = usuario?.nome?.trim() || 'Usuário';
+const userInitials = usuario?.nome?.trim()
+  ? usuario.nome.trim().split(/\s+/).slice(0, 2).map((parte) => Array.from(parte)[0]?.toLocaleUpperCase('pt-BR') || '').join('')
+  : '';
+const perfilLabels: Record<string, string> = {
+  admin: 'Administrador',
+  gestor: 'Gestor',
+  editor: 'Editor',
+  leitura: 'Leitura',
+};
+const userRole = usuario?.cargo?.trim() || perfilLabels[usuario?.perfil || ''] || 'Perfil não informado';
+const menuIcons: Record<string, string> = {
+  '': 'layout-grid',
+  processos: 'briefcase',
+  cotacoes: 'receipt',
+  solicitacoes: 'inbox',
+  recursos: 'message-square',
+  diligencias: 'search-check',
+  documentos: 'sparkles',
+  captacao: 'trend',
+  'captacao-oportunidades': 'search',
+  'captacao-acompanhamento': 'gauge',
+  'captacao-alertas': 'bell',
+  'captacao-qualidade': 'database',
+  'captacao-comparativo': 'bar-chart',
+  'captacao-projetos': 'clipboard-check',
+  'gestao-publica': 'gauge',
+  pareceres: 'clipboard-check',
+  'banco-de-precos': 'database',
+  atas: 'archive',
+  'piloto-automatico': 'zap',
+  marketplace: 'store',
+  produtos: 'package',
+  fornecedores: 'users',
+  enderecos: 'map-pin',
+  'locais-de-entrega': 'truck',
+  relatorios: 'bar-chart',
+  perfil: 'user',
+  configuracoes: 'settings',
+  'minha-cotacao': 'receipt',
+  pedidos: 'inbox',
+  negociacoes: 'message-square',
+  embarcacoes: 'truck',
+  projetos: 'briefcase',
+  'projetos-carteira': 'clipboard-check',
+  'projetos-localizacao': 'map-pin',
+  'projetos-kanban': 'layout-grid',
+  'projetos-gantt': 'bar-chart',
+  'projetos-orgaos': 'users',
+  'projetos-cronogramas': 'trend',
+  'projetos-parado': 'bell',
+  'projetos-pendencias': 'inbox',
+  'projetos-log': 'file',
+  'projetos-reuniao': 'users',
+  'projetos-sala': 'message-square',
+  'projetos-fluxo': 'grid',
+  'projetos-novo': 'plus',
+  'projetos-sei': 'file',
+  'licitacoes-detalhe': 'clipboard-check',
+  gestao: 'gauge',
+  'gestao-whatsapp': 'message-square',
+  'gestao-alertas': 'bell',
+  'licitacoes-prazos': 'clock',
+};
+const moduleIcons: Record<string, string> = {
+  projetos: 'briefcase',
+  captacao: 'trend',
+  licitacoes: 'gavel',
+  gestao: 'gauge',
+  conta: 'user',
+};
+const groupIcons: Record<string, string> = {
+  Operação: 'settings',
+  Planejamento: 'calendar',
+  Preços: 'tag',
+  Automação: 'zap',
+  Mercado: 'store',
+  Cadastros: 'database',
+  Prazos: 'clock',
+  Captação: 'trend',
+  Conta: 'user',
+  Projetos: 'briefcase',
+  Gestão: 'gauge',
+};
+const itemIsCurrent = (item: { slug?: string }) =>
+  item.slug === slug || `/plataforma/${item.slug ? `${item.slug}/` : ''}` === Astro.url.pathname;
+const menu = menuPorModulo(catalogoCompleto(modules)).map((mod) => {
+  return {
+    ...mod,
+    icon: moduleIcons[mod.id],
+    current: mod.grupos.some((group) => group.itens.some(itemIsCurrent)),
+  };
+});
+const muni = municipioAtivo();
 ---
-<Base platform title={title} description={`Explore ${title} com dados fictícios de ${muni.nome}.`}><div class="platform"><aside id="platform-drawer" class="sidebar" transition:persist="sidebar" aria-label="Módulos da plataforma"><div class="sidebar-top"><img class="logo-card" src={muni.logo} alt={muni.logoAlt} width="164" height="55"/><button id="sidebar-toggle" aria-label="Recolher menu" aria-expanded="true" aria-controls="side-links"><Icon name="menu"/></button></div><div class="side-links" id="side-links">{menu.map((mod,i)=><div class="side-module"><p class="eyebrow"><button type="button" class="side-sec" data-sec={`m:${mod.nome}`} aria-expanded="true" aria-controls={`side-m${i}`}><span>{mod.nome}</span><span class="side-seta" aria-hidden="true"></span></button></p><div class="side-sec-corpo" id={`side-m${i}`}>{mod.grupos.map((g,j)=><>{(mod.grupos.length>1||g.grupo!==mod.nome)&&<h2><button type="button" class="side-sec" data-sec={`g:${mod.nome}:${g.grupo}`} aria-expanded="true" aria-controls={`side-m${i}g${j}`}><span>{g.grupo}</span><span class="side-seta" aria-hidden="true"></span></button></h2>}<div class="side-sec-corpo" id={`side-m${i}g${j}`}>{g.itens.map(m=><a href={`/plataforma/${m.slug?m.slug+'/':''}`} aria-current={m.slug===slug?'page':undefined} aria-label={m.title} title={m.title}><Icon name={menuIcons[m.slug]}/><span class="side-label">{m.title}</span>{['solicitacoes','pareceres','recursos'].includes(m.slug)&&<span class="badge">3</span>}<span class="side-tooltip" aria-hidden="true">{m.title}</span></a>)}</div></>)}</div></div>)}</div><a class="sidebar-help" aria-label="Precisa de ajuda? Fale com o suporte" href="/sobre/#contato"><Icon name="help"/><span class="side-label">Precisa de ajuda?<small>Fale com o suporte</small></span></a></aside><div class="workspace"><p class="notice">{avisoDados}</p><slot/></div></div><div id="toast" class="toast" role="status" hidden></div><dialog id="record-dialog"><h2>Detalhes do registro</h2><div id="record-body" style="max-height:70vh;overflow:auto"></div><form method="dialog"><button><Icon name="x" size={16}/>Fechar</button></form></dialog></Base>
+<Base platform title={title} description={`Explore ${title} com dados fictícios de ${muni.nome}.`} userName={userName} userInitials={userInitials} userRole={userRole}>
+  <div class="platform">
+    <aside id="platform-drawer" class="sidebar" data-closed="true" transition:persist="sidebar" aria-label="Módulos da plataforma">
+      <div class="sidebar-top">
+        <img class="logo-card" src={muni.logo} alt={muni.logoAlt} width="164" height="55" />
+        <button id="sidebar-toggle" aria-label="Expandir menu" aria-expanded="false" aria-controls="side-links side-module-rail">
+          <Icon name="menu" />
+        </button>
+      </div>
+      <nav class="side-module-rail" id="side-module-rail" aria-label="Atalhos dos módulos">
+        {menu.map((mod) => (
+          <div class="side-module-rail-item">
+            <button
+              type="button"
+              class="side-module-icon"
+              aria-label={`Módulo ${mod.nome}`}
+              aria-expanded="false"
+              aria-controls={`side-flyout-${mod.id}`}
+              data-module-id={mod.id}
+              data-current={String(mod.current)}
+              title={mod.nome}
+            >
+              <Icon name={mod.icon} />
+              <span class="side-module-tooltip" aria-hidden="true">{mod.nome}</span>
+            </button>
+          </div>
+        ))}
+      </nav>
+      <div class="side-links" id="side-links">
+        {menu.map((mod) => {
+          const moduleBodyId = `side-m-${mod.id}`;
+          return (
+          <div class="side-module">
+            <p class="eyebrow">
+              <button type="button" class="side-sec" data-sec={`m:${mod.nome}`} data-module-id={mod.id} aria-expanded={mod.current ? 'true' : 'false'} aria-controls={moduleBodyId}>
+                <Icon name={mod.icon} />
+                <span class="side-sec-label">{mod.nome}</span>
+                <span class="side-seta" aria-hidden="true"></span>
+              </button>
+            </p>
+            <div class="side-sec-corpo" id={moduleBodyId} hidden={!mod.current}>
+              {mod.grupos.map((group, j) => {
+                const hasGroupHeading = mod.grupos.length > 1 || group.grupo !== mod.nome;
+                const groupCurrent = group.itens.some(itemIsCurrent);
+                const groupBodyId = `${moduleBodyId}-g${j}`;
+                const links = group.itens.map((item) => (
+                  <a
+                    href={`/plataforma/${item.slug ? `${item.slug}/` : ''}`}
+                    aria-current={itemIsCurrent(item) ? 'page' : undefined}
+                    aria-label={item.title}
+                    title={item.title}
+                  >
+                    <Icon name={menuIcons[item.slug] || groupIcons[group.grupo] || 'file'} />
+                    <span class="side-label">{item.title}</span>
+                    {['solicitacoes', 'pareceres', 'recursos'].includes(item.slug) && <span class="badge">3</span>}
+                    <span class="side-tooltip" aria-hidden="true">{item.title}</span>
+                  </a>
+                ));
+                return (
+                  <>
+                    {hasGroupHeading && (
+                      <h2>
+                        <button
+                          type="button"
+                          class="side-sec"
+                          data-sec={`g:${mod.nome}:${group.grupo}`}
+                          data-module-id={mod.id}
+                          aria-expanded={groupCurrent ? 'true' : 'false'}
+                          aria-controls={groupBodyId}
+                        >
+                          <Icon name={groupIcons[group.grupo] || 'grid'} />
+                          <span class="side-sec-label">{group.grupo}</span>
+                          <span class="side-seta" aria-hidden="true"></span>
+                        </button>
+                      </h2>
+                    )}
+                    {hasGroupHeading
+                      ? <div class="side-sec-corpo" id={groupBodyId} hidden={!groupCurrent}>{links}</div>
+                      : links}
+                  </>
+                );
+              })}
+            </div>
+          </div>
+          );
+        })}
+      </div>
+      <div class="sidebar-account">
+        <div class="sidebar-account-expanded">
+          <div class="sidebar-account-identity">
+            <span class="sidebar-account-avatar">
+              {userInitials ? userInitials : <Icon name="user" size={20} />}
+            </span>
+            <span class="sidebar-account-meta">
+              <strong>{userName}</strong>
+              <small>{userRole}</small>
+            </span>
+          </div>
+          <nav class="sidebar-account-links" aria-label="Conta do usuário">
+            <a href="/plataforma/perfil/" aria-label="Meu perfil"><Icon name="user" />Meu perfil</a>
+            <a href="/sair" aria-label="Sair"><Icon name="log-out" />Sair</a>
+          </nav>
+        </div>
+        <details class="sidebar-account-collapsed">
+          <summary class="sidebar-account-trigger" aria-label={`Abrir opções de ${userName}`} title={userName}>
+            <span class="sidebar-account-avatar">
+              {userInitials ? userInitials : <Icon name="user" size={20} />}
+            </span>
+          </summary>
+          <div class="sidebar-account-popover">
+            <div class="sidebar-account-identity">
+              <span class="sidebar-account-avatar">
+                {userInitials ? userInitials : <Icon name="user" size={20} />}
+              </span>
+              <span class="sidebar-account-meta">
+                <strong>{userName}</strong>
+                <small>{userRole}</small>
+              </span>
+            </div>
+            <nav class="sidebar-account-links" aria-label="Conta do usuário">
+              <a href="/plataforma/perfil/" aria-label="Meu perfil"><Icon name="user" />Meu perfil</a>
+              <a href="/sair" aria-label="Sair"><Icon name="log-out" />Sair</a>
+            </nav>
+          </div>
+        </details>
+      </div>
+      <a class="sidebar-help" aria-label="Precisa de ajuda? Fale com o suporte" title="Precisa de ajuda? Fale com o suporte" href="/sobre/#contato">
+        <Icon name="help" />
+        <span class="side-label">Precisa de ajuda?<small>Fale com o suporte</small></span>
+      </a>
+    </aside>
+    <div class="side-module-flyouts">
+      {menu.map((mod) => (
+        <section class="side-module-flyout" id={`side-flyout-${mod.id}`} aria-label={mod.nome} hidden>
+          <h2>{mod.nome}</h2>
+          {mod.grupos.map((group) => (
+            <div class="side-flyout-group">
+              {(mod.grupos.length > 1 || group.grupo !== mod.nome) && (
+                <h3><Icon name={groupIcons[group.grupo] || 'grid'} /><span>{group.grupo}</span></h3>
+              )}
+              <div class="side-flyout-links">
+                {group.itens.map((item) => (
+                  <a
+                    href={`/plataforma/${item.slug ? `${item.slug}/` : ''}`}
+                    data-atual={String(itemIsCurrent(item))}
+                    aria-label={item.title}
+                  >
+                    <Icon name={menuIcons[item.slug] || groupIcons[group.grupo] || 'file'} />
+                    <span>{item.title}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))}
+        </section>
+      ))}
+    </div>
+    <div class="workspace" data-current-module={menu.find((mod) => mod.current)?.id}>
+      <p class="notice">{avisoDados}</p>
+      <slot />
+    </div>
+  </div>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <dialog id="record-dialog">
+    <h2>Detalhes do registro</h2>
+    <div id="record-body" style="max-height:70vh;overflow:auto"></div>
+    <form method="dialog"><button><Icon name="x" size={16} />Fechar</button></form>
+  </dialog>
+</Base>
+<script is:inline>
+(() => {
+  if (window.__sidebarVisualSync) return;
+  window.__sidebarVisualSync = true;
+  const aplicar = (doc = document) => {
+    const recolhido = doc.documentElement.dataset.sidebar !== 'aberto';
+    doc.querySelector('.platform')?.classList.toggle('collapsed', recolhido);
+    doc.querySelector('.sidebar')?.setAttribute('data-closed', String(recolhido));
+  };
+  aplicar();
+  const observer = new MutationObserver(() => aplicar());
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-sidebar'] });
+  document.addEventListener('astro:before-swap', (event) => aplicar(event.newDocument));
+  document.addEventListener('astro:after-swap', () => aplicar());
+  document.addEventListener('astro:page-load', () => aplicar());
+})();
+</script>
 <script>
 document.addEventListener('astro:page-load',()=>{
 
 const lifecycle=new AbortController();document.addEventListener('astro:before-swap',()=>lifecycle.abort(),{once:true});
 const drawer=document.querySelector<HTMLButtonElement>('#drawer-toggle')!;
 const sidebar=document.querySelector<HTMLElement>('.sidebar')!;if(!drawer||!sidebar)return;
-sidebar.querySelectorAll('a').forEach(a=>a.setAttribute('aria-current',new URL(a.href).pathname===location.pathname?'page':'false'));
-/* Blocos e sub-blocos do menu que abrem e fecham. Por padrão os blocos principais começam FECHADOS (interface mais limpa) e os sub-blocos abertos; cada navegador lembra o que a pessoa abriu ou fechou. O bloco da página atual sempre abre. */
-const SEC_CHAVE='govnexa-menu-estado';const estado:Record<string,boolean>=Object.create(null);try{const v=JSON.parse(localStorage.getItem(SEC_CHAVE)||'{}');if(v&&typeof v==='object'&&!Array.isArray(v))for(const [k,a] of Object.entries(v))if(typeof a==='boolean'&&k.length<200)estado[k]=a}catch{}
-const abertoPadrao=(k:string)=>k in estado?estado[k]:!k.startsWith('m:');
-const abrirSec=(btn:HTMLButtonElement,aberto:boolean)=>{btn.setAttribute('aria-expanded',String(aberto));const c=document.getElementById(btn.getAttribute('aria-controls')||'');if(c)c.hidden=!aberto};
-sidebar.querySelectorAll<HTMLButtonElement>('button[data-sec]').forEach(btn=>{const k=btn.dataset.sec||'';const corpo=document.getElementById(btn.getAttribute('aria-controls')||'');const temAtual=!!corpo?.querySelector('a[aria-current=page]');abrirSec(btn,temAtual||abertoPadrao(k));btn.onclick=()=>{const aberto=btn.getAttribute('aria-expanded')!=='true';abrirSec(btn,aberto);estado[k]=aberto;try{localStorage.setItem(SEC_CHAVE,JSON.stringify(estado))}catch{}}});
+const currentModule=document.querySelector<HTMLElement>('.workspace')?.dataset.currentModule;
+sidebar.querySelectorAll<HTMLButtonElement>('.side-module-icon').forEach(button=>button.dataset.current=String(button.dataset.moduleId===currentModule));
+sidebar.querySelectorAll<HTMLAnchorElement>('.side-links a').forEach(a=>{if(new URL(a.href).pathname===location.pathname)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+const openSec=(button:HTMLButtonElement,open:boolean)=>{button.setAttribute('aria-expanded',String(open));const body=document.getElementById(button.getAttribute('aria-controls')||'');if(body)body.hidden=!open};
+const sectionButtons=[...sidebar.querySelectorAll<HTMLButtonElement>('button[data-sec]')];
+sectionButtons.forEach(button=>{
+  const body=document.getElementById(button.getAttribute('aria-controls')||'');
+  const isModule=button.dataset.sec?.startsWith('m:');
+  const shouldOpen=isModule?button.dataset.moduleId===currentModule:!!body?.querySelector('a[aria-current=page]');
+  openSec(button,shouldOpen);
+  button.addEventListener('click',()=>{
+    const opening=button.getAttribute('aria-expanded')!=='true';
+    if(opening&&isModule){
+      sectionButtons.filter(other=>other!==button&&other.dataset.sec?.startsWith('m:')).forEach(other=>openSec(other,false));
+      sectionButtons.filter(other=>other!==button&&other.dataset.moduleId!==button.dataset.moduleId).forEach(other=>openSec(other,false));
+    }else if(opening){
+      sectionButtons.filter(other=>other!==button&&other.dataset.moduleId===button.dataset.moduleId&&other.dataset.sec?.startsWith('g:')).forEach(other=>openSec(other,false));
+    }
+    openSec(button,opening);
+  },{signal:lifecycle.signal});
+});
+const rail=sidebar.querySelector<HTMLElement>('#side-module-rail')!;
+const flyouts=document.querySelector<HTMLElement>('.side-module-flyouts')!;
+rail.querySelectorAll<HTMLButtonElement>('.side-module-icon').forEach(button=>{button.setAttribute('aria-expanded','false');const panel=document.getElementById(button.getAttribute('aria-controls')||'');if(panel)panel.hidden=true});
+let activeFlyout:HTMLElement|null=null;let activeFlyoutButton:HTMLButtonElement|null=null;let flyoutTimer:ReturnType<typeof setTimeout>|undefined;
+const positionFlyout=()=>{
+  if(!activeFlyout||!activeFlyoutButton)return;
+  const trigger=activeFlyoutButton.getBoundingClientRect();
+  const panel=activeFlyout.getBoundingClientRect();
+  activeFlyout.style.left=`${Math.min(trigger.right+8,innerWidth-panel.width-8)}px`;
+  activeFlyout.style.top=`${Math.max(8,Math.min(trigger.top,innerHeight-panel.height-8))}px`;
+};
+const closeFlyout=(restoreFocus=false)=>{
+  if(flyoutTimer)clearTimeout(flyoutTimer);flyoutTimer=undefined;
+  if(activeFlyout)activeFlyout.hidden=true;
+  if(activeFlyoutButton)activeFlyoutButton.setAttribute('aria-expanded','false');
+  const button=activeFlyoutButton;
+  activeFlyout=null;activeFlyoutButton=null;
+  if(restoreFocus)button?.focus();
+};
+lifecycle.signal.addEventListener('abort',()=>closeFlyout(),{once:true});
+const showFlyout=(button:HTMLButtonElement)=>{
+  if(flyoutTimer)clearTimeout(flyoutTimer);flyoutTimer=undefined;
+  if(activeFlyoutButton===button){positionFlyout();return}
+  closeFlyout();
+  const panel=document.getElementById(button.getAttribute('aria-controls')||'');
+  if(!panel)return;
+  activeFlyout=panel;activeFlyoutButton=button;
+  panel.hidden=false;button.setAttribute('aria-expanded','true');positionFlyout();
+};
+const scheduleFlyoutClose=(preserveFocus=false)=>{if(flyoutTimer)clearTimeout(flyoutTimer);flyoutTimer=setTimeout(()=>{if(activeFlyout?.matches(':hover')||activeFlyoutButton?.matches(':hover'))return;if(preserveFocus&&(rail.contains(document.activeElement)||activeFlyout?.contains(document.activeElement)))return;closeFlyout()},220)};
+rail.querySelectorAll<HTMLButtonElement>('.side-module-icon').forEach(button=>{
+  const item=button.parentElement!;
+  button.addEventListener('pointerenter',()=>showFlyout(button),{signal:lifecycle.signal});
+  button.addEventListener('focus',()=>showFlyout(button),{signal:lifecycle.signal});
+  button.addEventListener('click',()=>showFlyout(button),{signal:lifecycle.signal});
+  item.addEventListener('pointerenter',()=>{if(flyoutTimer)clearTimeout(flyoutTimer);flyoutTimer=undefined},{signal:lifecycle.signal});
+  item.addEventListener('pointerleave',()=>scheduleFlyoutClose(),{signal:lifecycle.signal});
+  item.addEventListener('focusout',()=>setTimeout(()=>{if(!item.contains(document.activeElement))scheduleFlyoutClose(true)},0),{signal:lifecycle.signal});
+  button.addEventListener('keydown',event=>{
+    const panel=document.getElementById(button.getAttribute('aria-controls')||'');
+    const links=panel?[...panel.querySelectorAll<HTMLAnchorElement>('a')]:[];
+    if(event.key==='ArrowDown'||event.key==='ArrowRight'){event.preventDefault();showFlyout(button);links[0]?.focus()}
+    if(event.key==='ArrowUp'||event.key==='ArrowLeft'){event.preventDefault();showFlyout(button);links.at(-1)?.focus()}
+    if(event.key==='Escape'){event.preventDefault();closeFlyout(true)}
+  },{signal:lifecycle.signal});
+});
+flyouts.querySelectorAll<HTMLElement>('.side-module-flyout').forEach(panel=>{
+  panel.addEventListener('pointerenter',()=>{if(flyoutTimer)clearTimeout(flyoutTimer);flyoutTimer=undefined},{signal:lifecycle.signal});
+  panel.addEventListener('pointerleave',()=>scheduleFlyoutClose(),{signal:lifecycle.signal});
+  panel.addEventListener('focusout',()=>setTimeout(()=>{if(!panel.contains(document.activeElement)&&!rail.contains(document.activeElement))scheduleFlyoutClose()},0),{signal:lifecycle.signal});
+  panel.addEventListener('keydown',event=>{
+    const links=[...panel.querySelectorAll<HTMLAnchorElement>('a')];const index=links.indexOf(document.activeElement as HTMLAnchorElement);
+    if(event.key==='Escape'){event.preventDefault();closeFlyout(true)}
+    else if((event.key==='ArrowDown'||event.key==='ArrowRight')&&index>=0){event.preventDefault();links[(index+1)%links.length]?.focus()}
+    else if((event.key==='ArrowUp'||event.key==='ArrowLeft')&&index>=0){event.preventDefault();links[(index-1+links.length)%links.length]?.focus()}
+  },{signal:lifecycle.signal});
+});
+document.addEventListener('pointerdown',event=>{if(activeFlyout&&!rail.contains(event.target as Node)&&!activeFlyout.contains(event.target as Node))closeFlyout()},{signal:lifecycle.signal});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&activeFlyout)closeFlyout(true)},{signal:lifecycle.signal});
+window.addEventListener('resize',positionFlyout,{signal:lifecycle.signal});
+window.addEventListener('scroll',positionFlyout,{capture:true,signal:lifecycle.signal});
 const label=document.querySelector('[data-module-title]');if(label)label.textContent=document.title.split(' | ')[0];
 function closeDrawer(){sidebar.classList.remove('drawer-open');drawer.setAttribute('aria-expanded','false');}
 drawer.onclick=()=>{const open=drawer.getAttribute('aria-expanded')==='true';closeDrawer();if(!open){sidebar.classList.add('drawer-open');drawer.setAttribute('aria-expanded','true');sidebar.querySelector<HTMLElement>('button,a')?.focus();}};
 document.addEventListener('keydown',e=>{if(drawer.getAttribute('aria-expanded')!=='true')return;if(e.key==='Escape'){closeDrawer();drawer.focus();}if(e.key==='Tab'){const nodes=[drawer,...sidebar.querySelectorAll<HTMLElement>('button,a')].filter(n=>n.getClientRects().length);const i=nodes.indexOf(document.activeElement as HTMLElement);e.preventDefault();nodes[(i+(e.shiftKey?-1:1)+nodes.length)%nodes.length].focus();}},{signal:lifecycle.signal});
 const query=new URLSearchParams(location.search).get('q');const search=document.querySelector<HTMLInputElement>('[data-table-search]');if(query&&search){search.value=query;requestAnimationFrame(()=>search.dispatchEvent(new Event('input')));}
-const b=document.querySelector<HTMLButtonElement>('#sidebar-toggle')!;b.onclick=()=>{const closed=b.getAttribute('aria-expanded')==='true';b.setAttribute('aria-expanded',String(!closed));b.setAttribute('aria-label',closed?'Expandir menu':'Recolher menu');try{localStorage.setItem('govnexa-sidebar',String(closed))}catch{};document.querySelector('.sidebar')?.setAttribute('data-closed',String(closed));document.querySelector('.platform')?.classList.toggle('collapsed',closed)};
-document.querySelector('.platform')?.classList.toggle('collapsed',b.getAttribute('aria-expanded')==='false');
-try{if(localStorage.getItem('govnexa-sidebar')==='true'&&b.getAttribute('aria-expanded')==='true')b.click()}catch{};
+const b=document.querySelector<HTMLButtonElement>('#sidebar-toggle')!;const sincronizarSidebar=()=>{const recolhido=document.documentElement.dataset.sidebar!=='aberto';b.setAttribute('aria-expanded',String(!recolhido));b.setAttribute('aria-label',recolhido?'Expandir menu':'Recolher menu')};sincronizarSidebar();document.addEventListener('astro:after-swap',sincronizarSidebar,{signal:lifecycle.signal});b.onclick=()=>{const recolhido=document.documentElement.dataset.sidebar!=='aberto';document.documentElement.dataset.sidebar=recolhido?'aberto':'recolhido';sincronizarSidebar();try{localStorage.setItem('govnexa-sidebar',String(!recolhido))}catch{}};
 let timer:ReturnType<typeof setTimeout>;document.addEventListener('astro:before-swap',()=>clearTimeout(timer),{once:true});document.addEventListener('click',e=>{const target=e.target as HTMLElement;if(target.closest('[data-prototype]')){const toast=document.querySelector<HTMLElement>('#toast')!;toast.textContent='protótipo: nada é gravado';toast.hidden=false;clearTimeout(timer);timer=setTimeout(()=>toast.hidden=true,3000);}const detail=target.closest('[data-detail]');if(detail){const row=detail.closest<HTMLElement>('[data-row]')!;const vals:Array<string|number>=JSON.parse(row.dataset.values!);const heads=[...row.closest('table')!.querySelectorAll('thead th')];const body=document.querySelector('#record-body')!;body.replaceChildren();const det=row.dataset.detalhe?JSON.parse(row.dataset.detalhe):null;if(det){const h=document.createElement('h3');h.textContent=det.titulo;body.append(h);for(const s of det.secoes){const t=document.createElement('h4');t.textContent=s.titulo;body.append(t);if(s.texto){const q=document.createElement('p');q.textContent=s.texto;body.append(q)}if(s.itens){const ul=document.createElement('ul');for(const it of s.itens){const li=document.createElement('li');li.textContent=it;ul.append(li)}body.append(ul)}}const lks=[...(det.links??[]),...(det.link?[det.link]:[])].filter((l:{url:string})=>String(l.url).startsWith("https://")||/^\/plataforma\/[a-z0-9\/_-]*(\?[a-z0-9=&_.-]*)?$/i.test(String(l.url)));if(lks.length){const ul=document.createElement('ul');for(const l of lks){const li=document.createElement('li');const a=document.createElement('a');a.href=l.url;a.textContent=l.rotulo;if(String(l.url).startsWith("https://")){a.target='_blank';a.rel='noopener noreferrer';}li.append(a);ul.append(li)}body.append(ul)}document.querySelector<HTMLDialogElement>('#record-dialog')!.showModal();return;}vals.forEach((v,i)=>{const p=document.createElement('p');p.textContent=`${heads[i].textContent?.replace(' ↕','')}: ${v}`;body.append(p)});document.querySelector<HTMLDialogElement>('#record-dialog')!.showModal();}},{signal:lifecycle.signal});
 document.querySelectorAll<HTMLFormElement>('[data-prototype-form]').forEach(f=>f.addEventListener('submit',e=>{e.preventDefault();document.querySelector<HTMLElement>('#toast')!.textContent='protótipo: nada é gravado';document.querySelector<HTMLElement>('#toast')!.hidden=false;clearTimeout(timer);timer=setTimeout(()=>{const toast=document.querySelector<HTMLElement>('#toast');if(toast)toast.hidden=true},3000)}));
 

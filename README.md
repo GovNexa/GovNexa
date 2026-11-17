@@ -37,8 +37,8 @@ São módulos independentes que conversam entre si:
 - O site público é pré-renderizado. A plataforma é montada em cada acesso pelo Worker e lê o banco D1.
 - Os dados operacionais ficam em Cloudflare D1, um banco por prefeitura, com um banco central para cadastros e importações.
 - O MVP não usa IA. A IA fica para a Fase 5, sempre com revisão humana.
-- **Requisito mínimo:** transcrições dos áudios do dono, reunião com a equipe e planilhas-base. Esses insumos ficam na pasta local `Doc Referencia/`, que **nunca** vai para o Git.
-- **Plano completo:** [docs/govnexa/plano.md](docs/govnexa/plano.md), de conhecimento de todos os envolvidos, com fases, decisões, riscos e rastreabilidade. A seção "Andamento" do plano é atualizada a cada entrega.
+- **Documentação de continuidade:** leia [plano adaptado](docs/govnexa/plano.md) e [histórico adaptado](docs/govnexa/historico.md), além deste README. As versões integrais ficam no repositório privado de dados.
+- **Ordem de leitura:** README, plano, histórico, [CLAUDE.md](CLAUDE.md).
 - **Este README é a fonte para dar continuidade.** Ele é atualizado em toda entrega: situação, funcionalidades, decisões e pendências. A regra está no [CLAUDE.md](CLAUDE.md).
 
 ### 1.1 Problema, visão e princípios
@@ -128,6 +128,7 @@ São módulos independentes que conversam entre si:
 | 16/11 | Etapa 3.4: documentos de projeto no R2 (envio, download como anexo e remoção lógica) | PR #10 |
 | 16/11 | Primeira gravação das planilhas em produção: 334 atualizados, 0 novos, 0 pulados | rotina do repositório de dados |
 | 16/11 | Etapa 3.5: importação das planilhas (rotina, regras de segurança dos dados, avisos e testes) | PR #9 |
+| 16/11 | Menu lateral com ícones por item, tipografia única, início recolhido, lista flutuante de itens, sanfona e usuário no rodapé | Plataforma |
 | 16/11 | Otimização publicada (versão 2e1114fa); repositório privado de dados conferido | PR #7 |
 | 16/11 | Leitura do banco otimizada: só a guia aberta é montada e cache de 30 s (páginas de ~400 ms para ~20 ms) | PR #6 |
 | 16/11 | Plano e histórico completos trazidos para o repositório novo; repositório antigo congelado | PR #5 |
@@ -140,6 +141,12 @@ O detalhe das entregas está em [docs/CHANGELOG.md](docs/CHANGELOG.md).
 ## 3. Funcionalidades por guia
 
 Legenda: **Disponível** = leitura ou operação disponível. **Simulação** = as regras rodam, mas a gravação real ainda será ligada nas próximas partes da etapa 3. **Demonstrativo** = protótipo com dados fictícios.
+
+### Navegação da plataforma
+
+| Funcionalidade | O que oferece | Situação | Código |
+| --- | --- | --- | --- |
+| Menu lateral | Ícones por item e tipografia única; começa recolhido com ícones dos módulos e abre uma lista flutuante com todos os itens; blocos em sanfona e identificação do usuário logado, com iniciais e nome, no rodapé | Disponível | `src/layouts/Platform.astro`, `src/components/Icon.astro`, `src/styles/` |
 
 ### Projetos
 
@@ -456,8 +463,12 @@ Detalhes em [docs/seguranca.md](docs/seguranca.md).
 
 ## 15. Documentação
 
+Ordem de leitura: README, [plano](docs/govnexa/plano.md), [histórico](docs/govnexa/historico.md), [CLAUDE.md](CLAUDE.md). As versões integrais do plano e do histórico ficam no repositório privado de dados.
+
 | Arquivo | Conteúdo |
 | --- | --- |
+| [docs/govnexa/plano.md](docs/govnexa/plano.md) | Plano público adaptado do sistema |
+| [docs/govnexa/historico.md](docs/govnexa/historico.md) | Regras do dono e lições técnicas; histórico público adaptado |
 | [CLAUDE.md](CLAUDE.md) | Regras de trabalho no repositório |
 | [docs/govnexa/plano.md](docs/govnexa/plano.md) | **Plano completo do GovNexa** (detalhe de tudo que o README resume) |
 | [docs/govnexa/historico.md](docs/govnexa/historico.md) | **Histórico completo**: linha do tempo, evolução dos %, regras do dono, testes do SEI, o que vem a seguir, lições técnicas e todos os PRs |
