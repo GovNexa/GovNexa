@@ -1,5 +1,8 @@
 # Changelog
 
+## Correção: topo da tela Documentos do projeto
+- 2026-11-17: o topo da plataforma volta a mostrar o nome da tela ("Documentos do projeto") em vez do nome do projeto, que vazava do cabeçalho quando era longo. O projeto aparece numa linha antes do aviso de dados. O título do cabeçalho passa a ter no máximo duas linhas em todas as telas.
+
 ## Regra de trabalho: conferir o repositório durante o trabalho
 - 2026-11-17: `CLAUDE.md` ganhou a seção 1.1 (regra do dono): buscar as novidades do repositório antes de tarefa nova, branch, commit, PR e publicação, e atualizar a pasta sempre que possível. Vale para todos os desenvolvedores. Nenhuma mudança de código.
 
