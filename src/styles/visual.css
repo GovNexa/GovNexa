@@ -248,3 +248,10 @@ body:has(.platform)>.app-footer{flex:none;margin-top:auto}
   .mp-chip,.mp-btn,.kb-mover,.lg-ver,.pagination button,.table-wrap td button[data-detail],
   .cr-abas .tabs button,.workspace .tabs button{min-width:44px;min-height:44px}
 }
+/* Coluna "Detalhes" fixa na borda direita das tabelas largas (computador): o botão "Ver detalhes" fica sempre visível; as demais colunas rolam por baixo. */
+@media (min-width:1101px){
+  .workspace [data-table]>.table-wrap thead th:last-child,
+  .workspace [data-table]>.table-wrap td.td-acao{position:sticky;right:0;z-index:2;background:var(--surface);box-shadow:-10px 0 12px -10px #002e4733}
+  .workspace [data-table]>.table-wrap thead th:last-child{z-index:3;background:var(--surface-2)}
+  .workspace [data-table]>.table-wrap tbody tr:hover td.td-acao{background:var(--orange-soft)}
+}
