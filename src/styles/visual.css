@@ -255,3 +255,22 @@ body:has(.platform)>.app-footer{flex:none;margin-top:auto}
   .workspace [data-table]>.table-wrap thead th:last-child{z-index:3;background:var(--surface-2)}
   .workspace [data-table]>.table-wrap tbody tr:hover td.td-acao{background:var(--orange-soft)}
 }
+/* Tabelas (pedido do dono, 17/11/2026): fonte menor, conteúdo centralizado, valores curtos sem quebra, colunas "só nos detalhes" escondidas. */
+.workspace [data-table] .so-detalhe{display:none!important}
+@media (min-width:1101px){
+  .workspace [data-table]>.table-wrap table{font-size:.8rem}
+  .workspace [data-table]>.table-wrap th,.workspace [data-table]>.table-wrap td{text-align:center;vertical-align:middle}
+  .workspace [data-table]>.table-wrap th button{font-size:.72rem;line-height:1.25;text-align:center;justify-content:center;width:100%}
+  .workspace [data-table]>.table-wrap td.td-curto{white-space:nowrap}
+}
+/* Notebooks e monitores até 1600 px: "Ver detalhes" só com o ícone (nome acessível mantido), para as colunas de valor caberem. */
+@media (min-width:1101px) and (max-width:1599px){
+  .workspace [data-table]>.table-wrap td.td-acao button{min-width:44px;min-height:44px;padding:.5rem;gap:0}
+  .workspace [data-table]>.table-wrap td.td-acao .td-acao-texto{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .workspace [data-table]>.table-wrap thead th:last-child{font-size:0}
+  .workspace [data-table]>.table-wrap thead th:last-child::after{content:"Ver";font-size:.72rem}
+}
+@media (min-width:1101px){
+  .workspace [data-table]>.table-wrap th,.workspace [data-table]>.table-wrap td{padding-left:.45rem;padding-right:.45rem}
+  .workspace [data-table]>.table-wrap td .status{padding:.2rem .5rem}
+}
