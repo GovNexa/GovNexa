@@ -97,7 +97,7 @@ const groupIcons: Record<string, string> = {
   Gestão: 'gauge',
 };
 const itemIsCurrent = (item: { slug?: string }) =>
-  item.slug === slug || `/plataforma/${item.slug ? `${item.slug}/` : ''}` === Astro.url.pathname;
+  slug !== '' && (item.slug === slug || `/plataforma/${item.slug ? `${item.slug}/` : ''}` === Astro.url.pathname);
 const menu = menuPorModulo(catalogoCompleto(modules)).map((mod) => {
   return {
     ...mod,
@@ -194,45 +194,6 @@ const muni = municipioAtivo();
           );
         })}
       </div>
-      <div class="sidebar-account">
-        <div class="sidebar-account-expanded">
-          <div class="sidebar-account-identity">
-            <span class="sidebar-account-avatar">
-              {userInitials ? userInitials : <Icon name="user" size={20} />}
-            </span>
-            <span class="sidebar-account-meta">
-              <strong>{userName}</strong>
-              <small>{userRole}</small>
-            </span>
-          </div>
-          <nav class="sidebar-account-links" aria-label="Conta do usuário">
-            <a href="/plataforma/perfil/" aria-label="Meu perfil"><Icon name="user" />Meu perfil</a>
-            <a href="/sair" aria-label="Sair"><Icon name="log-out" />Sair</a>
-          </nav>
-        </div>
-        <details class="sidebar-account-collapsed">
-          <summary class="sidebar-account-trigger" aria-label={`Abrir opções de ${userName}`} title={userName}>
-            <span class="sidebar-account-avatar">
-              {userInitials ? userInitials : <Icon name="user" size={20} />}
-            </span>
-          </summary>
-          <div class="sidebar-account-popover">
-            <div class="sidebar-account-identity">
-              <span class="sidebar-account-avatar">
-                {userInitials ? userInitials : <Icon name="user" size={20} />}
-              </span>
-              <span class="sidebar-account-meta">
-                <strong>{userName}</strong>
-                <small>{userRole}</small>
-              </span>
-            </div>
-            <nav class="sidebar-account-links" aria-label="Conta do usuário">
-              <a href="/plataforma/perfil/" aria-label="Meu perfil"><Icon name="user" />Meu perfil</a>
-              <a href="/sair" aria-label="Sair"><Icon name="log-out" />Sair</a>
-            </nav>
-          </div>
-        </details>
-      </div>
       <a class="sidebar-help" aria-label="Precisa de ajuda? Fale com o suporte" title="Precisa de ajuda? Fale com o suporte" href="/sobre/#contato">
         <Icon name="help" />
         <span class="side-label">Precisa de ajuda?<small>Fale com o suporte</small></span>
@@ -301,7 +262,7 @@ const drawer=document.querySelector<HTMLButtonElement>('#drawer-toggle')!;
 const sidebar=document.querySelector<HTMLElement>('.sidebar')!;if(!drawer||!sidebar)return;
 const currentModule=document.querySelector<HTMLElement>('.workspace')?.dataset.currentModule;
 sidebar.querySelectorAll<HTMLButtonElement>('.side-module-icon').forEach(button=>button.dataset.current=String(button.dataset.moduleId===currentModule));
-sidebar.querySelectorAll<HTMLAnchorElement>('.side-links a').forEach(a=>{if(new URL(a.href).pathname===location.pathname)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
+sidebar.querySelectorAll<HTMLAnchorElement>('.side-links a').forEach(a=>{if(location.pathname!=='/plataforma/'&&new URL(a.href).pathname===location.pathname)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
 const openSec=(button:HTMLButtonElement,open:boolean)=>{button.setAttribute('aria-expanded',String(open));const body=document.getElementById(button.getAttribute('aria-controls')||'');if(body)body.hidden=!open};
 const sectionButtons=[...sidebar.querySelectorAll<HTMLButtonElement>('button[data-sec]')];
 sectionButtons.forEach(button=>{

@@ -158,3 +158,6 @@ td button[data-detail]{white-space:nowrap;min-width:max-content}.table-wrap td:l
 @media(min-width:701px){
  :root[data-sidebar=recolhido] .platform .side-sec-corpo[hidden]{display:block!important}
 }
+
+.app-user summary,.app-user .submenu a{min-width:44px;min-height:44px;box-sizing:border-box}
+.app-user .submenu a{display:flex;align-items:center;gap:.5rem}

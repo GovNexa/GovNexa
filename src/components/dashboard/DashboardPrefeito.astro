@@ -1,0 +1,349 @@
+---
+import Icon from '../Icon.astro';
+import '../../styles/dashboard.css';
+import { carregarCarteira } from '../../lib/carteira/carga.ts';
+import { carregarCronogramas } from '../../lib/cronograma/carga.ts';
+import { dados } from '../../lib/dados/index.ts';
+import { municipioAtivo } from '../../lib/municipio-ativo.ts';
+import { hojeEmBrasilia } from '../../lib/whatsapp/farol.ts';
+import { montarDashboard, opcoesFiltros, parametrosDaUrl, urlCom } from '../../lib/gestao/dashboard.ts';
+import type { Cartao, Filtros, Quebra, Situacao } from '../../lib/gestao/dashboard.ts';
+
+const carteira = carregarCarteira();
+const cronogramas = carregarCronogramas();
+const municipio = municipioAtivo();
+const entrada = {
+  carteira,
+  cronogramas: cronogramas.cronogramas,
+  cronogramasImportadosEm: cronogramas.fonte.importado_em ?? null,
+  acompanhamento: dados.acompanhamento(municipio.codigo_ibge) ?? null,
+  cauc: dados.cauc(municipio.codigo_ibge) ?? null,
+  programasAbertos: dados.programasAbertos(municipio.codigo_ibge) ?? null,
+  eventosLei: [],
+};
+const validos = { ...opcoesFiltros(carteira), projetos: carteira.projetos.map((projeto) => projeto.id) };
+const { filtros, cartao: cartaoId } = parametrosDaUrl(Astro.url, validos);
+const hoje = hojeEmBrasilia();
+const dashboard = montarDashboard(entrada, hoje, filtros);
+const cartaoSelecionado = dashboard.cartoes.find((cartao) => cartao.id === cartaoId);
+const limparPainel = urlCom(filtros);
+const valorFicha = (id: string) => `/plataforma/projetos-carteira/?q=${encodeURIComponent(id)}`;
+const dataFonte = (valor: string | null) => valor
+  ? new Date(valor).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
+  : 'sem data';
+const atualizado = new Intl.DateTimeFormat('pt-BR', {
+  timeZone: 'America/Sao_Paulo',
+  dateStyle: 'short',
+  timeStyle: 'short',
+}).format(new Date());
+const moeda = (valor: number | null) => valor === null
+  ? '—'
+  : new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(valor);
+const inteiro = (valor: number | null) => valor === null ? '—' : Math.round(valor).toLocaleString('pt-BR');
+const percentual = (valor: number | null) => valor === null ? '—' : `${valor.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`;
+const textoBR = (texto: string) => texto.replace(/(\d{4})-(\d{2})-(\d{2})/g, '$3/$2/$1').replace(/(\d+)\.(\d+)%/g, '$1,$2%').replace(/\b\d{4,}(?= (?:de|projetos|convênios|etapas|dias)\b)/g, (numero) => Number(numero).toLocaleString('pt-BR'));
+const secundario = (cartao: Cartao) => textoBR(cartao.id === 'cauc' ? `${inteiro(cartao.valorPrincipal)} pendências · consulta ${cartao.secundario.split('consulta: ')[1] ?? 'sem data'}` : cartao.secundario || '—');
+const valorCartao = (cartao: Cartao) => cartao.id === 'cauc' ? (cartao.valorPrincipal === null ? '—' : cartao.situacao === 'ok' ? 'Regular' : 'Com pendência') : cartao.valorPrincipal === null
+  ? '—'
+  : cartao.unidade === 'reais'
+    ? moeda(cartao.valorPrincipal)
+    : cartao.unidade === 'percentual'
+      ? percentual(cartao.valorPrincipal)
+      : inteiro(cartao.valorPrincipal);
+const situacoes: Record<Situacao, { rotulo: string; icone: string }> = {
+  ok: { rotulo: 'Em dia', icone: 'check' },
+  atencao: { rotulo: 'Atenção', icone: 'bell' },
+  critico: { rotulo: 'Crítico', icone: 'x' },
+  neutro: { rotulo: 'Sem alerta', icone: 'file' },
+};
+const labelResumo: Record<string, string> = {
+  qtd: 'Projetos',
+  valor: 'Valor',
+  percentual: 'Executado',
+  pactuado: 'Pactuado',
+  liberado: 'Liberado',
+  saldoALiberar: 'Saldo a liberar',
+  pendencias: 'Pendências',
+  itens: 'Itens consultados',
+  orgaos: 'Órgãos',
+};
+const formatResumo = (chave: string, valor: number | null) =>
+  /valor|pactuado|liberado|saldo/i.test(chave) ? moeda(valor)
+    : /percentual/i.test(chave) ? percentual(valor)
+      : inteiro(valor);
+const escala = (valor: number, maximo: number) => `${maximo > 0 ? valor / maximo * 100 : 0}%`;
+const linkItem = (item: { id: string; link: string }, cartao: Cartao) =>
+  cartao.abrangencia === 'municipio' ? item.link : valorFicha(item.id);
+const barra = (quebras: Quebra[]) => Math.max(0, ...quebras.map((quebra) => quebra.valor ?? 0));
+const filtrosAtivos = (chave: keyof Filtros) => filtros[chave] ?? '';
+const linkEtapa = '/plataforma/projetos-kanban/';
+---
+
+<div class="prefeito-dashboard" data-prefeito-dashboard>
+  <header class="pd-cabecalho">
+    <div>
+      <p class="pd-sobretitulo">{municipio.nomeExibicao}</p>
+      <h1>Visão geral da prefeitura</h1>
+      <p class="pd-atualizado">Atualizado em <time datetime={new Date().toISOString()}>{atualizado}</time></p>
+    </div>
+    <button class="pd-apresentar" type="button" data-apresentar>
+      <Icon name="eye" size={20} />Apresentar
+    </button>
+  </header>
+
+  <div class="pd-fontes-linha">
+    <p>Fontes: {dashboard.fontes.map((fonte, indice) => `${['Carteira', 'Cronogramas', 'Transferegov', 'CAUC', 'Programas'][indice]} ${dataFonte(fonte.data)}`).join(' · ')}</p>
+    <details><summary>Ver fontes</summary><ul class="pd-fontes">{dashboard.fontes.map((fonte) => <li>{fonte.nome} · {dataFonte(fonte.data)}</li>)}</ul></details>
+  </div>
+
+  <form class="pd-filtros" method="get" action="/plataforma/" aria-label="Filtros do dashboard">
+    <label>Região
+      <select name="regiao">
+        <option value="">Todas</option>
+        {validos.regioes.map((regiao) => <option value={regiao} selected={filtrosAtivos('regiao') === regiao}>{regiao}</option>)}
+      </select>
+    </label>
+    <label>Órgão
+      <select name="orgao">
+        <option value="">Todos</option>
+        {validos.orgaos.map((orgao) => <option value={orgao} selected={filtrosAtivos('orgao') === orgao}>{orgao}</option>)}
+      </select>
+    </label>
+    <label>Prioridade
+      <select name="prioridade">
+        <option value="">Todas</option>
+        {validos.prioridades.map((prioridade) => <option value={prioridade} selected={filtrosAtivos('prioridade') === prioridade}>{prioridade}</option>)}
+      </select>
+    </label>
+    <label>Compromisso
+      <select name="compromisso">
+        <option value="">Todos</option>
+        {(['decidido', 'condicionado', 'ideia'] as const).map((compromisso) => (
+          <option value={compromisso} selected={filtrosAtivos('compromisso') === compromisso}>
+            {compromisso === 'decidido' ? 'Decidido' : compromisso === 'condicionado' ? 'Condicionado' : 'Ideia'}
+          </option>
+        ))}
+      </select>
+    </label>
+    <button type="submit">Aplicar filtros</button>
+    <a class="pd-limpar" href="/plataforma/">Limpar</a>
+  </form>
+
+  <section class="pd-indicadores" aria-labelledby="pd-indicadores">
+    <h2 id="pd-indicadores" class="sr-only">Indicadores</h2>
+    <div class="pd-cartoes">
+      {dashboard.cartoes.map((cartao) => (
+        <a
+          class={`pd-cartao pd-situacao-${cartao.situacao}`}
+          href={urlCom(filtros, cartao.id)}
+          data-cartao={cartao.id}
+        >
+          <span class="pd-cartao-titulo">{cartao.titulo}</span>
+          <strong class:list={["pd-numero", { "pd-numero-longo": valorCartao(cartao).length > 6, "pd-numero-texto": cartao.id === "cauc" }]}>{valorCartao(cartao)}</strong>
+          <span class="pd-secundario">{secundario(cartao)}</span>
+          <span class="pd-situacao">
+            <Icon name={situacoes[cartao.situacao].icone} size={18} />
+            {situacoes[cartao.situacao].rotulo}
+          </span>
+          {cartao.abrangencia === 'municipio' && <span class="pd-abrangencia">Toda a prefeitura</span>}
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="pd-secao" aria-labelledby="pd-funil">
+    <h2 id="pd-funil">Carteira por macroetapa</h2><p class="pd-legenda">Barras proporcionais à quantidade de projetos.</p>
+    <ul class="pd-barras" aria-label="Funil por macroetapa">
+      {dashboard.funil.map((etapa) => (
+        <li>
+          <a href={linkEtapa} aria-label={`${etapa.nome}: ${inteiro(etapa.qtd)} projetos`}>
+            <span class="pd-barra-label">{etapa.nome}</span>
+            <span class="pd-barra-trilho"><span style={`width:${escala(etapa.qtd, Math.max(0, ...dashboard.funil.map((item) => item.qtd)))}`}></span></span>
+            <span class="pd-barra-dados">{inteiro(etapa.qtd)} · {moeda(etapa.valor)}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <div class="pd-resumos">
+    <section class="pd-secao pd-bloco" aria-labelledby="pd-parado">
+      <h2 id="pd-parado">Onde está parado</h2>
+      {dashboard.parado.length
+        ? <ul class="pd-lista">
+            {dashboard.parado.slice(0, 5).map((item) => (
+              <li><a href="/plataforma/projetos-parado/">{item.unidade}</a><span>{inteiro(item.itens)} etapas · há {inteiro(item.dias)} dias</span></li>
+            ))}
+          </ul>
+        : <p class="pd-vazio">Nenhuma etapa parada com prazo vencido.</p>}
+    </section>
+    <section class="pd-secao pd-bloco" aria-labelledby="pd-decisoes">
+      <h2 id="pd-decisoes">Decisões pendentes</h2>
+      {dashboard.decisoes.length
+        ? <ul class="pd-lista">
+            {dashboard.decisoes.slice(0, 5).map((item) => (
+              <li><a href={valorFicha(item.id)}>{item.nome}</a><span>{textoBR(item.motivo)}</span></li>
+            ))}
+          </ul>
+        : <p class="pd-vazio">Nenhuma decisão pendente identificada.</p>}
+    </section>
+  </div>
+
+  <section class="pd-secao" aria-labelledby="pd-regioes">
+    <h2 id="pd-regioes">Valores por região</h2>
+    {dashboard.regioes.length
+      ? <ul class="pd-regioes">
+          {dashboard.regioes.map((regiao) => (
+            <li><span>{regiao.nome}</span><strong>{moeda(regiao.valor)}</strong><small>{inteiro(regiao.qtd)} projetos</small></li>
+          ))}
+        </ul>
+      : <p class="pd-vazio">Nenhuma região disponível para os filtros atuais.</p>}
+  </section>
+
+  {cartaoSelecionado && (
+    <>
+      <a class="pd-overlay" href={limparPainel} aria-label="Fechar detalhes"></a>
+      <section
+        class="pd-painel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pd-painel-titulo"
+        data-painel
+      >
+        <header class="pd-painel-cabecalho">
+          <div>
+            <p class="pd-sobretitulo">Detalhamento</p>
+            <h2 id="pd-painel-titulo">{cartaoSelecionado.titulo}</h2>
+          </div>
+          <form method="get" action="/plataforma/">
+            {Object.entries(filtros).map(([nome, valor]) => <input type="hidden" name={nome} value={valor} />)}
+            <button class="pd-fechar" type="submit" data-fechar>
+              <Icon name="x" size={22} />Fechar
+            </button>
+          </form>
+        </header>
+        <div class="pd-painel-corpo">
+          <div class="pd-resumo-cartao">
+            {Object.entries(cartaoSelecionado.detalhe.resumo).slice(0, 3).map(([chave, valor]) => (
+              <div><span>{labelResumo[chave] ?? chave}</span><strong>{formatResumo(chave, valor)}</strong></div>
+            ))}
+          </div>
+          {([
+            ['Órgão', cartaoSelecionado.detalhe.quebras.porOrgao],
+            ['Região', cartaoSelecionado.detalhe.quebras.porRegiao],
+            ['Macroetapa', cartaoSelecionado.detalhe.quebras.porMacroetapa],
+          ] as [string, Quebra[]][]).map(([titulo, quebras]) => quebras.length > 0 && (
+            <section class="pd-quebra">
+              <h3>Por {titulo.toLocaleLowerCase('pt-BR')}</h3>
+              <ul class="pd-barras pd-barras-painel">
+                {quebras.map((quebra) => (
+                  <li>
+                    <span class="pd-barra-label">{quebra.nome}</span>
+                    <span class="pd-barra-trilho" aria-label="Proporção do valor"><span style={`width:${escala(quebra.valor ?? 0, barra(quebras))}`}></span></span>
+                    <span class="pd-barra-dados">{inteiro(quebra.qtd)} · {moeda(quebra.valor)}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+          <section class="pd-itens">
+            <h3>Itens ({inteiro(cartaoSelecionado.valorPrincipal)})</h3>
+            {cartaoSelecionado.detalhe.itens.length
+              ? <ul class="pd-lista">
+                  {cartaoSelecionado.detalhe.itens.map((item) => (
+                    <li>
+                      <a href={linkItem(item, cartaoSelecionado)}>{item.nome}</a>
+                      <span>{textoBR(item.linha1)} · {textoBR(item.linha2)}</span>
+                      <span class={`pd-item-situacao pd-situacao-${item.situacao}`}>
+                        <Icon name={situacoes[item.situacao].icone} size={16} />
+                        {situacoes[item.situacao].rotulo}
+                      </span>
+                      <strong>{moeda(item.valor)}</strong>
+                    </li>
+                  ))}
+                </ul>
+              : <p class="pd-vazio">Nenhum item para os filtros atuais.</p>}
+          </section>
+        </div>
+      </section>
+    </>
+  )}
+
+  <button class="pd-sair-apresentacao" type="button" data-sair-apresentacao hidden>Sair da apresentação</button>
+  <p class="sr-only" role="status" aria-live="polite" data-apresentacao-status></p>
+</div>
+
+<script>
+// Conclui a navegação de histórico mesmo durante uma transição pendente.
+// A entrada é recarregada com os filtros e o painel renderizados pelo servidor.
+window.addEventListener('popstate', (event) => {
+  if (location.pathname !== '/plataforma/' && !document.querySelector('[data-prefeito-dashboard]')) return;
+  event.stopImmediatePropagation();
+  location.reload();
+}, { capture: true });
+
+document.addEventListener('astro:page-load', () => {
+  const lifecycle = new AbortController();
+  document.addEventListener('astro:before-swap', () => lifecycle.abort(), { once: true });
+  const painel = document.querySelector<HTMLElement>('[data-painel]');
+  const fechar = painel?.querySelector<HTMLElement>('[data-fechar]');
+  if (painel && fechar) {
+    fechar.focus();
+    painel.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        fechar.click();
+      }
+      if (event.key !== 'Tab') return;
+      const focaveis = [...painel.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')];
+      if (!focaveis.length) return;
+      const primeiro = focaveis[0];
+      const ultimo = focaveis[focaveis.length - 1];
+      if (event.shiftKey && document.activeElement === primeiro) {
+        event.preventDefault();
+        ultimo.focus();
+      } else if (!event.shiftKey && document.activeElement === ultimo) {
+        event.preventDefault();
+        primeiro.focus();
+      }
+    }, { signal: lifecycle.signal });
+  }
+
+  const apresentar = document.querySelector<HTMLButtonElement>('[data-apresentar]');
+  const sair = document.querySelector<HTMLButtonElement>('[data-sair-apresentacao]');
+  const status = document.querySelector<HTMLElement>('[data-apresentacao-status]');
+  const root = document.querySelector<HTMLElement>('[data-prefeito-dashboard]');
+  const sincronizarApresentacao = () => {
+    const ativa = document.fullscreenElement === root;
+    document.body.classList.toggle('dashboard-presenting', ativa);
+    if (sair) sair.hidden = !ativa;
+  };
+  apresentar?.addEventListener('click', async () => {
+    if (!root || !document.fullscreenEnabled) {
+      if (status) status.textContent = 'A apresentação em tela cheia não está disponível neste navegador.';
+      return;
+    }
+    try {
+      await root.requestFullscreen();
+      if (status) status.textContent = '';
+    } catch {
+      if (status) status.textContent = 'Não foi possível iniciar a apresentação em tela cheia.';
+    }
+  }, { signal: lifecycle.signal });
+  sair?.addEventListener('click', async () => {
+    if (!document.fullscreenElement) return;
+    try {
+      await document.exitFullscreen();
+    } catch {
+      if (status) status.textContent = 'Não foi possível sair da apresentação em tela cheia.';
+    }
+  }, { signal: lifecycle.signal });
+  document.addEventListener('fullscreenchange', sincronizarApresentacao, { signal: lifecycle.signal });
+  sincronizarApresentacao();
+});
+</script>

@@ -28,38 +28,26 @@ test('primeira visita começa recolhida e a preferência expandida persiste nas 
   }
 });
 
-test('rodapé do menu mostra usuário, perfil e saída sem expor o e-mail', async ({ page }) => {
+test('início mantém módulos fechados e conta apenas no topo', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/plataforma/');
-
-  const account = page.locator('.sidebar-account');
-  const avatar = account.locator('.sidebar-account-trigger');
-  await expect(avatar).toBeVisible();
-  await expect(avatar.locator('.sidebar-account-avatar')).toHaveText('AL');
-  await avatar.click();
-  const popover = account.locator('.sidebar-account-popover');
-  await expect(popover).toContainText('Administrador local');
-  await expect(popover).toContainText('Administrador');
-  await expect(popover.getByRole('link', { name: 'Meu perfil' })).toHaveAttribute('href', '/plataforma/perfil/');
-  await expect(popover.getByRole('link', { name: 'Sair' })).toHaveAttribute('href', '/sair');
-
-  const centers = await Promise.all([
-    page.locator('#sidebar-toggle'),
-    ...await page.locator('.side-module-icon').all(),
-    avatar,
-    page.locator('.sidebar-help'),
-  ].map((element) => element.evaluate((node) => {
-    const rect = node.getBoundingClientRect();
-    return rect.left + rect.width / 2;
-  })));
-  expect(Math.max(...centers) - Math.min(...centers)).toBeLessThanOrEqual(1);
-
+  await expect(page.locator('.sidebar .sidebar-account, .sidebar .sidebar-account-avatar, .sidebar [href="/sair"]')).toHaveCount(0);
   await page.locator('#sidebar-toggle').click();
-  const expandedAccount = page.locator('.sidebar-account-expanded');
-  await expect(expandedAccount).toContainText('Administrador local');
-  await expect(expandedAccount).toContainText('Administrador');
-  await expect(page.locator('.app-user .avatar')).toHaveText('AL');
-  await expect(page.locator('.app-user .user-name')).toHaveText('Administrador local');
+  for (const button of await page.locator('.sidebar button[data-module-id]').all()) {
+    await expect(button).toHaveAttribute('aria-expanded', 'false');
+  }
+  const top = page.locator('.app-user');
+  await expect(top.locator('.avatar')).toHaveText('AL');
+  await expect(top.locator('.user-name')).toHaveText('Administrador local');
+  await top.locator('summary').click();
+  for (const [name, href] of [['Meu perfil', '/plataforma/perfil/'], ['Sair', '/sair']]) {
+    const link = top.getByRole('link', { name, exact: true });
+    await expect(link).toBeVisible();
+    await expect(link).toHaveAttribute('href', href);
+    const box = await link.boundingBox();
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+    expect(box?.width).toBeGreaterThanOrEqual(44);
+  }
   await expect(page.locator('body')).not.toContainText('dev@exemplo.invalid');
 });
 
@@ -162,6 +150,11 @@ test('rail recolhido alinha os botões e a sanfona mantém apenas o contexto atu
   await page.locator('.side-links button[data-sec="m:Captação"]').click();
   await expect(page.locator('.side-links button[data-sec="m:Captação"]')).toHaveAttribute('aria-expanded', 'true');
   await expect(page.locator('.side-links button[data-sec="m:Projetos"]')).toHaveAttribute('aria-expanded', 'false');
+
+  await page.goto('/plataforma/');
+  for (const header of await moduleHeaders.all()) {
+    await expect(header).toHaveAttribute('aria-expanded', 'false');
+  }
 
   await page.locator('#sidebar-toggle').click();
   const controls = [page.locator('#sidebar-toggle'), ...await page.locator('.side-module-icon').all(), page.locator('.sidebar-help')];
