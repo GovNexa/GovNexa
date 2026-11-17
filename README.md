@@ -125,6 +125,7 @@ São módulos independentes que conversam entre si:
 
 | Data | O que | Referência |
 | --- | --- | --- |
+| 17/11 | Site público: logo do GovNexa no cabeçalho (versão provisória), menu do topo só com "Acessar plataforma" e "Solicitar demonstração", e marca-d'água em forma de mapa de cidade na página inicial | novo PR |
 | 17/11 | Página inicial nova do site público: apresenta o GovNexa como gestão de projetos públicos, com o ciclo do projeto por rolagem, módulos e entrada da plataforma (animações com GSAP, empacotado no próprio site) | novo PR |
 | 17/11 | Etapa 3.3 (opção B): guia Usuários, lista somente leitura de quem tem acesso (só administrador) | novo PR |
 | 17/11 | Etapa 3.4 publicada: migração 0002 aplicada e documentos no ar | PR #10 e #13 |
@@ -366,6 +367,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **PDFs de referência:** são exemplo de conteúdo, não meta visual. A base são as planilhas.
 - **Privacidade:** nomes de pessoas da reunião não entram no projeto; números de WhatsApp são cadastrados por cargo ou equipe; "Interessados" do SEI não são lidos; nomes em andamentos são mascarados.
 - **Histórico:** imutável. Fotos e documentos têm remoção lógica.
+- **Cabeçalho do site e logo (17/11/2026):** a logo do GovNexa (G em seta com alvo, azul-marinho e laranja) é provisória; a versão final será feita depois. A logo da Prefeitura de Goiânia continua no topo, porque a demonstração é para ela. O topo não lista mais Início, Soluções, Insights e Sobre; essas páginas continuam no rodapé.
 - **Página inicial (17/11/2026):** apresenta o GovNexa como gestão de projetos públicos; não lista as fontes de dados nem a forma de leitura dos processos; o título dos módulos não traz número.
 - **Animações do site (17/11/2026):** biblioteca `gsap` 3.13.0, empacotada no próprio site. A licença é a padrão da GSAP, gratuita para uso comercial, mas não é de código aberto.
 
@@ -386,6 +388,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 3. **3.5 — importação:** feita e gravada em 16/11.
 4. Automatizar a leitura do SEI com Cron Trigger.
 5. Desligar a hospedagem antiga.
+6. Logo definitiva do GovNexa: trocar a versão provisória de `src/components/LogoGovNexa.astro`.
 
 ## 9. Como rodar no computador
 

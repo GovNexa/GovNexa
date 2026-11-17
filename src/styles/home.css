@@ -4,7 +4,7 @@
   --bg:#EEF2F4; --bg-deep:#E1E8EC; --surface:#ffffff; --text:#1E3438; --muted:#536664; --line:#D5DDE0;
   --accent:#0A4A6B; --soft:#F6F8F9; --gold:#F36E22; --gold-ink:#B8480A; --on-accent:#ffffff; --on-gold:#00202F;
   --glass:rgba(255,255,255,.66); --glass-strong:rgba(255,255,255,.92); --glass-line:rgba(0,46,71,.14); --glow:rgba(0,90,139,.10); --orb:rgba(243,110,34,.16);
-  --ok:#1F6B3A; --warn:#8A6A00; --bad:#B3261E; --grid:rgba(0,46,71,.06); --shadow:0 24px 60px rgba(0,46,71,.14);
+  --ok:#1F6B3A; --warn:#8A6A00; --bad:#B3261E; --map-rua:#FFFFFF; --map-via:#D6E0E7; --map-parque:#DCEBDD; --map-agua:#C9E3F1; --shadow:0 24px 60px rgba(0,46,71,.14);
   --display:Poppins,ui-sans-serif,system-ui,sans-serif; --body:Poppins,ui-sans-serif,system-ui,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   --r:22px; --r-sm:14px; --gutter:max(16px,3vw); --gutter-r:max(16px,3vw);
@@ -14,7 +14,7 @@
   --bg:#061A24; --bg-deep:#041219; --surface:#0C2633; --text:#E6EFF2; --muted:#A7BAC0; --line:#21414F;
   --accent:#7CC8D8; --soft:#113040; --gold:#FF9A5C; --gold-ink:#FF9A5C; --on-accent:#061A24; --on-gold:#061A24;
   --glass:rgba(12,38,51,.58); --glass-strong:rgba(12,38,51,.86); --glass-line:rgba(124,200,216,.20); --glow:rgba(124,200,216,.15); --orb:rgba(243,110,34,.20);
-  --ok:#7FD6A0; --warn:#F2C200; --bad:#FF8A7A; --grid:rgba(124,200,216,.06); --shadow:0 24px 60px rgba(1,10,15,.5);
+  --ok:#7FD6A0; --warn:#F2C200; --bad:#FF8A7A; --map-rua:#0D2937; --map-via:#143648; --map-parque:#0B3330; --map-agua:#0E3F56; --shadow:0 24px 60px rgba(1,10,15,.5);
 }
 .gx-main{position:relative;z-index:1}
 .gx *{box-sizing:border-box}
@@ -28,7 +28,15 @@
 
 /* fundo: malha e luzes */
 .gx-atmos{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-.gx-atmos::before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,#000 30%,transparent 78%);-webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,#000 30%,transparent 78%)}
+/* Marca-d'água: mapa de cidade (desenho próprio, sem texto), no lugar do quadriculado. */
+.gx-city{position:absolute;left:0;top:0;width:100%;height:min(1240px,180vw);mask-image:linear-gradient(180deg,#000 0,#000 55%,transparent 97%);-webkit-mask-image:linear-gradient(180deg,#000 0,#000 55%,transparent 97%)}
+.gx-city .gx-rua{stroke:var(--map-rua);stroke-width:7}
+.gx-city .gx-av{stroke:var(--map-rua);stroke-width:15}
+.gx-city .gx-rot{fill:var(--bg);stroke:var(--map-rua);stroke-width:12}
+.gx-city .gx-via{stroke:var(--map-via);stroke-width:24}
+.gx-city .gx-agua{stroke:var(--map-agua);stroke-width:5}
+.gx-city .gx-agua-f{fill:var(--map-agua)}
+.gx-city .gx-parque{fill:var(--map-parque)}
 .gx-orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.55}
 .gx-orb.gx-a{width:46vw;height:46vw;max-width:620px;max-height:620px;left:-10vw;top:-12vw;background:radial-gradient(circle,var(--glow),transparent 68%)}
 .gx-orb.gx-b{width:38vw;height:38vw;max-width:520px;max-height:520px;right:-8vw;top:8vw;background:radial-gradient(circle,var(--orb),transparent 66%)}
