@@ -1,3 +1,12 @@
 # Somente desenvolvimento local. Nunca configurar esta liberação em produção.
 ACESSO_LOCAL_LIVRE=1
 DEV_EMAIL=dev@exemplo.invalid
+
+# Login próprio (apenas exemplos locais; não reutilizar em produção)
+LOGIN_MODO=access
+EMAIL_SIMULADO=1
+SENHA_PEPPER=exemplo-local-troque-antes-de-usar
+TOTP_CHAVE=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+# Chaves oficiais de teste do Turnstile
+TURNSTILE_SITE_KEY=1x00000000000000000000AA
+TURNSTILE_SECRET=1x0000000000000000000000000000000AA

@@ -1,5 +1,12 @@
 # Changelog
 
+## GovNexa — Login próprio e administração de usuários (17/11/2026, sem publicação)
+
+- Migração central 0002: credenciais, sessões, tokens de e-mail, recuperação, limites e auditoria. PBKDF2-SHA256 com pepper, TOTP cifrado por AES-GCM e proteção contra reuso.
+- Convite de 24 h, redefinição de 1 h, 2FA obrigatório e sessões revogáveis. Convite configura aplicativo; redefinição de senha exige novo login. Access permanece padrão por `LOGIN_MODO`.
+- Guia Usuários com cadastro, reenvio, perfis, ativação e redefinição de 2FA; isolamento por prefeitura e proteção do último administrador. Turnstile e cabeçalhos de segurança nas páginas de acesso.
+- E-mail local simulado, semente fictícia sem leitura de segredos, testes Node e projeto Playwright `login` em porta separada. Fluxo do sistema atualizado. Publicação e teste de navegador ficam pendentes para o responsável.
+
 ## GovNexa — Datas no padrão brasileiro (regra do dono)
 - 2026-11-17: função única `src/lib/datas.ts` (`dataBr`, `dataHoraBr`, `dataOuDataHoraBr`): `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` no horário de Brasília (sem segundos, por decisão do dono). Aplicada no dashboard ("Atualizado em" e datas das fontes), no Histórico de alterações (tela e CSV) e em Documentos ("enviado em").
 - 2026-11-17: correção: "enviado em" dos documentos cortava o dia do texto em UTC e mostrava o dia seguinte para envios depois das 21h de Brasília. 5 testes novos em `tests/datas/datas.test.ts`.

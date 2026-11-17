@@ -40,6 +40,8 @@ test('rodada 2: sidebar até o fim e summary sem marcador nativo',async({page})=
 
 test('acesso pelo Cloudflare Access', async ({page}) => {
  await page.goto('/entrar/');
+ const acesso=page.getByRole('link',{name:'Acessar a plataforma',exact:true});
+ await expect(acesso).toBeVisible();await expect(acesso).toHaveAttribute('href','/plataforma/');await acesso.click();
  await expect(page).toHaveURL(/\/plataforma\/$/);
  await expect(page.locator('h1')).toBeVisible();
  const results=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze();
@@ -182,7 +184,7 @@ test('govnexa: fluxo do sistema',async({page})=>{
  const resposta=await page.goto('/plataforma/projetos-fluxo/');
  expect(resposta?.status()).toBe(200);
  await expect(page.locator('h1')).toHaveCount(1);
- await expect(page.locator('svg.fx-svg [data-no]')).toHaveCount(32);
+ await expect(page.locator('svg.fx-svg [data-no]')).toHaveCount(33);
  // clique no portão: validações e link para as pendências
  await page.locator('svg.fx-svg [data-no="portao"]').click();
  const dlg=page.locator('#fluxo-detalhe');
@@ -212,7 +214,7 @@ test('govnexa: fluxo do sistema',async({page})=>{
 
 test('govnexa: fluxo exporta em PDF',async({page})=>{
  await page.goto('/plataforma/projetos-fluxo/');await expect(page.getByRole('button',{name:'Exportar em PDF'})).toBeVisible();
- await page.emulateMedia({media:'print'});await expect(page.locator('.fx-anexo')).toBeVisible();await expect(page.locator('.fx-anexo-no')).toHaveCount(32);await expect(page.getByRole('button',{name:'Exportar em PDF'})).toBeHidden();
+ await page.emulateMedia({media:'print'});await expect(page.locator('.fx-anexo')).toBeVisible();await expect(page.locator('.fx-anexo-no')).toHaveCount(33);await expect(page.getByRole('button',{name:'Exportar em PDF'})).toBeHidden();
 });
 
 test('govnexa: sala de guerra',async({page})=>{
@@ -376,8 +378,8 @@ test('govnexa: fluxos detalhados',async({page})=>{
  await expect(page.getByRole('heading',{name:'Fluxos detalhados',level:2})).toBeVisible();
  await page.locator('.fx-subs>summary').click();
  await expect(page.locator('.fx-subs li').first()).toBeVisible();
- await expect(page.locator('.fx-subs li')).toHaveCount(6);
- await expect(page.locator('svg.fx-svg .fx-selo-sub')).toHaveCount(6);
+ await expect(page.locator('.fx-subs li')).toHaveCount(7);
+ await expect(page.locator('svg.fx-svg .fx-selo-sub')).toHaveCount(7);
  await coletar();
  await page.locator('svg.fx-svg [data-no="cadastro"]').click();
  const dlg=page.locator('#fluxo-detalhe');

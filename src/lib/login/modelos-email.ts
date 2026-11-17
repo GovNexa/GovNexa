@@ -1,0 +1,4 @@
+import { dataHoraBr } from '../datas.ts';
+const escapar=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
+export function modeloLink(tipo:'convite'|'redefinicao',link:string,expira:string) {const assunto=tipo==='convite'?'Defina sua senha':'Redefina sua senha';const validade=`Este link é de uso único e vale até ${dataHoraBr(expira)} (horário de Brasília).`;return {assunto,texto:`GovNexa\n${assunto}: ${link}\n${validade}`,html:`<h1>GovNexa</h1><p><a href="${escapar(link)}">${assunto}</a></p><p>${validade}</p>`};}
+export function modeloAviso(tipo:'senha'|'2fa'){const assunto=tipo==='senha'?'Sua senha foi alterada':'Verificação em 2 etapas redefinida';return {assunto,texto:`GovNexa\n${assunto}. Se você não reconhece esta ação, procure um administrador.`,html:`<h1>GovNexa</h1><p>${assunto}.</p><p>Se você não reconhece esta ação, procure um administrador.</p>`};}

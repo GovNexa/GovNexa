@@ -1,0 +1,14 @@
+---
+export const prerender=false;
+import Base from '../../layouts/Base.astro';
+import { env } from 'cloudflare:workers';
+import { servicoLogin, type EnvLogin } from '../../lib/login/servico.ts';
+import { consultarToken } from '../../lib/login/tokens.ts';
+import { mensagemPublica, conferirPost, campo } from '../../lib/login/http.ts';
+import { cookieSessao } from '../../lib/login/sessao.ts';
+const config=env as unknown as EnvLogin,token=Astro.url.searchParams.get('token')??'',tipo=Astro.url.searchParams.get('tipo')==='redefinicao'?'redefinicao':'convite';
+let erro='';const valido=await consultarToken(config.DB_CENTRAL,token,tipo);
+if(Astro.request.method==='POST')try{conferirPost(Astro.request);const f=await Astro.request.formData();if(campo(f,'senha')!==campo(f,'confirmacao'))throw new Error('As senhas precisam ser iguais.');const valor=await servicoLogin(config,Astro.request).definirSenhaComToken(token,tipo,campo(f,'senha'));const resposta=Astro.redirect(valor?'/entrar/configurar/':'/entrar/?senha=alterada',303);resposta.headers.set('Set-Cookie',cookieSessao(Astro.request,valor??'',!valor));return resposta;}catch(e){erro=mensagemPublica(e);}
+---
+<Base title="Defina sua senha"><section class="login-layout"><div class="login-intro"><h1>Defina sua senha</h1><p>Use de 10 a 128 caracteres. Evite senhas comuns, seu nome e seu e-mail.</p></div><div class="login-form">{erro&&<p role="alert">{erro}</p>}{valido?<form data-astro-reload method="post"><label>Nova senha<input type="password" name="senha" autocomplete="new-password" minlength="10" maxlength="128" required /></label><label>Confirme a senha<input type="password" name="confirmacao" autocomplete="new-password" minlength="10" maxlength="128" required /></label><button class="primary">Definir senha</button></form>:<p role="alert">Link inválido ou expirado. Peça um novo link.</p>}<p><a data-astro-reload href="/entrar/">Voltar ao login</a></p></div></section></Base>
+<style>form,label{display:grid;gap:1rem}input,button{min-height:44px;box-sizing:border-box;width:100%}input{padding:.6rem;color:var(--text);background:var(--surface);border:1px solid var(--line)}</style>

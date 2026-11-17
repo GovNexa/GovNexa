@@ -1,0 +1,34 @@
+---
+export const prerender=false;
+import Base from '../../layouts/Base.astro';
+import { env } from 'cloudflare:workers';
+import { servicoLogin, type EnvLogin } from '../../lib/login/servico.ts';
+import { mensagemPublica, conferirPost, conferirTurnstile, campo } from '../../lib/login/http.ts';
+import { cookieSessao } from '../../lib/login/sessao.ts';
+import { voltaSegura, modoLocal } from '../../lib/login/base.ts';
+const config=env as unknown as EnvLogin;
+let erro='';const volta=voltaSegura(Astro.url.searchParams.get('volta'));
+if(config.LOGIN_MODO==='senha'&&!modoLocal(Astro.request)&&(!config.TURNSTILE_SITE_KEY||!config.TURNSTILE_SECRET)){Astro.response.status=503;erro='Acesso temporariamente indisponível.';}
+if(Astro.request.method==='POST'&&config.LOGIN_MODO==='senha')try{
+ conferirPost(Astro.request);const f=await Astro.request.formData();await conferirTurnstile(config,Astro.request,f);
+ const login=await servicoLogin(config,Astro.request).iniciarLogin(campo(f,'email'),campo(f,'senha'));
+ const resposta=Astro.redirect(`/entrar/${login.etapa==='segundo_fator'?'codigo':'configurar'}/?volta=${encodeURIComponent(volta)}`,303);
+ resposta.headers.set('Set-Cookie',cookieSessao(Astro.request,login.valor));return resposta;
+}catch(e){erro=mensagemPublica(e);}
+---
+<Base title="Acessar a plataforma">
+<meta slot="head" name="robots" content="noindex" />
+<section class="login-layout"><div class="login-intro"><h1>Acessar a plataforma</h1><p>Entre com sua conta GovNexa.</p></div><div class="login-form">
+{erro&&<p role="alert">{erro}</p>}
+{Astro.url.searchParams.has('senha')&&<p role="status">Senha alterada. Entre com sua nova senha.</p>}
+{Astro.url.searchParams.has('saiu')&&<p role="status">Você saiu da plataforma.</p>}
+{config.LOGIN_MODO==='senha'?<form data-astro-reload method="post">
+<label>E-mail<input type="email" name="email" autocomplete="username" required maxlength="254" /></label>
+<label>Senha<input type="password" name="senha" autocomplete="current-password" required maxlength="128" /></label>
+{config.TURNSTILE_SITE_KEY&&<div class="cf-turnstile" data-sitekey={config.TURNSTILE_SITE_KEY}></div>}
+<button class="primary" type="submit">Entrar</button><p><a data-astro-reload href="/entrar/esqueci/">Esqueci minha senha</a></p>
+</form>:<a data-astro-reload class="primary" href="/plataforma/">Acessar a plataforma</a>}
+<p><a data-astro-reload href="/">Voltar ao site</a></p></div></section>
+{config.LOGIN_MODO==='senha'&&config.TURNSTILE_SITE_KEY&&<script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
+</Base>
+<style>form,label{display:grid;gap:.6rem}form{gap:1rem}input,button{min-height:44px;max-width:100%;box-sizing:border-box}input{width:100%;padding:.6rem;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:6px}</style>

@@ -14,7 +14,7 @@
 > - **Repositório antigo (`SLo0th1/Atlas_Conecta`):** congelado. Todo o trabalho segue só neste repositório.
 > - **Publicação em produção:** só com ordem expressa do dono (regras no `CLAUDE.md`).
 
-## Andamento · última atualização em 16/11/2026, após a migração para o Cloudflare
+## Andamento · última atualização em 17/11/2026
 
 O sistema está no ar com os dados reais da planilha (334 projetos e 13 cronogramas do GEPP); gravação de alterações depende do banco de dados. O que mudou em cada entrega está em `docs/CHANGELOG.md`.
 
@@ -27,14 +27,17 @@ Regra de apresentação (17/11/2026): datas sempre no padrão brasileiro, `DD/MM
 | 1 · Carteira de Projetos | Carga real, Carteira, ficha, Kanban, Gantt, Visão por órgão, celular | Publicada com dados reais | 100% |
 | 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, Kanban e Pendências (simulação), Histórico, Sala de guerra | Publicada em simulação (Novo projeto no ar, fora do menu lateral); gravar depende do banco | 95% |
 | 2 · Cronograma e equipe | Cronogramas, quadro de tarefas, Onde está parado | Publicada com a Reunião semanal e as dependências entre etapas (atraso em cascata); leitura do SEI em simulação (a leitura diária depende do banco) | 90% |
-| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis, isolamento por prefeitura | Tabelas em produção e carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas no ar e gravada em 16/11 (3.5). Documentos (3.4) publicados em 17/11. Usuários (3.3, opção B): lista somente leitura, no ar desde 17/11 | 92% |
+| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis, isolamento por prefeitura | Tabelas em produção e carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas no ar e gravada em 16/11 (3.5). Documentos (3.4) publicados em 17/11. Usuários: lista publicada; cadastro, convites e login próprio com 2FA implementados, aguardando revisão e publicação | 92% |
 | 4 · Contratação, convênios e Gestão | Lei 14.133, cláusula suspensiva, alertas, painel do prefeito | Em construção: Prazos da Lei 14.133, Painel do prefeito, Mapa das obras e Central de alertas publicados; Licitação em detalhe com as datas reais do SEI em simulação; falta a leitura automática (banco) e o PNCP | 75% |
 | 5 · Integrações e inteligência | PNCP, SIMEC, SISMOB, preços, WhatsApp, IA | Em construção: WhatsApp em simulação (permissão por número, relatório, perguntas e modelos para a Meta); envio real depende do banco e da conta do WhatsApp Business | 10% |
 
 **Entregas (mais recentes primeiro)**
 
+Percentuais mantidos até homologação do login próprio; Access continua padrão.
+
 | Data | Entrega | PR |
 | --- | --- | --- |
+| 17/11 | Login próprio, convites, 2FA obrigatório e administração por prefeitura; implementado, sem publicação | revisão pendente |
 | 16/11 | Etapa 3.4: documentos de projeto no R2 (envio, download como anexo, remoção lógica, limite de 30 envios por hora, conferência do tipo pelo conteúdo) | GovNexa #10 |
 | 16/11 | Primeira gravação das planilhas em produção (334 atualizados, 0 novos, 0 pulados) | rotina do repositório de dados |
 | 16/11 | Etapa 3.5: importação das planilhas do repositório privado (rotina do GitHub com conferência e gravação separadas; códigos repetidos avisados; não apaga, não sobrescreve localização, compromisso nem projeto alterado no sistema) | GovNexa #9 |
@@ -534,9 +537,12 @@ O maior risco imediato não é técnico: o repositório de código é público e
 
 ### 11.2 Acesso
 
-- Autenticação por Cloudflare Access, com código por e-mail, mais cadastro ativo no banco central. Não há login próprio.
+- Decisão de 17/11/2026: `LOGIN_MODO=access` preserva Access como padrão; `senha` exige senha e TOTP obrigatório com cadastro ativo. Convites funcionam antes da troca.
 - Perfis: admin, gestor, editor e leitura; durante a construção, todos são admin.
-- O cadastro e a administração de usuários são feitos pela tela do sistema e sincronizados com um grupo do Access.
+- Administrador cadastra, convida, altera perfil, desativa/reativa e redefine 2FA só na própria prefeitura; não desativa a si nem remove o último admin ativo. Não há sincronização automática com Access.
+- Convite de 24 h e redefinição de 1 h, ambos de uso único; GET preserva token. Convite cria sessão de configuração; redefinição de senha revoga sessões, preserva TOTP e exige login. Redefinição de 2FA apaga chave e recuperação, revoga sessões e exige nova configuração.
+- Sessões intermediárias: dez minutos e cinco tentativas. Completas: 12 h absolutas e 2 h ociosas. Dez códigos de recuperação mostrados uma vez. Senhas com PBKDF2-SHA256, 100000 iterações e HMAC com pepper; TOTP cifrado AES-GCM.
+- Turnstile obrigatório em produção; e-mail simulado e cookie sem Secure restritos a localhost/127.0.0.1 sem cf-ray. Segredos: SENHA_PEPPER, TOTP_CHAVE e TURNSTILE_SECRET; variável TURNSTILE_SITE_KEY e binding EMAIL. Homologação e troca de modo dependem do responsável.
 - Toda alteração registra autor, data, valor anterior e novo; campos sensíveis exigem motivo.
 - O painel e as notificações só mostram dados a quem tem perfil para vê-los.
 

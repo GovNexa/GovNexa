@@ -1,0 +1,24 @@
+import { aleatorio, b64, deb64, bytes, iguais } from './base.ts';
+const normalizar = (s: string) => s.normalize('NFD').replace(/\p{M}/gu,'').toLowerCase();
+const comuns = new Set(`123456 1234567 12345678 123456789 1234567890 0123456789 9876543210 123123123 123123123123 1111111111 0000000000 password password1 password12 password123 password1234 password12345 password! password123! passw0rd passw0rd123 senha senha123 senha12345 senha123456 senha12345678 senhasegura senhasegura123 minhasenha minhasenha123 minhasenha1234 novasenha novasenha123 trocarsenha trocar123456 alterar12345 administrador administrador123 administracao admin admin123 admin123456 administrator administrator123 qwerty qwerty123 qwerty12345 qwerty123456 qwertyuiop qwertyuiop123 asdfghjkl asdfghjkl123 zxcvbnm zxcvbnm123 qazwsxedc qazwsxedcrf 1q2w3e4r5t 1qaz2wsx3edc abc123 abcdefghij abcdefghijkl abc123456789 abcdef12345 abcdef123456 letmein letmein123 letmein12345 welcome welcome123 welcome1234 welcome12345 bemvindo bemvindo123 bemvindo1234 changeme changeme123 changeme1234 iloveyou iloveyou123 iloveyou1234 euteamo123 euteamo12345 sunshine sunshine123 sunshine1234 monkey monkey12345 dragon dragon12345 football football123 futebol futebol123 futebol12345 baseball baseball123 basketball basketball123 princess princess123 princesa princesa123 princesa12345 superman superman123 batman batman12345 pokemon pokemon12345 master master12345 freedom freedom12345 whatever whatever123 trustno1 trustno1123 computer computer123 computador computador123 internet internet123 internet12345 secret secret12345 segredo segredo12345 teste teste12345 teste123456 test test123456 testing123 testing12345 exemplo exemplo12345 govnexa govnexa123 govnexa12345 prefeitura prefeitura123 prefeitura12345 goiania goiania12345 brasil brasil12345 brasil2026 brasileiro brasileiro123 janeiro janeiro12345 fevereiro marco abril maio junho julho agosto setembro outubro novembro dezembro novembro2026 dezembro2026 verao2026 inverno2026 jesus jesuscristo jesuscristo123 deus deus123456 deus12345678 familia familia12345 felicidade felicidade123 liberdade liberdade123 amor amor12345678 amor123456789 corinthians corinthians123 palmeiras palmeiras123 flamengo flamengo12345 santos santos123456 saopaulo saopaulo12345 vasco vasco12345678 gremio gremio123456 internacional cruzeiro cruzeiro12345 atleticomg botafogo botafogo12345 fluminense fluminense123 fortaleza fortaleza123 trabalho trabalho12345 trabalho2026 acesso acesso12345 acesso123456 sistema sistema12345 sistema123456 usuario usuario12345 usuario123456 seguranca seguranca123 login login123456 login12345678 root root12345678 suporte suporte12345 suporte123456 temporaria temporaria123 provisoria provisoria123 default default12345 public public123456 privado privado12345 1212121212 1234512345 1234564321 2222222222 3333333333 4444444444 5555555555 6666666666 7777777777 8888888888 9999999999 1122334455 1020304050 0987654321 12345678910 12345678901 12345678900 123456789123 123456789012 1234567890123 12345678901234 123456789012345`.split(/\s+/).map(normalizar));
+export function validarSenhaNova(senha: string, pessoa: {email: string; nome: string}): string | null {
+ if (senha.length < 10 || senha.length > 128) return 'Use uma senha de 10 a 128 caracteres.';
+ const s = normalizar(senha), email = normalizar(pessoa.email.split('@')[0]), nome = normalizar(pessoa.nome.trim().split(/\s+/)[0]);
+ if (comuns.has(s) || /^(.)\1+$/.test(s)) return 'Escolha uma senha menos comum.';
+ if ((email && s.includes(email)) || (nome && s.includes(nome))) return 'A senha não pode conter seu e-mail ou primeiro nome.';
+ return null;
+}
+async function derivar(senha: string, pepper: string, sal: Uint8Array<ArrayBuffer>) {
+ if (!pepper) throw new Error('Login não configurado.');
+ const hmac = await crypto.subtle.importKey('raw',bytes(pepper),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+ const previo = await crypto.subtle.sign('HMAC',hmac,bytes(senha));
+ const chave = await crypto.subtle.importKey('raw',previo,'PBKDF2',false,['deriveBits']);
+ return new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',iterations:100000,salt:sal},chave,256));
+}
+export async function hashSenha(senha: string, pepper: string) { const sal = aleatorio(16); return `pbkdf2-sha256$100000$${b64(sal)}$${b64(await derivar(senha,pepper,sal))}`; }
+export async function verificarSenha(senha: string, salvo: string, pepper: string) {
+ const p = salvo.split('$');
+ if (p.length !== 4 || p[0] !== 'pbkdf2-sha256' || p[1] !== '100000') return false;
+ try { const sal = deb64(p[2]), esperado = deb64(p[3]); return sal.length === 16 && esperado.length === 32 && iguais(await derivar(senha,pepper,sal),esperado); } catch { return false; }
+}
+export async function senhaFalsa(senha: string, pepper: string) { await derivar(senha,pepper,new Uint8Array(16)); }

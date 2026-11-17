@@ -1,0 +1,16 @@
+---
+export const prerender=false;
+import Base from '../../layouts/Base.astro';
+import { env } from 'cloudflare:workers';
+import { servicoLogin, type EnvLogin } from '../../lib/login/servico.ts';
+import { mensagemPublica, conferirPost, conferirTurnstile, campo } from '../../lib/login/http.ts';
+import { modoLocal } from '../../lib/login/base.ts';
+const config=env as unknown as EnvLogin;let mensagem='',erro='';
+if(!modoLocal(Astro.request)&&(!config.TURNSTILE_SITE_KEY||!config.TURNSTILE_SECRET)){Astro.response.status=503;erro='Acesso temporariamente indisponível.';}
+if(Astro.request.method==='POST')try{conferirPost(Astro.request);const f=await Astro.request.formData();await conferirTurnstile(config,Astro.request,f);mensagem=await servicoLogin(config,Astro.request).pedirRedefinicao(campo(f,'email'));}catch(e){erro=mensagemPublica(e);}
+---
+<Base title="Esqueci minha senha"><section class="login-layout"><div class="login-intro"><h1>Esqueci minha senha</h1><p>Informe seu e-mail para receber um link de uso único, válido por uma hora.</p></div><div class="login-form">
+{erro&&<p role="alert">{erro}</p>}{mensagem?<p role="status">{mensagem}</p>:<form data-astro-reload method="post"><label>E-mail<input type="email" name="email" autocomplete="email" required maxlength="254" /></label>{config.TURNSTILE_SITE_KEY&&<div class="cf-turnstile" data-sitekey={config.TURNSTILE_SITE_KEY}></div>}<button class="primary">Enviar link</button></form>}<p><a data-astro-reload href="/entrar/">Voltar ao login</a></p></div></section>
+{config.TURNSTILE_SITE_KEY&&<script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
+</Base>
+<style>form,label{display:grid;gap:1rem}input,button{min-height:44px;box-sizing:border-box;width:100%}input{padding:.6rem;color:var(--text);background:var(--surface);border:1px solid var(--line)}</style>
