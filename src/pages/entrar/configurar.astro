@@ -6,10 +6,10 @@ import { servicoLogin, type EnvLogin } from '../../lib/login/servico.ts';
 import { mensagemPublica, conferirPost, campo } from '../../lib/login/http.ts';
 import { cookieSessao, lerCookie, obterSessao } from '../../lib/login/sessao.ts';
 import { voltaSegura } from '../../lib/login/base.ts';
-const config=env as unknown as EnvLogin,valor=lerCookie(Astro.request),s=await obterSessao(config.DB_CENTRAL,valor);let erro='',codigos:string[]=[];
+const config=env as unknown as EnvLogin,valor=lerCookie(Astro.request,config),s=await obterSessao(config.DB_CENTRAL,valor);let erro='',codigos:string[]=[];
 if(!s||s.etapa!=='configurar_2fa')return Astro.redirect('/entrar/',303);
 const servico=servicoLogin(config,Astro.request);let configuracao:{segredo:string;svg:string}|null=null;
-try {if(Astro.request.method==='POST'){conferirPost(Astro.request);const f=await Astro.request.formData();const r=await servico.confirmarTotp(valor,campo(f,'codigo'));codigos=r.codigos;Astro.response.headers.set('Set-Cookie',cookieSessao(Astro.request,r.valor));}else configuracao=await servico.configurarTotp(valor);}catch(e){erro=mensagemPublica(e);}
+try {if(Astro.request.method==='POST'){conferirPost(Astro.request);const f=await Astro.request.formData();const r=await servico.confirmarTotp(valor,campo(f,'codigo'));codigos=r.codigos;Astro.response.headers.set('Set-Cookie',cookieSessao(Astro.request,r.valor,false,config));}else configuracao=await servico.configurarTotp(valor);}catch(e){erro=mensagemPublica(e);}
 // Depois de erro no POST, a chave já existente pode ser exibida novamente sem gerar outra.
 if(!codigos.length&&!configuracao)try{configuracao=await servico.configurarTotp(valor);}catch{}
 ---

@@ -9,13 +9,17 @@ export const prerender = false;
 const lista = usuarioPode(Astro.locals.usuario,'gerenciar_usuarios') ? await servicoLogin(env as unknown as EnvLogin,Astro.request).listar(Astro.locals.usuario) : null;
 if (!lista) Astro.response.status = 403;
 const dia = dataBr;
+const mensagens:Record<string,string>={concluida:'Solicitação concluída.',falha:'Não foi possível concluir. Confira os dados e a confirmação e tente novamente.'};
+const ok=Astro.url.searchParams.get('ok')==='concluida'?mensagens.concluida:'';
+const erro=Astro.url.searchParams.get('erro')==='falha'?mensagens.falha:'';
+
 ---
 <Platform title="Usuários" slug="usuarios">
   <div class="section-head"><div><h1>Usuários com acesso</h1><p class="muted">Cadastre pessoas, envie convites e gerencie o acesso desta prefeitura.</p></div></div>
   {!lista && <p class="usr-aviso" role="alert">Sem permissão: só administradores veem esta lista.</p>}
   {lista && <>
-    {Astro.url.searchParams.has('ok') && <p role="status">Solicitação concluída.</p>}
-    {Astro.url.searchParams.has('erro') && <p role="alert">{Astro.url.searchParams.get('erro')}</p>}
+    {ok && <p role="status">Solicitação concluída.</p>}
+    {erro && <p role="alert">{erro}</p>}
     <details class="usr-cadastro"><summary>Cadastrar pessoa</summary><form data-astro-reload method="post" action="/plataforma/usuarios/acao/">
       <input type="hidden" name="acao" value="convidar" />
       <div><label for="cadastro-nome">Nome</label><input id="cadastro-nome" name="nome" required maxlength="120" /></div>
@@ -57,6 +61,9 @@ const dia = dataBr;
   )}
 </Platform>
 <style>
+  form,form>div,label,input,select,button,summary{min-width:0;max-width:100%}
+  form,form>div{grid-template-columns:minmax(0,1fr)}
+  form,label,summary{overflow-wrap:anywhere}
   form,form>div,label{display:grid;gap:.5rem}form{gap:.8rem;margin:1rem 0;max-width:34rem}input,select,button,summary{min-height:44px;box-sizing:border-box;max-width:100%}input,select{width:100%;padding:.5rem;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:6px}summary{cursor:pointer;padding:.6rem}.usr-confirmar{display:flex;align-items:center}.usr-confirmar input{width:22px;flex-shrink:0}button{padding:.5rem}.usr-tabela details{min-width:0}.usr-cadastro{margin-bottom:1rem}
   .usr-aviso{padding:.6rem .9rem;border-radius:8px;border:1px solid #b3261e;max-width:42rem}
   .usr-tabela td{max-width:22rem}
@@ -67,6 +74,11 @@ const dia = dataBr;
   .usr-tabela thead th{color:var(--muted)}
   .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   @media (max-width:720px){
+    .usr-tabela table,.usr-tabela tbody{display:block;min-width:0;width:100%}
+    .usr-tabela th,.usr-tabela td{max-width:100%;flex-wrap:wrap}
+    .usr-tabela td[data-label="Ações"]{flex-direction:column}
+    .usr-tabela td[data-label="Ações"]::before{flex-basis:auto}
+    .usr-tabela td[data-label="Ações"]>details{width:100%}
     .usr-tabela thead{display:none}
     .usr-tabela tr{display:block;border:1px solid var(--line);border-radius:8px;margin-bottom:.6rem;padding:.3rem .5rem}
     .usr-tabela th,.usr-tabela td{display:flex;gap:.6rem;justify-content:space-between;min-width:0;border:0;padding:.25rem .1rem}

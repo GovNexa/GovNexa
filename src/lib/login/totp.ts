@@ -18,8 +18,8 @@ export async function verificarTotp(segredo: string, codigo: string, ultimo: num
  return null;
 }
 async function chave(s: string) { const b=deb64(s);if(b.length!==32)throw new Error('Login não configurado.');return crypto.subtle.importKey('raw',b,'AES-GCM',false,['encrypt','decrypt']); }
-export async function cifrarSegredo(segredo: string, segredoChave: string) { const iv=aleatorio(12);return `${b64(iv)}.${b64(new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},await chave(segredoChave),bytes(segredo))))}`; }
-export async function decifrarSegredo(s: string, segredoChave: string) { const [iv,c]=s.split('.');return new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:deb64(iv)},await chave(segredoChave),deb64(c))); }
+export async function cifrarSegredo(segredo: string, segredoChave: string, usuarioId: string) { const iv=aleatorio(12);return `${b64(iv)}.${b64(new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:bytes(usuarioId)},await chave(segredoChave),bytes(segredo))))}`; }
+export async function decifrarSegredo(s: string, segredoChave: string, usuarioId: string) { const [iv,c]=s.split('.');return new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:deb64(iv),additionalData:bytes(usuarioId)},await chave(segredoChave),deb64(c))); }
 export const uriTotp = (email: string, segredo: string) => `otpauth://totp/GovNexa:${encodeURIComponent(email)}?secret=${segredo}&issuer=GovNexa`;
 export function qrSvg(uri: string) {const q=qrcode(0,'M');q.addData(uri);q.make();return q.createSvgTag({cellSize:4,margin:4,scalable:true});}
 export function gerarCodigosRecuperacao() {return Array.from({length:10},()=>{const h=Array.from(aleatorio(4),b=>b.toString(16).padStart(2,'0')).join('');return `${h.slice(0,4)}-${h.slice(4)}`;});}

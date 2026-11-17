@@ -15,7 +15,7 @@
     "importar:cronogramas": "node scripts/importar-cronogramas.ts",
     "importar:planilhas": "node scripts/importar-planilhas.ts",
     "geocodificar": "node scripts/geocodificar-bairros.ts",
-    "cf:dev": "astro build && wrangler dev --infer-origin-from-routes=false",
+    "cf:dev": "astro build && wrangler dev --var AMBIENTE:local --infer-origin-from-routes=false",
     "cf:types": "wrangler types",
     "db:local": "node scripts/db-local.mjs"
   },

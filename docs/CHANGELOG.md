@@ -1,5 +1,12 @@
 # Changelog
 
+## Correção 3 — Segurança do login (17/11/2026, sem publicação)
+
+- Limite de segundo fator por conta, bloqueio de uma hora e revogação de sessões pendentes; bloqueio progressivo de senha com falhas preservadas até o login completo.
+- Escritas equivalentes para contas ausentes, piso de 800 ms nos POST de login/código/esqueci e e-mail em segundo plano quando waitUntil está disponível.
+- Origem pública HTTPS fixa para links, AES-GCM vinculado ao usuário, saída POST com confirmação GET, tamanho obrigatório de formulários e mensagens de Usuários por códigos fixos.
+- Desativação invalida tokens; limites antigos têm limpeza oportunista. Modo local exige marcador explícito, passado nos scripts locais. Testes unitários e fluxo Playwright atualizados.
+
 ## GovNexa — Login próprio e administração de usuários (17/11/2026, sem publicação)
 
 - Migração central 0002: credenciais, sessões, tokens de e-mail, recuperação, limites e auditoria. PBKDF2-SHA256 com pepper, TOTP cifrado por AES-GCM e proteção contra reuso.

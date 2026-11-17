@@ -10,14 +10,19 @@ test('convite → senha → 2FA → login → sair → esqueci → nova senha �
  test.setTimeout(120000);
  const email=`equipe-login-${Date.now()}@exemplo.invalid`;
  await senha(page,'dev@exemplo.invalid','Horizonte!local-7264','?volta=https://externo');await configurar(page);
- await page.goto('/plataforma/usuarios/');await page.getByText('Cadastrar pessoa',{exact:true}).click();
+ await page.goto('/plataforma/usuarios/?erro=texto-nao-confiavel&ok=texto-nao-confiavel');
+ await expect(page.getByText('texto-nao-confiavel')).toHaveCount(0);
+ await expect(page.locator('form[action="/sair"]')).toHaveAttribute('method','post');
+ await page.goto('/sair');await expect(page.getByRole('heading',{name:'Sair da plataforma'})).toBeVisible();
+ await page.goto('/plataforma/usuarios/');await expect(page).toHaveURL(/usuarios/);
+ await page.getByText('Cadastrar pessoa',{exact:true}).click();
  const cadastro=page.locator('form').filter({has:page.locator('input[name="acao"][value="convidar"]')});
  await cadastro.getByLabel('Nome',{exact:true}).fill('Equipe fictícia');await cadastro.getByLabel('E-mail',{exact:true}).fill(email);await cadastro.getByLabel('Cargo',{exact:true}).fill('Teste');await cadastro.getByLabel('Perfil',{exact:true}).selectOption('editor');await cadastro.getByRole('button',{name:'Cadastrar e enviar convite'}).click();await expect(page.getByRole('status')).toContainText('Solicitação concluída');
  const emails=await (await request.get('/entrar/_emails-locais')).json();const convite=emails.filter((e:any)=>e.para===email).at(-1);const link=convite.texto.match(/http:\/\/\S+/)[0];
- await page.goto('/sair');await page.goto(link);await page.reload();await page.getByLabel('Nova senha',{exact:true}).fill('Montanhas!azuis-7264');await page.getByLabel('Confirme a senha').fill('Montanhas!azuis-7264');await page.getByRole('button',{name:'Definir senha',exact:true}).click();const segredo=await configurar(page);
- await page.goto('/sair');await expect(page).toHaveURL(/saiu=1/);
+ await page.goto('/sair');await page.getByRole('button',{name:'Sair',exact:true}).click();await page.goto(link);await page.reload();await page.getByLabel('Nova senha',{exact:true}).fill('Montanhas!azuis-7264');await page.getByLabel('Confirme a senha').fill('Montanhas!azuis-7264');await page.getByRole('button',{name:'Definir senha',exact:true}).click();const segredo=await configurar(page);
+ await page.goto('/sair');await page.getByRole('button',{name:'Sair',exact:true}).click();await expect(page).toHaveURL(/saiu=1/);
  await senha(page,email,'Montanhas!azuis-7264');await expect(page).toHaveURL(/\/codigo\//);await page.getByLabel('Código do aplicativo',{exact:true}).fill(await proximoCodigo(segredo));await page.getByRole('button',{name:'Verificar código',exact:true}).click();await expect(page).toHaveURL(/\/plataforma\//);
- await page.goto('/sair');await page.getByRole('link',{name:'Esqueci minha senha'}).click();await page.getByLabel('E-mail',{exact:true}).fill(email);await page.getByRole('button',{name:'Enviar link'}).click();await expect(page.getByRole('status')).toContainText('Se o e-mail estiver cadastrado');
+ await page.goto('/sair');await page.getByRole('button',{name:'Sair',exact:true}).click();await page.getByRole('link',{name:'Esqueci minha senha'}).click();await page.getByLabel('E-mail',{exact:true}).fill(email);await page.getByRole('button',{name:'Enviar link'}).click();await expect(page.getByRole('status')).toContainText('Se o e-mail estiver cadastrado');
  const redefinicoes=await (await request.get('/entrar/_emails-locais')).json();const redefinicao=redefinicoes.filter((e:any)=>e.assunto==='Redefina sua senha').at(-1);await page.goto(redefinicao.texto.match(/http:\/\/\S+/)[0]);await page.getByLabel('Nova senha',{exact:true}).fill('Caminhos!verdes-9382');await page.getByLabel('Confirme a senha').fill('Caminhos!verdes-9382');await page.getByRole('button',{name:'Definir senha',exact:true}).click();await expect(page).toHaveURL(/senha=alterada/);
  await senha(page,email,'Caminhos!verdes-9382');
  // O primeiro login já usou o passo seguinte. Aguarda somente o próximo passo do relógio necessário.

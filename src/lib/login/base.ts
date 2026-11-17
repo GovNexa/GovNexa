@@ -8,5 +8,5 @@ export const aleatorio = (n = 32) => crypto.getRandomValues(new Uint8Array(n));
 export async function hash(s: string) { return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes(s))), b => b.toString(16).padStart(2,'0')).join(''); }
 export function iguais(a: Uint8Array, b: Uint8Array) { let d = a.length ^ b.length; for(let i=0;i<Math.max(a.length,b.length);i++) d |= (a[i] ?? 0) ^ (b[i] ?? 0); return d === 0; }
 export async function gravar(db: BancoD1, sql: string, ...v: unknown[]) { return (await db.batch([db.prepare(sql).bind(...v)]))[0]; }
-export function modoLocal(r: Request) { return !r.headers.has('cf-ray') && ['localhost','127.0.0.1'].includes(new URL(r.url).hostname); }
+export function modoLocal(r: Request, env: {AMBIENTE?:string} = {}) { return env.AMBIENTE === 'local' && !r.headers.has('cf-ray') && ['localhost','127.0.0.1'].includes(new URL(r.url).hostname); }
 export function voltaSegura(s: string | null) { return s && /^\/plataforma\//.test(s) && !/[\\\r\n]/.test(s) ? s : '/plataforma/'; }

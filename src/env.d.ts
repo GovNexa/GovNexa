@@ -6,5 +6,6 @@ declare namespace App {
 }
 
 declare module "cloudflare:workers" {
+ export function waitUntil(tarefa: Promise<unknown>): void;
  export const env: import("../worker/index.ts").Env;
 }

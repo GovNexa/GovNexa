@@ -1,3 +1,4 @@
+import { tempoMinimo } from '../src/lib/login/http.ts';
 import { mesmaOrigem } from '../src/lib/documentos/http.ts';
 import { servicoLogin, type EnvLogin } from '../src/lib/login/servico.ts';
 import { lerCookie, cookieSessao } from '../src/lib/login/sessao.ts';
@@ -25,6 +26,7 @@ const escapar = (s: string) => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 export async function atender(request: Request, env: Env, next: (usuario?: Usuario, repositorio?: RepositorioProjetos) => Promise<Response>): Promise<Response> {
  const { pathname: path, hostname } = new URL(request.url);
  if(path === '/entrar' || path.startsWith('/entrar/')) {
+  const inicio=performance.now();try {
   if(request.method==='POST'&&!mesmaOrigem(request)){const r=resposta(403,'Pedido inválido');r.headers.set('Referrer-Policy','same-origin');return r;}
   try {
   const r = await next(); const h = new Headers(r.headers);
@@ -32,18 +34,21 @@ export async function atender(request: Request, env: Env, next: (usuario?: Usuar
   h.set('Cache-Control','private, no-store'); h.set('Referrer-Policy','same-origin');
   return new Response(r.body,{status:r.status,statusText:r.statusText,headers:h});
   } catch {const r=resposta(503,'Serviço indisponível');r.headers.set('Referrer-Policy','same-origin');return r;}
+  }finally{if(request.method==='POST')await tempoMinimo(inicio);}
  }
  if(env.LOGIN_MODO === 'senha' && (path === '/sair' || path.startsWith('/sair/') || path === '/api/logout' || path.startsWith('/api/logout/'))) {
-  if(request.method==='POST'&&!mesmaOrigem(request))return resposta(403,'Pedido inválido');
-  await servicoLogin(env,request).sair(lerCookie(request));
-  const r=resposta(302,'','/entrar/?saiu=1');r.headers.set('Set-Cookie',cookieSessao(request,'',true));return r;
+  if(request.method==='GET')return resposta(200,'Sair da plataforma',undefined,'<form method="post" action="/sair"><button type="submit">Sair</button></form>');
+  if(request.method!=='POST')return resposta(405,'Método não permitido');
+  if(!mesmaOrigem(request))return resposta(403,'Pedido inválido');
+  await servicoLogin(env,request).sair(lerCookie(request,env));
+  const r=resposta(302,'','/entrar/?saiu=1');r.headers.set('Set-Cookie',cookieSessao(request,'',true,env));return r;
  }
  if(path === '/sair' || path.startsWith('/sair/') || path === '/api/logout' || path.startsWith('/api/logout/')) return resposta(302,'','/cdn-cgi/access/logout');
  if(path === '/api' || path.startsWith('/api/')) return resposta(404,'Página não encontrada');
  if(path !== '/plataforma' && !path.startsWith('/plataforma/')) return next();
  if(env.LOGIN_MODO === 'senha') {
   try {
-   const usuario=await servicoLogin(env,request).usuarioDaSessao(lerCookie(request));
+   const usuario=await servicoLogin(env,request).usuarioDaSessao(lerCookie(request,env));
    if(!usuario) return resposta(302,'','/entrar/?volta='+encodeURIComponent(voltaSegura(new URL(request.url).pathname+new URL(request.url).search)));
    const repo=await repositorioDoUsuario(env,usuario), r=await next(usuario,repo), h=new Headers(r.headers);
    for(const [k,v] of Object.entries(seguranca))h.set(k,v);h.set('Cache-Control','private, no-store');

@@ -308,7 +308,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - Primeira senha abre sessão de configuração por dez minutos. Confirmação do aplicativo mostra dez códigos de recuperação uma vez e cria sessão completa. Login sempre exige código ou configuração.
 - Redefinir senha revoga todas as sessões e exige novo login, preservando o aplicativo. Redefinir 2FA revoga sessões, apaga chave e códigos e exige configuração no próximo login.
 - Sessão completa: 12 horas absolutas e duas horas sem uso. Cinco tentativas de código; conta bloqueada por 15 minutos após cinco falhas; limite de 20 tentativas por IP em 15 minutos, incluindo acertos (opção conservadora). Esqueci: três pedidos por e-mail/hora e dez por IP/hora, resposta sempre genérica.
-- Configure `SENHA_PEPPER`, `TOTP_CHAVE` (32 bytes em base64), `TURNSTILE_SECRET`, `TURNSTILE_SITE_KEY` e binding `EMAIL` antes de habilitar. Sem Turnstile em produção, login e recuperação retornam 503. A chave TOTP deve ser preservada: perdê-la exige redefinir os aplicativos.
+- Configure ORIGEM_PUBLICA (HTTPS público), `SENHA_PEPPER`, `TOTP_CHAVE` (32 bytes em base64), `TURNSTILE_SECRET`, `TURNSTILE_SITE_KEY` e binding `EMAIL` antes de habilitar. Sem Turnstile em produção, login e recuperação retornam 503. A chave TOTP deve ser preservada: perdê-la exige redefinir os aplicativos.
 - Local: `EMAIL_SIMULADO=1` disponibiliza os últimos 20 e-mails em `/entrar/_emails-locais`, só localhost/127.0.0.1 sem `cf-ray`; logs nunca contêm o link. Em produção a simulação é ignorada. Cookie local `govnexa_local`; fora desse modo, `__Host-govnexa` com Secure.
 - `db:local` aplica a migração central `0002_login.sql` e semeia somente `@exemplo.invalid`, sem ler arquivos de segredos. Playwright usa valores fictícios próprios; não reutilize a semente ou os exemplos de configuração fora dos testes locais.
 - Validação local desta entrega: `astro check` sem erros, 316 testes Node passando, build concluído e mapa de impacto sem arquivos descobertos. Playwright escrito e listado, sem execução de navegador no sandbox.
@@ -386,7 +386,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 
 ### Próximos passos
 
-1. **3.3 — usuários e login:** revisar esta entrega, executar `npx playwright test --project=login`, homologar os dois temas e configurar e-mail/segredos. Publicação, migração central e troca de modo ficam com o responsável; Access continua padrão.
+1. **3.3 — usuários e login:** revisar as correções de segurança da ordem 3, executar `npx playwright test --project=login`, homologar os dois temas e configurar e-mail/segredos. Publicação, migração central e troca de modo ficam com o responsável; Access continua padrão.
 2. **3.4 — documentos:** publicada em 17/11/2026.
 3. **3.5 — importação:** feita e gravada em 16/11.
 4. Automatizar a leitura do SEI com Cron Trigger.
@@ -494,6 +494,15 @@ Nenhum valor secreto fica no código. Só os nomes e a finalidade:
 Não reutilize variáveis de autenticação ou publicação da arquitetura antiga. Colaboradores não recebem valores de segredos.
 
 ## 14. Segurança
+
+- Senha com PBKDF2 e pepper; TOTP cifrado por AES-GCM vinculado ao ID da conta, com proteção contra reuso e códigos de recuperação de uso único.
+- Cinco erros de senha por janela bloqueiam inicialmente por 15 minutos; a cada dez falhas acumuladas em 24 h o período dobra até 24 h. A senha correta só zera falhas depois do segundo fator.
+- Dez erros de TOTP/recuperação por conta em uma hora bloqueiam por uma hora e revogam sessões pendentes, além do limite de cinco códigos por sessão. Sucesso no segundo fator limpa os contadores da conta.
+- Login e recuperação fazem escritas equivalentes para e-mail existente/ausente. POST de login, código e esqueci completam pelo menos 800 ms; e-mail usa waitUntil quando disponível e envio síncrono como fallback.
+- Links de convite e redefinição usam ORIGEM_PUBLICA=https://govnexa.com.br; origem ausente ou sem HTTPS recusa envio e registra evento. URL da requisição só serve no modo local.
+- Modo local exige AMBIENTE=local, host local e ausência de cf-ray; scripts de desenvolvimento passam a variável por --var, nunca pela configuração de produção.
+- Saída no modo senha exige POST de mesma origem; GET apenas confirma. POST de login e ações de Usuários exigem tamanho decimal declarado até 16 KiB.
+- Mensagens da guia Usuários vêm de códigos fixos. Desativação invalida sessões, convites e redefinições; janelas de limites com mais de 24 h são limpas a cada cem chamadas.
 
 - O acesso exige cadastro ativo e JWT válido do Access no modo padrão; no modo senha, sessão completa após senha e segundo fator.
 - Quem autentica no Access, mas não tem cadastro ativo, recebe "Sem permissão".

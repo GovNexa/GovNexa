@@ -1,6 +1,8 @@
 import type { BancoD1 } from '../repositorio/d1.ts';
 import { gravar } from './base.ts';
+let chamadas=0;
 export async function contarTentativa(db: BancoD1, chave: string, maximo: number, janelaMs: number) {
+ if(++chamadas%100===0)await gravar(db,'DELETE FROM limite_tentativa WHERE janela_inicio < ?',new Date(Date.now()-86400000).toISOString());
  const janela=new Date(Math.floor(Date.now()/janelaMs)*janelaMs).toISOString();
  await gravar(db,`INSERT INTO limite_tentativa(chave,janela_inicio,contagem) VALUES(?,?,1)
  ON CONFLICT(chave) DO UPDATE SET contagem = CASE WHEN janela_inicio = excluded.janela_inicio THEN contagem + 1 ELSE 1 END, janela_inicio = excluded.janela_inicio`,chave,janela);

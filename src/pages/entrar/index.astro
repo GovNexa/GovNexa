@@ -1,20 +1,24 @@
 ---
 export const prerender=false;
 import Base from '../../layouts/Base.astro';
-import { env } from 'cloudflare:workers';
+import { env, waitUntil } from 'cloudflare:workers';
 import { servicoLogin, type EnvLogin } from '../../lib/login/servico.ts';
-import { mensagemPublica, conferirPost, conferirTurnstile, campo } from '../../lib/login/http.ts';
+import { mensagemPublica, tempoMinimo, conferirPost, conferirTurnstile, campo } from '../../lib/login/http.ts';
 import { cookieSessao } from '../../lib/login/sessao.ts';
 import { voltaSegura, modoLocal } from '../../lib/login/base.ts';
+const inicio=performance.now();
 const config=env as unknown as EnvLogin;
 let erro='';const volta=voltaSegura(Astro.url.searchParams.get('volta'));
-if(config.LOGIN_MODO==='senha'&&!modoLocal(Astro.request)&&(!config.TURNSTILE_SITE_KEY||!config.TURNSTILE_SECRET)){Astro.response.status=503;erro='Acesso temporariamente indisponível.';}
+try {
+if(config.LOGIN_MODO==='senha'&&!modoLocal(Astro.request,config)&&(!config.TURNSTILE_SITE_KEY||!config.TURNSTILE_SECRET)){Astro.response.status=503;erro='Acesso temporariamente indisponível.';}
 if(Astro.request.method==='POST'&&config.LOGIN_MODO==='senha')try{
  conferirPost(Astro.request);const f=await Astro.request.formData();await conferirTurnstile(config,Astro.request,f);
- const login=await servicoLogin(config,Astro.request).iniciarLogin(campo(f,'email'),campo(f,'senha'));
+ const login=await servicoLogin(config,Astro.request,waitUntil).iniciarLogin(campo(f,'email'),campo(f,'senha'));
  const resposta=Astro.redirect(`/entrar/${login.etapa==='segundo_fator'?'codigo':'configurar'}/?volta=${encodeURIComponent(volta)}`,303);
- resposta.headers.set('Set-Cookie',cookieSessao(Astro.request,login.valor));return resposta;
+ resposta.headers.set('Set-Cookie',cookieSessao(Astro.request,login.valor,false,config));return resposta;
 }catch(e){erro=mensagemPublica(e);}
+} finally {if(Astro.request.method==='POST')await tempoMinimo(inicio);}
+
 ---
 <Base title="Acessar a plataforma">
 <meta slot="head" name="robots" content="noindex" />

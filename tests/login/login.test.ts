@@ -14,7 +14,7 @@ const request=new Request('http://localhost/entrar/',{headers:{'CF-Connecting-IP
 async function preparar() {
  const b=bancoTeste('central');
  b.sqlite.exec("INSERT INTO usuario(id,email,nome,perfil,prefeitura_id) VALUES('admin','dev@exemplo.invalid','Administrador local','admin',5208707)");
- const env={DB_CENTRAL:b.db,SENHA_PEPPER:pepper,TOTP_CHAVE:chave,EMAIL_SIMULADO:'1'};
+ const env={DB_CENTRAL:b.db,SENHA_PEPPER:pepper,TOTP_CHAVE:chave,EMAIL_SIMULADO:'1',AMBIENTE:'local'};
  const servico=servicoLogin(env,request),u=(await b.db.prepare('SELECT * FROM usuario WHERE id = ?').bind('admin').first<any>())!;
  return {...b,env,servico,u};
 }
@@ -31,7 +31,7 @@ test('TOTP: todos os vetores SHA1 RFC 6238, janela e reuso; cifra autenticada',a
  for(const [t,c] of [[59,'94287082'],[1111111109,'07081804'],[1111111111,'14050471'],[1234567890,'89005924'],[2000000000,'69279037'],[20000000000,'65353130']] as const)assert.equal(await codigoTotp(segredo,t*1000,8),c);
  const tempo=1234567890000,c=await codigoTotp(segredo,tempo),p=Math.floor(tempo/30000);
  assert.equal(await verificarTotp(segredo,c,null,tempo),p);assert.equal(await verificarTotp(segredo,c,p,tempo),null);assert.equal(await verificarTotp(segredo,c,null,tempo+30000),p);assert.equal(await verificarTotp(segredo,c,null,tempo+60000),null);
- const cifrado=await cifrarSegredo(segredo,chave);assert.equal(await decifrarSegredo(cifrado,chave),segredo);assert.ok(!cifrado.includes(segredo));await assert.rejects(decifrarSegredo(cifrado.slice(0,-4)+'AAAA',chave));
+ const cifrado=await cifrarSegredo(segredo,chave,'admin');assert.equal(await decifrarSegredo(cifrado,chave,'admin'),segredo);assert.ok(!cifrado.includes(segredo));await assert.rejects(decifrarSegredo(cifrado.slice(0,-4)+'AAAA',chave,'admin'));
 });
 test('tokens: GET não consome; expirado, usado, tipo errado, substituição e POST concorrente',async()=>{
  const b=await preparar();try{
@@ -48,7 +48,7 @@ test('sessões: etapa, expiração absoluta, ociosidade, revogação e cookies l
  b.sqlite.exec("UPDATE sessao SET ultimo_uso_em = '2000-01-01T00:00:00.000Z'");assert.equal(await obterSessao(b.db,valor),null);
  const curto=await criarSessao(b.db,'admin','segundo_fator');b.sqlite.exec("UPDATE sessao SET expira_em = '2000-01-01T00:00:00.000Z'");assert.equal(await obterSessao(b.db,curto),null);
  const novo=await criarSessao(b.db,'admin','completa');await b.servico.sair(novo);assert.equal(await obterSessao(b.db,novo),null);
- assert.match(cookieSessao(request,valor),/^govnexa_local=/);assert.doesNotMatch(cookieSessao(request,valor),/Secure/);assert.match(cookieSessao(new Request('https://exemplo.invalid'),valor),/^__Host-govnexa=.*; Secure/);assert.match(cookieSessao(new Request('http://localhost',{headers:{'cf-ray':'teste'}}),valor),/Secure/);
+ assert.match(cookieSessao(request,valor,false,b.env),/^govnexa_local=/);assert.doesNotMatch(cookieSessao(request,valor,false,b.env),/Secure/);assert.match(cookieSessao(new Request('https://exemplo.invalid'),valor),/^__Host-govnexa=.*; Secure/);assert.match(cookieSessao(new Request('http://localhost',{headers:{'cf-ray':'teste'}}),valor),/Secure/);
  }finally{b.sqlite.close();}
 });
 test('fluxo completo: convite, 2FA, recuperação única, redefinição sem sessão, reset 2FA e auditoria sem segredos',async()=>{
@@ -123,7 +123,8 @@ test('Worker senha: protege plataforma, completa exige 2FA, revoga inativo e man
  for(const origem of ['null','']){const negado=await chamar('/entrar/','','POST',origem);assert.equal(negado.status,403);assert.equal(negado.headers.get('Referrer-Policy'),'same-origin');}
  const login=await chamar('/entrar/');assert.equal(login.status,200);assert.equal(login.headers.get('Referrer-Policy'),'same-origin');assert.match(login.headers.get('Content-Security-Policy')!,/frame-src 'self' https:\/\/challenges.cloudflare.com/);
  assert.equal((await chamar('/sair',c,'POST','https://externo.invalid')).status,403);assert.ok(await obterSessao(b.db,completa));
- const saiu=await chamar('/sair',c);assert.equal(saiu.headers.get('Location'),'/entrar/?saiu=1');assert.match(saiu.headers.get('Set-Cookie')!,/Max-Age=0/);assert.equal(await obterSessao(b.db,completa),null);
+ const confirmacao=await chamar('/sair',c);assert.equal(confirmacao.status,200);assert.match(await confirmacao.text(),/form method="post"/);assert.ok(await obterSessao(b.db,completa));
+ const saiu=await chamar('/sair',c,'POST','http://localhost');assert.equal(saiu.headers.get('Location'),'/entrar/?saiu=1');assert.match(saiu.headers.get('Set-Cookie')!,/Max-Age=0/);assert.equal(await obterSessao(b.db,completa),null);
  const outra=await criarSessao(b.db,'admin','completa');b.sqlite.exec('UPDATE usuario SET ativo = 0');assert.equal((await chamar('/plataforma/',`govnexa_local=${outra}`)).status,302);assert.ok(b.sqlite.prepare('SELECT revogada_em FROM sessao WHERE id_hash = ?').get(await hash(outra))!.revogada_em);
  }finally{b.sqlite.close();municipal.sqlite.close();}
 });
@@ -133,7 +134,7 @@ test('Turnstile e origem: só pula local sem site key; falha fechada em produç�
  try{
  assert.throws(()=>conferirPost(new Request('http://localhost/entrar/',{method:'POST'})));
  assert.throws(()=>conferirPost(new Request('http://localhost/entrar/',{method:'POST',headers:{origin:'https://externo.invalid'}})));
- assert.doesNotThrow(()=>conferirPost(new Request('http://localhost/entrar/',{method:'POST',headers:{origin:'http://localhost'}})));
+ assert.doesNotThrow(()=>conferirPost(new Request('http://localhost/entrar/',{method:'POST',headers:{origin:'http://localhost','content-length':'0'}})));
  await conferirTurnstile(b.env,request,f);await assert.rejects(conferirTurnstile(b.env,new Request('https://exemplo.invalid'),f));
  globalThis.fetch=async()=>Response.json({success:true,hostname:'exemplo.invalid'});
  const config={...b.env,TURNSTILE_SITE_KEY:'teste',TURNSTILE_SECRET:'teste'};
@@ -144,4 +145,131 @@ test('Turnstile e origem: só pula local sem site key; falha fechada em produç�
  const s=servicoLogin(envSemEmail,new Request('https://exemplo.invalid'));
  assert.equal(await s.pedirRedefinicao('dev@exemplo.invalid'),RESPOSTA_ESQUECI);assert.equal(await s.pedirRedefinicao('ausente@exemplo.invalid'),RESPOSTA_ESQUECI);
  }finally{b.sqlite.close();globalThis.fetch=original;}
+});
+
+test('correção 3: dez falhas 2FA entre três sessões bloqueiam conta e revogam etapas pendentes',async()=>{
+ const b=await preparar();try{
+ const segredo=base32(new Uint8Array(20).fill(3));
+ b.sqlite.prepare('UPDATE usuario SET senha_hash=?,totp_ativo=1,totp_segredo_cifrado=? WHERE id=?').run(await hashSenha('Horizonte!local-7264',pepper),await cifrarSegredo(segredo,chave,'admin'),'admin');
+ const sessoes=[];for(let i=0;i<3;i++)sessoes.push((await b.servico.iniciarLogin(b.u.email,'Horizonte!local-7264')).valor);
+ await criarSessao(b.db,'admin','configurar_2fa');
+ for(let i=0;i<3;i++)for(let j=0;j<5;j++)await assert.rejects(j%2?b.servico.usarCodigoRecuperacao(sessoes[i],'invalido'):b.servico.concluirSegundoFator(sessoes[i],'abcdef'));
+ const u=b.sqlite.prepare('SELECT bloqueado_ate FROM usuario').get()!;
+ assert.ok(Date.parse(String(u.bloqueado_ate))>Date.now()+3500000);
+ assert.equal(b.sqlite.prepare("SELECT count(*) n FROM sessao WHERE revogada_em IS NULL AND etapa <> 'completa'").get()!.n,0);
+ assert.equal(b.sqlite.prepare("SELECT contagem FROM limite_tentativa WHERE chave='2fa:conta:admin'").get()!.contagem,10);
+ await assert.rejects(b.servico.concluirSegundoFator(sessoes[2],await codigoTotp(segredo)));
+ await assert.rejects(b.servico.iniciarLogin(b.u.email,'Horizonte!local-7264'));
+ // Até uma sessão criada depois do bloqueio recusa o código antes de verificá-lo.
+ const nova=await criarSessao(b.db,'admin','segundo_fator');await assert.rejects(b.servico.concluirSegundoFator(nova,await codigoTotp(segredo)));
+ assert.equal(b.sqlite.prepare("SELECT count(*) n FROM evento_acesso WHERE tipo='2fa_conta_bloqueada'").get()!.n,1);
+ }finally{b.sqlite.close();}
+});
+test('correção 3: contador 2FA só zera no sucesso; senha correta mantém falhas acumuladas',async()=>{
+ const b=await preparar();try{
+ const segredo=base32(new Uint8Array(20).fill(4));
+ b.sqlite.prepare('UPDATE usuario SET senha_hash=?,totp_ativo=1,totp_segredo_cifrado=?,falhas_login=3 WHERE id=?').run(await hashSenha('Horizonte!local-7264',pepper),await cifrarSegredo(segredo,chave,'admin'),'admin');
+ const l=await b.servico.iniciarLogin(b.u.email,'Horizonte!local-7264');
+ await assert.rejects(b.servico.concluirSegundoFator(l.valor,'abcdef'));
+ assert.equal(b.sqlite.prepare('SELECT falhas_login FROM usuario').get()!.falhas_login,3);
+ await b.servico.concluirSegundoFator(l.valor,await codigoTotp(segredo));
+ assert.equal(b.sqlite.prepare('SELECT falhas_login FROM usuario').get()!.falhas_login,0);
+ assert.equal(b.sqlite.prepare("SELECT count(*) n FROM limite_tentativa WHERE chave='2fa:conta:admin'").get()!.n,0);
+ }finally{b.sqlite.close();}
+});
+test('correção 3: piso de 800 ms com relógio e espera injetáveis',async()=>{
+ const {tempoMinimo}=await import('../../src/lib/login/http.ts');
+ for(const [decorrido,esperado] of [[0,800],[300,500],[800,0],[1200,0]]){
+ let espera=0;await tempoMinimo(100,()=>100+decorrido,async ms=>{espera+=ms;});assert.equal(espera,esperado);
+ }
+});
+test('correção 3: POST exige tamanho decimal presente, finito e até 16 KiB',async()=>{
+ const {conferirPost}=await import('../../src/lib/login/http.ts');
+ for(const valor of [null,'','-1','abc','NaN','1.5','Infinity','16385','999999999999999999999']){
+ const headers:Record<string,string>={origin:'http://localhost'};if(valor!==null)headers['content-length']=valor;
+ assert.throws(()=>conferirPost(new Request('http://localhost/entrar/',{method:'POST',headers})));
+ }
+ for(const valor of ['0','16384'])assert.doesNotThrow(()=>conferirPost(new Request('http://localhost/entrar/',{method:'POST',headers:{origin:'http://localhost','content-length':valor}})));
+});
+test('correção 3: modo local requer marcador explícito além do host e ausência de cf-ray',async()=>{
+ const {modoLocal}=await import('../../src/lib/login/base.ts');
+ assert.equal(modoLocal(request),false);assert.equal(modoLocal(request,{AMBIENTE:'producao'}),false);assert.equal(modoLocal(request,{AMBIENTE:'local'}),true);
+ assert.equal(modoLocal(new Request('https://externo.invalid'),{AMBIENTE:'local'}),false);
+ assert.equal(modoLocal(new Request('http://localhost',{headers:{'cf-ray':'x'}}),{AMBIENTE:'local'}),false);
+ assert.equal(emailsLocais(request,{EMAIL_SIMULADO:'1'}),null);
+ assert.match(cookieSessao(request,'x'),/^__Host-govnexa=.*Secure/);
+});
+test('correção 3: cifra TOTP não pode ser transferida entre contas',async()=>{
+ const c=await cifrarSegredo('segredo',chave,'conta-a');
+ assert.equal(await decifrarSegredo(c,chave,'conta-a'),'segredo');await assert.rejects(decifrarSegredo(c,chave,'conta-b'));
+});
+test('correção 3: links usam origem pública e e-mail sai com waitUntil, com fallback síncrono',async()=>{
+ const b=await preparar();try{
+ let liberar!:()=>void,terminou=false;
+ const enviados:any[]=[],tarefas:Promise<unknown>[]=[];
+ const env={...b.env,AMBIENTE:'producao',EMAIL_SIMULADO:'0',ORIGEM_PUBLICA:'https://publico.exemplo.invalid',EMAIL:{async send(m:any){enviados.push(m);await new Promise<void>(r=>{liberar=r;});terminou=true;}}};
+ const svc=servicoLogin(env,new Request('https://host-nao-confiavel.invalid/entrar/'),p=>tarefas.push(p));
+ assert.equal(await svc.pedirRedefinicao(b.u.email),RESPOSTA_ESQUECI);assert.equal(terminou,false);assert.equal(tarefas.length,1);
+ assert.match(enviados[0].text,/https:\/\/publico.exemplo.invalid\/entrar\/definir-senha/);assert.doesNotMatch(enviados[0].text,/host-nao-confiavel/);
+ liberar();await tarefas[0];assert.equal(terminou,true);
+ for(const origem of ['', 'http://publico.exemplo.invalid','invalida','https://usuario:senha@publico.exemplo.invalid']){
+ await servicoLogin({...env,ORIGEM_PUBLICA:origem},request).pedirRedefinicao(b.u.email);
+ b.sqlite.exec("DELETE FROM limite_tentativa");
+ }
+ assert.equal(enviados.length,1);
+ assert.ok(Number(b.sqlite.prepare("SELECT count(*) n FROM evento_acesso WHERE tipo='origem_publica_invalida'").get()!.n)>=1);
+ // Sem waitUntil, a promessa da resposta aguarda o envio.
+ const outra=servicoLogin(env,request);let respondeu=false;const pendente=outra.pedirRedefinicao(b.u.email).then(()=>{respondeu=true;});
+ for(let i=0;i<30&&enviados.length<2;i++)await new Promise(r=>setTimeout(r,1));
+ assert.equal(enviados.length,2);assert.equal(respondeu,false);liberar();await pendente;assert.equal(respondeu,true);
+ }finally{b.sqlite.close();}
+});
+test('correção 3: falhas de login escrevem limites por hash também para ausente e bloqueiam progressivamente',async()=>{
+ const b=await preparar();try{
+ b.sqlite.prepare('UPDATE usuario SET senha_hash=?').run(await hashSenha('Horizonte!local-7264',pepper));
+ for(const email of [b.u.email,'ausente@exemplo.invalid']){
+ await assert.rejects(b.servico.iniciarLogin(email,'errada'));
+ assert.equal(b.sqlite.prepare('SELECT contagem FROM limite_tentativa WHERE chave=?').get('login:email:'+await hash(email))!.contagem,1);
+ }
+ for(const [acumuladas,minutos] of [[4,15],[9,30],[19,60],[99,1440]]){
+ b.sqlite.prepare('UPDATE usuario SET falhas_login=?,bloqueado_ate=NULL').run(acumuladas);
+ b.sqlite.prepare("UPDATE limite_tentativa SET contagem=4 WHERE chave=?").run('login:email:'+await hash(b.u.email));
+ await assert.rejects(b.servico.iniciarLogin(b.u.email,'errada'));
+ const fim=Date.parse(String(b.sqlite.prepare('SELECT bloqueado_ate FROM usuario').get()!.bloqueado_ate));
+ assert.ok(Math.abs(fim-Date.now()-minutos*60000)<2000);
+ }
+ b.sqlite.exec("UPDATE limite_tentativa SET janela_inicio='2000-01-01T00:00:00.000Z' WHERE chave LIKE 'login:dia:%'");
+ await assert.rejects(b.servico.iniciarLogin(b.u.email,'errada'));assert.equal(b.sqlite.prepare('SELECT falhas_login FROM usuario').get()!.falhas_login,1);
+ }finally{b.sqlite.close();}
+});
+test('correção 3: desativar invalida convites e redefinições mesmo após reativação',async()=>{
+ const b=await preparar();try{
+ b.sqlite.exec("INSERT INTO usuario(id,email,nome,perfil,prefeitura_id) VALUES('outra','outra@exemplo.invalid','Equipe de teste','editor',5208707)");
+ const convite=await criarToken(b.db,'outra','convite'),reset=await criarToken(b.db,'outra','redefinicao');
+ await b.servico.desativarUsuario(b.u,'outra');await b.servico.reativarUsuario(b.u,'outra');
+ for(const [token,tipo] of [[convite.token,'convite'],[reset.token,'redefinicao']] as const)assert.equal(await consultarToken(b.db,token,tipo),null);
+ }finally{b.sqlite.close();}
+});
+test('correção 3: limpeza oportunista remove só janelas com mais de 24 horas',async()=>{
+ const {contarTentativa}=await import('../../src/lib/login/limites.ts');const b=await preparar();try{
+ b.sqlite.exec("INSERT INTO limite_tentativa VALUES('vencido','2000-01-01T00:00:00.000Z',3)");
+ for(let i=0;i<100;i++)await contarTentativa(b.db,'atual',200,3600000);
+ assert.equal(b.sqlite.prepare("SELECT count(*) n FROM limite_tentativa WHERE chave='vencido'").get()!.n,0);
+ assert.equal(b.sqlite.prepare("SELECT contagem FROM limite_tentativa WHERE chave='atual'").get()!.contagem,100);
+ }finally{b.sqlite.close();}
+});
+test('correção 3: mensagens de Usuários aceitam só códigos conhecidos',()=>{
+ const pagina=readFileSync('src/pages/plataforma/usuarios/index.astro','utf8'),acao=readFileSync('src/pages/plataforma/usuarios/acao.ts','utf8');
+ assert.match(pagina,/get\('erro'\)==='falha'/);assert.match(pagina,/get\('ok'\)==='concluida'/);
+ assert.doesNotMatch(pagina,/\{Astro.url.searchParams.get\('erro'\)\}/);assert.match(acao,/\?erro=falha/);assert.match(acao,/conferirPost\(request\)/);
+});
+
+test('correção 3: escritas de recusa de login e esqueci são equivalentes com ou sem conta',async()=>{
+ const b=await preparar();try{
+ const original=b.db.batch.bind(b.db);const escritas:string[]=[];
+ b.db.batch=async statements=>{for(const st of statements)escritas.push((st as unknown as {sql:string}).sql.trim().split(/\s+/).slice(0,3).join(' '));return original(statements);};
+ async function medir(acao:()=>Promise<unknown>){escritas.length=0;try{await acao();}catch{}return [...escritas];}
+ assert.deepEqual(await medir(()=>b.servico.iniciarLogin(b.u.email,'errada')),await medir(()=>b.servico.iniciarLogin('ausente@exemplo.invalid','errada')));
+ assert.deepEqual(await medir(()=>b.servico.pedirRedefinicao(b.u.email)),await medir(()=>b.servico.pedirRedefinicao('ausente@exemplo.invalid')));
+ }finally{b.sqlite.close();}
 });

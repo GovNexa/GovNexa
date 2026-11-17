@@ -40,13 +40,33 @@ test('início mantém módulos fechados e conta apenas no topo', async ({ page }
   await expect(top.locator('.avatar')).toHaveText('AL');
   await expect(top.locator('.user-name')).toHaveText('Administrador local');
   await top.locator('summary').click();
-  for (const [name, href] of [['Meu perfil', '/plataforma/perfil/'], ['Sair', '/sair']]) {
+  for (const [name, href] of [['Meu perfil', '/plataforma/perfil/'], ['Configurações', '/plataforma/configuracoes/']]) {
     const link = top.getByRole('link', { name, exact: true });
     await expect(link).toBeVisible();
     await expect(link).toHaveAttribute('href', href);
     const box = await link.boundingBox();
     expect(box?.height).toBeGreaterThanOrEqual(44);
     expect(box?.width).toBeGreaterThanOrEqual(44);
+  }
+  const sair = top.getByRole('button', { name: 'Sair', exact: true });
+  await expect(sair).toBeVisible();
+  await expect(sair.locator('..')).toHaveAttribute('method', 'post');
+  await expect(sair.locator('..')).toHaveAttribute('action', '/sair');
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, theme);
+    const controls = [top.getByRole('link', { name: 'Meu perfil', exact: true }), top.getByRole('link', { name: 'Configurações', exact: true }), sair];
+    const styles = [];
+    for (const control of controls) {
+      const box = await control.boundingBox();
+      expect(box?.height).toBeGreaterThanOrEqual(44);
+      expect(box?.width).toBeGreaterThanOrEqual(44);
+      styles.push(await control.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return { left: element.getBoundingClientRect().left, color: style.color, font: style.font, alignItems: style.alignItems };
+      }));
+    }
+    expect(styles[2]).toEqual(styles[0]);
+    expect(styles[2]).toEqual(styles[1]);
   }
   await expect(page.locator('body')).not.toContainText('dev@exemplo.invalid');
 });

@@ -1,14 +1,18 @@
 ---
 export const prerender=false;
 import Base from '../../layouts/Base.astro';
-import { env } from 'cloudflare:workers';
+import { env, waitUntil } from 'cloudflare:workers';
 import { servicoLogin, type EnvLogin } from '../../lib/login/servico.ts';
-import { mensagemPublica, conferirPost, campo } from '../../lib/login/http.ts';
+import { mensagemPublica, tempoMinimo, conferirPost, campo } from '../../lib/login/http.ts';
 import { cookieSessao, lerCookie, obterSessao } from '../../lib/login/sessao.ts';
 import { voltaSegura } from '../../lib/login/base.ts';
-const config=env as unknown as EnvLogin,valor=lerCookie(Astro.request),s=await obterSessao(config.DB_CENTRAL,valor);let erro='';
+const inicio=performance.now();
+const config=env as unknown as EnvLogin,valor=lerCookie(Astro.request,config),s=await obterSessao(config.DB_CENTRAL,valor);let erro='';
+try {
 if(!s||s.etapa!=='segundo_fator')return Astro.redirect('/entrar/',303);
-if(Astro.request.method==='POST')try{conferirPost(Astro.request);const f=await Astro.request.formData(),servico=servicoLogin(config,Astro.request);const novo=campo(f,'recuperacao')?await servico.usarCodigoRecuperacao(valor,campo(f,'recuperacao')):await servico.concluirSegundoFator(valor,campo(f,'codigo'));const resposta=Astro.redirect(voltaSegura(Astro.url.searchParams.get('volta')),303);resposta.headers.set('Set-Cookie',cookieSessao(Astro.request,novo));return resposta;}catch(e){erro=mensagemPublica(e);}
+if(Astro.request.method==='POST')try{conferirPost(Astro.request);const f=await Astro.request.formData(),servico=servicoLogin(config,Astro.request,waitUntil);const novo=campo(f,'recuperacao')?await servico.usarCodigoRecuperacao(valor,campo(f,'recuperacao')):await servico.concluirSegundoFator(valor,campo(f,'codigo'));const resposta=Astro.redirect(voltaSegura(Astro.url.searchParams.get('volta')),303);resposta.headers.set('Set-Cookie',cookieSessao(Astro.request,novo,false,config));return resposta;}catch(e){erro=mensagemPublica(e);}
+} finally {if(Astro.request.method==='POST')await tempoMinimo(inicio);}
+
 ---
 <Base title="Verificação em 2 etapas"><section class="login-layout"><div class="login-intro"><h1>Verificação em 2 etapas</h1><p>Digite os 6 dígitos do aplicativo autenticador.</p></div><div class="login-form">{erro&&<p role="alert">{erro}</p>}<form data-astro-reload method="post"><label>Código do aplicativo<input name="codigo" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required /></label><button class="primary">Verificar código</button></form><details><summary>Usar código de recuperação</summary><form data-astro-reload method="post"><label>Código de recuperação<input name="recuperacao" pattern="[a-fA-F0-9]{4}-[a-fA-F0-9]{4}" autocomplete="off" required /></label><button class="primary">Usar código de recuperação</button></form></details><p><a data-astro-reload href="/entrar/">Voltar ao login</a></p></div></section></Base>
 <style>form,label{display:grid;gap:1rem}input,button,summary{min-height:44px;box-sizing:border-box;width:100%}input{padding:.6rem;color:var(--text);background:var(--surface);border:1px solid var(--line)}details{margin-top:1.5rem}</style>

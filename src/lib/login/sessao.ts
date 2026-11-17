@@ -3,8 +3,8 @@ import { hash, iso, depois, gravar, modoLocal } from './base.ts';
 import { tokenAleatorio } from './tokens.ts';
 export type Etapa = 'segundo_fator' | 'configurar_2fa' | 'completa';
 export interface Sessao {id_hash:string;usuario_id:string;etapa:Etapa;criada_em:string;expira_em:string;ultimo_uso_em:string;revogada_em:string|null;tentativas_codigo:number;}
-export function cookieSessao(r: Request, valor: string, apagar = false) {return `${modoLocal(r)?'govnexa_local':'__Host-govnexa'}=${valor}; HttpOnly; Path=/; SameSite=Lax${modoLocal(r)?'':'; Secure'}; Max-Age=${apagar?0:43200}`;}
-export function lerCookie(r: Request) { const nome=modoLocal(r)?'govnexa_local':'__Host-govnexa';return r.headers.get('cookie')?.split(';').map(s=>s.trim()).find(s=>s.startsWith(nome+'='))?.slice(nome.length+1) ?? ''; }
+export function cookieSessao(r: Request, valor: string, apagar = false, env: {AMBIENTE?:string} = {}) {return `${modoLocal(r,env)?'govnexa_local':'__Host-govnexa'}=${valor}; HttpOnly; Path=/; SameSite=Lax${modoLocal(r,env)?'':'; Secure'}; Max-Age=${apagar?0:43200}`;}
+export function lerCookie(r: Request, env: {AMBIENTE?:string} = {}) { const nome=modoLocal(r,env)?'govnexa_local':'__Host-govnexa';return r.headers.get('cookie')?.split(';').map(s=>s.trim()).find(s=>s.startsWith(nome+'='))?.slice(nome.length+1) ?? ''; }
 export async function criarSessao(db: BancoD1, usuario: string, etapa: Etapa, agente = '') { const valor=tokenAleatorio(), agora=iso();await gravar(db,'INSERT INTO sessao(id_hash,usuario_id,etapa,criada_em,expira_em,ultimo_uso_em,agente) VALUES(?,?,?,?,?,?,?)',await hash(valor),usuario,etapa,agora,depois(etapa==='completa'?43200000:600000),agora,agente.slice(0,256));return valor; }
 export async function obterSessao(db: BancoD1, valor: string) {
  if(!/^[\w-]{43}$/.test(valor))return null;
