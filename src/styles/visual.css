@@ -191,3 +191,10 @@ td button[data-detail]{white-space:nowrap;min-width:max-content}.table-wrap td:l
 :root{--logo:#002E47;--logo-a:#F36E22}:root[data-theme=dark]{--logo:#fff;--logo-a:#FF9A5C}.logo-gx{height:34px;width:auto;display:block}.header .brand-logo{display:flex;align-items:center}.header .brand-logo{max-width:none}@media(max-width:1049px){.logo-gx{height:26px}}@media(max-width:480px){.logo-gx{height:21px}}
 /* Título do cabeçalho da plataforma: no máximo duas linhas, para um nome longo não vazar do topo. */
 .app-org strong{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;line-height:1.2}
+/* Rodapé da plataforma respeita o limite do menu lateral (fixo a partir de 1050px), recolhido ou expandido. */
+@media(min-width:1050px){.app-footer{margin-left:282px;padding-left:1.5rem;transition:margin-left 220ms}:root[data-sidebar=recolhido] .app-footer{margin-left:120px}}
+/* Símbolo G do GovNexa nos selos (aba, plataforma, login e rodapé): quadrado azul-marinho, G branco e alvo laranja. */
+.appbar .mark{display:inline-grid;place-items:center;width:40px;height:40px;padding:0;border-radius:11px;background:#002E47}
+.footer-mark{border-color:#ffffff33}
+.login-brand-mark{border-color:#ffffff33!important}
+.simbolo-gx{display:block;flex:none}

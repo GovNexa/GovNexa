@@ -1,0 +1,9 @@
+---
+// Símbolo "G" do GovNexa, recortado do logo provisório (src/components/LogoGovNexa.astro, aprovado pelo dono em 17/11/2026).
+// fundo="escuro": G branco e alvo laranja (para selos azul-marinho); padrão: cores do tema (--logo e --logo-a).
+interface Props { tamanho?: number; fundo?: 'escuro' | 'tema'; class?: string; titulo?: string }
+const { tamanho = 24, fundo = 'tema', class: classe = '', titulo } = Astro.props;
+const cor = fundo === 'escuro' ? '#ffffff' : 'var(--logo)';
+const destaque = fundo === 'escuro' ? '#F36E22' : 'var(--logo-a)';
+---
+<svg class={`simbolo-gx ${classe}`} xmlns="http://www.w3.org/2000/svg" viewBox="40 40 432 432" width={tamanho} height={tamanho} role={titulo ? 'img' : undefined} aria-label={titulo} aria-hidden={titulo ? undefined : 'true'} focusable="false"><path fill={cor} d="M456.00 256.00A200 200 0 1 1 364.93 88.27L324.62 150.33A126 126 0 1 0 382.00 256.00ZM318 219.0H456V293.0H318L278 256Z"/><path fill={destaque} fill-rule="evenodd" d="M268 256A46 46 0 1 0 176 256A46 46 0 1 0 268 256ZM252 256A30 30 0 1 1 192 256A30 30 0 1 1 252 256Z"/><circle cx="222" cy="256" r="15" fill={destaque}/></svg>

@@ -54,6 +54,8 @@ export function validarArquivo(nomeBruto: string, bytes: Uint8Array, tamanho: nu
 
 export const ID_PROJETO = /^[A-Za-z0-9._-]{1,40}$/;
 export const ID_DOCUMENTO = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+/** Código de tipo de documento (igual à trava da tabela tipo_documento). */
+export const CODIGO_TIPO = /^[a-z0-9_]{2,40}$/;
 
 const hex = (h: Uint8Array) => [...h].map((x) => x.toString(16).padStart(2, '0')).join('');
 /** SHA-256 sem guardar uma segunda cópia do arquivo na memória (no Workers usa DigestStream; em testes, o digest comum). */

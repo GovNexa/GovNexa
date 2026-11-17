@@ -4,6 +4,9 @@ import type { Resultado } from './servico.ts';
 export const MENSAGENS: Record<string, { texto: string; ok: boolean }> = {
   ok: { texto: 'Documento enviado.', ok: true },
   removido: { texto: 'Documento removido da lista. O arquivo fica guardado para auditoria.', ok: true },
+  classificado: { texto: 'Tipo do documento atualizado.', ok: true },
+  tipodoc: { texto: 'Tipo de documento inválido ou desativado. Recarregue a página e escolha de novo.', ok: false },
+  mudou: { texto: 'O documento mudou enquanto você classificava. Confira e tente de novo.', ok: false },
   permissao: { texto: 'Seu perfil não permite esta ação.', ok: false },
   tamanho: { texto: 'O arquivo passa de 25 MB.', ok: false },
   tipo: { texto: 'Tipo de arquivo não aceito. Envie PDF, imagem (PNG, JPG, WEBP) ou Office (XLSX, DOCX, PPTX, XLS, DOC).', ok: false },
@@ -16,6 +19,8 @@ export const MENSAGENS: Record<string, { texto: string; ok: boolean }> = {
   indisponivel: { texto: 'Armazenamento de documentos indisponível. Tente mais tarde.', ok: false },
 };
 export function codigoDe(r: Extract<Resultado, { ok: false }>): string {
+  if (/^Tipo de documento/.test(r.erro)) return 'tipodoc';
+  if (/^O documento mudou/.test(r.erro)) return 'mudou';
   if (r.status === 403) return 'permissao';
   if (r.status === 404) return 'projeto';
   if (r.status === 409) return 'duplicado';

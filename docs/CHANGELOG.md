@@ -1,5 +1,16 @@
 # Changelog
 
+## Correção: layout duplicado depois de um conflito de merge
+- 2026-11-17: a resolução do conflito do PR #24 feita no site do GitHub deixou as duas versões da linha principal de `src/layouts/Base.astro`, e toda página saía duas vezes. Fica uma única linha, com o símbolo G e o rodapé que informa a origem dos dados. Teste novo (`tests/layout-unico.spec.ts`) garante um único documento por página. Não chegou a ser publicado.
+
+## GovNexa — Símbolo G como ícone do sistema
+- 2026-11-17: símbolo G do logo (componente `src/components/SimboloGovNexa.astro`) no ícone da aba do navegador (`public/favicon.svg`), no ícone de atalho de celular/tablet (`public/apple-touch-icon.png`), no canto da plataforma, no painel do login e no rodapé. Cor do navegador no celular: azul-marinho da marca.
+## Correção: rodapé da plataforma informa a origem real dos dados
+- 2026-11-17: o rodapé da plataforma dizia sempre "Dados de exemplo". Agora acompanha o aviso do topo: "Dados do banco da prefeitura" com o banco ligado e "Dados de exemplo" só com a carteira fictícia.
+
+## Correção: rodapé da plataforma não fica mais atrás do menu
+- 2026-11-17: o rodapé da plataforma passa a respeitar o limite do menu lateral, recolhido ou expandido (o menu é fixo a partir de 1050 px e cobria o começo do texto). Teste novo (`tests/menu-sobreposicao.spec.ts`) percorre todas as telas do menu, nos dois estados e em três larguras, e falha se qualquer texto ou controle ficar atrás do menu.
+
 ## Correção: topo da tela Documentos do projeto
 - 2026-11-17: o topo da plataforma volta a mostrar o nome da tela ("Documentos do projeto") em vez do nome do projeto, que vazava do cabeçalho quando era longo. O projeto aparece numa linha antes do aviso de dados. O título do cabeçalho passa a ter no máximo duas linhas em todas as telas.
 
@@ -22,6 +33,11 @@
 - Convite de 24 h, redefinição de 1 h, 2FA obrigatório e sessões revogáveis. Convite configura aplicativo; redefinição de senha exige novo login. Access permanece padrão por `LOGIN_MODO`.
 - Guia Usuários com cadastro, reenvio, perfis, ativação e redefinição de 2FA; isolamento por prefeitura e proteção do último administrador. Turnstile e cabeçalhos de segurança nas páginas de acesso.
 - E-mail local simulado, semente fictícia sem leitura de segredos, testes Node e projeto Playwright `login` em porta separada. Fluxo do sistema atualizado. Publicação e teste de navegador ficam pendentes para o responsável.
+
+## GovNexa — Tipo do documento (entrega 1.1)
+- 2026-11-17: migração D1 `0003_tipo_documento.sql`: tabela `tipo_documento` por prefeitura (DFD, ETP e TR de sistema; mapa de riscos, projeto básico, orçamento de referência, ART e licença ambiental criados desativados), coluna `documento.tipo_codigo` e travas no banco (só tipo ativo da mesma prefeitura; sem DELETE; documento removido não muda de tipo). Ainda não aplicada em produção.
+- 2026-11-17: tipo opcional no envio e troca do tipo na lista (rota `classificar/<id>/`, com origem, perfil, tamanho e limite antes do corpo). Cada troca grava "Tipo de documento alterado" no Histórico. A página mostra quantas peças de cada tipo o projeto tem.
+- 2026-11-17: registro das publicações do dia: guia Usuários (3.3), página inicial nova, logo provisória, topo enxuto e mapa, limite de requisições (1.0, PR #15), correções do topo e do rodapé da plataforma e símbolo G.
 
 ## GovNexa — Limite de requisições (entrega 1.0)
 - 2026-11-17: limite de 30 ações por minuto por pessoa e prefeitura nas rotas que gravam documentos (enviar, remover), pela ligação `LIMITE_API` do Rate Limiting da Cloudflare (`wrangler.jsonc`). Chave `<prefeitura>:<e-mail>`; sem e-mail, recusado sem contar; falha da ligação recusa o pedido. Código em `src/lib/seguranca/limite.ts`.

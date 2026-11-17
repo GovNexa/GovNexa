@@ -144,3 +144,7 @@ body:has(.login-layout)>.public-footer{display:block}body:has(.login-layout)>mai
 /* Telas de acesso: rodapé completo no computador; compacto no celular e em telas baixas, para o formulário caber inteiro. */
 @media (max-width:700px),(max-height:700px){body:has(.login-layout)>.public-footer{padding:.4rem .75rem .6rem}body:has(.login-layout)>.public-footer .footer-brand,body:has(.login-layout)>.public-footer .footer-links{display:none}body:has(.login-layout)>.public-footer .footer-content{flex-direction:row;justify-content:center;gap:.3rem}body:has(.login-layout)>.public-footer .footer-contact{justify-content:center;gap:.15rem .9rem;font-size:.7rem}body:has(.login-layout)>.public-footer .footer-contact>span{flex-basis:auto}}
 @media (max-height:700px){body:has(.login-layout) .login-features,body:has(.login-layout) .login-description,body:has(.login-layout) .login-security{display:none}}
+/* Modo access (só local/transição): botão "Acessar a plataforma" com o mesmo visual do botão Entrar. */
+.login-form a.primary{display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;box-sizing:border-box;padding:.75rem 1rem;border-radius:10px;background:var(--orange-strong);color:#fff;font-weight:700;text-decoration:none}
+.login-form a.primary:hover{background:var(--orange-hover);color:#fff}
+:root[data-theme=dark] .login-form a.primary{color:#fff}
