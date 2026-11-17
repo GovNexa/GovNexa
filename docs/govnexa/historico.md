@@ -68,7 +68,7 @@ Por que ainda não é automático: o navegador não deixa uma página do GovNexa
 
 ### 5.3 Próximas entregas
 
-1. **3.3, usuários:** tela de usuários e sincronização com o grupo do Access.
+1. **3.3, usuários (opção B, decisão do dono em 17/11/2026):** lista somente leitura de quem tem acesso; cadastro pelo banco. Tela de cadastro e sincronização com o Access esperam a validação dos fluxos com o cliente, para evitar retrabalho.
 2. **3.4, documentos:** publicada em produção em 17/11/2026 (migração 0002 aplicada).
 3. **3.5, importação:** feita (novo #9) e gravada em produção em 16/11: 334 projetos atualizados, 0 novos, 0 pulados.
 4. **SEI automático:** leitura diária dos links guardados no D1, por Cron Trigger. Sem contornar captcha, e documento restrito continua entrando por PDF.
