@@ -1,5 +1,8 @@
 # Changelog
 
+## Correção: rodapé da plataforma não fica mais atrás do menu
+- 2026-11-17: o rodapé da plataforma passa a respeitar o limite do menu lateral, recolhido ou expandido (o menu é fixo a partir de 1050 px e cobria o começo do texto). Teste novo (`tests/menu-sobreposicao.spec.ts`) percorre todas as telas do menu, nos dois estados e em três larguras, e falha se qualquer texto ou controle ficar atrás do menu.
+
 ## Correção: topo da tela Documentos do projeto
 - 2026-11-17: o topo da plataforma volta a mostrar o nome da tela ("Documentos do projeto") em vez do nome do projeto, que vazava do cabeçalho quando era longo. O projeto aparece numa linha antes do aviso de dados. O título do cabeçalho passa a ter no máximo duas linhas em todas as telas.
 
