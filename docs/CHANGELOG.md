@@ -1,5 +1,8 @@
 # Changelog
 
+## Correção: rodapé da plataforma informa a origem real dos dados
+- 2026-11-17: o rodapé da plataforma dizia sempre "Dados de exemplo". Agora acompanha o aviso do topo: "Dados do banco da prefeitura" com o banco ligado e "Dados de exemplo" só com a carteira fictícia.
+
 ## Correção: rodapé da plataforma não fica mais atrás do menu
 - 2026-11-17: o rodapé da plataforma passa a respeitar o limite do menu lateral, recolhido ou expandido (o menu é fixo a partir de 1050 px e cobria o começo do texto). Teste novo (`tests/menu-sobreposicao.spec.ts`) percorre todas as telas do menu, nos dois estados e em três larguras, e falha se qualquer texto ou controle ficar atrás do menu.
 
