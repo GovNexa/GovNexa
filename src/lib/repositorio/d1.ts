@@ -4,9 +4,10 @@ import type { Evento, RegistroHistorico } from '../carteira/movimentacao.ts';
 import type { Projeto } from '../carteira/tipos.ts';
 import type { Cronograma, EtapaCronograma, FaseCronograma } from '../cronograma/tipos.ts';
 import type { RegistroLog } from '../log/tipos.ts';
+import { criarRepositorioDocumentos } from '../documentos/repositorio.ts';
 import type { RepositorioProjetos, ResultadoAplicacao, ResultadoCriacaoProjeto } from './tipos.ts';
 
-export interface ResultadoD1 { results: any[]; success: boolean; }
+export interface ResultadoD1 { results: any[]; success: boolean; meta?: { changes?: number }; }
 export interface StatementD1 {
  bind(...valores: unknown[]): StatementD1;
  first<T = Record<string, unknown>>(): Promise<T | null>;
@@ -79,6 +80,7 @@ export function criarRepositorioD1(db: BancoD1, prefeituraId: number): Repositor
 
   return {
     podeGravar: true,
+    documentos: criarRepositorioDocumentos(db, prefeituraId),
     listarProjetos: () =>
       transacao(async (cliente) => {
         const r = await cliente.query(`SELECT ${LISTA_COLUNAS} FROM projeto WHERE prefeitura_id = ? ORDER BY codigo_legado, id`, [prefeituraId]);

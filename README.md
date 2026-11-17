@@ -117,7 +117,7 @@ São módulos independentes que conversam entre si:
 | 1 · Carteira de Projetos | Carteira, ficha, Kanban, Gantt, Visão por órgão, celular | Entregue; carga inicial no D1 | 100% |
 | 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, Kanban e Pendências, Histórico, Sala de guerra | Telas prontas; algumas gravações ainda são simulação | 95% |
 | 2 · Cronograma e equipe | Cronogramas, quadro de tarefas, Onde está parado, Reunião semanal, dependências, SEI | Telas entregues; leitura automática do SEI a fazer | 90% |
-| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis e isolamento por prefeitura | Tabelas em produção, carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas pronta (3.5; falta a primeira gravação em produção). A fazer: usuários (3.3) e documentos (3.4) | 75% |
+| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis e isolamento por prefeitura | Tabelas em produção, carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas no ar e gravada em 16/11 (3.5). Documentos (3.4) no ar desde 17/11 (PR #10). A fazer: usuários (3.3) | 85% |
 | 4 · Contratação, convênios e Gestão | Lei 14.133, alertas, dashboard do prefeito, licitação em detalhe | Prazos da lei, dashboard em três níveis, filtros e modo apresentação; mapa, Central de alertas e Licitação em detalhe; parte ainda em simulação | 75% |
 | 5 · Integrações e inteligência | PNCP, SIMEC, SISMOB, preços, WhatsApp, IA | WhatsApp em simulação | 10% |
 
@@ -127,6 +127,8 @@ Dashboard local: efeitos progressivos, alertas críticos e atualização a cada 
 
 | Data | O que | Referência |
 | --- | --- | --- |
+| 16/11 | Etapa 3.4: documentos de projeto no R2 (envio, download como anexo e remoção lógica) | PR #10 |
+| 16/11 | Primeira gravação das planilhas em produção: 334 atualizados, 0 novos, 0 pulados | rotina do repositório de dados |
 | 16/11 | Etapa 3.5: importação das planilhas (rotina, regras de segurança dos dados, avisos e testes) | PR #9 |
 | 16/11 | Menu lateral com ícones por item, tipografia única, início recolhido, lista flutuante de itens, sanfona e usuário no rodapé | Plataforma |
 | 16/11 | Início da plataforma como dashboard do prefeito: filtros por URL, 10 indicadores, detalhamento acessível em painel e modo apresentação | `/plataforma/` |
@@ -287,9 +289,29 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 ### Próximas partes da Fase 3
 
 1. **Usuários (3.3):** tela de usuários e sincronização com um grupo do Access.
-2. **Documentos (3.4):** arquivos no R2, com remoção lógica.
-3. **Importação de planilhas (3.5):** feita; falta só a primeira gravação em produção (ver a seção 6).
+2. **Documentos (3.4):** publicada em produção em 17/11/2026 (PR #10; migração 0002 aplicada): envio, download e remoção lógica.
+3. **Importação de planilhas (3.5):** feita e gravada em produção em 16/11 (334 projetos atualizados, 0 novos).
 4. **SEI automático:** Cron Trigger do Worker para leitura e gravação no D1.
+
+### Documentos de projeto (etapa 3.4)
+
+- **Onde:** `/plataforma/documentos-projeto/` (escolher o projeto) e `/plataforma/documentos-projeto/projeto/<código>/`. A guia "Documentos" do menu continua sendo a demonstração antiga.
+- **Decisões do dono (16/11):** qualquer pessoa com perfil que tem a ação `enviar_documento` envia e remove; PDF, PNG/JPG/WEBP e Office (xlsx, docx, pptx, xls, doc), até 25 MB.
+- **Regras de segurança** (cada uma tem teste):
+  1. A chave do arquivo no R2 é gerada pelo sistema (`<prefeitura>/<projeto>/<uuid>`); nunca vem do navegador.
+  2. Toda consulta filtra a prefeitura; outra prefeitura não lista, baixa nem remove.
+  3. O tipo é conferido pelo conteúdo (assinatura do arquivo), não só pela extensão. SVG e HTML não são aceitos.
+  4. O download é sempre anexo, com `nosniff` e sem cache.
+  5. Pedido de outra origem é recusado (trava do Astro e conferência própria do cabeçalho `Origin`).
+  6. Perfil e origem são conferidos antes de ler o corpo do pedido; o tamanho também.
+  7. O mesmo conteúdo não entra duas vezes no mesmo projeto (índice único no banco, vale mesmo com envios simultâneos).
+  8. Remoção só lógica: a linha fica, o arquivo fica no R2, e guarda quem removeu e quando.
+  9. No máximo 30 envios por hora por pessoa.
+- **Limites conhecidos:**
+  - Arquivo órfão no R2 (o Worker ser encerrado entre gravar o arquivo e registrar no banco) só seria achado por uma varredura futura.
+  - O Office é aceito pela assinatura do formato; o sistema não analisa macros. Por isso o download é sempre anexo.
+  - O arquivo inteiro passa pela memória do Worker (até 26 MB por envio). Para volumes maiores, o caminho é o envio direto ao R2.
+- **Publicação (17/11/2026):** migração `0002` aplicada no D1 de produção e Worker publicado (versão f5327c05).
 
 ### Importação das planilhas (etapa 3.5)
 
@@ -336,7 +358,6 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 
 | Pendência | Para quê |
 | --- | --- |
-| Criar a chave do Cloudflare e cadastrar os segredos `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` no repositório `GovNexa/govnexa-dados` | Etapa 3.5: permite a rotina gravar as planilhas no banco de produção |
 | Validar o Fluxo com as áreas e com o cliente | Confirmar etapas, dependências e subprocessos |
 | Fornecer o decreto de feriados de Goiânia | Contagem exata dos dias úteis |
 | Configurar conta oficial do WhatsApp Business e aprovar modelos | Envio real de relatórios |
@@ -344,8 +365,8 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 ### Próximos passos
 
 1. **3.3 — usuários:** criar a tela e sincronizar o cadastro com grupo do Access.
-2. **3.4 — documentos:** concluir o armazenamento no R2 e as regras de remoção lógica.
-3. **3.5 — importação:** feita (rotina, regras e testes); falta ligar os segredos e fazer a primeira gravação.
+2. **3.4 — documentos:** publicada em 17/11/2026.
+3. **3.5 — importação:** feita e gravada em 16/11.
 4. Automatizar a leitura do SEI com Cron Trigger.
 5. Desligar a hospedagem antiga.
 
@@ -421,7 +442,8 @@ Os coletores diário e mensal de Captação continuam no GitHub Actions. A publi
 | Atualizar dados do bloco Captação | Todo dia, 09h30 (Brasília) | Roda coletores e abre PR do ramo `dados-atualizados` |
 | Atualizar dados mensais | Dia 5 de cada mês | Atualiza INEP, SINISA e CNES e abre PR do ramo `dados-mensais-atualizados` |
 | Portal da Transparência | Manual | Coleta de convênios pela API, com chave em segredo do GitHub |
-| Importação de planilhas | Pronta; falta a 1ª gravação em produção (etapa 3.5) | Lê o repositório privado de dados, avisa códigos repetidos e não sobrescreve o que foi feito no sistema |
+| Documentos do projeto | Disponível; no ar desde 17/11/2026 (etapa 3.4) | Em `/plataforma/documentos-projeto/`: envio (PDF, imagens e Office, até 25 MB), download sempre como anexo e remoção lógica. Só quem tem perfil de editor, gestor ou administrador envia e remove; todos os perfis baixam. Limite de 30 envios por hora por pessoa |
+| Importação de planilhas | No ar; gravada em produção em 16/11 (etapa 3.5) | Lê o repositório privado de dados, avisa códigos repetidos e não sobrescreve o que foi feito no sistema |
 | Leitura automática do SEI | A fazer | Cron Trigger no Worker lê links públicos e grava no D1 |
 
 Os PRs de dados automáticos precisam de revisão e merge, como qualquer outro. Os dados reais ficam no banco, não neste repositório público.

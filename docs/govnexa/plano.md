@@ -4,6 +4,75 @@
 > O resumo para quem chega está no `README.md`. Este documento é o detalhe: atores, módulos, regras, prazos, integrações, segurança, roteiro, riscos e rastreabilidade.
 > Dados internos e pessoais não entram neste documento.
 
+> **Atualização de 16/11/2026: migração para o Cloudflare e para o repositório `GovNexa/GovNexa`.**
+> O texto abaixo é o plano aprovado. Onde ele fala de Vercel ou PostgreSQL, vale hoje o seguinte:
+> - **Hospedagem:** Cloudflare Workers, no endereço https://govnexa.com.br (antes Vercel).
+> - **Login:** Cloudflare Access (antes, funções de login da Vercel).
+> - **Banco de dados:** Cloudflare D1, com um banco central e um banco por prefeitura (antes, PostgreSQL planejado).
+> - **Arquivos e fotos:** Cloudflare R2.
+> - **Dados reais:** nunca no repositório. A pasta `data/carga-real/` foi retirada de todo o histórico, e os dados reais entram pelo D1.
+> - **Repositório antigo (`SLo0th1/Atlas_Conecta`):** congelado. Todo o trabalho segue só neste repositório.
+> - **Publicação em produção:** só com ordem expressa do dono (regras no `CLAUDE.md`).
+
+## Andamento · última atualização em 16/11/2026, após a migração para o Cloudflare
+
+O sistema está no ar com os dados reais da planilha (334 projetos e 13 cronogramas do GEPP); gravação de alterações depende do banco de dados. O que mudou em cada entrega está em `docs/CHANGELOG.md`.
+
+| Fase | O que entrega | Situação | % |
+| --- | --- | --- | --- |
+| Planejamento | Plano, decisões, rastreabilidade, Fluxo, fluxos detalhados, mapa de impacto | Fluxos detalhados e mapa de impacto publicados; caixas do Fluxo cabem na raia; zoom no Fluxo | 97% |
+| 0 · Base e identidade | Marca GovNexa, menu por módulos, tema estável, paginação compacta | Publicada; menu lateral com blocos que abrem e fecham (começam fechados) | 100% |
+| 1 · Carteira de Projetos | Carga real, Carteira, ficha, Kanban, Gantt, Visão por órgão, celular | Publicada com dados reais | 100% |
+| 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, Kanban e Pendências (simulação), Histórico, Sala de guerra | Publicada em simulação (Novo projeto no ar, fora do menu lateral); gravar depende do banco | 95% |
+| 2 · Cronograma e equipe | Cronogramas, quadro de tarefas, Onde está parado | Publicada com a Reunião semanal e as dependências entre etapas (atraso em cascata); leitura do SEI em simulação (a leitura diária depende do banco) | 90% |
+| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis, isolamento por prefeitura | Tabelas em produção e carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas no ar e gravada em 16/11 (3.5). Documentos (3.4) prontos no código (PR #10), falta publicar. Falta: usuários (3.3) | 85% |
+| 4 · Contratação, convênios e Gestão | Lei 14.133, cláusula suspensiva, alertas, painel do prefeito | Em construção: Prazos da Lei 14.133, Painel do prefeito, Mapa das obras e Central de alertas publicados; Licitação em detalhe com as datas reais do SEI em simulação; falta a leitura automática (banco) e o PNCP | 75% |
+| 5 · Integrações e inteligência | PNCP, SIMEC, SISMOB, preços, WhatsApp, IA | Em construção: WhatsApp em simulação (permissão por número, relatório, perguntas e modelos para a Meta); envio real depende do banco e da conta do WhatsApp Business | 10% |
+
+**Entregas (mais recentes primeiro)**
+
+| Data | Entrega | PR |
+| --- | --- | --- |
+| 16/11 | Etapa 3.4: documentos de projeto no R2 (envio, download como anexo, remoção lógica, limite de 30 envios por hora, conferência do tipo pelo conteúdo) | GovNexa #10 |
+| 16/11 | Primeira gravação das planilhas em produção (334 atualizados, 0 novos, 0 pulados) | rotina do repositório de dados |
+| 16/11 | Etapa 3.5: importação das planilhas do repositório privado (rotina do GitHub com conferência e gravação separadas; códigos repetidos avisados; não apaga, não sobrescreve localização, compromisso nem projeto alterado no sistema) | GovNexa #9 |
+| 16/11 | Leitura do banco otimizada (só a guia aberta é montada; cache de 30 s por prefeitura): páginas da plataforma de ~400 ms para ~20 ms; erro 1102 do plano gratuito explicado (publicada em 16/11, versão 2e1114fa) | GovNexa #6 |
+| 16/11 | Plano e histórico trazidos para o repositório novo, atualizados para a migração; referências ao repositório antigo retiradas | GovNexa #5 |
+| 16/11 | Correção: login pelo Access recusava todos em produção | GovNexa #4 |
+| 16/11 | Etapa 3 (3.1 e 3.2): banco D1, plataforma lendo o banco, porte da Licitação em detalhe, README | GovNexa #3 |
+| 16/11 | Etapa 1: Cloudflare Worker com Access e marca GovNexa | GovNexa #2 |
+| 16/11 | Etapa 0: regras do fluxo com executores e preparo para a Cloudflare | GovNexa #1 |
+| 16/11 | Histórico completo no repositório antigo (docs/govnexa/historico.md) | antigo #49 |
+| 16/11 | Plano completo no repositório, de conhecimento de todos (docs/govnexa/plano.md) | antigo #48 |
+| 16/11 | README completo no repositório (história, princípios, roteiro, situação, funcionalidades, decisões, pendências) e regra no CLAUDE.md: toda entrega atualiza o README (publicado) | #46, #47 |
+| 16/11 | Licitação em detalhe (simulação): fases da Lei 14.133 com as datas reais do SEI a partir da página salva, fase atual, duração, prazo de publicidade e projeto da carteira (publicado) | #45 |
+| 16/11 | Fluxo: zoom (diminuir, aumentar, ajustar à tela; padrão menor em telas largas) e legenda recolhida (publicado) | #44 |
+| 16/11 | Processos no SEI em simulação (leitor da página pública, documentos-chave, etapa sugerida, onde está e há quantos dias; links por projeto); caixas do Fluxo na largura da raia; menu com blocos fechados (publicado) | #43 |
+| 16/11 | Dependências entre etapas e atraso em cascata; Central de alertas (Gestão › Alertas); modelos do WhatsApp para a Meta; lista de obras sem localização (publicado) | #42 |
+| 15/11 | WhatsApp da Gestão: números autorizados, permissão por número, relatório automático e prévia de perguntas (simulação; publicado) | #41 |
+| 15/11 | Correção: mapa em branco no site (arquivo do build que a Vercel não servia) (publicado) | #40 |
+| 15/11 | Mapa das obras no painel do prefeito; Localização e fotos (ponto ou ruas e trechos, em simulação); migração 004 preparada (publicado) | #39 |
+| 15/11 | Correção: religa o Painel do prefeito, perdido na junção do #34 (publicado) | #38 |
+| 15/11 | Testes do menu lateral no celular (publicado) | #37 |
+| 15/11 | Menu lateral com blocos e sub-blocos que abrem e fecham (publicado) | #36 |
+| 15/11 | Prazos da Lei 14.133: prazos legais, metas internas e cálculo em dias úteis (publicado) | #35 |
+| 15/11 | Reunião semanal: pauta automática, decisões, ações e ata em PDF (publicado) | #34 |
+| 15/11 | Painel do prefeito na guia Gestão (publicado) | #33 |
+| 15/11 | Regras de trabalho no repositório (CLAUDE.md) (publicado) | #32 |
+| 15/11 | Novo projeto fora do menu lateral (publicado) | #31 |
+| 15/11 | Novo projeto, 6 fluxos detalhados com exceções, mapa de impacto, paginação compacta, Sala de guerra (incluir/retirar), correção do celular | #30 |
+| 15/11 | Carga real da planilha, tabelas em cartões no celular, correção do tema, Sala de guerra | #27, #28 |
+| 15/11 | Fluxo do sistema com exportação em PDF | #25, #26 |
+| 15/11 | Histórico de alterações (log) | #24 |
+| 15/11 | Cronogramas, Onde está parado, Pendências de etapa, Kanban com simulação, banco preparado | #23 |
+| 15/11 | Tabelas sem rolagem, Início com resumo real | #21 |
+| 15/11 | Carteira, Kanban, Gantt, Visão por órgão | #20 |
+| 15/11 | Rede de segurança da publicação | #19 |
+| 15/11 | Marca GovNexa e menu por módulos | #18 |
+
+**Última atualização (16/11/2026, 16h43):** publicado o #42: dependências entre etapas com atraso em cascata, Central de alertas, modelos do WhatsApp para aprovação da Meta e lista de obras sem localização. Decidido em 16/11: manter a dependência deduzida pela ordem e pelas datas (opção A); a regra será revista quando o fluxo for validado com o cliente, com as dependências e os subprocessos. Reteste do link do SEI (09h07): links válidos, sem captcha. Publicado o #43: Processos no SEI em simulação, Fluxo legível e menu com blocos fechados. Publicado o #44: zoom no Fluxo e legenda recolhida. Publicados o #46 e o #47: README completo no repositório, com a regra de atualizá-lo em toda entrega. Publicado o #45: Licitação em detalhe. Próximo: leitura do SEI por PDF.
+
+**Depende do dono:** banco de dados na Vercel (dono da conta); gancho de publicação (VERCEL\_DEPLOY\_HOOK); validação do Fluxo com as áreas.
 Situação atual: ver [README, seção 2](../../README.md#2-situação-atual-16112026).
 
 ## 1. Sumário executivo
