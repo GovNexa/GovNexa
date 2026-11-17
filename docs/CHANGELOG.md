@@ -1,5 +1,9 @@
 # Changelog
 
+## GovNexa — Limite de requisições (entrega 1.0)
+- 2026-11-17: limite de 30 ações por minuto por pessoa e prefeitura nas rotas que gravam documentos (enviar, remover), pela ligação `LIMITE_API` do Rate Limiting da Cloudflare (`wrangler.jsonc`). Chave `<prefeitura>:<e-mail>`; sem e-mail, recusado sem contar; falha da ligação recusa o pedido. Código em `src/lib/seguranca/limite.ts`.
+- 2026-11-17: conserto: `tests/seguranca/rate-limit.test.ts`, citado no `test:dados` e inexistente, agora existe (9 testes).
+
 ## GovNexa — Datas no padrão brasileiro (regra do dono)
 - 2026-11-17: função única `src/lib/datas.ts` (`dataBr`, `dataHoraBr`, `dataOuDataHoraBr`): `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` no horário de Brasília (sem segundos, por decisão do dono). Aplicada no dashboard ("Atualizado em" e datas das fontes), no Histórico de alterações (tela e CSV) e em Documentos ("enviado em").
 - 2026-11-17: correção: "enviado em" dos documentos cortava o dia do texto em UTC e mostrava o dia seguinte para envios depois das 21h de Brasília. 5 testes novos em `tests/datas/datas.test.ts`.

@@ -125,6 +125,7 @@ São módulos independentes que conversam entre si:
 
 | Data | O que | Referência |
 | --- | --- | --- |
+| 17/11 | Entrega 1.0: limite de 30 ações por minuto por pessoa nos documentos (Rate Limiting da Cloudflare) | novo PR |
 | 17/11 | Etapa 3.3 (opção B): guia Usuários, lista somente leitura de quem tem acesso (só administrador) | novo PR |
 | 17/11 | Etapa 3.4 publicada: migração 0002 aplicada e documentos no ar | PR #10 e #13 |
 | 16/11 | Etapa 3.4: documentos de projeto no R2 (envio, download como anexo e remoção lógica) | PR #10 |
@@ -320,6 +321,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
   7. O mesmo conteúdo não entra duas vezes no mesmo projeto (índice único no banco, vale mesmo com envios simultâneos).
   8. Remoção só lógica: a linha fica, o arquivo fica no R2, e guarda quem removeu e quando.
   9. No máximo 30 envios por hora por pessoa.
+  10. No máximo 30 ações (enviar, remover) por minuto por pessoa na prefeitura, pela ligação `LIMITE_API` do Rate Limiting da Cloudflare. Se a ligação falhar, o pedido é recusado. A contagem da Cloudflare é por local de atendimento e aproximada: protege contra abuso, não é uma cota exata.
 - **Limites conhecidos:**
   - Arquivo órfão no R2 (o Worker ser encerrado entre gravar o arquivo e registrar no banco) só seria achado por uma varredura futura.
   - O Office é aceito pela assinatura do formato; o sistema não analisa macros. Por isso o download é sempre anexo.
@@ -365,6 +367,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **PDFs de referência:** são exemplo de conteúdo, não meta visual. A base são as planilhas.
 - **Privacidade:** nomes de pessoas da reunião não entram no projeto; números de WhatsApp são cadastrados por cargo ou equipe; "Interessados" do SEI não são lidos; nomes em andamentos são mascarados.
 - **Histórico:** imutável. Fotos e documentos têm remoção lógica.
+- **Limite de requisições (17/11/2026):** pela ligação de Rate Limiting da Cloudflare (`LIMITE_API`), por prefeitura e pessoa; falha da ligação recusa o pedido.
 
 ## 8. Pendências e próximos passos
 
