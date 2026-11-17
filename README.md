@@ -273,7 +273,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 ### Próximas partes da Fase 3
 
 1. **Usuários (3.3):** tela de usuários e sincronização com um grupo do Access.
-2. **Documentos (3.4):** feita no código (PR #10): envio, download e remoção lógica; falta aplicar a migração 0002 no banco de produção e publicar, com ordem do dono.
+2. **Documentos (3.4):** publicada em produção em 17/11/2026 (PR #10; migração 0002 aplicada): envio, download e remoção lógica.
 3. **Importação de planilhas (3.5):** feita e gravada em produção em 16/11 (334 projetos atualizados, 0 novos).
 4. **SEI automático:** Cron Trigger do Worker para leitura e gravação no D1.
 
@@ -295,7 +295,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
   - Arquivo órfão no R2 (o Worker ser encerrado entre gravar o arquivo e registrar no banco) só seria achado por uma varredura futura.
   - O Office é aceito pela assinatura do formato; o sistema não analisa macros. Por isso o download é sempre anexo.
   - O arquivo inteiro passa pela memória do Worker (até 26 MB por envio). Para volumes maiores, o caminho é o envio direto ao R2.
-- **Para publicar:** primeiro `npx wrangler d1 migrations apply DB_PREFEITURA_5208707 --remote` (migração `0002`), depois a publicação. Só com ordem do dono.
+- **Publicação (17/11/2026):** migração `0002` aplicada no D1 de produção e Worker publicado (versão f5327c05).
 
 ### Importação das planilhas (etapa 3.5)
 
@@ -342,7 +342,6 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 
 | Pendência | Para quê |
 | --- | --- |
-| Autorizar a publicação da etapa 3.4: aplicar a migração `0002_documento_removido_por.sql` no D1 de produção e só depois publicar | Etapa 3.4: sem a migração a remoção de documento falha |
 | Validar o Fluxo com as áreas e com o cliente | Confirmar etapas, dependências e subprocessos |
 | Fornecer o decreto de feriados de Goiânia | Contagem exata dos dias úteis |
 | Configurar conta oficial do WhatsApp Business e aprovar modelos | Envio real de relatórios |
@@ -350,7 +349,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 ### Próximos passos
 
 1. **3.3 — usuários:** criar a tela e sincronizar o cadastro com grupo do Access.
-2. **3.4 — documentos:** código pronto e revisado; falta aplicar a migração 0002 em produção e publicar (ordem do dono).
+2. **3.4 — documentos:** publicada em 17/11/2026.
 3. **3.5 — importação:** feita e gravada em 16/11.
 4. Automatizar a leitura do SEI com Cron Trigger.
 5. Desligar a hospedagem antiga.

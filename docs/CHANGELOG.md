@@ -2,7 +2,7 @@
 
 ## GovNexa — Documentos de projeto (etapa 3.4, Fase 3)
 - 2026-11-16: envio, download e remoção de documentos por projeto, no R2 `DOCUMENTOS` e na tabela `documento`: rotas em `/plataforma/documentos-projeto/` (`enviar/`, `arquivo/<id>/`, `remover/<id>/`, página `projeto/<código>/`), serviço em `src/lib/documentos/` (regras, repositório, serviço). PDF, PNG/JPG/WEBP e Office, até 25 MB; tipo conferido pelo conteúdo; chave do R2 gerada pelo sistema; download sempre como anexo; remoção só lógica.
-- 2026-11-16: migração D1 `0002_documento_removido_por.sql`: coluna `removido_por` e índice único do mesmo conteúdo ativo por projeto. Precisa ser aplicada em produção antes da publicação.
+- 2026-11-16: migração D1 `0002_documento_removido_por.sql`: coluna `removido_por` e índice único do mesmo conteúdo ativo por projeto. Aplicada em produção em 2026-11-17, junto com a publicação da 3.4.
 - 2026-11-16: revisão independente (Opus) reprovou a primeira versão; corrigidos: arquivo lido em fluxo (sem segunda cópia na memória), perfil, origem e tamanho conferidos antes do corpo, limite de 30 envios por hora, corrida entre envios iguais, remoção decidida pelas linhas alteradas, teste de origem rígido. 23 testes novos de lógica e 3 de interface.
 - 2026-11-16: Fluxo: etapa "Cadastro do projeto" ganhou a tela Documentos e a regra de documentos.
 - 2026-11-16: primeira gravação das planilhas em produção pela rotina do repositório de dados: 334 projetos atualizados, 0 novos, 0 pulados.
