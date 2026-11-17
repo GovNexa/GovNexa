@@ -46,8 +46,8 @@ test('acesso pelo Cloudflare Access', async ({page}) => {
  expect(results.violations.filter(v=>['serious','critical'].includes(v.impact||''))).toEqual([]);
 });
 
-test('rodada 4: menu recolhe, expande e persiste',async({page})=>{
- await page.goto('/plataforma/');const toggle=page.locator('#sidebar-toggle');await expect(toggle).toHaveAttribute('aria-expanded','true');await toggle.click();await expect(toggle).toHaveAttribute('aria-expanded','false');await expect(toggle).toHaveAccessibleName('Expandir menu');await expect(page.locator('.sidebar')).toHaveAttribute('data-closed','true');await page.reload();await expect(toggle).toHaveAttribute('aria-expanded','false');await toggle.click();await expect(toggle).toHaveAttribute('aria-expanded','true');await expect(toggle).toHaveAccessibleName('Recolher menu');await page.reload();await expect(toggle).toHaveAttribute('aria-expanded','true');
+test('rodada 4: menu começa recolhido e persiste a expansão',async({page})=>{
+ await page.goto('/plataforma/');const toggle=page.locator('#sidebar-toggle');await expect(toggle).toHaveAttribute('aria-expanded','false');await expect(toggle).toHaveAccessibleName('Expandir menu');await expect(page.locator('.sidebar')).toHaveAttribute('data-closed','true');await toggle.click();await expect(toggle).toHaveAttribute('aria-expanded','true');await expect(toggle).toHaveAccessibleName('Recolher menu');await page.goto('/plataforma/projetos/');await expect(toggle).toHaveAttribute('aria-expanded','true');await toggle.click();await expect(toggle).toHaveAttribute('aria-expanded','false');await page.reload();await expect(toggle).toHaveAttribute('aria-expanded','false');
 });
 test('rodada 4: paginação informa intervalo e avança',async({page})=>{
  await page.goto('/plataforma/processos/');await expect(page.locator('[data-table-range]')).toHaveText('Mostrando 1–10 de 12');const first=await page.locator('[data-row]:visible').first().textContent();await page.getByRole('button',{name:'Próxima',exact:true}).click();await expect(page.locator('[data-table-range]')).toHaveText('Mostrando 11–12 de 12');expect(await page.locator('[data-row]:visible').first().textContent()).not.toBe(first);await expect(page.locator('[data-table]')).toBeFocused();await expect(page.locator('[data-table-next]')).toBeDisabled();
@@ -323,6 +323,7 @@ test('govnexa: sala de guerra incluir e retirar',async({page})=>{
 test('govnexa: tema escolhido se mantém ao trocar de guia',async({page})=>{
  for(const [esquema,escolhido] of [['light','dark'],['dark','light']] as const){
   await page.emulateMedia({colorScheme:esquema});await page.goto('/plataforma/projetos/');
+  const toggle=page.locator('#sidebar-toggle');if(await toggle.getAttribute('aria-expanded')==='false')await toggle.click();
   await page.evaluate(t=>{localStorage.setItem('govnexa-theme',t);document.documentElement.dataset.theme=t},escolhido);
   for(const nome of ['Carteira de projetos','Kanban por macroetapa','Fluxo do sistema','Histórico de alterações','Projetos · Início']){
    await page.locator('.sidebar').getByRole('link',{name:nome,exact:true}).click();await page.waitForLoadState('domcontentloaded');
@@ -542,6 +543,7 @@ test('govnexa: Novo projeto fora do menu, aberto pelo botão',async({page})=>{
 test('govnexa: menu lateral com blocos que abrem e fecham',async({page})=>{
  await page.setViewportSize({width:1280,height:900});
  await page.goto('/plataforma/projetos/');
+ const toggle=page.locator('#sidebar-toggle');if(await toggle.getAttribute('aria-expanded')==='false')await toggle.click();
  const bloco=()=>page.locator('.sidebar button[data-sec^="m:"]',{hasText:/licita/i}).first();
  await expect(bloco()).toHaveAttribute('aria-expanded','false');
  await expect(page.locator('.sidebar button[data-sec="m:Projetos"]')).toHaveAttribute('aria-expanded','true');

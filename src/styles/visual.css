@@ -79,3 +79,82 @@ td button[data-detail]{white-space:nowrap;min-width:max-content}.table-wrap td:l
  .platform.collapsed>.side-module-flyouts .side-module-flyout a svg{width:18px;height:18px;flex-shrink:0}
 }
 @media(max-width:700px){.sidebar.drawer-open[data-closed=true] .side-links{display:block}}
+
+.sidebar-account{position:relative;flex-shrink:0;margin-top:auto;padding-top:.75rem;border-top:1px solid #ffffff50}
+.sidebar-account-expanded{display:grid;gap:.35rem}
+.sidebar-account-identity{display:flex;align-items:center;gap:.65rem;min-width:0;padding:.25rem}
+.sidebar-account-avatar{display:grid;flex:0 0 40px;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--orange-strong);color:#fff;font-size:.8rem;font-weight:700}
+:root[data-theme=dark] .sidebar-account-avatar{background:var(--orange);color:var(--navy)}
+.sidebar-account-meta{display:grid;min-width:0;line-height:1.35}
+.sidebar-account-meta strong{overflow-wrap:anywhere;font-size:.78rem}
+.sidebar-account-meta small{color:#d7e6ed;font-size:.68rem}
+.sidebar-account-links{display:grid;gap:.2rem;margin:0}
+.sidebar .sidebar-account-links a{display:flex;align-items:center;gap:.55rem;width:100%;min-height:44px;margin:0;padding:.45rem .65rem;border:1px solid #ffffff50;border-radius:10px;font-size:.78rem;text-decoration:none}
+.sidebar .sidebar-account-links a svg{width:18px;height:18px;flex-shrink:0}
+.sidebar-account-collapsed{display:none}
+.sidebar-account-trigger{display:grid;place-items:center;width:44px;height:44px;margin:0 auto;border-radius:8px;list-style:none}
+.sidebar-account-trigger::-webkit-details-marker{display:none}
+.sidebar-account-popover{position:absolute;bottom:0;left:calc(100% + .5rem);z-index:70;display:grid;gap:.55rem;width:min(260px,calc(100vw - 120px));max-height:calc(100dvh - 24px);overflow:auto;padding:.8rem;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--text);box-shadow:0 12px 32px #001c2a55}
+.sidebar-account-popover .sidebar-account-meta small{color:var(--muted)}
+.sidebar-account-popover .sidebar-account-links a{border-color:var(--line);color:var(--text)}
+.sidebar-account-collapsed:not([open])>.sidebar-account-popover{display:none}
+.platform.collapsed>.sidebar .sidebar-account-expanded{display:none}
+.platform.collapsed>.sidebar .sidebar-account-collapsed{display:block;position:relative;width:100%}
+.platform.collapsed>.sidebar .sidebar-account-trigger{width:44px;height:44px;min-width:44px;min-height:44px;padding:0}
+.platform.collapsed>.sidebar .sidebar-account-trigger .sidebar-account-avatar{width:40px;height:40px}
+.platform.collapsed>.sidebar .sidebar-account-collapsed[open] .sidebar-account-popover{display:grid}
+@media(max-width:700px){
+ .platform.collapsed>.sidebar .sidebar-account-expanded{display:grid}
+ .platform.collapsed>.sidebar .sidebar-account-collapsed{display:none}
+}
+
+@media(min-width:701px){
+ :root[data-sidebar=recolhido] .platform{grid-template-columns:120px minmax(0,1fr)}
+ :root[data-sidebar=recolhido] .platform>.sidebar{box-sizing:border-box;padding:12px;width:88px;overflow:visible}
+ :root[data-sidebar=recolhido] .platform>.sidebar .logo-card,
+ :root[data-sidebar=recolhido] .platform>.sidebar .side-label,
+ :root[data-sidebar=recolhido] .platform>.sidebar h2,
+ :root[data-sidebar=recolhido] .platform>.sidebar .badge{display:none}
+ :root[data-sidebar=recolhido] .platform>.sidebar .sidebar-top{width:100%;align-items:center;justify-content:center}
+ :root[data-sidebar=recolhido] .platform>.sidebar .side-links{display:none!important}
+ :root[data-sidebar=recolhido] .platform>.sidebar .side-module-rail{display:grid;flex:1;align-content:start;align-items:center;justify-items:center;gap:.5rem;width:100%;margin:0;padding:.5rem 0}
+ :root[data-sidebar=recolhido] .platform>.sidebar .side-module-rail-item{display:grid;place-items:center;width:100%}
+ :root[data-sidebar=recolhido] .platform>.sidebar .side-module-icon{position:relative;display:grid;place-items:center;width:44px;height:44px;padding:0;margin:0 auto;border-radius:8px;font-size:0}
+ :root[data-sidebar=recolhido] .platform>.sidebar .side-module-icon svg{width:22px;height:22px;flex-shrink:0}
+ :root[data-sidebar=recolhido] .platform>.sidebar .side-module-icon[data-current=true]{background:var(--soft);color:var(--navy);font-weight:750}
+ :root[data-theme=dark][data-sidebar=recolhido] .platform>.sidebar .side-module-icon[data-current=true]{color:var(--text)}
+ :root[data-sidebar=recolhido] .platform>.sidebar .side-module-tooltip{position:absolute;left:calc(100% + .55rem);top:50%;z-index:40;display:none;transform:translateY(-50%);padding:.35rem .65rem;border:1px solid var(--line);border-radius:6px;background:var(--text);color:var(--bg);font-size:.8rem;white-space:nowrap;pointer-events:none}
+ :root[data-sidebar=recolhido] .platform>.sidebar .side-module-icon:hover .side-module-tooltip,
+ :root[data-sidebar=recolhido] .platform>.sidebar .side-module-icon:focus .side-module-tooltip{display:block}
+ :root[data-sidebar=recolhido] .platform>.sidebar .sidebar-help{display:grid;place-items:center;padding:0;margin:0 auto!important;flex-shrink:0}
+ :root[data-sidebar=recolhido] .platform>.sidebar .sidebar-help .side-label{display:none}
+ :root[data-sidebar=recolhido] .platform>.sidebar .sidebar-top #sidebar-toggle,
+ :root[data-sidebar=recolhido] .platform>.sidebar .side-module-icon,
+ :root[data-sidebar=recolhido] .platform>.sidebar .sidebar-help{width:44px;height:44px;min-width:44px;min-height:44px;padding:0;margin-inline:auto;box-sizing:border-box;display:grid;place-items:center;justify-self:center}
+ :root[data-sidebar=recolhido] .platform>.sidebar .sidebar-top #sidebar-toggle svg,
+ :root[data-sidebar=recolhido] .platform>.sidebar .side-module-icon svg,
+ :root[data-sidebar=recolhido] .platform>.sidebar .sidebar-help svg{width:22px;height:22px}
+ :root[data-sidebar=recolhido] .platform>.sidebar .side-module-icon[aria-expanded=true] .side-module-tooltip{display:none}
+ :root[data-sidebar=recolhido] .platform>.side-module-flyouts .side-module-flyout{position:fixed;z-index:60;width:min(280px,calc(100vw - 120px));max-height:calc(100vh - 24px);overflow-y:auto;overflow-x:hidden;padding:1rem;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 32px #001c2a55}
+ :root[data-sidebar=recolhido] .platform>.side-module-flyouts .side-module-flyout[hidden]{display:none!important}
+ :root[data-sidebar=recolhido] .platform>.side-module-flyouts .side-module-flyout h2,
+ :root[data-sidebar=recolhido] .platform>.side-module-flyouts .side-module-flyout h3{font-size:.86rem;font-weight:600;letter-spacing:normal;text-transform:none}
+ :root[data-sidebar=recolhido] .platform>.side-module-flyouts .side-module-flyout h2{margin:0 0 .75rem;color:var(--text)}
+ :root[data-sidebar=recolhido] .platform>.side-module-flyouts .side-module-flyout h3{display:flex;align-items:center;gap:.55rem;margin:.75rem 0 .25rem;color:var(--muted)}
+ :root[data-sidebar=recolhido] .platform>.side-module-flyouts .side-module-flyout h3 svg{width:18px;height:18px;flex-shrink:0}
+ :root[data-sidebar=recolhido] .platform>.side-module-flyouts .side-flyout-links{display:grid;gap:.2rem}
+ :root[data-sidebar=recolhido] .platform>.side-module-flyouts .side-module-flyout a{display:flex;align-items:center;gap:.6rem;min-height:38px;margin:0;padding:.45rem .55rem;border:0;border-radius:8px;font-size:.82rem;text-decoration:none}
+ :root[data-sidebar=recolhido] .platform>.side-module-flyouts .side-module-flyout a[data-atual=true]{background:#FFF1EC;color:#002E47;border-left:3px solid #F36E22}
+ :root[data-sidebar=recolhido] .platform>.side-module-flyouts .side-module-flyout a svg{width:18px;height:18px;flex-shrink:0}
+ :root[data-sidebar=recolhido] .platform>.sidebar .sidebar-account-expanded{display:none}
+ :root[data-sidebar=recolhido] .platform>.sidebar .sidebar-account-collapsed{display:block;position:relative;width:100%}
+ :root[data-sidebar=recolhido] .platform>.sidebar .sidebar-account-trigger{width:44px;height:44px;min-width:44px;min-height:44px;padding:0}
+ :root[data-sidebar=recolhido] .platform>.sidebar .sidebar-account-trigger .sidebar-account-avatar{width:40px;height:40px}
+ :root[data-sidebar=recolhido] .platform>.sidebar .sidebar-account-collapsed[open] .sidebar-account-popover{display:grid}
+}
+@media(min-width:1050px){
+ :root[data-sidebar=recolhido] .platform>.sidebar{width:88px}
+}
+@media(min-width:701px){
+ :root[data-sidebar=recolhido] .platform .side-sec-corpo[hidden]{display:block!important}
+}

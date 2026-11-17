@@ -8,6 +8,7 @@ const semRolagem=(page:import('@playwright/test').Page)=>page.evaluate(()=>docum
 test('fluxo: zoom começa em 100%, aumenta, diminui, ajusta e é lembrado',async({page})=>{
  await page.setViewportSize({width:1600,height:900});
  await page.goto(TELA);
+ const toggle=page.locator('#sidebar-toggle');if(await toggle.getAttribute('aria-expanded')==='false')await toggle.click();
  const valor=page.locator('[data-fx-zoom-valor]');
  await expect(valor).toHaveText('100%');
  expect(await larguraSvg(page)).toBe(1000);
@@ -67,7 +68,7 @@ test('fluxo: legenda e fluxos detalhados começam recolhidos e abrem com um cliq
 test('fluxo: zoom alto rola dentro do quadro; preferência adulterada é ignorada; impressão abre as seções',async({page})=>{
  await page.setViewportSize({width:1280,height:900});
  await page.goto(TELA);
- await page.evaluate(()=>localStorage.setItem('govnexa-fluxo-zoom','0.3'));
+ await page.evaluate(()=>{localStorage.setItem('govnexa-fluxo-zoom','0.3');localStorage.setItem('govnexa-sidebar','false')});
  await page.reload();
  const caixa=await page.locator('[data-fx-quadro]').evaluate(e=>e.clientWidth);
  expect(Math.abs(await larguraSvg(page)-caixa)).toBeLessThanOrEqual(1); // valor inválido: volta ao padrão (ajustar, pois o quadro tem menos de 1000 px)

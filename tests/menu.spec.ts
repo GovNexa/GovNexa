@@ -9,9 +9,64 @@ const modulos = [
   { nome: 'Conta' },
 ];
 
+test('primeira visita começa recolhida e a preferência expandida persiste nas páginas', async ({ page }) => {
+  for (const width of [1280, 1920]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/plataforma/');
+    const toggle = page.locator('#sidebar-toggle');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(toggle).toHaveAccessibleName('Expandir menu');
+    await expect(page.locator('.platform')).toHaveClass(/collapsed/);
+    await expect(page.locator('.sidebar')).toHaveAttribute('data-closed', 'true');
+
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.locator('.platform')).not.toHaveClass(/collapsed/);
+    await page.goto('/plataforma/projetos-carteira/');
+    await expect(page.locator('#sidebar-toggle')).toHaveAttribute('aria-expanded', 'true');
+    await page.evaluate(() => localStorage.removeItem('govnexa-sidebar'));
+  }
+});
+
+test('rodapé do menu mostra usuário, perfil e saída sem expor o e-mail', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/plataforma/');
+
+  const account = page.locator('.sidebar-account');
+  const avatar = account.locator('.sidebar-account-trigger');
+  await expect(avatar).toBeVisible();
+  await expect(avatar.locator('.sidebar-account-avatar')).toHaveText('AL');
+  await avatar.click();
+  const popover = account.locator('.sidebar-account-popover');
+  await expect(popover).toContainText('Administrador local');
+  await expect(popover).toContainText('Administrador');
+  await expect(popover.getByRole('link', { name: 'Meu perfil' })).toHaveAttribute('href', '/plataforma/perfil/');
+  await expect(popover.getByRole('link', { name: 'Sair' })).toHaveAttribute('href', '/sair');
+
+  const centers = await Promise.all([
+    page.locator('#sidebar-toggle'),
+    ...await page.locator('.side-module-icon').all(),
+    avatar,
+    page.locator('.sidebar-help'),
+  ].map((element) => element.evaluate((node) => {
+    const rect = node.getBoundingClientRect();
+    return rect.left + rect.width / 2;
+  })));
+  expect(Math.max(...centers) - Math.min(...centers)).toBeLessThanOrEqual(1);
+
+  await page.locator('#sidebar-toggle').click();
+  const expandedAccount = page.locator('.sidebar-account-expanded');
+  await expect(expandedAccount).toContainText('Administrador local');
+  await expect(expandedAccount).toContainText('Administrador');
+  await expect(page.locator('.app-user .avatar')).toHaveText('AL');
+  await expect(page.locator('.app-user .user-name')).toHaveText('Administrador local');
+  await expect(page.locator('body')).not.toContainText('dev@exemplo.invalid');
+});
+
 test('menu aberto apresenta ícones e tipografia uniforme nos módulos e grupos', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/plataforma/');
+  await page.locator('#sidebar-toggle').click();
 
   const headers = page.locator('.sidebar button[data-sec]');
   const headerCount = await headers.count();
@@ -39,7 +94,6 @@ test('menu aberto apresenta ícones e tipografia uniforme nos módulos e grupos'
 test('menu recolhido mostra flyouts acessíveis com todos os links e fecha com Escape', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/plataforma/projetos-carteira/');
-  await page.locator('#sidebar-toggle').click();
 
   const rail = page.locator('#side-module-rail');
   await expect(rail).toBeVisible();
@@ -83,6 +137,7 @@ test('menu recolhido mostra flyouts acessíveis com todos os links e fecha com E
 test('rail recolhido alinha os botões e a sanfona mantém apenas o contexto atual aberto', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/plataforma/projetos-carteira/');
+  await page.locator('#sidebar-toggle').click();
   const moduleHeaders = page.locator('.side-links button[data-sec^="m:"]');
   for (const header of await moduleHeaders.all()) {
     const expected = (await header.getAttribute('data-module-id')) === 'projetos' ? 'true' : 'false';
@@ -122,6 +177,10 @@ test('menu não causa rolagem horizontal e passa no axe nos dois temas', async (
   for (const width of [1280, 390]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/plataforma/');
+    if (width === 390) {
+      await page.locator('#drawer-toggle').click();
+      await expect(page.locator('#drawer-toggle')).toHaveAttribute('aria-expanded', 'true');
+    }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
 
     for (const theme of ['light', 'dark']) {
@@ -161,7 +220,6 @@ test('menu não causa rolagem horizontal e passa no axe nos dois temas', async (
 test('ícone do módulo atual mantém contraste no menu recolhido nos dois temas', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/plataforma/projetos-carteira/');
-  await page.locator('#sidebar-toggle').click();
 
   const currentButton = page.locator('.side-module-icon[data-current=true]');
   await expect(currentButton).toHaveCount(1);
@@ -189,7 +247,6 @@ test('ícone do módulo atual mantém contraste no menu recolhido nos dois temas
 test('flyout de Licitações cabe na viewport e permite rolar até o último link', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/plataforma/processos/');
-  await page.locator('#sidebar-toggle').click();
 
   const button = page.getByRole('button', { name: 'Módulo Licitações' });
   await button.click();

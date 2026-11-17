@@ -11,6 +11,18 @@ const avisoDados = fonteCarteira.ficticio
   ? 'Ambiente de homologação · dados de exemplo · nada é gravado.'
   : 'Dados do banco da prefeitura';
 const { title, slug } = Astro.props;
+const usuario = Astro.locals.usuario;
+const userName = usuario?.nome?.trim() || 'Usuário';
+const userInitials = usuario?.nome?.trim()
+  ? usuario.nome.trim().split(/\s+/).slice(0, 2).map((parte) => Array.from(parte)[0]?.toLocaleUpperCase('pt-BR') || '').join('')
+  : '';
+const perfilLabels: Record<string, string> = {
+  admin: 'Administrador',
+  gestor: 'Gestor',
+  editor: 'Editor',
+  leitura: 'Leitura',
+};
+const userRole = usuario?.cargo?.trim() || perfilLabels[usuario?.perfil || ''] || 'Perfil não informado';
 const menuIcons: Record<string, string> = {
   '': 'layout-grid',
   processos: 'briefcase',
@@ -95,12 +107,12 @@ const menu = menuPorModulo(catalogoCompleto(modules)).map((mod) => {
 });
 const muni = municipioAtivo();
 ---
-<Base platform title={title} description={`Explore ${title} com dados fictícios de ${muni.nome}.`}>
+<Base platform title={title} description={`Explore ${title} com dados fictícios de ${muni.nome}.`} userName={userName} userInitials={userInitials} userRole={userRole}>
   <div class="platform">
-    <aside id="platform-drawer" class="sidebar" transition:persist="sidebar" aria-label="Módulos da plataforma">
+    <aside id="platform-drawer" class="sidebar" data-closed="true" transition:persist="sidebar" aria-label="Módulos da plataforma">
       <div class="sidebar-top">
         <img class="logo-card" src={muni.logo} alt={muni.logoAlt} width="164" height="55" />
-        <button id="sidebar-toggle" aria-label="Recolher menu" aria-expanded="true" aria-controls="side-links side-module-rail">
+        <button id="sidebar-toggle" aria-label="Expandir menu" aria-expanded="false" aria-controls="side-links side-module-rail">
           <Icon name="menu" />
         </button>
       </div>
@@ -182,6 +194,45 @@ const muni = municipioAtivo();
           );
         })}
       </div>
+      <div class="sidebar-account">
+        <div class="sidebar-account-expanded">
+          <div class="sidebar-account-identity">
+            <span class="sidebar-account-avatar">
+              {userInitials ? userInitials : <Icon name="user" size={20} />}
+            </span>
+            <span class="sidebar-account-meta">
+              <strong>{userName}</strong>
+              <small>{userRole}</small>
+            </span>
+          </div>
+          <nav class="sidebar-account-links" aria-label="Conta do usuário">
+            <a href="/plataforma/perfil/" aria-label="Meu perfil"><Icon name="user" />Meu perfil</a>
+            <a href="/sair" aria-label="Sair"><Icon name="log-out" />Sair</a>
+          </nav>
+        </div>
+        <details class="sidebar-account-collapsed">
+          <summary class="sidebar-account-trigger" aria-label={`Abrir opções de ${userName}`} title={userName}>
+            <span class="sidebar-account-avatar">
+              {userInitials ? userInitials : <Icon name="user" size={20} />}
+            </span>
+          </summary>
+          <div class="sidebar-account-popover">
+            <div class="sidebar-account-identity">
+              <span class="sidebar-account-avatar">
+                {userInitials ? userInitials : <Icon name="user" size={20} />}
+              </span>
+              <span class="sidebar-account-meta">
+                <strong>{userName}</strong>
+                <small>{userRole}</small>
+              </span>
+            </div>
+            <nav class="sidebar-account-links" aria-label="Conta do usuário">
+              <a href="/plataforma/perfil/" aria-label="Meu perfil"><Icon name="user" />Meu perfil</a>
+              <a href="/sair" aria-label="Sair"><Icon name="log-out" />Sair</a>
+            </nav>
+          </div>
+        </details>
+      </div>
       <a class="sidebar-help" aria-label="Precisa de ajuda? Fale com o suporte" title="Precisa de ajuda? Fale com o suporte" href="/sobre/#contato">
         <Icon name="help" />
         <span class="side-label">Precisa de ajuda?<small>Fale com o suporte</small></span>
@@ -225,6 +276,23 @@ const muni = municipioAtivo();
     <form method="dialog"><button><Icon name="x" size={16} />Fechar</button></form>
   </dialog>
 </Base>
+<script is:inline>
+(() => {
+  if (window.__sidebarVisualSync) return;
+  window.__sidebarVisualSync = true;
+  const aplicar = (doc = document) => {
+    const recolhido = doc.documentElement.dataset.sidebar !== 'aberto';
+    doc.querySelector('.platform')?.classList.toggle('collapsed', recolhido);
+    doc.querySelector('.sidebar')?.setAttribute('data-closed', String(recolhido));
+  };
+  aplicar();
+  const observer = new MutationObserver(() => aplicar());
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-sidebar'] });
+  document.addEventListener('astro:before-swap', (event) => aplicar(event.newDocument));
+  document.addEventListener('astro:after-swap', () => aplicar());
+  document.addEventListener('astro:page-load', () => aplicar());
+})();
+</script>
 <script>
 document.addEventListener('astro:page-load',()=>{
 
@@ -318,9 +386,7 @@ function closeDrawer(){sidebar.classList.remove('drawer-open');drawer.setAttribu
 drawer.onclick=()=>{const open=drawer.getAttribute('aria-expanded')==='true';closeDrawer();if(!open){sidebar.classList.add('drawer-open');drawer.setAttribute('aria-expanded','true');sidebar.querySelector<HTMLElement>('button,a')?.focus();}};
 document.addEventListener('keydown',e=>{if(drawer.getAttribute('aria-expanded')!=='true')return;if(e.key==='Escape'){closeDrawer();drawer.focus();}if(e.key==='Tab'){const nodes=[drawer,...sidebar.querySelectorAll<HTMLElement>('button,a')].filter(n=>n.getClientRects().length);const i=nodes.indexOf(document.activeElement as HTMLElement);e.preventDefault();nodes[(i+(e.shiftKey?-1:1)+nodes.length)%nodes.length].focus();}},{signal:lifecycle.signal});
 const query=new URLSearchParams(location.search).get('q');const search=document.querySelector<HTMLInputElement>('[data-table-search]');if(query&&search){search.value=query;requestAnimationFrame(()=>search.dispatchEvent(new Event('input')));}
-const b=document.querySelector<HTMLButtonElement>('#sidebar-toggle')!;b.onclick=()=>{const closed=b.getAttribute('aria-expanded')==='true';b.setAttribute('aria-expanded',String(!closed));b.setAttribute('aria-label',closed?'Expandir menu':'Recolher menu');try{localStorage.setItem('govnexa-sidebar',String(closed))}catch{};document.querySelector('.sidebar')?.setAttribute('data-closed',String(closed));document.querySelector('.platform')?.classList.toggle('collapsed',closed)};
-document.querySelector('.platform')?.classList.toggle('collapsed',b.getAttribute('aria-expanded')==='false');
-try{if(localStorage.getItem('govnexa-sidebar')==='true'&&b.getAttribute('aria-expanded')==='true')b.click()}catch{};
+const b=document.querySelector<HTMLButtonElement>('#sidebar-toggle')!;const sincronizarSidebar=()=>{const recolhido=document.documentElement.dataset.sidebar!=='aberto';b.setAttribute('aria-expanded',String(!recolhido));b.setAttribute('aria-label',recolhido?'Expandir menu':'Recolher menu')};sincronizarSidebar();document.addEventListener('astro:after-swap',sincronizarSidebar,{signal:lifecycle.signal});b.onclick=()=>{const recolhido=document.documentElement.dataset.sidebar!=='aberto';document.documentElement.dataset.sidebar=recolhido?'aberto':'recolhido';sincronizarSidebar();try{localStorage.setItem('govnexa-sidebar',String(!recolhido))}catch{}};
 let timer:ReturnType<typeof setTimeout>;document.addEventListener('astro:before-swap',()=>clearTimeout(timer),{once:true});document.addEventListener('click',e=>{const target=e.target as HTMLElement;if(target.closest('[data-prototype]')){const toast=document.querySelector<HTMLElement>('#toast')!;toast.textContent='protótipo: nada é gravado';toast.hidden=false;clearTimeout(timer);timer=setTimeout(()=>toast.hidden=true,3000);}const detail=target.closest('[data-detail]');if(detail){const row=detail.closest<HTMLElement>('[data-row]')!;const vals:Array<string|number>=JSON.parse(row.dataset.values!);const heads=[...row.closest('table')!.querySelectorAll('thead th')];const body=document.querySelector('#record-body')!;body.replaceChildren();const det=row.dataset.detalhe?JSON.parse(row.dataset.detalhe):null;if(det){const h=document.createElement('h3');h.textContent=det.titulo;body.append(h);for(const s of det.secoes){const t=document.createElement('h4');t.textContent=s.titulo;body.append(t);if(s.texto){const q=document.createElement('p');q.textContent=s.texto;body.append(q)}if(s.itens){const ul=document.createElement('ul');for(const it of s.itens){const li=document.createElement('li');li.textContent=it;ul.append(li)}body.append(ul)}}const lks=[...(det.links??[]),...(det.link?[det.link]:[])].filter((l:{url:string})=>String(l.url).startsWith("https://")||/^\/plataforma\/[a-z0-9\/_-]*(\?[a-z0-9=&_.-]*)?$/i.test(String(l.url)));if(lks.length){const ul=document.createElement('ul');for(const l of lks){const li=document.createElement('li');const a=document.createElement('a');a.href=l.url;a.textContent=l.rotulo;if(String(l.url).startsWith("https://")){a.target='_blank';a.rel='noopener noreferrer';}li.append(a);ul.append(li)}body.append(ul)}document.querySelector<HTMLDialogElement>('#record-dialog')!.showModal();return;}vals.forEach((v,i)=>{const p=document.createElement('p');p.textContent=`${heads[i].textContent?.replace(' ↕','')}: ${v}`;body.append(p)});document.querySelector<HTMLDialogElement>('#record-dialog')!.showModal();}},{signal:lifecycle.signal});
 document.querySelectorAll<HTMLFormElement>('[data-prototype-form]').forEach(f=>f.addEventListener('submit',e=>{e.preventDefault();document.querySelector<HTMLElement>('#toast')!.textContent='protótipo: nada é gravado';document.querySelector<HTMLElement>('#toast')!.hidden=false;clearTimeout(timer);timer=setTimeout(()=>{const toast=document.querySelector<HTMLElement>('#toast');if(toast)toast.hidden=true},3000)}));
 

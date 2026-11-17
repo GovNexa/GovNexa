@@ -126,6 +126,7 @@ São módulos independentes que conversam entre si:
 | Data | O que | Referência |
 | --- | --- | --- |
 | 16/11 | Etapa 3.5: importação das planilhas (rotina, regras de segurança dos dados, avisos e testes) | PR #9 |
+| 16/11 | Menu lateral com ícones por item, tipografia única, início recolhido, lista flutuante de itens, sanfona e usuário no rodapé | Plataforma |
 | 16/11 | Otimização publicada (versão 2e1114fa); repositório privado de dados conferido | PR #7 |
 | 16/11 | Leitura do banco otimizada: só a guia aberta é montada e cache de 30 s (páginas de ~400 ms para ~20 ms) | PR #6 |
 | 16/11 | Plano e histórico completos trazidos para o repositório novo; repositório antigo congelado | PR #5 |
@@ -138,6 +139,12 @@ O detalhe das entregas está em [docs/CHANGELOG.md](docs/CHANGELOG.md).
 ## 3. Funcionalidades por guia
 
 Legenda: **Disponível** = leitura ou operação disponível. **Simulação** = as regras rodam, mas a gravação real ainda será ligada nas próximas partes da etapa 3. **Demonstrativo** = protótipo com dados fictícios.
+
+### Navegação da plataforma
+
+| Funcionalidade | O que oferece | Situação | Código |
+| --- | --- | --- | --- |
+| Menu lateral | Ícones por item e tipografia única; começa recolhido com ícones dos módulos e abre uma lista flutuante com todos os itens; blocos em sanfona e identificação do usuário logado, com iniciais e nome, no rodapé | Disponível | `src/layouts/Platform.astro`, `src/components/Icon.astro`, `src/styles/` |
 
 ### Projetos
 
