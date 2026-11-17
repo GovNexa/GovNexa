@@ -50,6 +50,15 @@ export function comInvalidacao(repo: RepositorioProjetos, prefeituraId: number):
         invalidarCache(prefeituraId);
       }
     },
+    ...(repo.definirLocalizacao ? {
+      definirLocalizacao: async (projetoId, decidir, autor) => {
+        try {
+          return await repo.definirLocalizacao!(projetoId, decidir, autor);
+        } finally {
+          invalidarCache(prefeituraId);
+        }
+      },
+    } : {}),
     aplicar: async (evento) => {
       try {
         return await repo.aplicar(evento);

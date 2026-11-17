@@ -69,6 +69,12 @@ test('wrangler.jsonc: ligação LIMITE_API com o mesmo limite e período do cód
   assert.match(String(l.namespace_id), /^[1-9][0-9]*$/);
   assert.deepEqual(l.simple, { limit: LIMITE_POR_MINUTO, period: JANELA_MS / 1000 });
 });
+test('rota da localização: origem, perfil e limite antes do tamanho e de qualquer leitura do corpo', () => {
+  const t = readFileSync('src/pages/plataforma/projeto/localizacao/[id].ts', 'utf8');
+  const origem = t.indexOf('mesmaOrigem(request)'), perfil = t.indexOf('podeEditarLocalizacao(contexto)'), tamanho = t.indexOf("get('content-length')");
+  const limite = t.indexOf('dentroDoLimite('), descarte = t.indexOf('await descartar(request)'), corpo = t.indexOf('request.text()');
+  assert.ok(origem > 0 && perfil > origem && limite > perfil && tamanho > limite && descarte > limite && corpo > tamanho);
+});
 test('rotas de documentos: limite conferido depois do perfil e antes de ler o corpo', () => {
   const rotas = ['src/pages/plataforma/documentos-projeto/enviar.ts', 'src/pages/plataforma/documentos-projeto/remover/[id].ts', 'src/pages/plataforma/documentos-projeto/classificar/[id].ts'];
   for (const arq of rotas) {

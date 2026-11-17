@@ -25,6 +25,16 @@ export interface RepositorioProjetos {
   /** Cadastra um projeto novo na macroetapa 00 (grava só com o banco configurado). */
   criarProjeto(dados: Partial<Projeto> & { nome: string; orgao: string }, autor: string): Promise<ResultadoCriacaoProjeto>;
   listarCronogramas(): Promise<Cronograma[]>;
+  /**
+   * Grava a localização e o evento de histórico juntos (só no D1). `decidir` recebe a localização que está no banco e devolve
+   * o novo valor com a frase do histórico, ou null se nada muda. A gravação só vale se o projeto não mudou desde essa leitura.
+   * 'inexistente' = projeto não é desta prefeitura; 'igual' = nada a gravar; 'conflito' = outra pessoa alterou o projeto no meio.
+   */
+  definirLocalizacao?(
+    projetoId: string,
+    decidir: (atual: unknown) => { valor: import('../mapa/tipos.ts').Localizacao; descricao: string } | null,
+    autor: string,
+  ): Promise<'ok' | 'igual' | 'inexistente' | 'conflito'>;
   /** Documentos de projeto (só no D1; ausente nos demais repositórios). */
   documentos?: import('../documentos/repositorio.ts').RepositorioDocumentos;
 }

@@ -22,7 +22,7 @@ const r = MENSAGENS[Astro.url.searchParams.get('r') ?? ''];
 const tam = (n: number) => (n >= 1048576 ? `${(n / 1048576).toFixed(1).replace('.', ',')} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 ---
 <Platform title="Documentos do projeto" slug="projetos-carteira">
-  <p slot="contexto" class="muted doc-contexto"><a href="/plataforma/documentos-projeto/">← Escolher outro projeto</a> · {projeto.id} · {projeto.nome}</p>
+  <p slot="contexto" class="muted doc-contexto"><a href="/plataforma/documentos-projeto/">← Escolher outro projeto</a> · <a href={`/plataforma/projeto/${encodeURIComponent(projeto.id)}/`}>{projeto.id} · {projeto.nome}</a></p>
   <div class="section-head"><div>
     <h1>Documentos do projeto</h1>
   </div></div>

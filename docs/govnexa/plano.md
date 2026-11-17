@@ -37,7 +37,9 @@ Percentuais mantidos até homologação do login próprio; Access continua padr�
 
 | Data | Entrega | PR |
 | --- | --- | --- |
-| 17/11 | Entrega 1.1: tipo do documento (DFD, ETP e TR de sistema; outros ativáveis por prefeitura) no envio e na lista; troca registrada no Histórico; migração 0003 | novo PR |
+| 17/11 | Entrega B1: página do projeto e localização gravando no banco, com registro no Histórico; migração 0004 (índices do histórico por projeto) | novo PR |
+| 17/11 | Projeto do banco de dados aprovado (`docs/govnexa/projeto-banco.md`): princípios para toda entrega com dados e roteiro B1 a B8 na ordem do Fluxo | GovNexa #28 |
+| 17/11 | Entrega 1.1: tipo do documento (DFD, ETP e TR de sistema; outros ativáveis por prefeitura) no envio e na lista; troca registrada no Histórico; migração 0003 | GovNexa #27, publicada |
 | 17/11 | Entrega 1.0: limite de 30 ações por minuto por pessoa e prefeitura nos documentos (Rate Limiting da Cloudflare; falha recusa) | PR #15, publicada |
 | 17/11 | Site público: logo provisória no cabeçalho, menu do topo enxuto e mapa de cidade como marca-d'água da página inicial | novo PR |
 | 17/11 | Página inicial nova do site público (gestão de projetos públicos, ciclo por rolagem, módulos e entrada da plataforma) | novo PR |

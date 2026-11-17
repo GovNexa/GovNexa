@@ -127,7 +127,9 @@ São módulos independentes que conversam entre si:
 
 | Data | O que | Referência |
 | --- | --- | --- |
-| 17/11 | Entrega 1.1: tipo do documento (DFD, ETP, TR) no envio e na lista, com registro no Histórico; migração 0003 (ainda não aplicada em produção) | novo PR |
+| 17/11 | Entrega B1: página do projeto (todas as informações num só endereço) e localização gravando no banco; migração 0004 (ainda não aplicada em produção) | novo PR |
+| 17/11 | Projeto do banco de dados aprovado: princípios e roteiro B1 a B8, na ordem do Fluxo (`docs/govnexa/projeto-banco.md`) | PR #28 |
+| 17/11 | Entrega 1.1: tipo do documento (DFD, ETP, TR) no envio e na lista, com registro no Histórico; migração 0003 aplicada | PR #27, publicada em 17/11 |
 | 17/11 | Entrega 1.0: limite de 30 ações por minuto por pessoa nos documentos (Rate Limiting da Cloudflare) | PR #15, publicada em 17/11 |
 | 17/11 | Site público: logo do GovNexa no cabeçalho (versão provisória), menu do topo só com "Acessar plataforma" e "Solicitar demonstração", e marca-d'água em forma de mapa de cidade na página inicial | novo PR |
 | 17/11 | Página inicial nova do site público: apresenta o GovNexa como gestão de projetos públicos, com o ciclo do projeto por rolagem, módulos e entrada da plataforma (animações com GSAP, empacotado no próprio site) | novo PR |
@@ -182,7 +184,8 @@ O tema claro usa menu lateral branco, texto e ícones azul-escuros, destaques az
 | Fluxo do sistema | Diagrama em raias com etapas, validações, responsáveis e links para as telas; inclui fluxos detalhados e zoom | Disponível | `src/lib/govnexa/fluxo.ts`, `subfluxos.ts`, `src/components/fluxo/` |
 | Novo projeto | Cadastro com os campos da planilha | Simulação | `src/components/carteira/NovoProjeto.astro` |
 | Carteira de projetos | Projetos, busca e ficha completa com valores, recursos, datas e histórico | Disponível | `src/lib/carteira/` |
-| Localização e fotos | Ponto ou trecho da obra no mapa e lista de obras sem localização | Localização em simulação; fotos dependem de documentos | `src/lib/mapa/`, `src/components/mapa/` |
+| Página do projeto | Tudo de um projeto num só endereço: resumo, valores e recursos, datas, localização, documentos, cronograma e histórico | Disponível no código (entrega B1); publicação depende de ordem do dono | `src/pages/plataforma/projeto/[id].astro` |
+| Localização e fotos | Ponto ou trecho da obra no mapa e lista de obras sem localização | Localização grava no banco e entra no Histórico (entrega B1; publicação depende de ordem do dono); fotos numa próxima entrega | `src/lib/mapa/`, `src/components/mapa/`, `src/pages/plataforma/projeto/localizacao/` |
 | Kanban por macroetapa | Colunas com quantidade e valor; mover com portões e motivo | Simulação | `src/components/carteira/Kanban.astro`, `src/lib/carteira/movimentacao.ts` |
 | Gantt geral | Linha do tempo prevista por macroetapa | Disponível | `src/components/carteira/Gantt.astro` |
 | Visão por órgão | Obras por órgão e macroetapa; pronta para imprimir | Disponível | `src/components/carteira/VisaoOrgaos.astro` |
@@ -286,7 +289,8 @@ Os pedidos vêm dos áudios do dono, da reunião com a equipe e das planilhas.
 O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pelo Worker. Na prática:
 - **Leitura real no D1:** carteira, cronogramas e histórico da carga inicial.
 - **Captação:** leitura de dados públicos.
-- **Ainda é simulação:** cadastro, Kanban, pendências, reunião, sala de guerra, SEI na interface e WhatsApp. Essas partes passam a gravar de verdade nas próximas entregas da etapa 3.
+- **Gravam de verdade:** documentos do projeto e, a partir da entrega B1, a localização da obra.
+- **Ainda é simulação:** cadastro, Kanban, pendências, reunião, sala de guerra, SEI na interface e WhatsApp. Essas partes passam a gravar de verdade pelo roteiro B2 a B8 de `docs/govnexa/projeto-banco.md`.
 - A plataforma lê o D1 em produção desde 16/11/2026. A leitura foi otimizada (só a guia aberta é montada e a leitura do banco fica em cache de 30 s); a otimização foi publicada em 16/11/2026 às 19h35 (versão 2e1114fa do Worker).
 - Acesso à plataforma exige sessão do login próprio (senha + verificação em 2 etapas) e cadastro ativo no banco central. A prefeitura não é escolhida pela URL.
 
@@ -384,6 +388,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Exigências por etapa (17/11/2026, D2):** começam por DFD, ETP e TR, com lista de tipos configurável por prefeitura.
 - **Cabeçalho do site e logo (17/11/2026):** a logo do GovNexa (G em seta com alvo, azul-marinho e laranja) é provisória; a versão final será feita depois. A logo da Prefeitura de Goiânia continua no topo, porque a demonstração é para ela. O topo não lista mais Início, Soluções, Insights e Sobre; essas páginas continuam no rodapé.
 - **Página inicial (17/11/2026):** apresenta o GovNexa como gestão de projetos públicos; não lista as fontes de dados nem a forma de leitura dos processos; o título dos módulos não traz número.
+- **Banco de dados (17/11/2026):** toda entrega que crie ou use dados segue `docs/govnexa/projeto-banco.md`: estudar e projetar antes de criar; um só caminho de gravação (tela, rota, serviço, repositório, banco); integridade garantida pelo banco; histórico junto com a gravação; e a ordem das entregas segue o Fluxo (B1 a B8).
 - **Animações do site (17/11/2026):** biblioteca `gsap` 3.13.0, empacotada no próprio site. A licença é a padrão da GSAP, gratuita para uso comercial, mas não é de código aberto.
 
 ## 8. Pendências e próximos passos
@@ -400,7 +405,8 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 
 1. **3.3 — usuários e login:** revisar as correções de segurança da ordem 3, executar `npx playwright test --project=login`, homologar os dois temas e configurar e-mail/segredos. Publicação, migração central e troca de modo ficam com o responsável; Access continua padrão.
 2. **3.4 — documentos:** publicada em 17/11/2026.
-   Entrega 1.0 (limite de requisições) publicada em 17/11/2026. Entrega 1.1 (tipo do documento) feita no código; a migração 0003 depende de ordem do dono para ir a produção.
+   Entregas 1.0 (limite de requisições) e 1.1 (tipo do documento, migração 0003) publicadas em 17/11/2026.
+   Entrega B1 (página do projeto e localização) feita no código; a migração 0004 e a publicação dependem de ordem do dono. Em seguida: B2 (Novo projeto gravando e edição na página do projeto) e B3 (Kanban e Pendências de etapa).
 3. **3.5 — importação:** feita e gravada em 16/11.
 4. Automatizar a leitura do SEI com Cron Trigger.
 5. Desligar a hospedagem antiga.
@@ -541,6 +547,7 @@ Ordem de leitura: README, [plano](docs/govnexa/plano.md), [histórico](docs/govn
 | [docs/govnexa/historico.md](docs/govnexa/historico.md) | **Histórico completo**: linha do tempo, evolução dos %, regras do dono, testes do SEI, o que vem a seguir, lições técnicas e todos os PRs |
 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | Histórico de mudanças |
 | [docs/govnexa/visao-geral.md](docs/govnexa/visao-geral.md) | Módulos, macroetapas, roteiro e regras de código |
+| [docs/govnexa/projeto-banco.md](docs/govnexa/projeto-banco.md) | **Projeto do banco de dados**: diagnóstico, princípios, modelo e roteiro B1 a B8 |
 | [docs/govnexa/modelo-dados.md](docs/govnexa/modelo-dados.md) | Modelo de dados; seção D1 descreve os bancos atuais |
 | [docs/arquitetura.md](docs/arquitetura.md) | Arquitetura do site, Worker, plataforma e D1 |
 | [docs/plano-execucao.md](docs/plano-execucao.md) | Plano e decisões do bloco Captação |

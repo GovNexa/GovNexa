@@ -3,13 +3,15 @@ import '../../styles/carteira.css';
 import '../../styles/mapa.css';
 import EditorLocalizacao from './EditorLocalizacao.astro';
 import { carregarCarteira } from '../../lib/carteira/carga.ts';
-import { AVISO_SIMULACAO } from '../../lib/carteira/simulacao.ts';
+import { usuarioPode } from '../../lib/usuarios/index.ts';
 import { validarLocalizacao } from '../../lib/mapa/geo.ts';
 import { carregarGeoBairros } from '../../lib/mapa/obras.ts';
 import { obrasSemLocalizacao } from '../../lib/mapa/pendentes.ts';
 import type { PontoGeo } from '../../lib/mapa/tipos.ts';
 
 const carteira = carregarCarteira();
+// Grava de verdade (entrega B1): só quem pode editar projeto vê o botão; a rota confere de novo.
+const podeSalvar = usuarioPode(Astro.locals.usuario, 'editar_projeto') && !!Astro.locals.repositorio?.definirLocalizacao;
 const projetos = carteira.projetos;
 const geoBairros = carregarGeoBairros();
 const pendentes = obrasSemLocalizacao(carteira, geoBairros);
@@ -29,7 +31,7 @@ const lista = projetos.map((p) => ({
 const dados = JSON.stringify({ projetos: lista }).replaceAll('<', '\\u003c');
 ---
 <div data-localizacao-projeto>
-  <p class="cart-aviso" role="note">{AVISO_SIMULACAO}</p>
+  {!podeSalvar && <p class="cart-aviso" role="note">Seu perfil permite ver a localização, mas não alterar.</p>}
 
   <div class="mp-busca">
     <label for="lp-projeto">Projeto (digite o código ou parte do nome)
@@ -47,13 +49,14 @@ const dados = JSON.stringify({ projetos: lista }).replaceAll('<', '\\u003c');
       <p data-lp-orgao></p>
       <p data-lp-bairro></p>
       <p data-lp-precisao></p>
+      <p><a data-lp-pagina href="/plataforma/projetos-carteira/">Abrir a página do projeto</a></p>
     </div>
 
     <EditorLocalizacao idPrefixo="lp-loc" bairros={nomesBairros} geo={geo} />
 
-    <div class="actions">
-      <button type="button" class="primary" data-lp-salvar>Salvar localização (simulação)</button>
-    </div>
+    {podeSalvar && <div class="actions">
+      <button type="button" class="primary" data-lp-salvar>Salvar localização</button>
+    </div>}
     <div class="mp-ok" role="status" data-lp-ok hidden>
       <p data-lp-ok-texto></p>
       <p><a href="/plataforma/gestao/#mapa">Ver no mapa do painel</a></p>
@@ -61,7 +64,7 @@ const dados = JSON.stringify({ projetos: lista }).replaceAll('<', '\\u003c');
 
     <section class="mp-fotos" aria-labelledby="lp-fotos-titulo">
       <h2 id="lp-fotos-titulo">Fotos</h2>
-      <p>O envio de fotos fica disponível quando o banco de dados estiver ligado. Formatos JPG, PNG ou WEBP, até 10 MB cada. A foto marcada como capa aparece no mapa do painel.</p>
+      <p>O envio de fotos entra numa próxima entrega. Formatos JPG, PNG ou WEBP, até 10 MB cada. A foto marcada como capa aparece no mapa do painel.</p>
       <label for="lp-enviar-fotos">Enviar fotos
         <input id="lp-enviar-fotos" type="file" accept="image/jpeg,image/png,image/webp" multiple disabled />
       </label>
@@ -97,9 +100,9 @@ const dados = JSON.stringify({ projetos: lista }).replaceAll('<', '\\u003c');
 </div>
 
 <script>
-import { AVISO_SIMULACAO, avisar } from '../../lib/carteira/simulacao.ts';
+import { avisar } from '../../lib/carteira/simulacao.ts';
 import { validarLocalizacao } from '../../lib/mapa/geo.ts';
-import { descricaoLocalizacao, guardarLocalizacaoSimulada, lerLocalizacoesSimuladas } from '../../lib/mapa/simulacao.ts';
+import { descricaoLocalizacao } from '../../lib/mapa/simulacao.ts';
 import type { Localizacao } from '../../lib/mapa/tipos.ts';
 
 interface ProjetoLista {
@@ -146,26 +149,23 @@ document.addEventListener('astro:page-load', () => {
     return porNome.length === 1 ? porNome[0] : null;
   };
 
-  function precisaoTexto(p: ProjetoLista, sim: Record<string, Localizacao>): string {
-    if (sim[p.id] || p.cadastrada) return 'Cadastrada';
-    return p.bairroOk ? 'Aproximada pelo bairro' : 'Sem localização';
-  }
+  const precisaoTexto = (p: ProjetoLista): string => (p.cadastrada ? 'Cadastrada' : p.bairroOk ? 'Aproximada pelo bairro' : 'Sem localização');
 
   function escolher(p: ProjetoLista): void {
     atual = p;
-    const sim = lerLocalizacoesSimuladas();
+    q<HTMLAnchorElement>('[data-lp-pagina]').href = `/plataforma/projeto/${encodeURIComponent(p.id)}/`;
     q('[data-lp-nome]').textContent = `${p.id} · ${p.nome}`;
     q('[data-lp-orgao]').textContent = `Órgão: ${p.orgao ?? 'não informado'}`;
     q('[data-lp-bairro]').textContent = `Bairro: ${p.bairro ?? 'não informado'}`;
-    q('[data-lp-precisao]').textContent = `Localização atual: ${precisaoTexto(p, sim)}${sim[p.id] ? ' (simulação)' : ''}`;
+    q('[data-lp-precisao]').textContent = `Localização atual: ${precisaoTexto(p)}`;
     area.hidden = false;
     ok.hidden = true;
     quandoPronto(() => {
-      editor.dispatchEvent(new CustomEvent('localizacao-definir', { detail: sim[p.id] ?? p.cadastrada ?? null }));
+      editor.dispatchEvent(new CustomEvent('localizacao-definir', { detail: p.cadastrada ?? null }));
       const seletor = editor.querySelector<HTMLSelectElement>('[data-ed-bairro]');
       if (seletor && p.bairro && p.bairroOk) {
         seletor.value = p.bairro.trim();
-        if (!(sim[p.id] ?? p.cadastrada)) seletor.dispatchEvent(new Event('change'));
+        if (!p.cadastrada) seletor.dispatchEvent(new Event('change'));
       }
     });
     const lista = q('[data-lp-fotos]');
@@ -189,8 +189,10 @@ document.addEventListener('astro:page-load', () => {
     }
   });
 
-  q('[data-lp-salvar]').addEventListener('click', () => {
-    if (!atual) return;
+  const botao = raiz.querySelector<HTMLButtonElement>('[data-lp-salvar]');
+  botao?.addEventListener('click', async () => {
+    if (!atual || botao.disabled) return;
+    const projeto = atual;
     let valor: Localizacao | null = null;
     try {
       valor = JSON.parse(editor.dataset.valor || 'null');
@@ -203,11 +205,32 @@ document.addEventListener('astro:page-load', () => {
       ok.hidden = true;
       return;
     }
-    guardarLocalizacaoSimulada(atual.id, atual.nome, valor);
-    q('[data-lp-ok-texto]').textContent = `${descricaoLocalizacao(valor)} em ${atual.id}. ${AVISO_SIMULACAO}`;
-    q('[data-lp-precisao]').textContent = 'Localização atual: Cadastrada (simulação)';
+    // Grava no servidor: ele confere o perfil, valida de novo e registra no Histórico.
+    botao.disabled = true;
+    let resposta: { ok?: boolean; erro?: string; erros?: string[]; localizacao?: Localizacao } = {};
+    try {
+      const r = await fetch(`/plataforma/projeto/localizacao/${encodeURIComponent(projeto.id)}/`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(valor),
+      });
+      if (r.redirected || !(r.headers.get('content-type') ?? '').includes('json')) resposta = { ok: false, erro: 'Sua sessão terminou. Entre de novo e repita a gravação.' };
+      else resposta = await r.json();
+    } catch {
+      resposta = { ok: false, erro: 'Não foi possível salvar agora. Confira a conexão e tente de novo.' };
+    } finally {
+      botao.disabled = false;
+    }
+    if (!resposta.ok || !resposta.localizacao) {
+      ok.hidden = true;
+      editor.dispatchEvent(new CustomEvent('localizacao-erros', { detail: resposta.erros?.length ? resposta.erros : [resposta.erro ?? 'Não foi possível salvar.'] }));
+      return;
+    }
+    projeto.cadastrada = resposta.localizacao;
+    q('[data-lp-ok-texto]').textContent = `${descricaoLocalizacao(resposta.localizacao)} em ${projeto.id}. Salva e registrada no Histórico.`;
+    if (atual === projeto) q('[data-lp-precisao]').textContent = 'Localização atual: Cadastrada';
     ok.hidden = false;
-    avisar(AVISO_SIMULACAO);
+    avisar('Localização salva.');
   });
 
   const idUrl = new URLSearchParams(location.search).get('id');

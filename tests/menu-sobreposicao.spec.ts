@@ -37,7 +37,7 @@ for (const largura of [1050, 1280, 1920]) {
     const telas = await page.locator('.sidebar .side-links a').evaluateAll((links) =>
       [...new Set(links.map((a) => new URL((a as HTMLAnchorElement).href).pathname))].filter((p) => p.startsWith('/plataforma/')));
     expect(telas.length).toBeGreaterThan(10);
-    telas.push('/plataforma/', '/plataforma/documentos-projeto/', '/plataforma/documentos-projeto/projeto/P-900/');
+    telas.push('/plataforma/', '/plataforma/documentos-projeto/', '/plataforma/documentos-projeto/projeto/P-900/', '/plataforma/projeto/P-900/');
     for (const expandido of [false, true]) {
       if (expandido) {
         await page.goto('/plataforma/');

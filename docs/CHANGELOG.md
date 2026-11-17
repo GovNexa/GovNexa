@@ -1,5 +1,11 @@
 # Changelog
 
+## Entrega B1: página do projeto e localização gravando no banco
+- 2026-11-17: página nova `/plataforma/projeto/<código>/`, com tudo o que o sistema sabe de um projeto (resumo, valores e recursos, datas, localização, documentos, cronograma e histórico), aberta pela Carteira, pelo mapa e pela tela de documentos.
+- A tela Localização e fotos deixa de ser simulação: o ponto ou os trechos são gravados no banco (rota `POST /plataforma/projeto/localizacao/<código>/`), só por quem tem perfil de editor, gestor ou administrador, e cada alteração entra no Histórico.
+- Migração `db/d1/prefeitura/0004_historico_por_projeto.sql`: o histórico de um projeto passa a ser lido por índice. Não muda nenhum dado.
+- Projeto do banco de dados em `docs/govnexa/projeto-banco.md`, aprovado pelo dono em 17/11/2026: princípios para toda entrega com dados e roteiro B1 a B8.
+
 ## Correção: layout duplicado depois de um conflito de merge
 - 2026-11-17: a resolução do conflito do PR #24 feita no site do GitHub deixou as duas versões da linha principal de `src/layouts/Base.astro`, e toda página saía duas vezes. Fica uma única linha, com o símbolo G e o rodapé que informa a origem dos dados. Teste novo (`tests/layout-unico.spec.ts`) garante um único documento por página. Não chegou a ser publicado.
 
