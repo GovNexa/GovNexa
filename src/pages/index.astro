@@ -1,7 +1,344 @@
 ---
-import Icon from '../components/Icon.astro';
+// Página inicial do site público: apresenta o GovNexa e leva ao acesso da plataforma.
+// Estilos em src/styles/home.css (classes gx-). Números das telas são exemplos fictícios.
 import Base from '../layouts/Base.astro';
-import {getCollection} from 'astro:content';
-const entries=(await getCollection('insights')).slice(0,3);
+import '../styles/home.css';
 ---
-<Base title="Um território de boas conexões"><section class="hero"><div><span class="eyebrow">Inteligência local. Impacto coletivo.</span><h1>Boas compras.<br/>Novas conexões.<br/><em>Uma cidade melhor.</em></h1><p class="lead">Aproxime quem precisa de soluções de quem sabe entregar. Planejamento, oportunidades e fornecedores em um só lugar.</p><div class="actions"><a class="button primary" href="/demonstracao/">Conheça a GovNexa ↗</a><a data-astro-reload href="/plataforma/">Explorar a plataforma →</a></div><small>Feito para conectar o potencial de Goiânia.</small></div><div class="art"><svg viewBox="0 0 450 430" role="img" aria-label="Ilustração de painel de compras públicas"><rect x="25" y="50" width="400" height="310" rx="24" fill="#fff"/><rect x="25" y="50" width="70" height="310" rx="24" fill="#0A4A6B"/><g fill="#ffffff40"><rect x="40" y="85" width="40" height="8" rx="4"/><rect x="40" y="115" width="40" height="8" rx="4"/><rect x="40" y="145" width="40" height="8" rx="4"/></g><rect x="115" y="78" width="170" height="12" rx="6" fill="#002E47"/><rect x="115" y="115" width="125" height="72" rx="12" fill="#003856"/><rect x="255" y="115" width="145" height="72" rx="12" fill="#FFF1EC"/><g fill="#F36E22"><rect x="135" y="140" width="65" height="18" rx="4"/><rect x="275" y="140" width="85" height="18" rx="4"/></g><path d="M120 320h270" stroke="#D5DDE0"/><g fill="#0A4A6B"><rect x="130" y="260" width="25" height="60" rx="5"/><rect x="190" y="230" width="25" height="90" rx="5"/><rect x="250" y="250" width="25" height="70" rx="5"/><rect x="310" y="210" width="25" height="110" rx="5"/></g><g fill="#F36E22"><rect x="158" y="285" width="18" height="35" rx="4"/><rect x="218" y="265" width="18" height="55" rx="4"/><rect x="278" y="275" width="18" height="45" rx="4"/><rect x="338" y="250" width="18" height="70" rx="4"/></g><rect x="300" y="25" width="125" height="55" rx="14" fill="#FFF1EC"/><path d="m318 52 9 9 16-20" stroke="#1F6B3A" stroke-width="4" fill="none"/><rect x="353" y="46" width="52" height="8" rx="4" fill="#002E47"/></svg><div class="stamp"><strong>Goiânia, em conexão</strong><br/><small>Pessoas · negócios · setor público</small></div></div></section><section class="band"><span class="eyebrow">Três caminhos. Um mesmo horizonte.</span><h2>Qual é o seu próximo passo?</h2><div class="grid">{[['compradores','01','Compradores','Encontre parceiros e organize suas decisões de compra.'],['setor-publico','02','Setor público','Da necessidade à entrega, acompanhe cada etapa.'],['fornecedores','03','Fornecedores','Transforme sua capacidade local em novas oportunidades.']].map(([slug,n,title,text])=><article class="card"><Icon name="box" size={28}/><span class="eyebrow">{n} / CONECTAR</span><h3>{title}</h3><p>{text}</p><a href={`/${slug}/`}>Conhecer a solução →</a></article>)}</div></section><section><div class="section-head"><div><span class="eyebrow">Conhecimento que circula</span><h2>Ideias para avançar</h2></div><a href="/insights/">Todos os Insights →</a></div><div class="grid">{entries.map(e=><article class="card"><span class="pill">{e.data.tipo}</span><h3><a href={`/insights/${e.id}/`}>{e.data.title}</a></h3><p>{e.data.resumo}</p></article>)}</div></section><section class="band"><h2>Vamos desenhar sua próxima conexão?</h2><p>Conheça os caminhos possíveis para sua organização.</p><a class="button primary" href="/demonstracao/">Solicitar demonstração</a></section></Base>
+<Base title="Do desejo do gestor à obra entregue" description="O GovNexa reúne a carteira de projetos da prefeitura, a captação de recursos e a contratação pela Lei 14.133 em uma só tela.">
+<div class="gx">
+<div class="gx-atmos" aria-hidden="true"><svg class="gx-city" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMin slice" fill="none" stroke-linecap="round" stroke-linejoin="round"><defs><clipPath id="gx-reg-centro"><path d="M-100 21L-100 -60 1218 -60 1218 1060 800 1050Z"/></clipPath><clipPath id="gx-reg-oeste"><path d="M-100 21L800 1050 -100 1060Z"/></clipPath><clipPath id="gx-reg-leste"><path d="M1258 -60H1700V1060H1258Z"/></clipPath></defs><path class="gx-parque" d="M1060 40L1180 28 1196 150 1100 176 1048 120ZM318 322l52 -16 18 52 -52 18ZM1300 300l70 -22 12 40 -68 24ZM228 500l46 -30 30 40 -44 34ZM1262 600l26 0 6 110 -28 6Z"/><path class="gx-agua-f" d="M1118 6c26 -10 44 2 40 22s-30 26 -44 16 -14 -30 4 -38Z"/><g class="gx-rua"><path clip-path="url(#gx-reg-centro)" d="M-1047 -467L-203 -717M-119 -742L-34 -767M50 -792L219 -842M303 -867L725 -992M809 -1017L894 -1042M978 -1067L1147 -1117M1231 -1142L1822 -1317M-1028 -404L-269 -629M-184 -654L322 -804M406 -829L828 -954M913 -979L1166 -1054M1250 -1079L1756 -1229M-1009 -341L1269 -1016M1438 -1066L1859 -1191M-991 -277L528 -727M613 -752L1372 -977M1456 -1002L1878 -1127M-972 -214L-803 -264M-719 -289L-550 -339M-466 -364L463 -639M631 -689L884 -764M969 -789L1391 -914M1475 -939L1897 -1064M-953 -151L228 -501M313 -526L1072 -751M1156 -776L1241 -801M1325 -826L1916 -1001M-934 -88L-850 -113M-766 -138L1934 -937M-916 -24L-578 -124M-409 -174L-325 -199M-241 -224L97 -324M181 -349L350 -399M434 -424L688 -499M772 -524L1616 -774M1700 -799L1953 -874M-897 39L-137 -186M-53 -211L1972 -811M-878 102L-541 2M-456 -23L-119 -123M-34 -148L50 -173M134 -198L1231 -523M1316 -548L1991 -748M-859 166L238 -159M322 -184L913 -359M997 -384L2009 -684M-841 229L-419 104M-334 79L2028 -621M-822 292L106 17M191 -8L697 -158M781 -183L1625 -433M1709 -458L1794 -483M1878 -508L2047 -558M-803 355L-212 180M-44 130L631 -70M716 -95L1475 -319M1559 -344L2066 -494M-784 419L650 -6M734 -31L903 -81M988 -106L2084 -431M-766 482L-512 407M-428 382L-91 282M-6 257L163 207M247 182L1006 -43M1091 -68L1259 -118M1344 -143L1850 -293M1934 -318L2103 -368M-747 545L13 320M97 295L181 270M266 245L688 120M772 95L941 45M1025 20L2122 -305M-728 608L-475 533M-391 509L2141 -241M-541 622L-119 497M50 447L809 222M894 197L2159 -178M-691 735L-522 685M-438 660L-353 635M-184 585L238 460M322 435L491 385M575 360L2178 -115M-672 798L847 348M931 323L1438 173M1522 148L1691 99M1859 49L2028 -1M2113 -26L2197 -51M-653 862L2216 12M-634 925L-128 775M-44 750L378 625M462 600L716 525M800 500L2234 75M-616 988L-109 838M-25 813L734 588M819 563L2253 138M-513 1026L-259 951M-175 926L-6 876M78 852L837 627M922 602L1597 402M1681 377L2272 202M-578 1115L-241 1015M-156 990L266 865M350 840L2038 340M2122 315L2206 290M-559 1178L-53 1028M31 1003L369 903M453 878L1212 653M1297 628L1803 478M1887 453L2309 328M-541 1241L1147 741M1231 716L2328 392M-522 1305L744 930M912 880L1756 630M1841 605L2347 455M-503 1368L-81 1243M3 1218L1944 643M2028 618L2366 518M-484 1431L-231 1356M-147 1331L191 1231M275 1206L781 1056M866 1031L1709 781M1794 756L2131 656M2216 631L2384 581M-466 1494L-381 1469M-297 1444L125 1319M294 1269L2066 745M2150 720L2403 645M-447 1558L144 1383M228 1358L1747 908M1831 883L2169 783M2253 758L2422 708M-428 1621L-259 1571M-175 1546L500 1346M584 1321L2441 771M-409 1684L350 1459M434 1434L941 1284M1025 1259L1447 1134M1531 1109L2122 934M2206 909L2459 834M-391 1748L-222 1698M-138 1673L453 1498M537 1473L875 1373M959 1348L1466 1198M1550 1173L2056 1023M2225 973L2478 898M-372 1811L472 1561M556 1536L725 1486M809 1461L2497 961M-353 1874L69 1749M153 1724L406 1649M491 1624L1587 1299M1672 1274L1841 1224M1925 1199L2262 1099M2347 1074L2516 1024M-250 1912L-81 1862M3 1837L1606 1363M1775 1313L2534 1088M-316 2001L106 1876M191 1851L359 1801M444 1776L1287 1526M1372 1501L1962 1326M2047 1301L2216 1251M2300 1226L2384 1201M2469 1176L2553 1151M-297 2064L41 1964M125 1939L1981 1389M2066 1364L2572 1214M-278 2127L59 2027M144 2002L2591 1277M-259 2191L78 2091M247 2041L1006 1816M1091 1791L2609 1341M-241 2254L181 2129M266 2104L1109 1854M1194 1829L1362 1779M1447 1754L1869 1629M1953 1604L2628 1404M-222 2317L1044 1942M1128 1917L1803 1717M1972 1667L2141 1617M2225 1592L2647 1467M-1047 -467L-972 -214M-953 -151L-747 545M-728 608L-691 735M-672 798L-597 1051M-578 1115L-541 1241M-522 1305L-241 2254M-962 -492L-737 267M-719 330L-513 1026M-494 1090L-138 2292M-878 -517L-372 1191M-353 1255L-53 2267M-794 -542L-625 27M-606 91L-419 723M-400 787L-156 1609M-138 1673L31 2242M-691 -504L-541 2M-522 66L116 2217M-625 -592L-419 104M-400 167L-63 1306M-44 1369L-25 1433M-6 1496L125 1939M144 2002L200 2192M-541 -617L-316 142M-297 205L-109 838M-91 901L97 1534M116 1598L172 1787M191 1851L284 2167M-456 -642L-362 -326M-344 -263L-250 54M-231 117L50 1066M69 1130L181 1509M200 1573L294 1889M312 1952L331 2016M350 2079L369 2142M-372 -667L3 598M22 662L41 725M59 788L134 1041M153 1105L266 1484M284 1548L322 1674M341 1737L453 2117M-287 -692L-175 -313M-137 -186L13 320M31 384L162 827M181 890L200 953M219 1016L294 1269M312 1333L369 1523M387 1586L481 1902M500 1966L537 2092M-203 -717L-72 -274M-53 -211L266 865M284 928L622 2067M-119 -742L144 144M163 207L444 1156M462 1219L612 1726M631 1789L706 2042M-34 -767L247 182M266 245L678 1637M697 1701L791 2017M50 -792L256 -96M275 -33L406 410M425 473L444 537M481 663L594 1043M612 1106L781 1676M800 1739L875 1992M134 -817L322 -184M341 -121L453 259M472 322L509 448M528 512L584 702M622 828L734 1208M772 1334L884 1714M903 1777L959 1967M219 -842L706 803M725 866L1044 1942M303 -867L378 -614M397 -551L434 -424M453 -361L866 1031M884 1095L922 1221M941 1284L1109 1854M388 -892L406 -829M425 -766L744 310M763 373L800 500M819 563L894 816M912 880L1025 1259M1044 1323L1062 1386M1081 1449L1212 1892M472 -917L884 475M903 538L1034 981M1053 1045L1147 1361M1166 1424L1278 1804M556 -942L1156 1083M1175 1146L1306 1589M1325 1652L1381 1842M641 -967L809 -398M828 -334L1016 298M1034 362L1466 1817M725 -992L763 -866M781 -802L950 -233M988 -106L1419 1349M1437 1413L1550 1792M809 -1017L978 -448M1016 -321L1222 375M1241 438L1278 565M1297 628L1316 691M1353 818L1634 1767M894 -1042L1606 1363M1625 1426L1719 1742M978 -1067L1053 -814M1072 -751L1803 1717M1081 -1029L1231 -523M1250 -459L1419 110M1438 173L1531 490M1550 553L1887 1692M1147 -1117L1484 22M1503 85L1522 148M1541 212L1597 402M1634 528L1709 781M1728 845L1747 908M1766 971L1972 1667M1231 -1142L1288 -952M1306 -889L1737 566M1756 630L1775 693M1794 756L2056 1642M1316 -1167L1353 -1041M1372 -977L1522 -471M1541 -408L1559 -344M1578 -281L1953 984M1972 1048L2028 1238M2047 1301L2141 1617M1400 -1192L1494 -876M1531 -749L1588 -559M1606 -496L1794 137M1813 200L2037 959M2056 1023L2225 1592M1484 -1217L1522 -1091M1541 -1027L1597 -837M1634 -711L1897 175M1916 238L1934 302M1953 365L2084 808M2103 871L2159 1061M2197 1188L2234 1314M2272 1441L2309 1567M1569 -1242L1588 -1179M1606 -1116L1888 -166M1906 -103L1963 87M1981 150L2187 846M2206 909L2394 1542M1653 -1267L2009 -65M2028 -1L2328 1011M2384 1201L2459 1454M1738 -1292L2094 -90M2113 -26L2225 353M2281 543L2431 1049M2450 1113L2469 1176M2487 1239L2506 1302M2525 1366L2562 1492M1822 -1317L2122 -305M2141 -241L2234 75M2253 138L2553 1151M2572 1214L2591 1277M2609 1341L2647 1467"/><path clip-path="url(#gx-reg-oeste)" d="M-355 -1338L319 -995M393 -957L543 -880M693 -804L843 -728M917 -690L1217 -537M1292 -499L1591 -347M1741 -270L2115 -80M-387 -1276L62 -1047M137 -1009L661 -742M736 -704L811 -666M886 -627L1933 -94M2083 -17L2158 21M-419 -1213L180 -908M255 -870L1976 7M2051 45L2126 83M-450 -1151L-226 -1037M-151 -998L74 -884M148 -846L972 -426M1047 -388L1346 -236M1496 -159L1645 -83M1720 -45L1945 69M2020 107L2094 146M-482 -1089L-33 -860M42 -822L117 -784M191 -745L266 -707M416 -631L1913 132M1988 170L2063 208M-439 -988L384 -569M459 -530L534 -492M609 -454L684 -416M758 -378L1507 3M1657 80L1881 194M1956 232L2031 270M-546 -964L203 -583M278 -544L652 -354M727 -316L1849 256M1924 295L1999 333M-577 -901L-503 -863M-353 -787L-128 -673M-54 -635L171 -520M246 -482L545 -329M695 -253L994 -101M1069 -63L1967 395M-609 -839L-85 -572M-10 -534L588 -229M663 -191L1112 38M1187 76L1486 229M1636 305L1935 457M-641 -777L-566 -739M-491 -700L-117 -510M-42 -472L107 -395M257 -319L332 -281M407 -243L706 -90M856 -14L1904 520M-673 -714L-448 -600M-373 -562L-74 -409M1 -371L824 48M899 86L1273 277M1348 315L1498 392M1573 430L1722 506M1797 544L1872 582M-705 -652L-630 -614M-555 -576L-405 -499M-330 -461L-106 -347M-31 -309L1241 340M1391 416L1616 530M1690 568L1840 645M-736 -590L-512 -475M-437 -437L1284 440M1359 478L1584 593M1734 669L1808 707M-768 -527L-95 -184M-20 -146L579 159M729 235L1328 541M1402 579L1777 769M-800 -465L-725 -427M-650 -389L-575 -350M-501 -312L173 31M248 69L622 260M697 298L1445 679M1520 717L1745 832M-832 -403L-607 -288M-532 -250L-383 -174M-308 -136L291 170M366 208L890 475M965 513L1563 818M-863 -340L-265 -35M-190 3L184 194M259 232L1232 728M1307 766L1382 804M1532 880L1606 918M-895 -278L-746 -202M-671 -163L-596 -125M-521 -87L-222 65M-147 104L-72 142M3 180L227 294M302 332L1350 866M1425 904L1649 1019M-927 -215L-852 -177M-777 -139L-702 -101M-628 -63L-104 204M-29 242L495 509M645 585L794 662M869 700L1618 1081M-959 -153L-884 -115M-809 -77L-659 0M-585 38L-510 76M-435 114L-285 190M-210 228L164 419M239 457L314 495M388 533L912 800M987 838L1586 1144M-991 -91L-841 -14M-766 24L-616 100M-467 176L207 519M431 634L656 748M731 786L806 825M955 901L1255 1053M1330 1092L1554 1206M-948 10L-199 391M-124 429L774 887M849 925L1223 1116M1298 1154L1373 1192M1448 1230L1522 1268M-1054 34L-680 225M-605 263L-231 454M-6 568L69 606M143 644L892 1026M967 1064L1416 1293M-1086 96L-712 287M-562 363L-337 478M-263 516L1159 1240M1309 1317L1459 1393M-1043 197L529 998M604 1036L1427 1455M-1075 259L-401 603M-326 641L-27 793M48 831L1395 1518M-1181 284L-358 703M-208 779L615 1199M690 1237L1363 1580M-1213 346L-764 575M-689 613L-614 651M-539 689L134 1032M209 1070L1032 1490M1107 1528L1332 1643M-1245 408L1001 1552M1075 1590L1150 1629M-1277 471L-1127 547M-1052 585L-828 699M-753 738L-678 776M-528 852L295 1272M370 1310L894 1577M969 1615L1268 1767M-1308 533L-560 914M-485 953L-410 991M-186 1105L1012 1715M1161 1791L1236 1830M-1340 595L-517 1015M-442 1053L157 1358M232 1396L1205 1892M-1297 696L-698 1001M-623 1039L-549 1077M-399 1154L-174 1268M-100 1306L50 1382M125 1420L200 1459M275 1497L948 1840M1023 1878L1173 1954M-1404 720L-281 1292M-206 1330L1141 2017M-1435 783L-612 1202M-537 1240L-313 1355M-238 1393L61 1545M136 1583L211 1621M286 1660L810 1927M885 1965L1109 2079M-1467 845L-1168 997M-1093 1036L-45 1569M30 1608L1077 2141M-1349 984L297 1823M372 1861L1046 2204M-1531 970L-1306 1084M-1231 1122L-1007 1237M-932 1275L-857 1313M-782 1351L640 2076M715 2114L1014 2266M-1563 1032L-1488 1070M-1338 1146L-1039 1299M-889 1375L-664 1490M-590 1528L-515 1566M-440 1604L84 1871M159 1909L383 2024M458 2062L683 2176M758 2214L982 2329M-1594 1094L-996 1399M-921 1438L-846 1476M-771 1514L-247 1781M-23 1895L426 2124M501 2162L950 2391M-1626 1157L-1327 1309M-1252 1347L-354 1805M-279 1843L245 2110M320 2148L919 2453M-1658 1219L-1508 1295M-1433 1334L-535 1791M-460 1829L438 2287M513 2325L737 2439M812 2478L887 2516M-1690 1281L-1390 1434M-1316 1472L-1166 1548M-1016 1625L-717 1777M-642 1815L-268 2006M-193 2044L32 2159M107 2197L406 2349M481 2387L780 2540M-355 -1338L-863 -340M-895 -278L-1372 658M-1404 720L-1531 970M-1563 1032L-1690 1281M-280 -1300L-312 -1238M-344 -1175L-375 -1113M-439 -988L-534 -801M-566 -739L-1329 758M-1361 821L-1392 883M-1424 945L-1615 1320M-205 -1262L-237 -1199M-301 -1075L-364 -950M-396 -888L-555 -576M-587 -513L-650 -389M-682 -326L-777 -139M-873 48L-1000 297M-1032 360L-1254 796M-1286 859L-1381 1046M-1413 1108L-1445 1171M-1508 1295L-1540 1358M-130 -1224L-448 -600M-480 -538L-671 -163M-702 -101L-734 -39M-798 86L-988 460M-1020 523L-1179 835M-1211 897L-1306 1084M-1338 1146L-1465 1396M-56 -1186L-246 -811M-278 -749L-659 0M-723 124L-755 187M-787 249L-945 561M-977 623L-1073 810M-1104 873L-1136 935M-1168 997L-1390 1434M19 -1147L-235 -648M-267 -586L-966 786M-998 848L-1157 1160M-1188 1223L-1252 1347M-1284 1410L-1316 1472M94 -1109L-255 -423M-287 -361L-637 325M-669 388L-955 949M-986 1011L-1145 1323M-1177 1386L-1241 1510M169 -1071L74 -884M42 -822L-22 -697M-54 -635L-212 -323M-244 -260L-435 114M-498 239L-753 738M-784 800L-880 987M-943 1112L-1070 1361M-1102 1424L-1166 1548M244 -1033L180 -908M148 -846L-74 -409M-106 -347L-138 -285M-169 -222L-296 27M-328 90L-360 152M-392 214L-455 339M-487 402L-551 526M-582 589L-614 651M-646 713L-678 776M-710 838L-1091 1587M319 -995L33 -434M1 -371L-190 3M-222 65L-412 440M-444 502L-635 876M-698 1001L-762 1126M-794 1188L-825 1250M-857 1313L-1016 1625M362 -894L12 -208M-20 -146L-274 353M-306 415L-465 727M-496 790L-909 1600M468 -919L437 -856M405 -794L309 -607M278 -544L182 -357M151 -295L87 -170M55 -108L-167 329M-199 391L-358 703M-390 765L-739 1451M-771 1514L-866 1701M511 -818L321 -444M289 -381L-251 679M-283 741L-347 866M-378 928L-474 1115M-506 1178L-696 1552M-728 1614L-792 1739M618 -842L491 -593M459 -530L237 -94M205 -32L14 343M-18 405L-145 655M-176 717L-367 1091M-431 1216L-717 1777M693 -804L566 -555M534 -492L343 -118M311 -56L280 7M248 69L-102 755M-133 817L-578 1691M768 -766L545 -329M513 -267L482 -205M386 -18L291 170M227 294L132 481M100 544L37 668M5 731L-535 1791M843 -728L557 -167M525 -104L429 83M398 145L175 582M143 644L-302 1517M-333 1580L-492 1892M917 -690L631 -128M600 -66L314 495M282 558L250 620M218 682L59 994M28 1057L-68 1244M-100 1306L-195 1493M-258 1618L-417 1930M992 -652L865 -402M833 -340L516 284M484 346L-343 1968M1067 -614L972 -426M940 -364L908 -302M876 -239L431 634M400 696L114 1258M82 1320L-172 1819M-204 1881L-268 2006M1142 -575L792 111M761 173L-193 2044M1217 -537L1121 -350M1090 -288L486 897M454 960L390 1084M359 1147L-86 2020M1260 -437L847 374M815 436L656 748M624 811L592 873M561 935L402 1247M370 1310L275 1497M243 1559L-43 2120M1366 -461L1176 -87M1144 -24L890 475M858 537L826 599M794 662L667 911M636 974L445 1348M413 1410L127 1971M95 2034L32 2159M1441 -423L1346 -236M1314 -173L710 1012M679 1074L647 1136M615 1199L456 1511M393 1635L107 2197M1516 -385L1230 177M1198 239L1039 551M1008 613L944 738M881 863L340 1923M309 1985L181 2235M1591 -347L1082 651M1051 714L1019 776M987 838L955 901M924 963L669 1462M606 1587L256 2273M1666 -308L1126 752M1094 814L935 1126M903 1188L840 1313M808 1376L617 1750M585 1812L458 2062M426 2124L395 2186M363 2249L331 2311M1741 -270L1677 -146M1645 -83L1486 229M1455 291L1391 416M1359 478L946 1289M914 1351L819 1538M787 1601L692 1788M660 1850L406 2349M1816 -232L1529 329M1466 454L1434 516M1402 579L1307 766M1275 828L1243 891M1212 953L1053 1265M989 1389L481 2387M1890 -194L1731 118M1700 180L1541 492M1509 554L1255 1053M1223 1116L1064 1428M1032 1490L556 2426M1965 -156L1902 -31M1870 31L1711 343M1679 405L1552 655M1520 717L1044 1653M1012 1715L885 1965M853 2027L662 2401M2040 -118L1690 568M1659 631L1627 693M1595 755L705 2502M2115 -80L1924 295M1892 357L1765 606M1734 669L1670 794M1638 856L1543 1043M1479 1168L971 2166M939 2228L844 2415M812 2478L780 2540M2158 21L1904 520M1777 769L1491 1331M1459 1393L855 2578"/><path clip-path="url(#gx-reg-leste)" d="M-61 -831L1753 -1022M1848 -1032L2421 -1092M2516 -1102L2612 -1112M-149 -748L1474 -918M1665 -938L1856 -959M1951 -969L2333 -1009M2429 -1019L2715 -1049M-141 -674L241 -714M336 -724L622 -754M813 -775L1291 -825M1386 -835L1482 -845M1577 -855L1959 -895M2055 -905L2723 -975M-134 -601L2253 -851M2349 -861L2731 -902M-126 -527L542 -597M638 -607L1497 -698M1593 -708L1879 -738M1975 -748L2738 -828M-118 -453L168 -484M264 -494L359 -504M455 -514L646 -534M741 -544L1314 -604M1409 -614L1505 -624M1600 -634L2746 -754M-15 -390L558 -450M653 -460L844 -480M940 -490L1895 -591M2086 -611L2372 -641M2467 -651L2658 -671M-103 -306L470 -366M566 -376L1520 -477M1616 -487L1711 -497M1902 -517L2284 -557M2380 -567L2762 -607M-95 -233L1242 -373M1337 -383L2196 -473M2292 -483L2769 -534M-87 -159L486 -219M581 -229L772 -249M868 -259L2777 -460M-79 -85L684 -166M780 -176L1257 -226M1353 -236L1735 -276M1925 -296L2785 -386M-72 -12L597 -82M788 -102L1265 -152M1360 -162L1456 -172M1551 -182L2124 -243M2220 -253L2602 -293M2697 -303L2792 -313M127 42L1082 -59M1177 -69L2132 -169M2227 -179L2323 -189M2418 -199L2800 -239M-56 135L326 95M421 85L517 75M612 65L2808 -166M-49 209L142 189M238 179L1861 8M2052 -12L2529 -62M2625 -72L2816 -92M-41 283L150 262M246 252L2442 22M2632 2L2823 -18M-33 356L731 276M826 266L922 256M1113 236L2067 135M2163 125L2831 55M-25 430L452 380M548 370L1025 319M1120 309L2171 199M2266 189L2648 149M2743 139L2839 129M-18 503L1319 363M1415 353L1510 343M1605 333L2656 222M2751 212L2847 202M-10 577L86 567M181 557L1995 366M2091 356L2186 346M2282 336L2377 326M2472 316L2854 276M-2 651L1907 450M2003 440L2671 370M2767 360L2862 349M6 724L865 634M960 624L2774 433M13 798L395 758M491 748L586 738M682 727L777 717M873 707L1159 677M1255 667L1827 607M1923 597L2400 547M2591 527L2878 497M21 871L880 781M976 771L1167 751M1262 741L2885 570M29 945L315 915M411 905L888 855M984 845L1461 794M1556 784L2893 644M37 1018L228 998M323 988L2423 768M2519 758L2901 717M44 1092L617 1032M904 1002L1381 952M1476 942L1763 911M1858 901L2336 851M2431 841L2813 801M52 1166L148 1156M243 1146L338 1136M434 1126L2057 955M2152 945L2630 895M2725 885L2916 865M60 1239L1396 1099M1492 1089L1587 1079M1683 1069L1874 1049M1969 1039L2924 938M68 1313L640 1253M736 1243L831 1233M927 1223L1309 1182M1404 1172L2168 1092M2263 1082L2454 1062M2550 1052L2932 1012M75 1386L266 1366M362 1356L935 1296M1030 1286L1221 1266M1412 1246L1507 1236M1603 1226L1889 1196M1985 1186L2176 1166M2271 1156L2749 1105M2844 1095L2939 1085M83 1460L1038 1360M1229 1340L2947 1159M91 1534L950 1443M1045 1433L2000 1333M2096 1323L2573 1273M2669 1263L2955 1233M98 1607L1722 1437M1817 1427L1912 1417M2008 1407L2581 1346M2676 1336L2963 1306M106 1681L202 1671M297 1661L488 1641M584 1631L1061 1580M1252 1560L1634 1520M1729 1510L2016 1480M2111 1470L2493 1430M2684 1410L2970 1380M114 1754L1642 1594M1737 1584L1832 1574M1928 1564L2214 1534M2310 1524L2978 1453M122 1828L313 1808M408 1798L790 1758M885 1748L2222 1607M2318 1597L2986 1527M129 1902L225 1892M320 1882L1943 1711M2039 1701L2134 1691M2230 1681L2803 1621M2898 1611L2994 1601M137 1975L233 1965M328 1955L901 1895M996 1885L1474 1835M1569 1825L3001 1674M145 2049L1863 1868M1959 1858L3009 1748M153 2122L1203 2012M1489 1982L1680 1962M1776 1952L1871 1942M1967 1932L2921 1831M-157 -821L153 2122M-61 -831L-54 -758M-46 -684L86 567M93 640L101 714M109 788L140 1082M148 1156L163 1303M171 1376L240 2039M42 -768L96 -253M104 -179L119 -32M127 42L251 1219M258 1293L344 2102M130 -851L261 400M269 473L338 1136M346 1209L408 1798M416 1872L439 2092M241 -714L310 -52M318 22L411 905M418 978L534 2082M321 -872L468 527M475 600L576 1557M584 1631L630 2072M416 -882L439 -661M447 -587L548 370M555 443L594 811M602 885L609 958M617 1032L671 1547M679 1621L702 1841M710 1915L725 2062M512 -892L620 139M628 212L651 433M658 507L689 801M697 875L705 948M713 1022L821 2052M607 -902L677 -239M684 -166L700 -19M708 55L808 1012M816 1085L916 2042M702 -912L710 -838M718 -764L741 -544M749 -470L757 -397M764 -323L834 339M842 413L880 781M888 855L1012 2032M798 -922L953 550M960 624L1007 1065M1015 1139L1030 1286M1038 1360L1045 1433M1053 1507L1084 1801M1100 1948L1107 2022M893 -932L940 -490M948 -417L986 -49M994 25L1095 982M1102 1055L1203 2012M989 -942L1020 -647M1028 -574L1190 972M1198 1045L1291 1928M1084 -952L1092 -878M1100 -805L1138 -437M1146 -363L1340 1477M1347 1550L1378 1845M1386 1918L1394 1992M1188 -888L1195 -815M1203 -741L1226 -520M1234 -447L1242 -373M1249 -300L1288 68M1296 142L1365 804M1373 878L1489 1982M1283 -898L1329 -457M1337 -383L1376 -15M1384 58L1461 794M1469 868L1538 1530M1546 1604L1561 1751M1577 1898L1585 1972M1371 -982L1409 -614M1417 -540L1525 490M1533 564L1572 932M1580 1005L1618 1373M1626 1447L1634 1520M1642 1594L1649 1667M1657 1741L1665 1815M1672 1888L1680 1962M1466 -992L1505 -624M1513 -550L1629 554M1636 627L1706 1289M1714 1363L1776 1952M1562 -1002L1569 -928M1577 -855L1647 -192M1655 -119L1832 1574M1840 1647L1863 1868M1657 -1012L1665 -938M1673 -865L1704 -570M1711 -497L1835 681M1843 754L1967 1932M1753 -1022L1807 -507M1815 -433L1830 -286M1838 -213L1900 376M1907 450L1931 671M1938 744L2054 1848M1848 -1032L1887 -664M1902 -517L1956 -2M1964 72L2049 881M2057 955L2158 1912M1944 -1042L2067 135M2075 209L2238 1754M2245 1828L2253 1902M2039 -1052L2070 -758M2078 -684L2147 -22M2155 52L2178 273M2194 420L2202 493M2209 567L2263 1082M2271 1156L2333 1744M2341 1818L2348 1892M2142 -989L2444 1882M2230 -1072L2292 -483M2307 -336L2392 473M2400 547L2447 988M2454 1062L2470 1209M2478 1283L2501 1504M2509 1577L2516 1651M2524 1724L2539 1872M2326 -1082L2380 -567M2395 -420L2496 537M2503 610L2635 1862M2421 -1092L2436 -945M2444 -872L2460 -724M2467 -651L2475 -577M2483 -504L2560 232M2568 306L2653 1116M2661 1189L2692 1484M2699 1557L2730 1851M2524 -1029L2555 -734M2563 -661L2586 -440M2594 -366L2725 885M2733 958L2741 1032M2749 1105L2826 1841M2612 -1112L2627 -965M2635 -892L2759 286M2767 360L2829 948M2836 1022L2914 1758M2707 -1122L2723 -975M2731 -902L2746 -754M2754 -681L2901 717M2909 791L2947 1159M2955 1233L3017 1821"/></g><path class="gx-av" d="M800 1050L540 -30M800 1050L1035 -30M800 1050L-100 21M375 343A825 825 0 0 1 1225 343M517 675A470 470 0 0 1 1083 675M560 232Q330 330 190 660M190 700L640 1010M1290 830L1650 722M1420 -30L1380 1030"/><circle class="gx-rot" cx="540" cy="267" r="20"/><path class="gx-agua" d="M1262 -30C1246 200 1286 420 1272 620S1296 900 1284 1040"/><path class="gx-via" d="M-50 760L1650 256M1228 -30C1212 200 1252 420 1238 620S1262 900 1250 1040"/></svg><div class="gx-orb gx-a"></div><div class="gx-orb gx-b"></div><div class="gx-orb gx-c"></div></div>
+<div class="gx-main">
+  <!-- HERO -->
+  <section class="gx-hero">
+    <div class="gx-wrap gx-grid">
+      <div>
+        <p class="gx-eyebrow">Inteligência para a gestão pública</p>
+        <h1 style="margin-top:16px">Do desejo do gestor à <em>obra entregue</em>. Numa só tela.</h1>
+        <p class="gx-lead">O GovNexa reúne a carteira de projetos da prefeitura, a captação de recursos e a contratação pela Lei 14.133. A equipe registra os fatos. O sistema calcula prazos, alertas e mostra onde cada projeto está parado.</p>
+        <div class="gx-cta">
+          <a class="gx-btn gx-primary gx-magnet" href="/plataforma/" data-astro-reload>Entrar na plataforma <span class="gx-arr" aria-hidden="true">→</span></a>
+          <a class="gx-btn gx-magnet" href="#ciclo">Ver como funciona <span class="gx-arr" aria-hidden="true">↓</span></a>
+        </div>
+        <div class="gx-proof" aria-label="Garantias do produto">
+          <span><i class="gx-dot"></i>Acesso por código no e-mail</span>
+          <span><i class="gx-dot"></i>Dados isolados por prefeitura</span>
+          <span><i class="gx-dot"></i>Histórico que não se apaga</span>
+        </div>
+      </div>
+
+      <div class="gx-glass gx-lit gx-live" id="live" aria-label="Demonstração do quadro de projetos, com dados de exemplo">
+        <div class="gx-live-head"><strong>Carteira por etapa</strong><span class="gx-tag">Dados de exemplo</span></div>
+        <div class="gx-kan" id="kan">
+          <div class="gx-col"><p class="gx-colh">Planejamento</p><div class="gx-sum">12 · R$ 48 mi</div><div class="gx-ghost"></div><div class="gx-ghost gx-s"></div><div class="gx-ghost"></div></div>
+          <div class="gx-col"><p class="gx-colh">Preparatório</p><div class="gx-sum">9 · R$ 31 mi</div><div class="gx-ghost gx-s"></div><div class="gx-ghost"></div></div>
+          <div class="gx-col"><p class="gx-colh">Contratação</p><div class="gx-sum">7 · R$ 64 mi</div><div class="gx-ghost"></div><div class="gx-ghost gx-s"></div></div>
+          <div class="gx-col"><p class="gx-colh">Execução</p><div class="gx-sum">15 · R$ 120 mi</div><div class="gx-ghost"></div><div class="gx-ghost"></div><div class="gx-ghost gx-s"></div></div>
+          <div class="gx-mover" id="mover"><b>Reforma da unidade de saúde</b><small id="moverTag">avança com portão</small></div>
+        </div>
+        <div class="gx-chips">
+          <div class="gx-chip"><i class="gx-bad"></i>Parado há 23 dias no jurídico<span class="gx-k">quem deve</span></div>
+          <div class="gx-chip"><i class="gx-warn"></i>Prazo legal vence em 4 dias úteis<span class="gx-k">Lei 14.133</span></div>
+          <div class="gx-chip"><i class="gx-ok"></i>Programa federal aberto combina com 3 projetos<span class="gx-k">captação</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PERGUNTAS -->
+  <section id="perguntas">
+    <div class="gx-wrap">
+      <div class="gx-sec-head">
+        <p class="gx-eyebrow">O problema</p>
+        <h2>Quatro perguntas que a planilha não responde na hora.</h2>
+        <p>Uma carteira com centenas de projetos costuma viver em planilhas editadas à mão, com painéis refeitos toda semana. O GovNexa responde estas quatro em segundos.</p>
+      </div>
+      <div class="gx-asks">
+        <article class="gx-glass gx-lit gx-ask"><q>Onde o projeto está parado?</q><p class="gx-ans">Etapa e unidade, calculadas pelo cronograma.<br><b>Preparatório · Jurídico</b></p></article>
+        <article class="gx-glass gx-lit gx-ask"><q>Com quem?</q><p class="gx-ans">Toda espera tem dono: quem deve o quê.<br><b>Parecer do edital</b></p></article>
+        <article class="gx-glass gx-lit gx-ask"><q>Há quantos dias?</q><p class="gx-ans">Contagem automática, sem ninguém digitar.<br><b><span class="gx-count" data-to="23">23</span> dias</b></p></article>
+        <article class="gx-glass gx-lit gx-ask"><q>Quanto do orçamento não tem fonte?</q><p class="gx-ans">Saldo sem recurso definido, por projeto e no total.<br><b>R$ <span class="gx-count" data-to="2.1" data-dec="1">2,1</span> mi</b></p></article>
+      </div>
+      <p class="gx-muted" style="margin-top:14px;font-size:.84rem">Valores de exemplo.</p>
+    </div>
+  </section>
+
+  <!-- CICLO -->
+  <section id="ciclo">
+    <div class="gx-wrap">
+      <div class="gx-sec-head">
+        <p class="gx-eyebrow">O ciclo do projeto</p>
+        <h2>Um projeto, sete etapas, um só cadastro.</h2>
+        <p>O projeto nasce uma vez e todas as telas são visões dele. Role para acompanhar um projeto de exemplo da ideia à entrega.</p>
+      </div>
+      <div class="gx-story">
+        <aside class="gx-glass gx-ficha">
+          <div class="gx-live-head" style="margin:0"><span class="gx-tag">Ficha do projeto · exemplo</span><span class="gx-tag" id="fFarol">no prazo</span></div>
+          <h3>Reforma da unidade de saúde</h3>
+          <div class="gx-rail" id="rail" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="gx-stage"><span class="gx-num" id="fNum">00</span><span class="gx-nm" id="fNome">Em estruturação</span></div>
+          <div class="gx-facts">
+            <div class="gx-fact"><small>Com quem está</small><b id="fQuem">Gestão de portfólio</b></div>
+            <div class="gx-fact"><small>Há quanto tempo</small><b id="fDias">2 dias</b></div>
+            <div class="gx-fact"><small>Entrega projetada</small><b id="fEntrega">a calcular</b></div>
+            <div class="gx-fact"><small>Fonte de recurso</small><b id="fFonte">a definir</b></div>
+          </div>
+          <p class="gx-does" id="fFaz">O sistema cria a ficha, o histórico e o lugar do projeto em todas as telas.</p>
+        </aside>
+
+        <div class="gx-steps" id="steps">
+          <article class="gx-glass gx-step gx-active" data-i="0"><span class="gx-n">00 · EM ESTRUTURAÇÃO</span><h3>A ideia vira um projeto de verdade.</h3><p>Um cadastro simples, com os mesmos campos que a equipe já usa. Cada projeto diz o seu compromisso: decidido, condicionado a recurso externo ou ainda uma ideia.</p><ul><li>Cadastro único, sem repetir dados em outras telas</li><li>Importação da planilha atual, com conferência</li></ul></article>
+          <article class="gx-glass gx-step" data-i="1"><span class="gx-n">01 · PLANEJAMENTO</span><h3>O cronograma se calcula sozinho.</h3><p>Etapas, dependências e caminho crítico. Se uma data muda, o sistema projeta a nova entrega e mostra quantos dias o atraso empurra.</p><ul><li>Gantt, Kanban e visão por órgão a partir da mesma base</li><li>Captação mostra as oportunidades de recurso que combinam com o projeto</li></ul></article>
+          <article class="gx-glass gx-step" data-i="2"><span class="gx-n">02 · PREPARATÓRIO PARA CONTRATAÇÃO</span><h3>As peças certas, antes de avançar.</h3><p>DFD, ETP e termo de referência ficam ligados ao projeto. O andamento do processo fica ligado ao projeto, com a etapa sugerida para aprovação.</p><ul><li>Documentos do projeto guardados com segurança</li><li>O sistema sugere a mudança de etapa; uma pessoa aprova</li></ul></article>
+          <article class="gx-glass gx-step" data-i="3"><span class="gx-n">03 · CONTRATAÇÃO</span><h3>A lei é o teto. A meta é menor.</h3><p>Os prazos da Lei 14.133 já estão no sistema, com calendário de feriados. A prefeitura define metas internas mais curtas. Passar do teto legal vira alerta grave no topo do painel.</p><ul><li>Licitação em detalhe, fase a fase</li><li>Prazos mínimos da lei nunca são encurtados</li></ul></article>
+          <article class="gx-glass gx-step" data-i="4"><span class="gx-n">04 · MOBILIZAÇÃO</span><h3>Do contrato assinado ao canteiro.</h3><p>Contrato, garantia e ordem de serviço entram na linha do tempo. Contrato assinado sem ordem de serviço em 15 dias gera aviso ao gestor.</p><ul><li>Alertas com motivo, regra e ação sugerida</li></ul></article>
+          <article class="gx-glass gx-step" data-i="5"><span class="gx-n">05 · EXECUÇÃO</span><h3>Ninguém descobre o atraso na reunião.</h3><p>A pauta da reunião semanal sai pronta. Projetos críticos ganham uma sala de guerra com objetivo, prazo, responsável e riscos. O mapa mostra cada obra na cidade.</p><ul><li>Onde está parado, por unidade e por responsável</li><li>Painel do prefeito com a foto de hoje</li></ul></article>
+          <article class="gx-glass gx-step" data-i="6"><span class="gx-n">06 · CONCLUSÃO</span><h3>A obra entregue, e a história inteira guardada.</h3><p>Cada mudança fica registrada: o que foi feito, por quem, quando e de onde veio. O histórico não pode ser apagado, e as lições ficam para o próximo projeto.</p><ul><li>Histórico com filtros e exportação</li></ul></article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MÓDULOS -->
+  <section id="modulos">
+    <div class="gx-wrap">
+      <div class="gx-sec-head">
+        <p class="gx-eyebrow">Módulos</p>
+        <h2>Módulos que conversam entre si.</h2>
+        <p>Cada módulo funciona sozinho. Juntos, ligam o planejamento do projeto, o dinheiro que o paga e a contratação que o executa. Novos módulos entram sem mudar o que a equipe já usa.</p>
+      </div>
+      <div class="gx-bento">
+        <article class="gx-glass gx-lit gx-tile gx-t-proj">
+          <span class="gx-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="10" rx="1.5"/><rect x="17" y="4" width="4" height="13" rx="1.5"/></svg></span>
+          <h3>Projetos: a carteira inteira em movimento.</h3>
+          <p>Carteira, ficha completa, Kanban com valores no topo, Gantt, cronogramas com dependências e a visão por órgão pronta para imprimir.</p>
+          <div class="gx-gantt" aria-hidden="true">
+            <div>Planejar<i style="--w:34%;--o:0%"></i></div>
+            <div>Contratar<i class="gx-g" style="--w:28%;--o:30%"></i></div>
+            <div>Executar<i style="--w:40%;--o:54%"></i></div>
+          </div>
+          <div class="gx-pills"><span class="gx-pill">Onde está parado</span><span class="gx-pill">Reunião semanal</span><span class="gx-pill">Sala de guerra</span><span class="gx-pill">Etapa sugerida</span><span class="gx-pill">Mapa das obras</span></div>
+        </article>
+        <article class="gx-glass gx-lit gx-tile gx-t-cap">
+          <span class="gx-ico"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 3 8-9"/><path d="M15 6h5v5"/></svg></span>
+          <h3>Captação</h3>
+          <p>Oportunidades de recurso que combinam com o município, repasses e pendências, sempre com origem e data.</p>
+          <div class="gx-pills"><span class="gx-pill">Parecer de elegibilidade</span><span class="gx-pill">Alertas de prazo</span></div>
+        </article>
+        <article class="gx-glass gx-lit gx-tile gx-t-lic">
+          <span class="gx-ico"><svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M7 20V9l5-5 5 5v11"/><path d="M10 13h4"/></svg></span>
+          <h3>Licitações</h3>
+          <p>Prazos da Lei 14.133, metas internas e cada licitação fase a fase.</p>
+          <div class="gx-big">14.133<small>a lei dentro do sistema</small></div>
+        </article>
+        <article class="gx-glass gx-lit gx-tile gx-t-ges">
+          <span class="gx-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 12l5-3"/><path d="M12 7v1"/></svg></span>
+          <h3>Gestão: o painel do prefeito.</h3>
+          <p>A foto de hoje da carteira e dos recursos. Cada número abre o detalhe. A central de alertas põe o vermelho primeiro e diz o que fazer.</p>
+        </article>
+        <article class="gx-glass gx-lit gx-tile gx-t-doc">
+          <span class="gx-ico"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 14h6M10 17h4"/></svg></span>
+          <h3>Documentos no lugar certo.</h3>
+          <p>PDF, imagens e Office ligados ao projeto. O sistema confere o tipo pelo conteúdo e nada é apagado de verdade: a remoção fica registrada.</p>
+        </article>
+        <article class="gx-glass gx-lit gx-tile gx-t-new">
+          <span class="gx-ico"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
+          <h3>Cresce com a prefeitura.</h3>
+          <p>O GovNexa é modular. Novos módulos se ligam ao mesmo projeto, sem retrabalho e sem trocar de sistema.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRINCÍPIOS -->
+  <section id="principios">
+    <div class="gx-wrap">
+      <div class="gx-sec-head">
+        <p class="gx-eyebrow">Como o GovNexa pensa</p>
+        <h2>Calcular, não digitar.</h2>
+        <p>Status, percentual, farol e entrega projetada saem de regras. A equipe só registra o que aconteceu.</p>
+      </div>
+      <div class="gx-rules">
+        <div class="gx-rule"><h3>Uma fonte da verdade</h3><p>O projeto é único. Os módulos se ligam a ele por referência.</p></div>
+        <div class="gx-rule"><h3>Dado ausente não é zero</h3><p>O que falta aparece como pendência. O sistema nunca inventa data ou valor.</p></div>
+        <div class="gx-rule"><h3>Toda espera tem dono</h3><p>Etapa parada mostra quem deve o quê e desde quando.</p></div>
+        <div class="gx-rule"><h3>Simples para quem usa</h3><p>Fichas em texto, poucos cliques e funciona no celular.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AVISOS -->
+  <section id="sinais" style="padding-top:0">
+    <div class="gx-wrap gx-radar-sec">
+      <div class="gx-sec-head" style="margin:0">
+        <p class="gx-eyebrow">Avisos que chegam sozinhos</p>
+        <h2>A informação oficial vem até você.</h2>
+        <p>O GovNexa acompanha o que muda fora da prefeitura e cruza cada novidade com a sua carteira. O aviso aparece pronto na central de alertas: o que mudou, qual projeto é afetado e o que fazer.</p>
+      </div>
+      <div class="gx-glass gx-lit gx-radar" aria-label="Exemplos de avisos automáticos">
+        <div class="gx-scope" aria-hidden="true"><i></i><i></i><i></i></div>
+        <div class="gx-signals">
+          <div class="gx-signal"><small>Oportunidade</small>Recurso novo combina com 3 projetos de saúde</div>
+          <div class="gx-signal"><small>Risco</small>Pendência do município pode travar um repasse</div>
+          <div class="gx-signal"><small>Prazo</small>Convênio vence em 12 dias sem prorrogação pedida</div>
+          <span class="gx-muted" style="font-size:.78rem">Exemplos.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEGURANÇA -->
+  <section id="seguranca">
+    <div class="gx-wrap gx-sec">
+      <div class="gx-sec-head" style="margin:0">
+        <p class="gx-eyebrow">Segurança e confiança</p>
+        <h2>Dado público merece cuidado de banco.</h2>
+        <p>A prefeitura é a dona dos dados. O GovNexa foi desenhado para que cada município veja só o que é seu e para que nenhuma decisão desapareça.</p>
+        <div class="gx-cta" style="margin-top:8px"><a class="gx-btn gx-magnet" href="/plataforma/" data-astro-reload>Entrar com meu e-mail <span class="gx-arr" aria-hidden="true">→</span></a></div>
+      </div>
+      <div class="gx-checks">
+        <div class="gx-glass gx-check"><span class="gx-ic">01</span><div><b>Entrada sem senha para lembrar</b><span>O acesso usa um código enviado ao e-mail cadastrado. Só entra quem a prefeitura autorizou.</span></div></div>
+        <div class="gx-glass gx-check"><span class="gx-ic">02</span><div><b>Um banco de dados por prefeitura</b><span>Nenhuma consulta, painel ou exportação enxerga dados de outro município.</span></div></div>
+        <div class="gx-glass gx-check"><span class="gx-ic">03</span><div><b>Perfis para cada papel</b><span>Administrador, gestor, editor e leitura. Cada pessoa faz só o que o seu perfil permite.</span></div></div>
+        <div class="gx-glass gx-check"><span class="gx-ic">04</span><div><b>Histórico imutável</b><span>Cada alteração registrada guarda o antes e o depois. Documentos têm remoção apenas lógica.</span></div></div>
+        <div class="gx-glass gx-check"><span class="gx-ic">05</span><div><b>Os dados são da prefeitura</b><span>A prefeitura decide quem acessa e continua dona de tudo o que registra.</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FECHAMENTO -->
+  <section style="padding-top:0">
+    <div class="gx-wrap">
+      <div class="gx-glass gx-lit gx-end">
+        <div>
+          <h2>Veja a sua carteira como ela está agora.</h2>
+          <p>Se a sua prefeitura já usa o GovNexa, entre com o seu e-mail. Se ainda não usa, peça uma demonstração com os projetos da sua cidade.</p>
+          <div class="gx-cta" style="margin-top:18px"><a class="gx-btn gx-magnet" href="/demonstracao/">Solicitar demonstração <span class="gx-arr" aria-hidden="true">→</span></a></div>
+        </div>
+        <div style="display:grid;gap:12px;justify-items:start">
+          <a class="gx-btn gx-gold gx-magnet" href="/plataforma/" data-astro-reload>Entrar na plataforma <span class="gx-arr" aria-hidden="true">→</span></a>
+          <span class="gx-muted" style="font-size:.86rem">Acesso por código no e-mail. Sem senha.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</div>
+</Base>
+<script>
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+gsap.registerPlugin(ScrollTrigger);
+
+// Ficha do projeto: o que muda em cada macroetapa (dados de exemplo, fictícios).
+const ETAPAS = [
+  { n: '00', nome: 'Em estruturação', quem: 'Gestão de portfólio', dias: '2 dias', entrega: 'a calcular', fonte: 'a definir', farol: 'no prazo', faz: 'O sistema cria a ficha, o histórico e o lugar do projeto em todas as telas.' },
+  { n: '01', nome: 'Planejamento', quem: 'Órgão executor', dias: '11 dias', entrega: 'dez/2027', fonte: 'buscando convênio', farol: 'no prazo', faz: 'O sistema calcula a entrega projetada e sugere oportunidades de recurso para o projeto.' },
+  { n: '02', nome: 'Preparatório para contratação', quem: 'Jurídico', dias: '23 dias', entrega: 'jan/2028', fonte: 'convênio em análise', farol: 'atenção', faz: 'O sistema mostra que o parecer está parado há 23 dias e com quem.' },
+  { n: '03', nome: 'Contratação', quem: 'Comissão de contratação', dias: '6 dias', entrega: 'jan/2028', fonte: 'convênio assinado', farol: 'no prazo', faz: 'O sistema conta os prazos da Lei 14.133 em dias úteis e alerta antes do teto legal.' },
+  { n: '04', nome: 'Mobilização', quem: 'Empresa contratada', dias: '4 dias', entrega: 'jan/2028', fonte: '1º repasse liberado', farol: 'no prazo', faz: 'O sistema cobra a ordem de serviço se ela não sair em 15 dias.' },
+  { n: '05', nome: 'Execução', quem: 'Fiscalização da obra', dias: '58 dias', entrega: 'fev/2028', fonte: 'repasses em dia', farol: 'atenção', faz: 'O sistema monta a pauta da reunião semanal e mostra o atraso projetado de 30 dias.' },
+  { n: '06', nome: 'Conclusão', quem: 'Gabinete', dias: 'entregue', entrega: 'fev/2028', fonte: 'prestação de contas', farol: 'concluído', faz: 'O sistema guarda o histórico completo e as lições aprendidas.' },
+];
+
+let contexto: gsap.Context | undefined;
+const limpezas: (() => void)[] = [];
+
+function iniciar() {
+  const raiz = document.querySelector<HTMLElement>('.gx');
+  if (!raiz) return;
+  const $ = (id: string) => document.getElementById(id)!;
+  const calmo = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const trilho = Array.from($('rail').children) as HTMLElement[];
+  const passos = Array.from(raiz.querySelectorAll<HTMLElement>('.gx-step'));
+  let atual = -1;
+
+  const etapa = (i: number) => {
+    const e = ETAPAS[i];
+    if (i === atual || !e) return;
+    atual = i;
+    $('fNum').textContent = e.n; $('fNome').textContent = e.nome; $('fQuem').textContent = e.quem;
+    $('fDias').textContent = e.dias; $('fEntrega').textContent = e.entrega; $('fFonte').textContent = e.fonte;
+    $('fFaz').textContent = e.faz; $('fFarol').textContent = e.farol;
+    trilho.forEach((el, k) => { el.className = k < i ? 'gx-on' : k === i ? 'gx-now' : ''; });
+    passos.forEach((p) => p.classList.toggle('gx-active', Number(p.dataset.i) === i));
+    if (!calmo) gsap.fromTo('#fNum,#fNome', { y: 10 }, { y: 0, duration: 0.45, ease: 'power2.out', stagger: 0.05 });
+  };
+  etapa(0);
+
+  // Luz que segue o ponteiro nos cartões de vidro.
+  raiz.querySelectorAll<HTMLElement>('.gx-lit').forEach((c) => {
+    const mover = (ev: PointerEvent) => {
+      const r = c.getBoundingClientRect();
+      c.style.setProperty('--mx', `${ev.clientX - r.left}px`);
+      c.style.setProperty('--my', `${ev.clientY - r.top}px`);
+    };
+    c.addEventListener('pointermove', mover);
+    limpezas.push(() => c.removeEventListener('pointermove', mover));
+  });
+
+  contexto = gsap.context(() => {
+    passos.forEach((p) => {
+      ScrollTrigger.create({ trigger: p, start: 'top 58%', end: 'bottom 58%', onEnter: () => etapa(Number(p.dataset.i)), onEnterBack: () => etapa(Number(p.dataset.i)) });
+    });
+    if (calmo) return;
+
+    // Entrada do topo: só deslocamento, sem mexer na opacidade (o texto nunca perde contraste).
+    gsap.from('.gx-hero h1, .gx-hero .gx-lead, .gx-hero .gx-cta, .gx-hero .gx-proof', { y: 26, duration: 0.9, ease: 'power3.out', stagger: 0.09 });
+    gsap.from('#live', { y: 40, rotateX: 6, duration: 1.1, ease: 'power3.out', transformPerspective: 900 });
+
+    // O cartão atravessa o quadro três vezes e para (nada se move sem fim).
+    const cartao = $('mover'), quadro = $('kan');
+    const rotulos = ['avança com portão', 'peças conferidas', 'prazo legal contado', 'em obra'];
+    const tl = gsap.timeline({ repeat: 2, repeatDelay: 1.2, defaults: { duration: 1, ease: 'power2.inOut' } });
+    for (let i = 1; i < 4; i++) {
+      tl.to(cartao, { x: () => (i * (quadro.clientWidth + 8)) / 4, y: i % 2 ? 26 : 0, onStart: () => { $('moverTag').textContent = rotulos[i]; } }, '+=1.1');
+    }
+    tl.to(cartao, { x: 0, y: 0, duration: 0.01, onStart: () => { $('moverTag').textContent = rotulos[0]; } }, '+=1.6');
+    const aoRedimensionar = () => tl.invalidate();
+    window.addEventListener('resize', aoRedimensionar);
+    limpezas.push(() => window.removeEventListener('resize', aoRedimensionar));
+
+    // Luzes do fundo acompanham a rolagem.
+    gsap.to('.gx-orb.gx-a', { yPercent: 40, xPercent: 12, ease: 'none', scrollTrigger: { trigger: raiz, start: 'top top', end: 'bottom bottom', scrub: 1 } });
+    gsap.to('.gx-orb.gx-b', { yPercent: 120, xPercent: -20, ease: 'none', scrollTrigger: { trigger: raiz, start: 'top top', end: 'bottom bottom', scrub: 1 } });
+
+    // Revelações suaves por seção.
+    gsap.utils.toArray<HTMLElement>('.gx-sec-head, .gx-ask, .gx-tile, .gx-rule, .gx-check, .gx-radar, .gx-end').forEach((el) => {
+      gsap.from(el, { y: 30, duration: 0.8, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 90%', once: true } });
+    });
+    gsap.utils.toArray<HTMLElement>('.gx-gantt i').forEach((b, k) => {
+      gsap.from(b, { scaleX: 0, duration: 1, delay: k * 0.12, ease: 'power3.out', scrollTrigger: { trigger: b, start: 'top 92%', once: true } });
+    });
+
+    // Números contam até o valor final.
+    gsap.utils.toArray<HTMLElement>('.gx-count').forEach((el) => {
+      const fim = parseFloat(el.dataset.to || '0'), dec = Number(el.dataset.dec || 0), o = { v: 0 };
+      ScrollTrigger.create({ trigger: el, start: 'top 92%', once: true, onEnter: () => {
+        gsap.to(o, { v: fim, duration: 1.3, ease: 'power2.out', onUpdate: () => { el.textContent = o.v.toFixed(dec).replace('.', ','); } });
+      } });
+    });
+
+    // Botões com leve atração do ponteiro.
+    raiz.querySelectorAll<HTMLElement>('.gx-magnet').forEach((b) => {
+      const puxar = (ev: PointerEvent) => {
+        const r = b.getBoundingClientRect();
+        gsap.to(b, { x: (ev.clientX - r.left - r.width / 2) * 0.18, y: (ev.clientY - r.top - r.height / 2) * 0.28, duration: 0.3, ease: 'power2.out' });
+      };
+      const soltar = () => gsap.to(b, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1,.5)' });
+      b.addEventListener('pointermove', puxar);
+      b.addEventListener('pointerleave', soltar);
+      limpezas.push(() => { b.removeEventListener('pointermove', puxar); b.removeEventListener('pointerleave', soltar); });
+    });
+  }, raiz);
+}
+
+function encerrar() {
+  contexto?.revert();
+  contexto = undefined;
+  limpezas.splice(0).forEach((f) => f());
+}
+
+document.addEventListener('astro:page-load', iniciar);
+document.addEventListener('astro:before-swap', encerrar);
+
+</script>

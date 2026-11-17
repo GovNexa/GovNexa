@@ -4,6 +4,18 @@
 - 2026-11-17: limite de 30 ações por minuto por pessoa e prefeitura nas rotas que gravam documentos (enviar, remover), pela ligação `LIMITE_API` do Rate Limiting da Cloudflare (`wrangler.jsonc`). Chave `<prefeitura>:<e-mail>`; sem e-mail, recusado sem contar; falha da ligação recusa o pedido. Código em `src/lib/seguranca/limite.ts`.
 - 2026-11-17: conserto: `tests/seguranca/rate-limit.test.ts`, citado no `test:dados` e inexistente, agora existe (9 testes).
 
+## GovNexa — Cabeçalho, logo e mapa na página inicial
+- 2026-11-17: logo do GovNexa no cabeçalho público (`src/components/LogoGovNexa.astro`, cores por `--logo` e `--logo-a` em `visual.css`), no lugar do nome em texto; versão provisória aprovada pelo dono. A logo da Prefeitura de Goiânia permanece.
+- 2026-11-17: menu do topo enxuto: ficam "Acessar plataforma", "Solicitar demonstração" e o botão de tema. Início, Soluções, Insights e Sobre saem do topo e continuam no rodapé.
+- 2026-11-17: página inicial: a marca-d'água quadriculada deu lugar a um mapa de cidade (ruas em faixas, parques e água, sem texto). É um desenho próprio inspirado no centro de Goiânia, não o mapa real.
+- 2026-11-17: testes do cabeçalho ajustados em `tests/acceptance.spec.ts`.
+
+## GovNexa — Página inicial do site público
+- 2026-11-17: nova página inicial (`src/pages/index.astro`, estilos em `src/styles/home.css`, classes `gx-`): mensagem "Do desejo do gestor à obra entregue", quadro de exemplo, as quatro perguntas, ciclo do projeto por rolagem (macroetapas 00 a 06), módulos, avisos automáticos, segurança e entrada da plataforma. Mantém cabeçalho, rodapé, paleta e fonte do site. Números das telas são exemplos fictícios.
+- 2026-11-17: decisão do dono: a página não lista as fontes de dados nem a forma de leitura dos processos; o título dos módulos não traz número, porque novos módulos serão acrescentados.
+- 2026-11-17: dependência nova `gsap` 3.13.0 (animações), empacotada pelo build; nenhum script externo e nenhuma mudança em `_headers`.
+- 2026-11-17: teste `tests/home.spec.ts` (mensagem, entrada, ciclo, sem rolagem horizontal em 1280 e 390 px, acessibilidade nos temas claro e escuro).
+
 ## GovNexa — Datas no padrão brasileiro (regra do dono)
 - 2026-11-17: função única `src/lib/datas.ts` (`dataBr`, `dataHoraBr`, `dataOuDataHoraBr`): `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` no horário de Brasília (sem segundos, por decisão do dono). Aplicada no dashboard ("Atualizado em" e datas das fontes), no Histórico de alterações (tela e CSV) e em Documentos ("enviado em").
 - 2026-11-17: correção: "enviado em" dos documentos cortava o dia do texto em UTC e mostrava o dia seguinte para envios depois das 21h de Brasília. 5 testes novos em `tests/datas/datas.test.ts`.
