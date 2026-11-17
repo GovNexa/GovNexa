@@ -1,5 +1,8 @@
 # Changelog
 
+## Regra de trabalho: conferir o repositório durante o trabalho
+- 2026-11-17: `CLAUDE.md` ganhou a seção 1.1 (regra do dono): buscar as novidades do repositório antes de tarefa nova, branch, commit, PR e publicação, e atualizar a pasta sempre que possível. Vale para todos os desenvolvedores. Nenhuma mudança de código.
+
 ## GovNexa — Troca para o login próprio
 - 2026-11-17: login próprio publicado (PR #17, migração central 0002, segredos gravados) e ligado em produção (`LOGIN_MODO=senha`); convites enviados aos administradores; Cloudflare Access retirado da plataforma. Página inicial: textos de acesso atualizados (senha e verificação em 2 etapas).
 

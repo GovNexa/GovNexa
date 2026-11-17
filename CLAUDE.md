@@ -12,6 +12,14 @@ Valem para todas as pessoas e para toda sessão do Claude Code que desenvolver n
 3. Se estiver numa branch de trabalho: trazer a `main` atual para ela (`git merge origin/main`) antes de continuar.
 4. Só então começar a desenvolver. Se houver alterações locais não salvas, salvar (commit na branch) antes de atualizar; nunca descartar trabalho de outra pessoa.
 
+### 1.1 Conferir de novo durante o trabalho (regra do dono, 17/11/2026)
+Vale para todos os desenvolvedores e para toda sessão do Claude Code: o outro desenvolvedor pode ter enviado alterações enquanto você trabalhava.
+- Repetir `git fetch origin` e comparar com `origin/main` **antes de**: começar uma tarefa nova, criar uma branch, fazer commit, abrir ou atualizar um PR, e publicar. Em sessão longa, repetir também ao retomar o trabalho depois de uma pausa.
+- Se houver novidade, atualizar na hora, sempre que possível: `git pull --ff-only` na `main`; `git merge origin/main` na branch de trabalho. Só adiar se houver alteração local ainda não salva; nesse caso, salvar (commit na branch) e atualizar em seguida.
+- Depois de atualizar: rodar `npm ci` se `package.json` ou `package-lock.json` mudaram; ler o que mudou em `wrangler.jsonc`, `db/d1/` e neste arquivo; e rodar os testes antes de continuar.
+- Informar o resultado da conferência: quantos commits entraram, de quem e em que parte do sistema.
+- Nunca usar `git reset --hard`, `git push --force` nem descartar alterações para "ficar igual ao repositório".
+
 ## 2. Manter o repositório sempre atualizado
 - Trabalhar em branch própria (nunca direto na `main`); enviar (push) com frequência.
 - PRs pequenos e frequentes, para o outro desenvolvedor sempre ter a versão mais recente. O merge na `main` exige PR (main protegida). A publicação na Cloudflare só acontece com ordem expressa do dono (seção "Publicação em produção").
