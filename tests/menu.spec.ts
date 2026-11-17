@@ -45,8 +45,9 @@ test('início mantém módulos fechados e conta apenas no topo', async ({ page }
     await expect(link).toBeVisible();
     await expect(link).toHaveAttribute('href', href);
     const box = await link.boundingBox();
-    expect(box?.height).toBeGreaterThanOrEqual(44);
-    expect(box?.width).toBeGreaterThanOrEqual(44);
+    // A medida vem em fração de pixel (43,99999 em vez de 44): arredonda antes de comparar.
+    expect(Math.round(box?.height ?? 0)).toBeGreaterThanOrEqual(44);
+    expect(Math.round(box?.width ?? 0)).toBeGreaterThanOrEqual(44);
   }
   const sair = top.getByRole('button', { name: 'Sair', exact: true });
   await expect(sair).toBeVisible();

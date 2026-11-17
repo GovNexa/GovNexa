@@ -6,6 +6,7 @@ import { podeEnviar, removerDocumento, type BucketR2 } from '../../../../lib/doc
 import { codigoDe } from '../../../../lib/documentos/mensagens.ts';
 import { mesmaOrigem } from '../../../../lib/documentos/http.ts';
 import { ID_PROJETO } from '../../../../lib/documentos/regras.ts';
+import { dentroDoLimite, limitadorDoAmbiente } from '../../../../lib/seguranca/limite.ts';
 
 const BASE = '/plataforma/documentos-projeto/';
 
@@ -18,6 +19,7 @@ export const POST: APIRoute = async ({ request, params, locals, redirect }) => {
   const cabecalhoTamanho = request.headers.get('content-length');
   const tamanho = Number(cabecalhoTamanho);
   if (cabecalhoTamanho === null || !Number.isFinite(tamanho) || tamanho < 0 || tamanho > 4096) return redirect(`${BASE}?r=tamanho`, 303);
+  if (!(await dentroDoLimite(limitadorDoAmbiente(env), contexto.repositorio.prefeituraId, contexto.usuario.email))) return redirect(`${BASE}?r=limite`, 303);
   const form = await request.formData().catch(() => null);
   const projeto = String(form?.get('projeto') ?? '');
   const base = ID_PROJETO.test(projeto) ? `${BASE}projeto/${encodeURIComponent(projeto)}/` : BASE;

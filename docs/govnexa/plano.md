@@ -37,6 +37,8 @@ Percentuais mantidos até homologação do login próprio; Access continua padr�
 
 | Data | Entrega | PR |
 | --- | --- | --- |
+| 17/11 | Entrega 1.0: limite de 30 ações por minuto por pessoa e prefeitura nos documentos (Rate Limiting da Cloudflare; falha recusa) | novo PR |
+| 17/11 | Site público: logo provisória no cabeçalho, menu do topo enxuto e mapa de cidade como marca-d'água da página inicial | novo PR |
 | 17/11 | Página inicial nova do site público (gestão de projetos públicos, ciclo por rolagem, módulos e entrada da plataforma) | novo PR |
 | 17/11 | Login próprio, convites, 2FA obrigatório e administração por prefeitura; implementado, sem publicação | revisão pendente |
 | 16/11 | Etapa 3.4: documentos de projeto no R2 (envio, download como anexo, remoção lógica, limite de 30 envios por hora, conferência do tipo pelo conteúdo) | GovNexa #10 |
