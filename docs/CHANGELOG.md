@@ -1,5 +1,12 @@
 # Changelog
 
+## GovNexa — Documentos de projeto (etapa 3.4, Fase 3)
+- 2026-11-16: envio, download e remoção de documentos por projeto, no R2 `DOCUMENTOS` e na tabela `documento`: rotas em `/plataforma/documentos-projeto/` (`enviar/`, `arquivo/<id>/`, `remover/<id>/`, página `projeto/<código>/`), serviço em `src/lib/documentos/` (regras, repositório, serviço). PDF, PNG/JPG/WEBP e Office, até 25 MB; tipo conferido pelo conteúdo; chave do R2 gerada pelo sistema; download sempre como anexo; remoção só lógica.
+- 2026-11-16: migração D1 `0002_documento_removido_por.sql`: coluna `removido_por` e índice único do mesmo conteúdo ativo por projeto. Precisa ser aplicada em produção antes da publicação.
+- 2026-11-16: revisão independente (Opus) reprovou a primeira versão; corrigidos: arquivo lido em fluxo (sem segunda cópia na memória), perfil, origem e tamanho conferidos antes do corpo, limite de 30 envios por hora, corrida entre envios iguais, remoção decidida pelas linhas alteradas, teste de origem rígido. 23 testes novos de lógica e 3 de interface.
+- 2026-11-16: Fluxo: etapa "Cadastro do projeto" ganhou a tela Documentos e a regra de documentos.
+- 2026-11-16: primeira gravação das planilhas em produção pela rotina do repositório de dados: 334 projetos atualizados, 0 novos, 0 pulados.
+
 ## GovNexa — Importação das planilhas (etapa 3.5, Fase 3)
 - 2026-11-16: rotina `scripts/importar-planilhas.ts` (`npm run importar:planilhas`): lê a pasta de planilhas (carteira e cronogramas), confere, gera o SQL e, só com `--destino local|remoto`, grava no D1 e registra a carga (linha em `importacao` no banco central e um evento único de carga no histórico). Padrão: só conferir. Reproduz a carga de produção com as planilhas reais: 334 projetos, 13 cronogramas, 725 etapas.
 - 2026-11-16: códigos repetidos na planilha da carteira (hoje o 450, SECAP e SEINFRA) são detectados e a rotina para com a lista (código, linhas e órgãos); a correção combinada fica em `codigos-corrigidos.json` (`importar-carteira.ts`: `resolverCodigosRepetidos`, `lerCorrecoes`, `--corrigir-codigos`). Relatório ganha a seção "Códigos repetidos".

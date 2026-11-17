@@ -25,7 +25,7 @@ O sistema está no ar com os dados reais da planilha (334 projetos e 13 cronogra
 | 1 · Carteira de Projetos | Carga real, Carteira, ficha, Kanban, Gantt, Visão por órgão, celular | Publicada com dados reais | 100% |
 | 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, Kanban e Pendências (simulação), Histórico, Sala de guerra | Publicada em simulação (Novo projeto no ar, fora do menu lateral); gravar depende do banco | 95% |
 | 2 · Cronograma e equipe | Cronogramas, quadro de tarefas, Onde está parado | Publicada com a Reunião semanal e as dependências entre etapas (atraso em cascata); leitura do SEI em simulação (a leitura diária depende do banco) | 90% |
-| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis, isolamento por prefeitura | Tabelas em produção e carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas pronta (3.5; falta a 1ª gravação em produção). Falta: usuários (3.3) e documentos (3.4) | 75% |
+| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis, isolamento por prefeitura | Tabelas em produção e carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas no ar e gravada em 16/11 (3.5). Documentos (3.4) prontos no código (PR #10), falta publicar. Falta: usuários (3.3) | 85% |
 | 4 · Contratação, convênios e Gestão | Lei 14.133, cláusula suspensiva, alertas, painel do prefeito | Em construção: Prazos da Lei 14.133, Painel do prefeito, Mapa das obras e Central de alertas publicados; Licitação em detalhe com as datas reais do SEI em simulação; falta a leitura automática (banco) e o PNCP | 75% |
 | 5 · Integrações e inteligência | PNCP, SIMEC, SISMOB, preços, WhatsApp, IA | Em construção: WhatsApp em simulação (permissão por número, relatório, perguntas e modelos para a Meta); envio real depende do banco e da conta do WhatsApp Business | 10% |
 
@@ -33,6 +33,8 @@ O sistema está no ar com os dados reais da planilha (334 projetos e 13 cronogra
 
 | Data | Entrega | PR |
 | --- | --- | --- |
+| 16/11 | Etapa 3.4: documentos de projeto no R2 (envio, download como anexo, remoção lógica, limite de 30 envios por hora, conferência do tipo pelo conteúdo) | GovNexa #10 |
+| 16/11 | Primeira gravação das planilhas em produção (334 atualizados, 0 novos, 0 pulados) | rotina do repositório de dados |
 | 16/11 | Etapa 3.5: importação das planilhas do repositório privado (rotina do GitHub com conferência e gravação separadas; códigos repetidos avisados; não apaga, não sobrescreve localização, compromisso nem projeto alterado no sistema) | GovNexa #9 |
 | 16/11 | Leitura do banco otimizada (só a guia aberta é montada; cache de 30 s por prefeitura): páginas da plataforma de ~400 ms para ~20 ms; erro 1102 do plano gratuito explicado (publicada em 16/11, versão 2e1114fa) | GovNexa #6 |
 | 16/11 | Plano e histórico trazidos para o repositório novo, atualizados para a migração; referências ao repositório antigo retiradas | GovNexa #5 |

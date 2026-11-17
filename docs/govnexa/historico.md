@@ -109,8 +109,8 @@ Por que ainda não é automático: o navegador não deixa uma página do GovNexa
 ### 5.3 Próximas entregas
 
 1. **3.3, usuários:** tela de usuários e sincronização com o grupo do Access.
-2. **3.4, documentos:** armazenamento no R2 e regras de remoção lógica.
-3. **3.5, importação:** feita (novo #9). Falta a primeira gravação em produção: depende dos segredos do Cloudflare no repositório de dados.
+2. **3.4, documentos:** código pronto e revisado (novo #10). Falta aplicar a migração 0002 em produção e publicar, com ordem do dono.
+3. **3.5, importação:** feita (novo #9) e gravada em produção em 16/11: 334 projetos atualizados, 0 novos, 0 pulados.
 4. **SEI automático:** leitura diária dos links guardados no D1, por Cron Trigger. Sem contornar captcha, e documento restrito continua entrando por PDF.
 5. **Leitura de PDF no navegador** para documentos restritos (biblioteca `pdfjs-dist`, da Mozilla).
 6. **Projeto × oportunidade:** sugestão de programas abertos para cada projeto.
@@ -190,6 +190,8 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 
 | Situação | O que aprendemos |
 | --- | --- |
+| Página nova com o nome de uma guia que já existia (16/11, novo #10) | A pasta `documentos/` das rotas da etapa 3.4 sobrescreveu a guia de demonstração "Documentos" e derrubou um teste antigo. As rotas passaram a ficar em `documentos-projeto/`. Antes de criar rota nova sob `/plataforma/`, conferir `src/data/modules.json` e o catálogo. |
+| Revisão independente reprovou a 1ª versão da 3.4 (16/11, novo #10) | Achados: arquivo copiado duas vezes na memória do Worker, rota de remoção lendo corpo sem limite, perfil conferido só depois de ler o arquivo, teste de origem que passava mesmo sem a trava, e corrida entre dois envios iguais. Tudo corrigido (leitura em fluxo, conferências antes do corpo, índice único, testes mais rígidos). Regra: em rota que grava, conferir origem, perfil e tamanho antes de abrir o corpo. |
 | Reimportar a planilha pode apagar o que foi feito no sistema (16/11, novo #9) | A revisão independente achou que o upsert da planilha sobrescreveria colunas que o sistema também grava (etapa, datas, localização, compromisso) e que um código reaproveitado pela planilha poderia virar outro projeto. A rotina agora preserva localização e compromisso, **pula** o projeto já alterado no sistema e **para tudo** se um código mudar de órgão. Antes de a gravação de verdade existir no sistema (3.3 em diante), revisar de novo quem manda em cada coluna. |
 | Código repetido na planilha (16/11) | A planilha da carteira repete o código 450 (SECAP e SEINFRA). Sem aviso, os dois viravam o mesmo `P-450` e um apagava o outro no banco. O importador agora para, e a correção combinada fica em `planilhas/codigos-corrigidos.json`. Quando a planilha for corrigida na origem, apague a linha. |
 | Testar a importação só com dados fictícios engana (16/11) | A prova de que a rotina funciona foi feita com as planilhas reais num banco **local** (334 projetos, 13 cronogramas, 725 etapas, iguais à produção) e depois apagada. Banco local com dados reais quebra os testes de interface: limpar `.wrangler/state` depois. |
@@ -216,6 +218,7 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 | novo #2 | 16/11/2026 | Etapa 1: Cloudflare Worker com Access e marca GovNexa |
 | novo #3 | 16/11/2026 | Etapa 3 (3.1 e 3.2): banco D1, plataforma lendo o banco, porte do PR #45 e README |
 | novo #4 | 16/11/2026 | Correção: login pelo Access recusava todos em produção |
+| novo #10 | 16/11/2026 | Etapa 3.4: documentos de projeto |
 | novo #9 | 16/11/2026 | Etapa 3.5: importação das planilhas |
 | novo #7 | 16/11/2026 | Registro da publicação da otimização e do repositório de dados |
 | novo #6 | 16/11/2026 | Leitura do banco otimizada (desempenho) |
@@ -281,6 +284,10 @@ mesclado em 16/11/2026 · branch `agente/codex/access-redirect`
 
 redirect: 'error' não é aceito pelo runtime do Workers; troca para 'manual' (não-200 = indisponível) e registra o motivo de cada recusa (sem dados sensíveis). test:dados 238/238; revisão: APROVADO.
 
+
+#### novo #10 — Etapa 3.4: documentos de projeto
+
+Rotas `/plataforma/documentos-projeto/`, serviço em `src/lib/documentos/`, migração D1 `0002`. Regras de segurança e limites conhecidos no README (seção 6).
 
 #### novo #9 — Etapa 3.5: importação das planilhas
 
