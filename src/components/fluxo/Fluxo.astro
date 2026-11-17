@@ -439,14 +439,17 @@ document.addEventListener('astro:page-load', () => {
     const CHAVE = 'govnexa-fluxo-zoom';
     const largura = svg ? svg.viewBox.baseVal.width : 0;
     let modo: 'ajustar' | number = 1;
+    let zoomAutomatico = true;
     let guardado = false; // só conta preferência válida
     try {
       const g = localStorage.getItem(CHAVE);
       if (g === 'ajustar') {
         modo = 'ajustar';
+        zoomAutomatico = false;
         guardado = true;
       } else if (g && NIVEIS.includes(Number(g))) {
         modo = Number(g);
+        zoomAutomatico = false;
         guardado = true;
       }
     } catch {}
@@ -474,19 +477,29 @@ document.addEventListener('astro:page-load', () => {
       const prox = dir > 0 ? NIVEIS.find((n) => n > z + 0.001) : [...NIVEIS].reverse().find((n) => n < z - 0.001);
       if (prox === undefined) return;
       modo = prox;
+      zoomAutomatico = false;
       guardar();
       aplicar();
     };
     if (!guardado && ajuste() < 1) modo = 'ajustar';
+    const recalcular = () => {
+      if (modo === 'ajustar') aplicar();
+      else if (zoomAutomatico) {
+        modo = ajuste() < 1 ? 'ajustar' : 1;
+        aplicar();
+      }
+    };
     raiz.querySelector('[data-fx-zoom-menos]')?.addEventListener('click', () => passo(-1));
     raiz.querySelector('[data-fx-zoom-mais]')?.addEventListener('click', () => passo(1));
     raiz.querySelector('[data-fx-zoom-ajustar]')?.addEventListener('click', () => {
       modo = 'ajustar';
+      zoomAutomatico = false;
       guardar();
       aplicar();
     });
     raiz.querySelector('[data-fx-zoom-padrao]')?.addEventListener('click', () => {
       modo = 1;
+      zoomAutomatico = false;
       guardar();
       aplicar();
     });
@@ -504,9 +517,8 @@ document.addEventListener('astro:page-load', () => {
       acumulado = 0;
       ultimo = agora;
     }, { passive: false });
-    window.addEventListener('resize', () => {
-      if (modo === 'ajustar') aplicar();
-    });
+    if (quadro) new ResizeObserver(recalcular).observe(quadro);
+    window.addEventListener('resize', recalcular);
     aplicar();
   }
   // Legenda e fluxos detalhados começam recolhidos na tela; na impressão/PDF saem abertos e depois voltam como estavam.
