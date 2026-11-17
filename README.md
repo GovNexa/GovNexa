@@ -117,11 +117,9 @@ São módulos independentes que conversam entre si:
 | 1 · Carteira de Projetos | Carteira, ficha, Kanban, Gantt, Visão por órgão, celular | Entregue; carga inicial no D1 | 100% |
 | 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, Kanban e Pendências, Histórico, Sala de guerra | Telas prontas; algumas gravações ainda são simulação | 95% |
 | 2 · Cronograma e equipe | Cronogramas, quadro de tarefas, Onde está parado, Reunião semanal, dependências, SEI | Telas entregues; leitura automática do SEI a fazer | 90% |
-| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis e isolamento por prefeitura | Tabelas em produção, carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas no ar e gravada em 16/11 (3.5). Documentos (3.4) publicados em 17/11. Usuários (3.3, opção B): lista somente leitura de quem tem acesso, em revisão | 92% |
+| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis e isolamento por prefeitura | Tabelas em produção, carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas no ar e gravada em 16/11 (3.5). Documentos (3.4) publicados em 17/11. Usuários (3.3, opção B): lista somente leitura de quem tem acesso, no ar desde 17/11 | 92% |
 | 4 · Contratação, convênios e Gestão | Lei 14.133, alertas, dashboard do prefeito, licitação em detalhe | Prazos da lei, dashboard em três níveis, filtros e modo apresentação; mapa, Central de alertas e Licitação em detalhe; parte ainda em simulação | 75% |
 | 5 · Integrações e inteligência | PNCP, SIMEC, SISMOB, preços, WhatsApp, IA | WhatsApp em simulação | 10% |
-
-Dashboard local: efeitos progressivos, alertas críticos e atualização a cada 5 minutos implementados; sem publicação nesta ordem.
 
 ### Entregas recentes
 
@@ -133,6 +131,7 @@ Dashboard local: efeitos progressivos, alertas críticos e atualização a cada 
 | 16/11 | Primeira gravação das planilhas em produção: 334 atualizados, 0 novos, 0 pulados | rotina do repositório de dados |
 | 16/11 | Etapa 3.5: importação das planilhas (rotina, regras de segurança dos dados, avisos e testes) | PR #9 |
 | 16/11 | Menu lateral com ícones por item, tipografia única, início recolhido, lista flutuante de itens, sanfona e usuário no rodapé | Plataforma |
+| 17/11 | Publicados: dashboard do prefeito (3 níveis, efeitos, pontos de atenção, atualização a cada 5 min, modo apresentação), menu retraído, tema claro com barra branca, datas DD/MM/AAAA HH:MM e guia Usuários | PR #12 e PR #14 |
 | 16/11 | Início da plataforma como dashboard do prefeito: filtros por URL, 10 indicadores, detalhamento acessível em painel e modo apresentação | `/plataforma/` |
 | 16/11 | Otimização publicada (versão 2e1114fa); repositório privado de dados conferido | PR #7 |
 | 16/11 | Leitura do banco otimizada: só a guia aberta é montada e cache de 30 s (páginas de ~400 ms para ~20 ms) | PR #6 |
