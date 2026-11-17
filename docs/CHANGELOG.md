@@ -1,5 +1,8 @@
 # Changelog
 
+## Correção: layout duplicado depois de um conflito de merge
+- 2026-11-17: a resolução do conflito do PR #24 feita no site do GitHub deixou as duas versões da linha principal de `src/layouts/Base.astro`, e toda página saía duas vezes. Fica uma única linha, com o símbolo G e o rodapé que informa a origem dos dados. Teste novo (`tests/layout-unico.spec.ts`) garante um único documento por página. Não chegou a ser publicado.
+
 ## GovNexa — Símbolo G como ícone do sistema
 - 2026-11-17: símbolo G do logo (componente `src/components/SimboloGovNexa.astro`) no ícone da aba do navegador (`public/favicon.svg`), no ícone de atalho de celular/tablet (`public/apple-touch-icon.png`), no canto da plataforma, no painel do login e no rodapé. Cor do navegador no celular: azul-marinho da marca.
 ## Correção: rodapé da plataforma informa a origem real dos dados
