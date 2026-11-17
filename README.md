@@ -117,7 +117,7 @@ São módulos independentes que conversam entre si:
 | 1 · Carteira de Projetos | Carteira, ficha, Kanban, Gantt, Visão por órgão, celular | Entregue; carga inicial no D1 | 100% |
 | 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, Kanban e Pendências, Histórico, Sala de guerra | Telas prontas; algumas gravações ainda são simulação | 95% |
 | 2 · Cronograma e equipe | Cronogramas, quadro de tarefas, Onde está parado, Reunião semanal, dependências, SEI | Telas entregues; leitura automática do SEI a fazer | 90% |
-| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis e isolamento por prefeitura | Tabelas em produção, carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas no ar e gravada em 16/11 (3.5). Documentos (3.4) prontos no código (PR #10), falta publicar. A fazer: usuários (3.3) | 85% |
+| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis e isolamento por prefeitura | Tabelas em produção, carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas no ar e gravada em 16/11 (3.5). Documentos (3.4) publicados em 17/11. Usuários (3.3, opção B): lista somente leitura de quem tem acesso, em revisão | 92% |
 | 4 · Contratação, convênios e Gestão | Lei 14.133, alertas, painel do prefeito, licitação em detalhe | Prazos da lei, painel, mapa, Central de alertas e Licitação em detalhe; parte ainda em simulação | 75% |
 | 5 · Integrações e inteligência | PNCP, SIMEC, SISMOB, preços, WhatsApp, IA | WhatsApp em simulação | 10% |
 
@@ -125,6 +125,8 @@ São módulos independentes que conversam entre si:
 
 | Data | O que | Referência |
 | --- | --- | --- |
+| 17/11 | Etapa 3.3 (opção B): guia Usuários, lista somente leitura de quem tem acesso (só administrador) | novo PR |
+| 17/11 | Etapa 3.4 publicada: migração 0002 aplicada e documentos no ar | PR #10 e #13 |
 | 16/11 | Etapa 3.4: documentos de projeto no R2 (envio, download como anexo e remoção lógica) | PR #10 |
 | 16/11 | Primeira gravação das planilhas em produção: 334 atualizados, 0 novos, 0 pulados | rotina do repositório de dados |
 | 16/11 | Etapa 3.5: importação das planilhas (rotina, regras de segurança dos dados, avisos e testes) | PR #9 |
@@ -272,10 +274,22 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 
 ### Próximas partes da Fase 3
 
-1. **Usuários (3.3):** tela de usuários e sincronização com um grupo do Access.
+1. **Usuários (3.3, opção B):** lista somente leitura de quem tem acesso (guia Usuários, só administrador). Cadastro e alteração seguem pelo banco, com ordem do dono. A tela de cadastro e a sincronização com o Access ficam para depois de validar os fluxos com o cliente.
 2. **Documentos (3.4):** publicada em produção em 17/11/2026 (PR #10; migração 0002 aplicada): envio, download e remoção lógica.
 3. **Importação de planilhas (3.5):** feita e gravada em produção em 16/11 (334 projetos atualizados, 0 novos).
 4. **SEI automático:** Cron Trigger do Worker para leitura e gravação no D1.
+
+### Usuários (etapa 3.3, opção B)
+
+- **Onde:** `/plataforma/usuarios/` (guia Usuários, no módulo Conta). Só quem tem a ação `gerenciar_usuarios` (administrador) vê a guia e a lista; os outros perfis recebem 403.
+- **O que mostra:** nome, e-mail, cargo, perfil, situação e data de cadastro de quem tem acesso à prefeitura do solicitante. Somente leitura; a consulta sempre filtra pela prefeitura do usuário logado.
+- **Como incluir ou alterar alguém (só com ordem do dono):**
+  1. Incluir o e-mail na política do Cloudflare Access (https://one.dash.cloudflare.com, Zero Trust, Access, Applications, política do GovNexa).
+  2. Cadastrar no banco central: `npx wrangler d1 execute DB_CENTRAL --remote --command "INSERT INTO usuario(id,email,nome,cargo,perfil,prefeitura_id) VALUES(lower(hex(randomblob(16))),'<e-mail em minúsculas>','<nome>','<cargo>','<admin|gestor|editor|leitura>',5208707)"`.
+  3. Regras do comando: o e-mail vai em minúsculas (o banco recusa maiúsculas) e todo apóstrofo dentro de um valor deve ser duplicado (`'` vira `''`).
+  4. Para desativar: `UPDATE usuario SET ativo = 0, atualizado_em = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE email = '<e-mail>'`.
+  5. Conferir na guia Usuários.
+- **Fica para depois:** tela de cadastro e edição, convite e sincronização com um grupo do Access (opção A), após a validação dos fluxos com o cliente.
 
 ### Documentos de projeto (etapa 3.4)
 
@@ -326,7 +340,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Hospedagem e código:** Cloudflare + GitHub; o repositório público não recebe dados reais.
 - **Banco:** D1, um por prefeitura, e um D1 central para prefeituras, usuários e importações. Supabase/PostgreSQL fica apenas como plano B.
 - **Login:** Cloudflare Access mais cadastro ativo no banco central. Perfis admin, gestor, editor e leitura; todos são admin durante a construção.
-- **Cadastro e Access:** tela de usuários sincronizada com um grupo do Access (opção A).
+- **Cadastro e Access (17/11/2026):** etapa 3.3 na opção B: só a lista de quem tem acesso. O cadastro de usuários pela tela e a sincronização com o Access esperam a validação dos fluxos com o cliente, para evitar retrabalho.
 - **Dados reais:** somente no banco e no repositório privado de dados; nunca no repositório público.
 - **Importação:** planilhas pelo repositório privado `GovNexa/govnexa-dados`; o importador deverá avisar códigos repetidos. O código 450 duplicado foi resolvido como 506 para SECAP.
 - **Prazos:** a lei é o limite e a prefeitura define metas internas menores. Passar do teto legal é alerta grave. Prazos-piso não podem ser encurtados.
@@ -348,7 +362,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 
 ### Próximos passos
 
-1. **3.3 — usuários:** criar a tela e sincronizar o cadastro com grupo do Access.
+1. **3.3 — usuários (opção B):** feita no código (lista somente leitura); cadastro pelo banco. Tela de cadastro e Access ficam para depois da validação dos fluxos.
 2. **3.4 — documentos:** publicada em 17/11/2026.
 3. **3.5 — importação:** feita e gravada em 16/11.
 4. Automatizar a leitura do SEI com Cron Trigger.

@@ -1,0 +1,50 @@
+---
+// Etapa 3.3 (opção B): quem tem acesso à plataforma, somente leitura, só para administradores.
+// Cadastro e alteração continuam pelo banco, com ordem do dono (ver README, seção 6).
+import Platform from '../../../layouts/Platform.astro';
+import { env } from 'cloudflare:workers';
+import { listarUsuarios, ROTULO_PERFIL } from '../../../lib/usuarios/lista.ts';
+import type { BancoD1 } from '../../../lib/repositorio/d1.ts';
+export const prerender = false;
+const lista = await listarUsuarios((env as unknown as { DB_CENTRAL: BancoD1 }).DB_CENTRAL, Astro.locals.usuario);
+if (!lista) Astro.response.status = 403;
+const dia = (iso: string) => iso.slice(0, 10).split('-').reverse().join('/');
+---
+<Platform title="Usuários" slug="usuarios">
+  <div class="section-head"><div><h1>Usuários com acesso</h1><p class="muted">Quem pode entrar na plataforma desta prefeitura e com qual perfil. Somente leitura: para incluir ou alterar alguém, peça ao administrador do sistema.</p></div></div>
+  {!lista && <p class="usr-aviso" role="alert">Sem permissão: só administradores veem esta lista.</p>}
+  {lista && lista.length === 0 && <p role="status">Nenhum usuário cadastrado.</p>}
+  {lista && lista.length > 0 && (
+    <div class="usr-tabela">
+      <table>
+        <caption class="sr-only">Usuários com acesso</caption>
+        <thead><tr><th scope="col">Nome</th><th scope="col">E-mail</th><th scope="col">Cargo</th><th scope="col">Perfil</th><th scope="col">Situação</th><th scope="col">Desde</th></tr></thead>
+        <tbody>
+          {lista.map((u) => (
+            <tr>
+              <th scope="row" data-label="Nome">{u.nome || '—'}</th>
+              <td data-label="E-mail">{u.email}</td>
+              <td data-label="Cargo">{u.cargo || '—'}</td>
+              <td data-label="Perfil">{ROTULO_PERFIL[u.perfil] ?? u.perfil}</td>
+              <td data-label="Situação">{u.ativo ? 'Ativo' : 'Inativo'}</td>
+              <td data-label="Desde">{dia(u.criado_em)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+</Platform>
+<style>
+  .usr-aviso{padding:.6rem .9rem;border-radius:8px;border:1px solid #b3261e;max-width:42rem}
+  .usr-tabela table{width:100%;border-collapse:collapse}
+  .usr-tabela th,.usr-tabela td{text-align:left;padding:.5rem .6rem;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+  .usr-tabela thead th{color:var(--muted)}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  @media (max-width:720px){
+    .usr-tabela thead{display:none}
+    .usr-tabela tr{display:block;border:1px solid var(--line);border-radius:8px;margin-bottom:.6rem;padding:.3rem .5rem}
+    .usr-tabela th,.usr-tabela td{display:flex;gap:.6rem;justify-content:space-between;border:0;padding:.25rem .1rem}
+    .usr-tabela [data-label]::before{content:attr(data-label);color:var(--muted);flex:0 0 5.5rem}
+  }
+</style>
