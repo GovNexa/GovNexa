@@ -92,7 +92,7 @@ São módulos independentes que conversam entre si:
    - Site e plataforma em https://govnexa.com.br e https://www.govnexa.com.br, servidos por Cloudflare Worker. A hospedagem antiga será desligada.
    - Astro 7 + `@astrojs/cloudflare`: site público pré-renderizado; `/plataforma/` montada a cada acesso no Worker, lendo D1. `worker/entrypoint.ts` encaminha as páginas `/entrar/*` ao Astro e trata `/sair` e `/api`; `src/middleware.ts` valida o login e escolhe o banco.
    - Cloudflare D1 (SQLite): um banco por prefeitura (`govnexa-5208707` para Goiânia) e banco central `govnexa-central` para prefeituras, usuários e importações. Migrações atuais em `db/d1/central` e `db/d1/prefeitura`; `db/migracoes/` é a referência PostgreSQL antiga. O histórico é imutável; fotos e documentos só têm remoção lógica. Arquivos ficam no R2 `govnexa-documentos`. Supabase/PostgreSQL é apenas plano B.
-   - Login com Cloudflare Access (equipe `equipegovnexa`, código por e-mail) e cadastro ativo no banco central. Perfis: admin, gestor, editor e leitura; durante a construção, todos os usuários são admin. Quem passa no Access, mas não está cadastrado, vê "Sem permissão".
+   - Login próprio do GovNexa desde 17/11/2026: e-mail e senha + verificação em 2 etapas (aplicativo autenticador), com cadastro ativo no banco central. Até 17/11 o acesso era pelo Cloudflare Access. Perfis: admin, gestor, editor e leitura; durante a construção, todos os usuários são admin. Quem passa no Access, mas não está cadastrado, vê "Sem permissão".
    - Carga inicial no D1 de produção em 16/11: 334 projetos, 13 cronogramas e 725 etapas. O código 450 estava repetido (SECAP e SEINFRA); o da SECAP virou 506. Planilhas novas são importadas do repositório privado `GovNexa/govnexa-dados` por uma rotina do GitHub (etapa 3.5, ver a seção 6).
    - Marca GovNexa no site público, login e plataforma. Contato: contato@govnexa.com.br.
 
@@ -123,7 +123,7 @@ São módulos independentes que conversam entre si:
 
 ### Entregas recentes
 
-17/11: login próprio com senha e 2FA implementado, ainda sem publicação; Access continua padrão. Percentuais mantidos até homologação.
+17/11: login próprio com senha e 2FA publicado e ligado em produção (`LOGIN_MODO=senha`); convites enviados aos administradores; Cloudflare Access retirado da plataforma.
 
 | Data | O que | Referência |
 | --- | --- | --- |
@@ -287,7 +287,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Captação:** leitura de dados públicos.
 - **Ainda é simulação:** cadastro, Kanban, pendências, reunião, sala de guerra, SEI na interface e WhatsApp. Essas partes passam a gravar de verdade nas próximas entregas da etapa 3.
 - A plataforma lê o D1 em produção desde 16/11/2026. A leitura foi otimizada (só a guia aberta é montada e a leitura do banco fica em cache de 30 s); a otimização foi publicada em 16/11/2026 às 19h35 (versão 2e1114fa do Worker).
-- Acesso à plataforma exige Cloudflare Access e cadastro ativo no banco central. A prefeitura não é escolhida pela URL.
+- Acesso à plataforma exige sessão do login próprio (senha + verificação em 2 etapas) e cadastro ativo no banco central. A prefeitura não é escolhida pela URL.
 
 ### SEI automático
 
@@ -298,7 +298,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 
 ### Próximas partes da Fase 3
 
-1. **Usuários (3.3):** cadastro, convite e login próprio com 2FA implementados; validar a interface antes da publicação. Access permanece padrão.
+1. **Usuários (3.3):** cadastro, convite e login próprio com 2FA no ar desde 17/11/2026. Pendente: os administradores que ainda não concluíram o convite (reenviar pela guia Usuários se vencer).
 2. **Documentos (3.4):** publicada em produção em 17/11/2026 (PR #10; migração 0002 aplicada): envio, download e remoção lógica.
 3. **Importação de planilhas (3.5):** feita e gravada em produção em 16/11 (334 projetos atualizados, 0 novos).
 4. **SEI automático:** Cron Trigger do Worker para leitura e gravação no D1.
@@ -491,7 +491,7 @@ Nenhum valor secreto fica no código. Só os nomes e a finalidade:
 | Binding R2 `DOCUMENTOS` | `wrangler.jsonc` | Bucket `govnexa-documentos` |
 | Domínios `govnexa.com.br` e `www.govnexa.com.br` | `wrangler.jsonc` | Domínios do Worker |
 | `ACESSO_LOCAL_LIVRE`, `DEV_EMAIL` | `.dev.vars` local | Desenvolvimento local; nunca configurar a liberação em produção |
-| `LOGIN_MODO` | Variável do Worker | `access` padrão; `senha` habilita autenticação própria |
+| `LOGIN_MODO` | Variável do Worker | `senha` em produção desde 17/11/2026 (login próprio); `access` (padrão quando ausente) volta ao Cloudflare Access |
 | `SENHA_PEPPER` | Segredo do Worker | HMAC anterior ao PBKDF2-SHA256 (100000 iterações); preservar e proteger |
 | `TOTP_CHAVE` | Segredo do Worker | AES-GCM, 32 bytes base64; cifra as chaves do aplicativo |
 | `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET` | Variável e segredo do Worker | Widget e validação no servidor; obrigatórios em produção |

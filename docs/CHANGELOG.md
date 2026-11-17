@@ -1,5 +1,8 @@
 # Changelog
 
+## GovNexa — Troca para o login próprio
+- 2026-11-17: login próprio publicado (PR #17, migração central 0002, segredos gravados) e ligado em produção (`LOGIN_MODO=senha`); convites enviados aos administradores; Cloudflare Access retirado da plataforma. Página inicial: textos de acesso atualizados (senha e verificação em 2 etapas).
+
 ## Correção 3 — Segurança do login (17/11/2026, sem publicação)
 
 - Limite de segundo fator por conta, bloqueio de uma hora e revogação de sessões pendentes; bloqueio progressivo de senha com falhas preservadas até o login completo.
