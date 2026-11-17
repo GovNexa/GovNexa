@@ -496,7 +496,7 @@ Não reutilize variáveis de autenticação ou publicação da arquitetura antig
 ## 14. Segurança
 
 - Senha com PBKDF2 e pepper; TOTP cifrado por AES-GCM vinculado ao ID da conta, com proteção contra reuso e códigos de recuperação de uso único.
-- Cinco erros de senha por janela bloqueiam inicialmente por 15 minutos; a cada dez falhas acumuladas em 24 h o período dobra até 24 h. A senha correta só zera falhas depois do segundo fator.
+- Cinco erros de senha por janela bloqueiam inicialmente por 15 minutos; a cada dez falhas acumuladas em 24 h o período dobra até uma hora (15 → 30 → 60 min). Tentativas durante o bloqueio não acumulam falhas nem estendem o prazo. Administradores podem desbloquear contas da própria prefeitura na guia Usuários; a ação limpa os limites da conta e fica na auditoria. A senha correta só zera falhas depois do segundo fator.
 - Dez erros de TOTP/recuperação por conta em uma hora bloqueiam por uma hora e revogam sessões pendentes, além do limite de cinco códigos por sessão. Sucesso no segundo fator limpa os contadores da conta.
 - Login e recuperação fazem escritas equivalentes para e-mail existente/ausente. POST de login, código e esqueci completam pelo menos 800 ms; e-mail usa waitUntil quando disponível e envio síncrono como fallback.
 - Links de convite e redefinição usam ORIGEM_PUBLICA=https://govnexa.com.br; origem ausente ou sem HTTPS recusa envio e registra evento. URL da requisição só serve no modo local.
@@ -542,3 +542,5 @@ Ordem de leitura: README, [plano](docs/govnexa/plano.md), [histórico](docs/govn
 - Os dados de Captação vêm de fontes públicas oficiais, com a origem indicada.
 - Os dados reais da carteira e dos cronogramas ficam no D1 e nunca no repositório público.
 - O projeto não é um canal oficial da Prefeitura de Goiânia.
+
+Na guia Usuários, erros administrativos usam códigos e mensagens fixos. O envio de e-mail é aguardado; se falhar, a alteração gravada permanece e a tela orienta reenviar o convite. Rotas anônimas mantêm envio em segundo plano e piso de tempo.

@@ -100,7 +100,7 @@ test('admin: próprio acesso, último administrador, isolamento por prefeitura e
  await assert.rejects(b.servico.desativarUsuario(b.u,'admin'));await assert.rejects(b.servico.alterarPerfil(b.u,'admin','leitura'));
  b.sqlite.exec("INSERT INTO prefeitura VALUES(1100015,1100015,'Outra','RO','DB_PREFEITURA_1100015',1); INSERT INTO usuario(id,email,nome,perfil,prefeitura_id) VALUES('fora','fora@exemplo.invalid','Outra equipe','admin',1100015)");
  assert.equal((await b.servico.listar(b.u)).length,1);
- for(const f of [()=>b.servico.desativarUsuario(b.u,'fora'),()=>b.servico.reativarUsuario(b.u,'fora'),()=>b.servico.alterarPerfil(b.u,'fora','editor'),()=>b.servico.redefinirSegundoFator(b.u,'fora'),()=>b.servico.reenviarConvite(b.u,'fora')])await assert.rejects(f,/Pessoa não encontrada/);
+ for(const f of [()=>b.servico.desativarUsuario(b.u,'fora'),()=>b.servico.reativarUsuario(b.u,'fora'),()=>b.servico.alterarPerfil(b.u,'fora','editor'),()=>b.servico.redefinirSegundoFator(b.u,'fora'),()=>b.servico.reenviarConvite(b.u,'fora'),()=>b.servico.desbloquearAcesso(b.u,'fora')])await assert.rejects(f,/Pessoa não encontrada/);
  const id=await b.servico.convidar(b.u,{nome:'Outra equipe',email:'outra@exemplo.invalid',cargo:'Teste',perfil:'admin'});
  await b.servico.alterarPerfil(b.u,'admin','leitura');await assert.rejects(b.servico.listar(b.u),/Sem permissão/);
  const outra=await b.db.prepare('SELECT * FROM usuario WHERE id = ?').bind(id).first<any>();await assert.rejects(b.servico.alterarPerfil(outra,id,'leitura'),/Mantenha/);
@@ -231,14 +231,14 @@ test('correção 3: falhas de login escrevem limites por hash também para ausen
  await assert.rejects(b.servico.iniciarLogin(email,'errada'));
  assert.equal(b.sqlite.prepare('SELECT contagem FROM limite_tentativa WHERE chave=?').get('login:email:'+await hash(email))!.contagem,1);
  }
- for(const [acumuladas,minutos] of [[4,15],[9,30],[19,60],[99,1440]]){
+ for(const [acumuladas,minutos] of [[4,15],[9,30],[19,60],[99,60]]){
  b.sqlite.prepare('UPDATE usuario SET falhas_login=?,bloqueado_ate=NULL').run(acumuladas);
  b.sqlite.prepare("UPDATE limite_tentativa SET contagem=4 WHERE chave=?").run('login:email:'+await hash(b.u.email));
  await assert.rejects(b.servico.iniciarLogin(b.u.email,'errada'));
  const fim=Date.parse(String(b.sqlite.prepare('SELECT bloqueado_ate FROM usuario').get()!.bloqueado_ate));
  assert.ok(Math.abs(fim-Date.now()-minutos*60000)<2000);
  }
- b.sqlite.exec("UPDATE limite_tentativa SET janela_inicio='2000-01-01T00:00:00.000Z' WHERE chave LIKE 'login:dia:%'");
+ b.sqlite.exec("UPDATE usuario SET bloqueado_ate=NULL; UPDATE limite_tentativa SET janela_inicio='2000-01-01T00:00:00.000Z' WHERE chave LIKE 'login:dia:%'");
  await assert.rejects(b.servico.iniciarLogin(b.u.email,'errada'));assert.equal(b.sqlite.prepare('SELECT falhas_login FROM usuario').get()!.falhas_login,1);
  }finally{b.sqlite.close();}
 });
@@ -260,8 +260,8 @@ test('correção 3: limpeza oportunista remove só janelas com mais de 24 horas'
 });
 test('correção 3: mensagens de Usuários aceitam só códigos conhecidos',()=>{
  const pagina=readFileSync('src/pages/plataforma/usuarios/index.astro','utf8'),acao=readFileSync('src/pages/plataforma/usuarios/acao.ts','utf8');
- assert.match(pagina,/get\('erro'\)==='falha'/);assert.match(pagina,/get\('ok'\)==='concluida'/);
- assert.doesNotMatch(pagina,/\{Astro.url.searchParams.get\('erro'\)\}/);assert.match(acao,/\?erro=falha/);assert.match(acao,/conferirPost\(request\)/);
+ assert.match(pagina,/includes\(codigoErro\)/);assert.match(pagina,/get\('ok'\)==='concluida'/);
+ assert.doesNotMatch(pagina,/\{Astro.url.searchParams.get\('erro'\)\}/);assert.match(acao,/e instanceof ErroAdmin/);assert.match(acao,/conferirPost\(request\)/);
 });
 
 test('correção 3: escritas de recusa de login e esqueci são equivalentes com ou sem conta',async()=>{
@@ -271,5 +271,42 @@ test('correção 3: escritas de recusa de login e esqueci são equivalentes com 
  async function medir(acao:()=>Promise<unknown>){escritas.length=0;try{await acao();}catch{}return [...escritas];}
  assert.deepEqual(await medir(()=>b.servico.iniciarLogin(b.u.email,'errada')),await medir(()=>b.servico.iniciarLogin('ausente@exemplo.invalid','errada')));
  assert.deepEqual(await medir(()=>b.servico.pedirRedefinicao(b.u.email)),await medir(()=>b.servico.pedirRedefinicao('ausente@exemplo.invalid')));
+ }finally{b.sqlite.close();}
+});
+
+test('correção 5: bloqueada não acumula; desbloqueio limpa só a conta e audita',async()=>{
+ const b=await preparar();try{
+ b.sqlite.prepare('UPDATE usuario SET senha_hash=?').run(await hashSenha('Horizonte!local-7264',pepper));
+ for(let i=0;i<5;i++)await assert.rejects(b.servico.iniciarLogin(b.u.email,'errada'));
+ const antes=b.sqlite.prepare('SELECT falhas_login,bloqueado_ate FROM usuario WHERE id=?').get(b.u.id);
+ const limites=b.sqlite.prepare("SELECT * FROM limite_tentativa WHERE chave NOT LIKE 'login:ip:%' ORDER BY chave").all();
+ for(const senha of ['errada','Horizonte!local-7264'])await assert.rejects(b.servico.iniciarLogin(b.u.email,senha),{message:ERRO_LOGIN});
+ assert.deepEqual(b.sqlite.prepare('SELECT falhas_login,bloqueado_ate FROM usuario WHERE id=?').get(b.u.id),antes);
+ assert.deepEqual(b.sqlite.prepare("SELECT * FROM limite_tentativa WHERE chave NOT LIKE 'login:ip:%' ORDER BY chave").all(),limites);
+ for(const chave of ['2fa:conta:admin','esqueci:email:'+await hash(b.u.email),'2fa:conta:outra'])b.sqlite.prepare('INSERT INTO limite_tentativa VALUES(?,?,?)').run(chave,new Date().toISOString(),3);
+ await b.servico.desbloquearAcesso(b.u,b.u.id);
+ assert.deepEqual({...b.sqlite.prepare('SELECT falhas_login,bloqueado_ate FROM usuario WHERE id=?').get(b.u.id)},{falhas_login:0,bloqueado_ate:null});
+ assert.equal(b.sqlite.prepare("SELECT count(*) n FROM limite_tentativa WHERE chave IN (?,?,?,?)").get('2fa:conta:admin','login:email:'+await hash(b.u.email),'login:dia:'+await hash(b.u.email),'esqueci:email:'+await hash(b.u.email))!.n,0);
+ assert.equal(b.sqlite.prepare("SELECT count(*) n FROM limite_tentativa WHERE chave='2fa:conta:outra'").get()!.n,1);
+ assert.equal(b.sqlite.prepare("SELECT count(*) n FROM evento_acesso WHERE tipo='acesso_desbloqueado' AND usuario_id='admin'").get()!.n,1);
+ }finally{b.sqlite.close();}
+});
+test('correção 5: administrador aguarda e recebe falha de e-mail preservando cadastro',async()=>{
+ const b=await preparar();try{
+ let liberar!:()=>void;let iniciou=false;const tarefas:Promise<unknown>[]=[];
+ const env={...b.env,EMAIL_SIMULADO:'0',EMAIL:{send:async()=>{iniciou=true;await new Promise<void>(r=>{liberar=r;});throw new Error('Falha simulada');}}};
+ const svc=servicoLogin(env,request,t=>tarefas.push(t));
+ let terminou=false;const resultado=svc.convidar(b.u,{nome:'Equipe de teste',email:'falha@exemplo.invalid',cargo:'Teste',perfil:'editor'}).finally(()=>{terminou=true;});
+ const rejeicao=assert.rejects(resultado,(e:unknown)=>e instanceof Error&&'codigo' in e&&e.codigo==='email_falhou');
+ for(let i=0;i<100&&!iniciou;i++)await new Promise(r=>setTimeout(r,1));
+ assert.equal(iniciou,true);assert.equal(terminou,false);assert.equal(tarefas.length,0);liberar();await rejeicao;
+ const id=String(b.sqlite.prepare('SELECT id FROM usuario WHERE email=?').get('falha@exemplo.invalid')!.id);
+ const falha=servicoLogin({...env,EMAIL:{send:async()=>{throw new Error('Falha simulada');}}},request,t=>tarefas.push(t));
+ await assert.rejects(falha.reenviarConvite(b.u,id),(e:unknown)=>e instanceof Error&&'codigo' in e&&e.codigo==='email_falhou');
+ b.sqlite.prepare('UPDATE usuario SET totp_ativo=1 WHERE id=?').run(id);
+ await assert.rejects(falha.redefinirSegundoFator(b.u,id),(e:unknown)=>e instanceof Error&&'codigo' in e&&e.codigo==='email_falhou');
+ assert.equal(b.sqlite.prepare('SELECT totp_ativo FROM usuario WHERE id=?').get(id)!.totp_ativo,0);
+ assert.equal(tarefas.length,0);
+ assert.equal(b.sqlite.prepare("SELECT count(*) n FROM evento_acesso WHERE tipo='envio_email_falhou'").get()!.n,2);
  }finally{b.sqlite.close();}
 });

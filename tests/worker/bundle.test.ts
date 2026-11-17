@@ -10,7 +10,7 @@ test('Configuração publicada não habilita acesso local nem bindings não usad
    continue;
   }
   const texto = readFileSync(arquivo, 'utf8');
-  assert.doesNotMatch(texto, /ACESSO_LOCAL_LIVRE|DEV_EMAIL/);
+  assert.doesNotMatch(texto, /AMBIENTE|EMAIL_SIMULADO|ACESSO_LOCAL_LIVRE|DEV_EMAIL/);
   if (arquivo.endsWith('.json')) {
    const config = JSON.parse(texto);
    assert.equal(config.kv_namespaces?.length ?? 0, 0);

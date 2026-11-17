@@ -139,3 +139,8 @@
 - 2026-11-10: Atualização mensal automática (INEP, SINISA e CNES) no GitHub Actions (dia 5 de cada mês, branch dados-mensais-atualizados); status das coletas mensais em data/core/status-coletas-mensais.json, lido pela guia Qualidade dos dados.
 - 2026-11-10: Manual do usuário atualizado (Comparativo, Qualidade dos dados, Principal com educação, saúde e saneamento, agenda iCalendar, Projetos com parecer, rotinas diária e mensal).
 - 2026-11-10: Revisão de segurança (9 vetores, docs/seguranca.md): limitador de tentativas de login (lib/rate-limit.ts), escape do JSON-LD (XSS), cabeçalhos de segurança e CSP no vercel.json, testes (npm run test:dados: 13 testes).
+
+## Correção de login 5
+- Bloqueio limitado a uma hora, sem acúmulo durante bloqueio; desbloqueio administrativo isolado por prefeitura e auditado.
+- Mensagens fixas de falhas administrativas e envio de e-mail aguardado, preservando alterações quando o envio falha.
+- Configuração publicada rejeita AMBIENTE, EMAIL_SIMULADO e ACESSO_LOCAL_LIVRE.

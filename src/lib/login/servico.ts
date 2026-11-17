@@ -10,6 +10,10 @@ import { enviarEmail, type EnvEmail, type Email } from './email.ts';
 import { modeloLink, modeloAviso } from './modelos-email.ts';
 export interface EnvLogin extends EnvEmail { DB_CENTRAL:BancoD1; SENHA_PEPPER?:string; TOTP_CHAVE?:string; LOGIN_MODO?:string; ORIGEM_PUBLICA?:string; TURNSTILE_SITE_KEY?:string; TURNSTILE_SECRET?:string; }
 export interface UsuarioLogin extends Usuario {senha_hash:string|null;totp_ativo:number;totp_segredo_cifrado:string|null;totp_ultimo_passo:number|null;bloqueado_ate:string|null;falhas_login:number;}
+export class ErroAdmin extends Error {
+ readonly codigo:string;
+ constructor(codigo:string,mensagem:string){super(mensagem);this.codigo=codigo;}
+}
 export const ERRO_LOGIN='E-mail ou senha incorretos.';
 export const RESPOSTA_ESQUECI='Se o e-mail estiver cadastrado, enviaremos um link em instantes.';
 const ERRO_CODIGO='Código inválido ou expirado. Aguarde e tente novamente.';
@@ -25,19 +29,19 @@ export function servicoLogin(env:EnvLogin, request:Request, waitUntil?: (tarefa:
   return atual;
  }
  async function alvo(a:Usuario,id:string) {await administrador(a);const u=await usuario(id);if(!u||u.prefeitura_id!==a.prefeitura_id)throw new Error('Pessoa não encontrada.');return u;}
- async function despacharEmail(email:Email, usuarioId:string, falha='envio_email_falhou') {
-  const envio=enviarEmail(env,email,request).catch(async()=>{await evento(falha,usuarioId);});
-  if(waitUntil)waitUntil(envio);else await envio;
+ async function despacharEmail(email:Email, usuarioId:string, falha='envio_email_falhou',admin=false) {
+  const envio=enviarEmail(env,email,request).catch(async()=>{await evento(falha,usuarioId);if(admin)throw new ErroAdmin('email_falhou','Falha no envio de e-mail.');});
+  if(waitUntil&&!admin)waitUntil(envio);else await envio;
  }
  async function link(u:UsuarioLogin,tipo:TipoToken,autor:string|null=null) {
   let origem:URL;
   try {
    origem=new URL(modoLocal(request,env)?request.url:(env.ORIGEM_PUBLICA??''));
    if(!modoLocal(request,env)&&(origem.protocol!=='https:'||origem.username||origem.password||origem.pathname!=='/'||origem.search||origem.hash))throw new Error();
-  }catch{await evento('origem_publica_invalida',u.id);throw new Error('Envio de e-mail indisponível.');}
+  }catch{await evento('origem_publica_invalida',u.id);throw new ErroAdmin('email_falhou','Envio de e-mail indisponível.');}
   const t=await criarToken(db,u.id,tipo,autor);
   const url=new URL('/entrar/definir-senha/',origem);url.searchParams.set('token',t.token);url.searchParams.set('tipo',tipo);
-  await despacharEmail({para:u.email,...modeloLink(tipo,url.href,t.expira)},u.id);
+  await despacharEmail({para:u.email,...modeloLink(tipo,url.href,t.expira)},u.id,'envio_email_falhou',autor!==null);
   await evento(tipo,u.id);
  }
  async function sessao(valor:string,etapa?:string) {const s=await obterSessao(db,valor);if(!s || (etapa && s.etapa!==etapa))return null;const u=await usuario(s.usuario_id);if(!u?.ativo){if(u)await revogarSessoes(db,u.id);return null;}return {s,u};}
@@ -61,7 +65,7 @@ export function servicoLogin(env:EnvLogin, request:Request, waitUntil?: (tarefa:
  }
  async function limparFalhas(u:UsuarioLogin) {
   await db.batch([stmt('UPDATE usuario SET falhas_login = 0, bloqueado_ate = NULL WHERE id = ?',u.id),
-   stmt('DELETE FROM limite_tentativa WHERE chave IN (?,?,?)','2fa:conta:'+u.id,'login:email:'+await hash(u.email),'login:dia:'+await hash(u.email))]);
+   stmt('DELETE FROM limite_tentativa WHERE chave IN (?,?,?,?)','esqueci:email:'+await hash(u.email),'2fa:conta:'+u.id,'login:email:'+await hash(u.email),'login:dia:'+await hash(u.email))]);
  }
  async function concluir(s:Sessao,u:UsuarioLogin,passo:number|null,recuperacao?:string) {
   const agora=iso(), novo=tokenAleatorio();
@@ -80,12 +84,12 @@ export function servicoLogin(env:EnvLogin, request:Request, waitUntil?: (tarefa:
  return {
   async convidar(a:Usuario,d:{nome:string;email:string;cargo:string;perfil:Perfil}) {
    await administrador(a);const email=normalEmail(d.email),nome=d.nome.trim();
-   if(!/^[\x21-\x7e]+$/.test(email)||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)||email.length>254||!nome||nome.length>120||d.cargo.length>120||!['admin','gestor','editor','leitura'].includes(d.perfil))throw new Error('Confira nome, e-mail, cargo e perfil.');
-   if(await stmt('SELECT id FROM usuario WHERE email = ?',email).first())throw new Error('Não foi possível cadastrar este e-mail.');
+   if(!/^[\x21-\x7e]+$/.test(email)||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)||email.length>254||!nome||nome.length>120||d.cargo.length>120||!['admin','gestor','editor','leitura'].includes(d.perfil))throw new ErroAdmin('dados','Confira nome, e-mail, cargo e perfil.');
+   if(await stmt('SELECT id FROM usuario WHERE email = ?',email).first())throw new ErroAdmin('email_existente','Não foi possível cadastrar este e-mail.');
    const id=crypto.randomUUID();await gravar(db,'INSERT INTO usuario(id,email,nome,cargo,perfil,prefeitura_id) VALUES(?,?,?,?,?,?)',id,email,nome,d.cargo.trim(),d.perfil,a.prefeitura_id);
    await link((await usuario(id))!,'convite',a.id);return id;
   },
-  async reenviarConvite(a:Usuario,id:string) {const u=await alvo(a,id);if(!u.ativo||u.senha_hash)throw new Error('Esta pessoa já definiu a senha ou está desativada.');await link(u,'convite',a.id);},
+  async reenviarConvite(a:Usuario,id:string) {const u=await alvo(a,id);if(!u.ativo||u.senha_hash)throw new ErroAdmin('dados','Esta pessoa já definiu a senha ou está desativada.');await link(u,'convite',a.id);},
   async definirSenhaComToken(token:string,tipo:TipoToken,senha:string) {
    const t=await consultarToken(db,token,tipo);const u=t?await usuario(t.usuario_id):null;
    if(!u?.ativo || !t || (tipo==='convite' && u.senha_hash))throw new Error('Link inválido ou expirado. Peça um novo link.');
@@ -108,6 +112,7 @@ export function servicoLogin(env:EnvLogin, request:Request, waitUntil?: (tarefa:
    const ipOk=await contarTentativa(db,'login:ip:'+await hash(ip),20,900000);
    let confere=false;
    if(u?.ativo&&u.senha_hash)confere=await verificarSenha(senha,u.senha_hash,env.SENHA_PEPPER??'');else await senhaFalsa(senha,env.SENHA_PEPPER??'');
+   if(u?.bloqueado_ate&&u.bloqueado_ate>iso()){await evento('login_recusado',u.id);throw new Error(ERRO_LOGIN);}
    if(!ipOk || !u?.ativo || !confere || (u.bloqueado_ate && u.bloqueado_ate>iso())) {
     const chaveEmail=await hash(email);
     const ok=await contarTentativa(db,'login:email:'+chaveEmail,4,900000);
@@ -115,8 +120,8 @@ export function servicoLogin(env:EnvLogin, request:Request, waitUntil?: (tarefa:
     const acumuladas=dia&&Date.parse(dia.janela_inicio)>Date.now()-86400000?(u?.falhas_login??0):0;
     await contarTentativa(db,'login:dia:'+chaveEmail,Number.MAX_SAFE_INTEGER,86400000);
     const falhas=acumuladas+Number(!confere);
-    const duracao=Math.min(86400000,900000*2**Math.min(7,Math.floor(falhas/10)));
-    await gravar(db,'UPDATE usuario SET falhas_login = ?, bloqueado_ate = CASE WHEN ? = 1 THEN bloqueado_ate ELSE max(coalesce(bloqueado_ate,\'\'),?) END WHERE id = ?',falhas,Number(ok||confere),depois(duracao),u?.id??'');
+    const duracao=Math.min(3600000,900000*2**Math.min(2,Math.floor(falhas/10)));
+    await gravar(db,'UPDATE usuario SET falhas_login = ?, bloqueado_ate = CASE WHEN ? = 1 THEN bloqueado_ate ELSE max(coalesce(bloqueado_ate,\'\'),?) END WHERE id = ? AND (bloqueado_ate IS NULL OR bloqueado_ate <= ?)',falhas,Number(ok||confere),depois(duracao),u?.id??'',iso());
     await evento('login_recusado',u?.id??null);throw new Error(ERRO_LOGIN);
    }
    const etapa=u.totp_ativo?'segundo_fator':'configurar_2fa';const valor=await criarSessao(db,u.id,etapa,request.headers.get('user-agent')??'');await evento('senha_verificada',u.id);return {valor,etapa};
@@ -159,21 +164,22 @@ export function servicoLogin(env:EnvLogin, request:Request, waitUntil?: (tarefa:
   async sair(valor:string){const s=await obterSessao(db,valor);await gravar(db,'UPDATE sessao SET revogada_em = ? WHERE id_hash = ?',iso(),await hash(valor));await evento('saida',s?.usuario_id??null);},
   async usuarioDaSessao(valor:string){const par=await sessao(valor,'completa');if(!par)return null;const u=par.u;return {id:u.id,email:u.email,nome:u.nome,cargo:u.cargo,perfil:u.perfil,prefeitura_id:u.prefeitura_id,ativo:!!u.ativo,criado_em:u.criado_em,atualizado_em:u.atualizado_em} as Usuario;},
   async desativarUsuario(a:Usuario,id:string) {
-   const u=await alvo(a,id);if(a.id===id)throw new Error('Você não pode desativar seu próprio acesso.');
+   const u=await alvo(a,id);if(a.id===id)throw new ErroAdmin('proprio','Você não pode desativar seu próprio acesso.');
    const r=await gravar(db,"UPDATE usuario SET ativo = 0 WHERE id = ? AND prefeitura_id = ? AND (perfil <> 'admin' OR ativo = 0 OR (SELECT count(*) FROM usuario WHERE prefeitura_id = ? AND perfil = 'admin' AND ativo = 1) > 1)",u.id,a.prefeitura_id,a.prefeitura_id);
-   if(r.meta?.changes!==1)throw new Error('Mantenha ao menos um administrador ativo.');await revogarSessoes(db,id);await gravar(db,'UPDATE token_email SET usado_em = ? WHERE usuario_id = ? AND usado_em IS NULL',iso(),id);await evento('usuario_desativado',id);
+   if(r.meta?.changes!==1)throw new ErroAdmin('ultimo_admin','Mantenha ao menos um administrador ativo.');await revogarSessoes(db,id);await gravar(db,'UPDATE token_email SET usado_em = ? WHERE usuario_id = ? AND usado_em IS NULL',iso(),id);await evento('usuario_desativado',id);
   },
   async reativarUsuario(a:Usuario,id:string) {await alvo(a,id);await gravar(db,'UPDATE usuario SET ativo = 1 WHERE id = ? AND prefeitura_id = ?',id,a.prefeitura_id);await evento('usuario_reativado',id);},
   async alterarPerfil(a:Usuario,id:string,perfil:Perfil) {
-   await alvo(a,id);if(!['admin','gestor','editor','leitura'].includes(perfil))throw new Error('Perfil inválido.');
+   await alvo(a,id);if(!['admin','gestor','editor','leitura'].includes(perfil))throw new ErroAdmin('dados','Perfil inválido.');
    const r=await gravar(db,"UPDATE usuario SET perfil = ? WHERE id = ? AND prefeitura_id = ? AND (? = 'admin' OR perfil <> 'admin' OR ativo = 0 OR (SELECT count(*) FROM usuario WHERE prefeitura_id = ? AND perfil = 'admin' AND ativo = 1) > 1)",perfil,id,a.prefeitura_id,perfil,a.prefeitura_id);
-   if(r.meta?.changes!==1)throw new Error('Mantenha ao menos um administrador ativo.');await evento('perfil_alterado',id);
+   if(r.meta?.changes!==1)throw new ErroAdmin('ultimo_admin','Mantenha ao menos um administrador ativo.');await evento('perfil_alterado',id);
   },
   async redefinirSegundoFator(a:Usuario,id:string) {
    const u=await alvo(a,id);await db.batch([stmt('UPDATE usuario SET totp_ativo = 0, totp_segredo_cifrado = NULL, totp_ultimo_passo = NULL WHERE id = ? AND prefeitura_id = ?',id,a.prefeitura_id),stmt('DELETE FROM codigo_recuperacao WHERE usuario_id = ?',id),stmt('UPDATE sessao SET revogada_em = ? WHERE usuario_id = ?',iso(),id)]);
-   await despacharEmail({para:u.email,...modeloAviso('2fa')},u.id,'aviso_email_falhou');await evento('2fa_redefinido',id);
+   await despacharEmail({para:u.email,...modeloAviso('2fa')},u.id,'aviso_email_falhou',true);await evento('2fa_redefinido',id);
   },
-  async listar(a:Usuario){await administrador(a);return (await stmt(`SELECT id,nome,email,cargo,perfil,ativo,criado_em,totp_ativo,senha_definida_em,
-  (SELECT max(criado_em) FROM token_email WHERE usuario_id = usuario.id AND tipo = 'convite') AS convite_em FROM usuario WHERE prefeitura_id = ? ORDER BY ativo DESC,lower(nome),email`,a.prefeitura_id).all()).results as (Usuario & {totp_ativo:number;senha_definida_em:string|null;convite_em:string|null})[];}
+  async desbloquearAcesso(a:Usuario,id:string) {const u=await alvo(a,id);await limparFalhas(u);await evento('acesso_desbloqueado',id);},
+  async listar(a:Usuario){await administrador(a);return (await stmt(`SELECT id,nome,email,cargo,perfil,ativo,criado_em,totp_ativo,bloqueado_ate,senha_definida_em,
+  (SELECT max(criado_em) FROM token_email WHERE usuario_id = usuario.id AND tipo = 'convite') AS convite_em FROM usuario WHERE prefeitura_id = ? ORDER BY ativo DESC,lower(nome),email`,a.prefeitura_id).all()).results as (Usuario & {totp_ativo:number;bloqueado_ate:string|null;senha_definida_em:string|null;convite_em:string|null})[];}
  };
 }
