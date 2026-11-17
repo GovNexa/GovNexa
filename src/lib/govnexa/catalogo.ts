@@ -149,6 +149,15 @@ export const NOVOS_MODULOS = [
     source: 'govnexa-sala',
   },
   {
+    slug: 'usuarios',
+    title: 'Usuários',
+    group: 'Conta',
+    columns: [] as string[],
+    rows: [] as (string | number)[][],
+    fields: [] as string[],
+    source: 'govnexa-usuarios',
+  },
+  {
     slug: 'projetos-log',
     title: 'Histórico de alterações',
     group: 'Projetos',

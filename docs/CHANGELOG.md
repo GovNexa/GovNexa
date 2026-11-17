@@ -4,6 +4,10 @@
 - 2026-11-17: função única `src/lib/datas.ts` (`dataBr`, `dataHoraBr`, `dataOuDataHoraBr`): `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` no horário de Brasília (sem segundos, por decisão do dono). Aplicada no dashboard ("Atualizado em" e datas das fontes), no Histórico de alterações (tela e CSV) e em Documentos ("enviado em").
 - 2026-11-17: correção: "enviado em" dos documentos cortava o dia do texto em UTC e mostrava o dia seguinte para envios depois das 21h de Brasília. 5 testes novos em `tests/datas/datas.test.ts`.
 
+## GovNexa — Usuários (etapa 3.3, opção B, Fase 3)
+- 2026-11-17: guia Usuários (`/plataforma/usuarios/`, módulo Conta): lista somente leitura de quem tem acesso à prefeitura (nome, e-mail, cargo, perfil, situação, desde). Só administrador vê a guia e a lista; outros perfis recebem 403. Consulta em `src/lib/usuarios/lista.ts`, sempre filtrada pela prefeitura do solicitante.
+- 2026-11-17: decisão do dono: cadastro de usuários pela tela e sincronização com o Access ficam para depois da validação dos fluxos com o cliente. Como incluir e desativar usuários pelo banco: README, seção 6.
+
 ## GovNexa — Documentos de projeto (etapa 3.4, Fase 3)
 - 2026-11-16: envio, download e remoção de documentos por projeto, no R2 `DOCUMENTOS` e na tabela `documento`: rotas em `/plataforma/documentos-projeto/` (`enviar/`, `arquivo/<id>/`, `remover/<id>/`, página `projeto/<código>/`), serviço em `src/lib/documentos/` (regras, repositório, serviço). PDF, PNG/JPG/WEBP e Office, até 25 MB; tipo conferido pelo conteúdo; chave do R2 gerada pelo sistema; download sempre como anexo; remoção só lógica.
 - 2026-11-16: migração D1 `0002_documento_removido_por.sql`: coluna `removido_por` e índice único do mesmo conteúdo ativo por projeto. Aplicada em produção em 2026-11-17, junto com a publicação da 3.4.

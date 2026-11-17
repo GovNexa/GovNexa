@@ -5,6 +5,7 @@ import modules from '../data/modules.json';
 import { municipioAtivo } from '../lib/municipio-ativo.ts';
 import { catalogoCompleto, menuPorModulo } from '../lib/govnexa/catalogo.ts';
 import { carregarCarteira } from '../lib/carteira/carga.ts';
+import { usuarioPode } from '../lib/usuarios/index.ts';
 
 const fonteCarteira = carregarCarteira().fonte;
 const avisoDados = fonteCarteira.ficticio
@@ -65,6 +66,7 @@ const menuIcons: Record<string, string> = {
   'projetos-parado': 'bell',
   'projetos-pendencias': 'inbox',
   'projetos-log': 'file',
+  usuarios: 'users',
   'projetos-reuniao': 'users',
   'projetos-sala': 'message-square',
   'projetos-fluxo': 'grid',
@@ -98,9 +100,12 @@ const groupIcons: Record<string, string> = {
 };
 const itemIsCurrent = (item: { slug?: string }) =>
   slug !== '' && (item.slug === slug || `/plataforma/${item.slug ? `${item.slug}/` : ''}` === Astro.url.pathname);
+// A guia Usuários só aparece para quem pode gerenciar usuários (a própria página também confere).
+const podeVerUsuarios = usuarioPode(usuario, 'gerenciar_usuarios');
 const menu = menuPorModulo(catalogoCompleto(modules)).map((mod) => {
   return {
     ...mod,
+    grupos: mod.grupos.map((g) => ({ ...g, itens: g.itens.filter((i) => podeVerUsuarios || i.slug !== 'usuarios') })).filter((g) => g.itens.length > 0),
     icon: moduleIcons[mod.id],
     current: mod.grupos.some((group) => group.itens.some(itemIsCurrent)),
   };
