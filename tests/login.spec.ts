@@ -34,5 +34,7 @@ test('proteção, volta externa ignorada, temas, axe e largura de 390 px',async(
  await page.goto('/entrar/?volta=https://externo');await expect(page.locator('form')).toHaveAttribute('method','post');
  // A volta não é propagada como destino externo nem incluída no formulário.
  await expect(page.locator('form')).not.toHaveAttribute('action',/externo/);
+ // Mede o contraste com a tela parada (as animações de entrada passam por opacidades intermediárias).
+ await page.emulateMedia({reducedMotion:'reduce'});
  for(const tema of ['light','dark']){await page.evaluate(t=>{localStorage.setItem('govnexa-theme',t);document.documentElement.dataset.theme=t;},tema);await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth)).toBeLessThanOrEqual(0);const resultado=await new AxeBuilder({page}).analyze();expect(resultado.violations.filter(v=>['serious','critical'].includes(v.impact??''))).toEqual([]);}
 });
