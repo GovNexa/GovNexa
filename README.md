@@ -143,6 +143,10 @@ No início (/plataforma/), todos os módulos do menu ficam retraídos: o dashboa
 
 Legenda: **Disponível** = leitura ou operação disponível. **Simulação** = as regras rodam, mas a gravação real ainda será ligada nas próximas partes da etapa 3. **Demonstrativo** = protótipo com dados fictícios.
 
+### Tema claro/escuro
+
+O tema claro usa menu lateral branco, texto e ícones azul-escuros, destaques azul-claros e KPIs claros. O tema escuro conserva a barra em gradiente azul-escuro. A preferência persiste entre páginas. Menu aberto, recolhido e lista flutuante possuem contraste AA e alvos de pelo menos 44 px.
+
 ### Navegação da plataforma
 
 | Funcionalidade | O que oferece | Situação | Código |
