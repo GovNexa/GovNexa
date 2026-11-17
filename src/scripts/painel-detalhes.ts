@@ -330,10 +330,11 @@ function construirPainel(
     .map((link, indice) => ({ link, indice, ordem: ordenarAcao(link) }))
     .sort((a, b) => a.ordem - b.ordem || a.indice - b.indice);
   for (const { link, ordem } of ordenadas) {
-    const rotulo = ordem === 1 ? 'Cronograma' : ordem === 4 ? 'Histórico' : ordem === 0 ? 'Abrir ficha completa' : link.rotulo;
+    const rotulo = ordem === 1 ? 'Cronograma' : ordem === 4 ? 'Histórico' : ordem === 0 ? 'Ficha completa' : ordem === 3 ? 'Localização' : link.rotulo;
     const ancora = criar('a', ordem === 0 ? 'rd-action rd-action-primary' : 'rd-action', rotulo);
     ancora.href = link.url;
-    ancora.setAttribute('aria-label', ordem === 1 || ordem === 4 ? link.rotulo : rotulo);
+    // Nome acessível começa pelo texto visível e completa o sentido do rótulo curto.
+    ancora.setAttribute('aria-label', ordem === 0 ? 'Ficha completa do projeto' : ordem === 3 ? 'Localização e fotos' : ordem === 1 || ordem === 4 ? `${rotulo}: ${link.rotulo}` : rotulo);
     if (link.url.startsWith('https://')) {
       ancora.target = '_blank';
       ancora.rel = 'noopener noreferrer';

@@ -27,13 +27,16 @@ test('painel de detalhes apresenta a carteira e permite navegar acessivelmente',
   await expect(painel.locator('.rd-timeline-today')).toHaveText('Hoje');
   await expect(painel.locator('.rd-section').filter({ has: page.getByRole('heading', { name: 'Histórico' }) }).locator('.rd-history-item').first()).toBeVisible();
   await expect(painel.locator('.rd-section').filter({ has: page.getByRole('heading', { name: 'Histórico' }) }).locator('.rd-definitions')).toHaveCount(0);
-  await expect(painel.getByRole('link', { name: 'Abrir ficha completa' }))
+  await expect(painel.getByRole('link', { name: 'Ficha completa do projeto' }))
     .toHaveAttribute('href', '/plataforma/projeto/P-900/');
+  // Pedido do dono: os cinco botões de ação numa única linha.
+  const topos = await painel.locator('.rd-actions a').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().top)));
+  expect(new Set(topos).size).toBe(1);
   await expect(painel.locator('.rd-actions a')).toHaveText([
-    'Abrir ficha completa',
+    'Ficha completa',
     'Cronograma',
     'Documentos',
-    'Localização e fotos',
+    'Localização',
     'Histórico',
   ]);
 

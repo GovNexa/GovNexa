@@ -167,22 +167,32 @@ body:has(#record-dialog[open]) {
 
 .rd-actions {
   display: flex;
-  flex-wrap: wrap;
+  justify-self: stretch;
+  width: 100%;
+  margin-left: 0;
+  flex-wrap: nowrap;
   justify-content: flex-start;
-  gap: .5rem;
+  gap: .4rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
 }
+
+.rd-actions::-webkit-scrollbar { display: none; }
 
 .rd-action {
   display: inline-flex;
   min-height: 44px;
   align-items: center;
   justify-content: center;
-  padding: .5rem .75rem;
+  flex: none;
+  white-space: nowrap;
+  padding: .5rem .7rem;
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--surface-2);
   color: var(--text);
-  font-size: .82rem;
+  font-size: .8rem;
   font-weight: 600;
   text-decoration: none;
 }
