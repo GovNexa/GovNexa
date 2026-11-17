@@ -15,7 +15,7 @@ export function bancoTeste(tipo: 'central' | 'prefeitura' = 'prefeitura') {
   bind(...valores: unknown[]) { const s = new Statement(this.sql); s.valores = valores; return s; }
   async first<T>() { return (sqlite.prepare(this.sql).get(...this.valores) ?? null) as T | null; }
   async all() { if (!/^\s*SELECT\b/i.test(this.sql)) throw new Error('Escrita fora do batch'); return { success: true, results: sqlite.prepare(this.sql).all(...this.valores) }; }
-  async run() { if (!emBatch) throw new Error('Escrita fora do batch'); sqlite.prepare(this.sql).run(...this.valores); return { success: true, results: [] }; }
+  async run() { if (!emBatch) throw new Error('Escrita fora do batch'); const r = sqlite.prepare(this.sql).run(...this.valores); return { success: true, results: [], meta: { changes: Number(r.changes) } }; }
  }
  const db: BancoD1 = {
   prepare(sql) { return new Statement(sql); },

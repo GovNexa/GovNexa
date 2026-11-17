@@ -1,0 +1,58 @@
+---
+import Platform from '../../../../layouts/Platform.astro';
+import { usuarioPode } from '../../../../lib/usuarios/index.ts';
+import { MENSAGENS } from '../../../../lib/documentos/mensagens.ts';
+import { ID_PROJETO, EXTENSOES_ACEITAS } from '../../../../lib/documentos/regras.ts';
+export const prerender = false;
+const id = String(Astro.params.id ?? '');
+const repo = Astro.locals.repositorio;
+const projeto = ID_PROJETO.test(id) ? await repo.obterProjeto(id) : null;
+if (!projeto) return new Response('Página não encontrada', { status: 404 });
+const documentos = repo.documentos ? await repo.documentos.listar(id) : [];
+const podeEnviar = usuarioPode(Astro.locals.usuario, 'enviar_documento') && !!repo.documentos;
+const r = MENSAGENS[Astro.url.searchParams.get('r') ?? ''];
+const tam = (n: number) => (n >= 1048576 ? `${(n / 1048576).toFixed(1).replace('.', ',')} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
+const dia = (iso: string) => iso.slice(0, 10).split('-').reverse().join('/');
+---
+<Platform title={`Documentos · ${projeto.nome}`} slug="projetos-carteira">
+  <div class="section-head"><div>
+    <h1>Documentos do projeto</h1>
+    <p class="muted"><a href="/plataforma/documentos-projeto/">← Escolher outro projeto</a> · {projeto.id} · {projeto.nome}</p>
+  </div></div>
+  {r && <p class={r.ok ? 'doc-ok' : 'doc-erro'} role="status">{r.texto}</p>}
+  {podeEnviar ? (
+    <form class="doc-envio" method="post" action="/plataforma/documentos-projeto/enviar/" enctype="multipart/form-data">
+      <input type="hidden" name="projeto" value={projeto.id} />
+      <label for="doc-arquivo">Enviar documento</label>
+      <input id="doc-arquivo" name="arquivo" type="file" required accept={EXTENSOES_ACEITAS.map((e) => `.${e}`).join(',')} />
+      <button class="button primary" type="submit">Enviar</button>
+      <small class="muted">PDF, imagens (PNG, JPG, WEBP) e Office (XLSX, DOCX, PPTX, XLS, DOC), até 25 MB.</small>
+    </form>
+  ) : <p class="muted">{repo.documentos ? 'Seu perfil permite apenas consultar e baixar.' : 'O envio de documentos só funciona com o banco de dados configurado.'}</p>}
+  {documentos.length === 0 ? <p class="muted">Nenhum documento neste projeto.</p> : (
+    <ul class="doc-lista">
+      {documentos.map((d) => (
+        <li>
+          <div><a href={`/plataforma/documentos-projeto/arquivo/${d.id}/`}>{d.nome_original}</a>
+          <small class="muted"> · {tam(d.tamanho_bytes)} · enviado em {dia(d.enviado_em)}</small></div>
+          {podeEnviar && (
+            <form method="post" action={`/plataforma/documentos-projeto/remover/${d.id}/`} onsubmit="return confirm('Remover este documento da lista? O arquivo fica guardado para auditoria.')">
+              <input type="hidden" name="projeto" value={projeto.id} />
+              <button class="button secondary" type="submit">Remover</button>
+            </form>
+          )}
+        </li>
+      ))}
+    </ul>
+  )}
+</Platform>
+<style>
+  .doc-ok,.doc-erro{padding:.6rem .9rem;border-radius:8px;border:1px solid var(--line);max-width:42rem}
+  .doc-ok{background:var(--soft)}
+  .doc-erro{border-color:#b3261e}
+  .doc-envio{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:0 0 1.25rem;max-width:42rem}
+  .doc-envio input[type=file]{flex:1 1 16rem;min-width:0;max-width:100%}
+  .doc-lista{list-style:none;margin:0;padding:0;display:grid;gap:.5rem;max-width:48rem}
+  .doc-lista li{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:space-between;align-items:center;padding:.6rem .8rem;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+  .doc-lista li>div{min-width:0;overflow-wrap:anywhere}
+</style>

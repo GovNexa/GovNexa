@@ -25,4 +25,6 @@ export interface RepositorioProjetos {
   /** Cadastra um projeto novo na macroetapa 00 (grava só com o banco configurado). */
   criarProjeto(dados: Partial<Projeto> & { nome: string; orgao: string }, autor: string): Promise<ResultadoCriacaoProjeto>;
   listarCronogramas(): Promise<Cronograma[]>;
+  /** Documentos de projeto (só no D1; ausente nos demais repositórios). */
+  documentos?: import('../documentos/repositorio.ts').RepositorioDocumentos;
 }
