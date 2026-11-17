@@ -192,7 +192,8 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 | novo #7 | 16/11/2026 | Registro da publicação da otimização e do repositório de dados |
 | novo #6 | 16/11/2026 | Leitura do banco otimizada (desempenho) |
 | novo #5 | 16/11/2026 | Plano e histórico trazidos para o repositório novo, atualizados para a migração (este PR) |
-| novo (a numerar) | 17/11/2026 | Entrega 1.0: limite de requisições por pessoa (Rate Limiting da Cloudflare) e conserto do teste citado no `test:dados` |
+| novo #15 | 17/11/2026 | Entrega 1.0: limite de requisições por pessoa (Rate Limiting da Cloudflare) e conserto do teste citado no `test:dados` |
+| novo (a numerar) | 17/11/2026 | Entrega 1.1: tipo do documento (DFD, ETP, TR), classificação com registro no Histórico e migração 0003 |
 | novo (a numerar) | 17/11/2026 | Site público: logo provisória no cabeçalho, menu enxuto e mapa de cidade na página inicial |
 | novo (a numerar) | 17/11/2026 | Página inicial nova do site público, aprovada pelo dono a partir de prévia de design |
 

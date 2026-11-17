@@ -11,6 +11,13 @@ const projeto = ID_PROJETO.test(id) ? await repo.obterProjeto(id) : null;
 if (!projeto) return new Response('Página não encontrada', { status: 404 });
 const documentos = repo.documentos ? await repo.documentos.listar(id) : [];
 const podeEnviar = usuarioPode(Astro.locals.usuario, 'enviar_documento') && !!repo.documentos;
+const tipos = repo.documentos ? await repo.documentos.listarTipos() : [];
+const contagem: Record<string, number> = repo.documentos ? await repo.documentos.contarPorTipo(id) : {};
+const nomes: Record<string, string> = repo.documentos ? await repo.documentos.nomesTipos() : {};
+const ativo = (c: string | null) => !!c && tipos.some((t) => t.codigo === c);
+const nomeTipo = (c: string | null) => (c ? `${nomes[c] ?? c}${ativo(c) ? '' : ' (desativado)'}` : 'Sem tipo');
+// Tipos desativados que ainda têm documento neste projeto entram no resumo, para a soma bater com a lista.
+const resumo = [...tipos.map((t) => t.codigo), ...Object.keys(contagem).filter((c) => c && !ativo(c))];
 const r = MENSAGENS[Astro.url.searchParams.get('r') ?? ''];
 const tam = (n: number) => (n >= 1048576 ? `${(n / 1048576).toFixed(1).replace('.', ',')} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 ---
@@ -25,21 +32,38 @@ const tam = (n: number) => (n >= 1048576 ? `${(n / 1048576).toFixed(1).replace('
       <input type="hidden" name="projeto" value={projeto.id} />
       <label for="doc-arquivo">Enviar documento</label>
       <input id="doc-arquivo" name="arquivo" type="file" required accept={EXTENSOES_ACEITAS.map((e) => `.${e}`).join(',')} />
+      <label for="doc-tipo">Tipo do documento</label>
+      <select id="doc-tipo" name="tipo">
+        <option value="">Sem tipo</option>
+        {tipos.map((t) => <option value={t.codigo}>{t.descricao ? `${t.nome} · ${t.descricao}` : t.nome}</option>)}
+      </select>
       <button class="button primary" type="submit">Enviar</button>
       <small class="muted">PDF, imagens (PNG, JPG, WEBP) e Office (XLSX, DOCX, PPTX, XLS, DOC), até 25 MB.</small>
     </form>
   ) : <p class="muted">{repo.documentos ? 'Seu perfil permite apenas consultar e baixar.' : 'O envio de documentos só funciona com o banco de dados configurado.'}</p>}
+  {tipos.length > 0 && <p class="muted doc-resumo">Peças do projeto: {resumo.map((c) => `${nomeTipo(c)} ${contagem[c] ?? 0}`).join(' · ')} · Sem tipo {contagem[''] ?? 0}</p>}
   {documentos.length === 0 ? <p class="muted">Nenhum documento neste projeto.</p> : (
     <ul class="doc-lista">
       {documentos.map((d) => (
         <li>
           <div><a href={`/plataforma/documentos-projeto/arquivo/${d.id}/`}>{d.nome_original}</a>
-          <small class="muted"> · {tam(d.tamanho_bytes)} · enviado em {dataHoraBr(d.enviado_em)}</small></div>
+          <small class="muted"> · {tam(d.tamanho_bytes)} · enviado em {dataHoraBr(d.enviado_em)} · <span class="doc-tipo">{nomeTipo(d.tipo_codigo)}</span></small></div>
           {podeEnviar && (
-            <form method="post" action={`/plataforma/documentos-projeto/remover/${d.id}/`} onsubmit="return confirm('Remover este documento da lista? O arquivo fica guardado para auditoria.')">
-              <input type="hidden" name="projeto" value={projeto.id} />
-              <button class="button secondary" type="submit">Remover</button>
-            </form>
+            <div class="doc-acoes">
+              <form class="doc-classificar" method="post" action={`/plataforma/documentos-projeto/classificar/${d.id}/`}>
+                <input type="hidden" name="projeto" value={projeto.id} />
+                <select name="tipo" aria-label={`Tipo do documento ${d.nome_original}`}>
+                  <option value="" selected={!d.tipo_codigo}>Sem tipo</option>
+                  {d.tipo_codigo && !ativo(d.tipo_codigo) && <option value={d.tipo_codigo} selected>{nomeTipo(d.tipo_codigo)}</option>}
+                  {tipos.map((t) => <option value={t.codigo} selected={d.tipo_codigo === t.codigo}>{t.nome}</option>)}
+                </select>
+                <button class="button secondary" type="submit">Salvar tipo</button>
+              </form>
+              <form method="post" action={`/plataforma/documentos-projeto/remover/${d.id}/`} onsubmit="return confirm('Remover este documento da lista? O arquivo fica guardado para auditoria.')">
+                <input type="hidden" name="projeto" value={projeto.id} />
+                <button class="button secondary" type="submit">Remover</button>
+              </form>
+            </div>
           )}
         </li>
       ))}
@@ -56,4 +80,8 @@ const tam = (n: number) => (n >= 1048576 ? `${(n / 1048576).toFixed(1).replace('
   .doc-lista{list-style:none;margin:0;padding:0;display:grid;gap:.5rem;max-width:48rem}
   .doc-lista li{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:space-between;align-items:center;padding:.6rem .8rem;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
   .doc-lista li>div{min-width:0;overflow-wrap:anywhere}
+  .doc-envio select{flex:1 1 12rem;min-width:0;max-width:100%}
+  .doc-acoes,.doc-classificar{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
+  .doc-classificar select{min-width:0;max-width:100%}
+  .doc-resumo{max-width:48rem;overflow-wrap:anywhere}
 </style>

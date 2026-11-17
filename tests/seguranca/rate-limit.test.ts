@@ -70,7 +70,7 @@ test('wrangler.jsonc: ligação LIMITE_API com o mesmo limite e período do cód
   assert.deepEqual(l.simple, { limit: LIMITE_POR_MINUTO, period: JANELA_MS / 1000 });
 });
 test('rotas de documentos: limite conferido depois do perfil e antes de ler o corpo', () => {
-  const rotas = ['src/pages/plataforma/documentos-projeto/enviar.ts', 'src/pages/plataforma/documentos-projeto/remover/[id].ts'];
+  const rotas = ['src/pages/plataforma/documentos-projeto/enviar.ts', 'src/pages/plataforma/documentos-projeto/remover/[id].ts', 'src/pages/plataforma/documentos-projeto/classificar/[id].ts'];
   for (const arq of rotas) {
     const t = readFileSync(arq, 'utf8');
     const perfil = t.indexOf('podeEnviar(contexto)'), limite = t.indexOf('dentroDoLimite('), corpo = t.indexOf('formData(');

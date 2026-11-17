@@ -83,3 +83,43 @@ test('documentos: páginas sem rolagem horizontal e sem falhas de acessibilidade
   const a11y = await new AxeBuilder({ page }).include('main').analyze();
   expect(a11y.violations.filter((v) => ['serious', 'critical'].includes(v.impact ?? ''))).toEqual([]);
 });
+
+test('documentos: tipo escolhido no envio e trocado depois (DFD para ETP); outra origem não troca', async ({ page, request }) => {
+  await page.goto(`/plataforma/documentos-projeto/projeto/${PROJETO}/`);
+  const nome = `dfd-${Date.now()}.pdf`;
+  await page.setInputFiles('#doc-arquivo', { name: nome, mimeType: 'application/pdf', buffer: pdf(nome) });
+  await page.getByLabel('Tipo do documento', { exact: true }).selectOption('dfd');
+  await page.getByRole('button', { name: 'Enviar', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('Documento enviado');
+  const item = () => page.locator('li', { hasText: nome });
+  await expect(item().locator('.doc-tipo')).toHaveText('DFD');
+  await item().getByLabel(`Tipo do documento ${nome}`).selectOption('etp');
+  await item().getByRole('button', { name: 'Salvar tipo' }).click();
+  await expect(page.getByRole('status')).toContainText('Tipo do documento atualizado');
+  await expect(item().locator('.doc-tipo')).toHaveText('ETP');
+  const href = await item().getByRole('link', { name: nome }).getAttribute('href') as string;
+  const id = href.split('/').filter(Boolean).pop() as string;
+  const r = await request.post(`/plataforma/documentos-projeto/classificar/${id}/`, { headers: { origin: 'https://site-malicioso.example' }, form: { projeto: PROJETO, tipo: 'tr' }, maxRedirects: 0 });
+  expect([303, 403]).toContain(r.status());
+  if (r.status() === 303) expect(r.headers().location).toContain('r=origem');
+  // Corpo grande demais e tipo inexistente são recusados e não trocam nada.
+  const origem = new URL(page.url()).origin;
+  const grande = await request.post(`/plataforma/documentos-projeto/classificar/${id}/`, { headers: { origin: origem }, form: { projeto: PROJETO, tipo: 'tr', enchimento: 'x'.repeat(5000) }, maxRedirects: 0 });
+  expect(grande.status()).toBe(303);
+  expect(grande.headers().location).toContain('r=tamanho');
+  const invalido = await request.post(`/plataforma/documentos-projeto/classificar/${id}/`, { headers: { origin: origem }, form: { projeto: PROJETO, tipo: 'nao_existe' }, maxRedirects: 0 });
+  expect(invalido.status()).toBe(303);
+  expect(invalido.headers().location).toContain('r=tipodoc');
+  await page.goto(`/plataforma/documentos-projeto/projeto/${PROJETO}/`);
+  await expect(item().locator('.doc-tipo')).toHaveText('ETP');
+  // Com um documento na lista (seletor de tipo e botões): sem rolagem horizontal e sem falhas de acessibilidade.
+  for (const largura of [390, 1280]) {
+    await page.setViewportSize({ width: largura, height: 800 });
+    expect(await semRolagem(page), `lista com documento em ${largura}px`).toBe(true);
+  }
+  const a11y = await new AxeBuilder({ page }).include('main').analyze();
+  expect(a11y.violations.filter((v) => ['serious', 'critical'].includes(v.impact ?? ''))).toEqual([]);
+  page.once('dialog', (d) => d.accept());
+  await item().getByRole('button', { name: 'Remover' }).click();
+  await expect(page.getByRole('status')).toContainText('removido');
+});
