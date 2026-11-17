@@ -41,6 +41,13 @@ const moeda = (valor: number | null) => valor === null
   }).format(valor);
 const inteiro = (valor: number | null) => valor === null ? '—' : Math.round(valor).toLocaleString('pt-BR');
 const percentual = (valor: number | null) => valor === null ? '—' : `${valor.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`;
+const projetosMostrados = dashboard.cartoes.find((cartao) => cartao.id === 'carteira')?.valorPrincipal ?? 0;
+const resumoFiltros = [
+  filtros.regiao && `Região: ${filtros.regiao}`,
+  filtros.orgao && `Órgão: ${filtros.orgao}`,
+  filtros.prioridade && `Prioridade: ${filtros.prioridade}`,
+  filtros.compromisso && `Compromisso: ${filtros.compromisso}`,
+].filter(Boolean).join(', ');
 const textoBR = (texto: string) => texto.replace(/(\d{4})-(\d{2})-(\d{2})/g, '$3/$2/$1').replace(/(\d+)\.(\d+)%/g, '$1,$2%').replace(/\b\d{4,}(?= (?:de|projetos|convênios|etapas|dias)\b)/g, (numero) => Number(numero).toLocaleString('pt-BR'));
 const vazios: Partial<Record<Cartao["id"], string>> = { execucao: "Nenhum projeto em execução", contratacao: "Nenhum projeto em contratação", entregas: "Nenhuma entrega prevista em 90 dias" };
 const secundario = (cartao: Cartao) => cartao.valorPrincipal === 0 && vazios[cartao.id] ? vazios[cartao.id]! : textoBR(cartao.id === 'cauc' ? `${inteiro(cartao.valorPrincipal)} pendências · consulta ${cartao.secundario.split('consulta: ')[1] ?? 'sem data'}` : cartao.secundario || '—');
@@ -157,8 +164,12 @@ const linkEtapa = '/plataforma/projetos-kanban/';
         ))}
       </select>
     </label>
-    <button type="submit">Aplicar filtros</button>
-    <a class="pd-limpar" href="/plataforma/">Limpar</a>
+    <a class="pd-limpar" href="/plataforma/" data-limpar>Limpar</a>
+    <noscript><button type="submit">Aplicar filtros</button></noscript>
+    <div class="pd-filtros-resumo">
+      <p data-projetos-resumo>Mostrando {inteiro(projetosMostrados)} projetos</p>
+      <p role="status" aria-live="polite" data-filtros-status>{resumoFiltros ? `Filtros aplicados: ${resumoFiltros}` : 'Sem filtros. Mostrando todos.'}</p>
+    </div>
   </form>
 
   <section class="pd-indicadores" aria-labelledby="pd-indicadores">
@@ -352,6 +363,34 @@ document.addEventListener('astro:page-load', () => {
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   const ativos = new Map<HTMLElement, () => void>();
   const finalizar = () => { for (const limpar of ativos.values()) limpar(); ativos.clear(); };
+  const formatarContagem = (el: HTMLElement, valor: number) => el.dataset.unidade === 'reais'
+    ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact', maximumFractionDigits: 1 }).format(valor)
+    : el.dataset.unidade === 'percentual' ? valor.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%' : Math.round(valor).toLocaleString('pt-BR');
+  const contarVisualmente = (el: HTMLElement, anterior: number, valor: number, direcao?: string) => {
+    if (motion.matches || matchMedia('print').matches || !Number.isFinite(anterior) || !Number.isFinite(valor)) return;
+    ativos.get(el)?.();
+    const camada = document.createElement('span');
+    camada.className = 'pd-contagem-visual';
+    camada.setAttribute('aria-hidden', 'true');
+    camada.textContent = formatarContagem(el, anterior);
+    if (direcao) camada.dataset.direcao = direcao;
+    const suporte = document.createElement('span');
+    suporte.className = 'pd-contagem';
+    el.before(suporte);
+    suporte.append(el, camada);
+    el.style.opacity = '0';
+    const limpar = () => { el.style.removeProperty('opacity'); suporte.replaceWith(el); };
+    ativos.set(el, limpar);
+    const inicio = performance.now();
+    const passo = (agora: number) => {
+      if (!ativos.has(el)) return;
+      const fracao = Math.min(1, (agora - inicio) / 800);
+      camada.textContent = formatarContagem(el, anterior + (valor - anterior) * fracao);
+      if (fracao >= 1 || lifecycle.signal.aborted) { limpar(); ativos.delete(el); return; }
+      requestAnimationFrame(passo);
+    };
+    requestAnimationFrame(passo);
+  };
   motion.addEventListener('change', finalizar, { signal: lifecycle.signal });
   window.addEventListener('beforeprint', finalizar, { signal: lifecycle.signal });
   root.classList.add('pd-efeitos');
@@ -361,29 +400,7 @@ document.addEventListener('astro:page-load', () => {
         if (!entry.isIntersecting) continue;
         const el = entry.target as HTMLElement;
         observer.unobserve(el);
-        const valor = Number(el.dataset.valor);
-        const inicio = performance.now();
-        const camada = document.createElement("span");
-        camada.className = "pd-contagem-visual";
-        camada.setAttribute("aria-hidden", "true");
-        const suporte = document.createElement("span");
-        suporte.className = "pd-contagem";
-        el.before(suporte);
-        suporte.append(el, camada);
-        el.style.opacity = "0";
-        const limpar = () => { el.style.removeProperty("opacity"); suporte.replaceWith(el); };
-        ativos.set(el, limpar);
-        const passo = (agora: number) => {
-          if (!ativos.has(el)) return;
-          const fracao = (agora - inicio) / 800;
-          if (fracao >= 1 || lifecycle.signal.aborted) { limpar(); ativos.delete(el); return; }
-          const v = valor * fracao;
-          camada.textContent = el.dataset.unidade === 'reais'
-            ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact', maximumFractionDigits: 1 }).format(v)
-            : el.dataset.unidade === 'percentual' ? v.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%' : Math.round(v).toLocaleString('pt-BR');
-          requestAnimationFrame(passo);
-        };
-        requestAnimationFrame(passo);
+        contarVisualmente(el, 0, Number(el.dataset.valor));
       }
     });
     root.querySelectorAll('.pd-numero[data-valor]').forEach(el => observer.observe(el));
@@ -394,30 +411,113 @@ document.addEventListener('astro:page-load', () => {
   indicador.hidden = botao.hidden = false;
   let ultima = Date.now(), falhou = false, buscando = false;
   const relogio = () => { indicador.textContent = falhou ? 'Sem conexão, tentando de novo' : `Atualizado há ${Math.floor((Date.now() - ultima) / 60000)} min`; };
-  const atualizar = async () => {
-    if (buscando || document.hidden) return;
-    buscando = true; botao.disabled = true;
+  let controladorBusca: AbortController | null = null;
+  let pedido = 0;
+  const substituirConteudo = async (url: URL, opcoes: { fecharPainel?: boolean; focoNome?: string; focoLimpar?: boolean; filtros?: boolean } = {}) => {
+    controladorBusca?.abort();
+    const controller = new AbortController();
+    controladorBusca = controller;
+    const idPedido = ++pedido;
+    const cancelarNoDescarte = () => controller.abort();
+    lifecycle.signal.addEventListener('abort', cancelarNoDescarte, { once: true });
+    root.querySelector('[data-pd-conteudo]')?.setAttribute('aria-busy', 'true');
     try {
-      const resposta = await fetch(location.href, { cache: 'no-store', signal: lifecycle.signal });
+      const resposta = await fetch(url, { cache: 'no-store', signal: controller.signal });
       if (!resposta.ok || resposta.redirected) throw new Error('Resposta inválida');
       const novo = new DOMParser().parseFromString(await resposta.text(), 'text/html');
       const seletores = ['[data-pd-faixa]', '[data-pd-conteudo]'];
-      if (seletores.some(s => !novo.querySelector(s))) throw new Error('Dashboard ausente');
+      if (seletores.some((seletor) => !novo.querySelector(seletor))) throw new Error('Dashboard ausente');
+      if (controller.signal.aborted || idPedido !== pedido) return false;
+
+      const anteriores = new Map([...root.querySelectorAll<HTMLElement>('[data-cartao]')].map((cartao) => [
+        cartao.dataset.cartao,
+        cartao.querySelector<HTMLElement>('.pd-numero')?.dataset.valor,
+      ]));
+      const rolagem = window.scrollY;
       finalizar();
-      const anteriores = new Map([...root.querySelectorAll<HTMLElement>('[data-cartao]')].map(c => [c.dataset.cartao, c.querySelector<HTMLElement>('.pd-numero')!.dataset.valor]));
-      // Conservador: preservar o painel aberto e seu foco; renovar faixa, cartões e listas.
-      for (const seletor of seletores) root.querySelector(seletor)!.replaceChildren(...Array.from(novo.querySelector(seletor)!.childNodes));
-      for (const c of root.querySelectorAll<HTMLElement>('[data-cartao]')) {
-        const numero = c.querySelector<HTMLElement>('.pd-numero')!;
-        const antes = anteriores.get(c.dataset.cartao), depois = numero.dataset.valor;
-        if (antes !== depois && antes !== undefined && depois !== undefined) {
-          numero.classList.add('pd-mudou');
-          numero.dataset.direcao = Number(depois) > Number(antes) ? '↑' : '↓';
-          window.setTimeout(() => { numero.classList.remove('pd-mudou'); delete numero.dataset.direcao; }, 4000);
-        }
+      for (const seletor of seletores) {
+        root.querySelector(seletor)!.replaceChildren(...Array.from(novo.querySelector(seletor)!.childNodes));
       }
-      ultima = Date.now(); falhou = false;
-    } catch { if (!lifecycle.signal.aborted) falhou = true; }
+      if (opcoes.fecharPainel) root.querySelectorAll('.pd-painel, .pd-overlay').forEach((el) => el.remove());
+      for (const cartao of root.querySelectorAll<HTMLElement>('[data-cartao]')) {
+        const numero = cartao.querySelector<HTMLElement>('.pd-numero');
+        const antes = anteriores.get(cartao.dataset.cartao);
+        const depois = numero?.dataset.valor;
+        if (!numero || antes === undefined || depois === undefined || antes === depois) continue;
+        const valorAnterior = Number(antes), valorNovo = Number(depois);
+        if (!Number.isFinite(valorAnterior) || !Number.isFinite(valorNovo)) continue;
+        const direcao = valorNovo > valorAnterior ? '↑' : '↓';
+        numero.classList.add('pd-mudou');
+        numero.dataset.direcao = direcao;
+        contarVisualmente(numero, valorAnterior, valorNovo, direcao);
+        window.setTimeout(() => { numero.classList.remove('pd-mudou'); delete numero.dataset.direcao; }, 4000);
+      }
+      if (opcoes.filtros) {
+        history.replaceState(null, '', url);
+        root.classList.add('pd-filtros-atualizados');
+        window.setTimeout(() => root.classList.remove('pd-filtros-atualizados'), 260);
+      }
+      if (opcoes.focoNome) {
+        [...root.querySelectorAll<HTMLSelectElement>('.pd-filtros select')].find((select) => select.name === opcoes.focoNome)?.focus();
+      } else if (opcoes.focoLimpar) {
+        root.querySelector<HTMLElement>('[data-limpar]')?.focus();
+      }
+      window.scrollTo(0, rolagem);
+      return true;
+    } finally {
+      lifecycle.signal.removeEventListener('abort', cancelarNoDescarte);
+      if (idPedido === pedido) {
+        controladorBusca = null;
+        root.querySelector('[data-pd-conteudo]')?.removeAttribute('aria-busy');
+      }
+    }
+  };
+  const aplicarFiltros = async (focoNome?: string, focoLimpar = false) => {
+    const formulario = root.querySelector<HTMLFormElement>('.pd-filtros');
+    if (!formulario) return;
+    const url = new URL(formulario.action, location.href);
+    url.search = '';
+    for (const select of formulario.querySelectorAll<HTMLSelectElement>('select')) {
+      if (select.value) url.searchParams.set(select.name, select.value);
+    }
+    const statusFiltros = formulario.querySelector<HTMLElement>('[data-filtros-status]');
+    if (statusFiltros) statusFiltros.textContent = 'Atualizando filtros…';
+    try {
+      // A URL dos filtros não inclui cartao; fechar evita manter um detalhe desatualizado.
+      const atualizado = await substituirConteudo(url, { filtros: true, fecharPainel: true, focoNome, focoLimpar });
+      if (atualizado) { ultima = Date.now(); falhou = false; relogio(); }
+    } catch (erro) {
+      if (erro instanceof DOMException && erro.name === 'AbortError') return;
+      if (!lifecycle.signal.aborted) {
+        const mensagem = root.querySelector<HTMLElement>('[data-filtros-status]');
+        if (mensagem) mensagem.textContent = 'Não foi possível atualizar. Tente de novo.';
+      }
+    }
+  };
+  root.addEventListener('change', (event) => {
+    const select = event.target;
+    if (select instanceof HTMLSelectElement && select.closest('.pd-filtros')) void aplicarFiltros(select.name);
+  }, { signal: lifecycle.signal });
+  root.addEventListener('submit', (event) => {
+    if (!(event.target instanceof HTMLFormElement) || !event.target.matches('.pd-filtros')) return;
+    event.preventDefault();
+    void aplicarFiltros(document.activeElement instanceof HTMLSelectElement ? document.activeElement.name : undefined);
+  }, { signal: lifecycle.signal });
+  root.addEventListener('click', (event) => {
+    const limpar = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-limpar]') : null;
+    if (!limpar) return;
+    event.preventDefault();
+    root.querySelectorAll<HTMLSelectElement>('.pd-filtros select').forEach((select) => { select.value = ''; });
+    void aplicarFiltros(undefined, true);
+  }, { signal: lifecycle.signal });
+  const atualizar = async () => {
+    if (buscando || controladorBusca || document.hidden) return;
+    buscando = true; botao.disabled = true;
+    try {
+      if (await substituirConteudo(new URL(location.href))) { ultima = Date.now(); falhou = false; }
+    } catch (erro) {
+      if (!(erro instanceof DOMException && erro.name === 'AbortError') && !lifecycle.signal.aborted) falhou = true;
+    }
     finally { buscando = false; botao.disabled = false; relogio(); }
   };
   botao.addEventListener('click', atualizar, { signal: lifecycle.signal });
