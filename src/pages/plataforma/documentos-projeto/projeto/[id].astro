@@ -14,10 +14,10 @@ const podeEnviar = usuarioPode(Astro.locals.usuario, 'enviar_documento') && !!re
 const r = MENSAGENS[Astro.url.searchParams.get('r') ?? ''];
 const tam = (n: number) => (n >= 1048576 ? `${(n / 1048576).toFixed(1).replace('.', ',')} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 ---
-<Platform title={`Documentos · ${projeto.nome}`} slug="projetos-carteira">
+<Platform title="Documentos do projeto" slug="projetos-carteira">
+  <p slot="contexto" class="muted doc-contexto"><a href="/plataforma/documentos-projeto/">← Escolher outro projeto</a> · {projeto.id} · {projeto.nome}</p>
   <div class="section-head"><div>
     <h1>Documentos do projeto</h1>
-    <p class="muted"><a href="/plataforma/documentos-projeto/">← Escolher outro projeto</a> · {projeto.id} · {projeto.nome}</p>
   </div></div>
   {r && <p class={r.ok ? 'doc-ok' : 'doc-erro'} role="status">{r.texto}</p>}
   {podeEnviar ? (
@@ -47,6 +47,7 @@ const tam = (n: number) => (n >= 1048576 ? `${(n / 1048576).toFixed(1).replace('
   )}
 </Platform>
 <style>
+  .doc-contexto{margin:0 0 .75rem;overflow-wrap:anywhere}
   .doc-ok,.doc-erro{padding:.6rem .9rem;border-radius:8px;border:1px solid var(--line);max-width:42rem}
   .doc-ok{background:var(--soft)}
   .doc-erro{border-color:#b3261e}

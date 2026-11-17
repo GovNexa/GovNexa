@@ -189,3 +189,5 @@ td button[data-detail]{white-space:nowrap;min-width:max-content}.table-wrap td:l
 [data-theme=light] .workspace .kpi:nth-child(odd){background:var(--surface);color:var(--text)}
 [data-theme=light] .workspace .kpi:nth-child(odd) small,[data-theme=light] .workspace .kpi:nth-child(odd) .muted{color:var(--muted)}
 :root{--logo:#002E47;--logo-a:#F36E22}:root[data-theme=dark]{--logo:#fff;--logo-a:#FF9A5C}.logo-gx{height:34px;width:auto;display:block}.header .brand-logo{display:flex;align-items:center}.header .brand-logo{max-width:none}@media(max-width:1049px){.logo-gx{height:26px}}@media(max-width:480px){.logo-gx{height:21px}}
+/* Título do cabeçalho da plataforma: no máximo duas linhas, para um nome longo não vazar do topo. */
+.app-org strong{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;line-height:1.2}

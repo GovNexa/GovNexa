@@ -8,6 +8,14 @@ const pdf = (texto: string) => Buffer.from(`%PDF-1.7 ${texto}`);
 test('documentos: enviar, baixar como anexo, recusar tipo falso e remover', async ({ page }) => {
   await page.goto(`/plataforma/documentos-projeto/projeto/${PROJETO}/`);
   await expect(page.getByRole('heading', { name: 'Documentos do projeto' })).toBeVisible();
+  // O topo mantém o padrão (nome da tela); o projeto aparece numa linha antes do aviso de dados.
+  await expect(page.locator('[data-module-title]')).toHaveText('Documentos do projeto');
+  const ordem = await page.evaluate(() => {
+    const contexto = document.querySelector('.workspace .doc-contexto'); const aviso = document.querySelector('.workspace > .notice');
+    return !!contexto && !!aviso && !!(contexto.compareDocumentPosition(aviso) & Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+  expect(ordem).toBe(true);
+  await expect(page.locator('.doc-contexto')).toContainText(PROJETO);
   const nome = `termo-${Date.now()}.pdf`;
   await page.setInputFiles('#doc-arquivo', { name: nome, mimeType: 'application/pdf', buffer: pdf(nome) });
   await page.getByRole('button', { name: 'Enviar', exact: true }).click();
