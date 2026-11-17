@@ -2,11 +2,11 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 const modulos = [
-  { nome: 'Projetos', href: '/plataforma/projetos/' },
-  { nome: 'Captação', href: '/plataforma/captacao/' },
-  { nome: 'Licitações', href: '/plataforma/' },
-  { nome: 'Gestão', href: '/plataforma/gestao/' },
-  { nome: 'Conta', href: '/plataforma/relatorios/' },
+  { nome: 'Projetos' },
+  { nome: 'Captação' },
+  { nome: 'Licitações' },
+  { nome: 'Gestão' },
+  { nome: 'Conta' },
 ];
 
 test('menu aberto apresenta ícones e tipografia uniforme nos módulos e grupos', async ({ page }) => {
@@ -36,25 +36,86 @@ test('menu aberto apresenta ícones e tipografia uniforme nos módulos e grupos'
   expect(new Set(styles.map((style) => style.letterSpacing))).toEqual(new Set(['normal']));
 });
 
-test('menu recolhido mostra atalhos acessíveis que abrem a tela inicial dos módulos', async ({ page }) => {
+test('menu recolhido mostra flyouts acessíveis com todos os links e fecha com Escape', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto('/plataforma/');
+  await page.goto('/plataforma/projetos-carteira/');
   await page.locator('#sidebar-toggle').click();
 
   const rail = page.locator('#side-module-rail');
   await expect(rail).toBeVisible();
-  await expect(rail.locator('a')).toHaveCount(modulos.length);
-  for (const modulo of modulos) {
-    const link = page.getByRole('link', { name: `Módulo ${modulo.nome}` });
-    await expect(link).toHaveAttribute('href', modulo.href);
-    await expect(link.locator('svg')).toBeVisible();
-    await expect(link).toHaveAttribute('title', modulo.nome);
-    await link.focus();
-    await expect(link.locator('.side-module-tooltip')).toBeVisible();
-    await link.click();
-    await expect(page).toHaveURL(new RegExp(`${modulo.href.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`));
-    await expect(page.getByRole('link', { name: `Módulo ${modulo.nome}` })).toHaveAttribute('data-current', 'true');
+  await expect(rail.locator('.side-module-icon')).toHaveCount(modulos.length);
+  for (let i = 0; i < modulos.length; i++) {
+    const modulo = modulos[i];
+    const button = page.getByRole('button', { name: `Módulo ${modulo.nome}` });
+    await expect(button).toHaveAttribute('aria-controls');
+    await expect(button).toHaveAttribute('aria-expanded', 'false');
+    await expect(button.locator('svg')).toBeVisible();
+    await expect(button).toHaveAttribute('title', modulo.nome);
+    if (i === 0) {
+      await button.hover();
+      await expect(button).toHaveAttribute('aria-expanded', 'true');
+      await page.mouse.move(640, 450);
+      await expect(button).toHaveAttribute('aria-expanded', 'false');
+      await button.focus();
+      await expect(button).toHaveAttribute('aria-expanded', 'true');
+      await page.keyboard.press('ArrowDown');
+      await expect(page.locator(`#${await button.getAttribute('aria-controls')} a`).first()).toBeFocused();
+      await page.keyboard.press('Escape');
+      await expect(button).toBeFocused();
+    }
+    await button.click();
+    await expect(button).toHaveAttribute('aria-expanded', 'true');
+    const flyout = page.locator(`#${await button.getAttribute('aria-controls')}`);
+    await expect(flyout).toBeVisible();
+    await expect(flyout.locator('a')).toHaveCount(await page.locator('.side-module').nth(i).locator('a').count());
+    await expect(flyout.locator('a[aria-current=page]')).toHaveCount(0);
+    if (modulo.nome === 'Projetos') await expect(flyout.locator('a[data-atual=true]')).toHaveCount(1);
+    await page.keyboard.press('Escape');
+    await expect(button).toHaveAttribute('aria-expanded', 'false');
+    await expect(button).toBeFocused();
   }
+  const firstModule = page.getByRole('button', { name: 'Módulo Projetos' });
+  await firstModule.click();
+  await page.locator('.workspace').click({ position: { x: 10, y: 10 } });
+  await expect(firstModule).toHaveAttribute('aria-expanded', 'false');
+});
+
+test('rail recolhido alinha os botões e a sanfona mantém apenas o contexto atual aberto', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/plataforma/projetos-carteira/');
+  const moduleHeaders = page.locator('.side-links button[data-sec^="m:"]');
+  for (const header of await moduleHeaders.all()) {
+    const expected = (await header.getAttribute('data-module-id')) === 'projetos' ? 'true' : 'false';
+    await expect(header).toHaveAttribute('aria-expanded', expected);
+  }
+  await expect(moduleHeaders.filter({ hasText: 'Projetos' })).toHaveAttribute('aria-expanded', 'true');
+  const projectModule = page.locator('.side-links button[data-sec="m:Projetos"]');
+  const projectBodyId = await projectModule.getAttribute('aria-controls');
+  expect(projectBodyId).toBeTruthy();
+  const projectBody = page.locator(`#${projectBodyId}`);
+  await expect(projectBody.locator('a[href="/plataforma/projetos-carteira/"][aria-current=page]')).toBeVisible();
+  await expect(page.locator('.side-links button[data-sec^="g:Projetos:"][aria-expanded="true"]')).toHaveCount(0);
+  await page.goto('/plataforma/processos/');
+  await expect(page.locator('.side-links button[data-sec="m:Licitações"]')).toHaveAttribute('aria-expanded', 'true');
+  const procurementGroups = page.locator('.side-links button[data-sec^="g:Licitações:"]');
+  for (const group of await procurementGroups.all()) {
+    const expected = (await group.getAttribute('data-sec')) === 'g:Licitações:Operação' ? 'true' : 'false';
+    await expect(group).toHaveAttribute('aria-expanded', expected);
+  }
+  await expect(page.locator('.side-links a[href="/plataforma/processos/"][aria-current=page]')).toBeVisible();
+  await page.goto('/plataforma/projetos-carteira/');
+  await page.locator('.side-links button[data-sec="m:Captação"]').click();
+  await expect(page.locator('.side-links button[data-sec="m:Captação"]')).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('.side-links button[data-sec="m:Projetos"]')).toHaveAttribute('aria-expanded', 'false');
+
+  await page.locator('#sidebar-toggle').click();
+  const controls = [page.locator('#sidebar-toggle'), ...await page.locator('.side-module-icon').all(), page.locator('.sidebar-help')];
+  const boxes = await Promise.all(controls.map((control) => control.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return { width: rect.width, center: rect.left + rect.width / 2 };
+  })));
+  expect(Math.max(...boxes.map((box) => box.width)) - Math.min(...boxes.map((box) => box.width))).toBeLessThanOrEqual(1);
+  expect(Math.max(...boxes.map((box) => box.center)) - Math.min(...boxes.map((box) => box.center))).toBeLessThanOrEqual(1);
 });
 
 test('menu não causa rolagem horizontal e passa no axe nos dois temas', async ({ page }) => {
@@ -95,4 +156,54 @@ test('menu não causa rolagem horizontal e passa no axe nos dois temas', async (
       }
     }
   }
+});
+
+test('ícone do módulo atual mantém contraste no menu recolhido nos dois temas', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/plataforma/projetos-carteira/');
+  await page.locator('#sidebar-toggle').click();
+
+  const currentButton = page.locator('.side-module-icon[data-current=true]');
+  await expect(currentButton).toHaveCount(1);
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate((value) => {
+      document.documentElement.dataset.theme = value;
+    }, theme);
+    const contrast = await currentButton.evaluate((button) => {
+      const foreground = getComputedStyle(button.querySelector('svg')!).color;
+      const background = getComputedStyle(button).backgroundColor;
+      const luminance = (color: string) => {
+        const channels = color.match(/[\d.]+/g)!.slice(0, 3).map(Number).map((channel) => {
+          const value = channel / 255;
+          return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+      };
+      const values = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
+      return (values[0] + 0.05) / (values[1] + 0.05);
+    });
+    expect(contrast).toBeGreaterThanOrEqual(3);
+  }
+});
+
+test('flyout de Licitações cabe na viewport e permite rolar até o último link', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/plataforma/processos/');
+  await page.locator('#sidebar-toggle').click();
+
+  const button = page.getByRole('button', { name: 'Módulo Licitações' });
+  await button.click();
+  const flyout = page.locator(`#${await button.getAttribute('aria-controls')}`);
+  const bounds = await flyout.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return { top: rect.top, bottom: rect.bottom, height: rect.height, scrollHeight: element.scrollHeight };
+  });
+  expect(bounds.top).toBeGreaterThanOrEqual(0);
+  expect(bounds.bottom).toBeLessThanOrEqual(900);
+  expect(bounds.height).toBeLessThanOrEqual(876);
+  expect(bounds.scrollHeight).toBeGreaterThan(bounds.height);
+
+  const lastLink = flyout.locator('a').last();
+  await lastLink.scrollIntoViewIfNeeded();
+  await expect(lastLink).toBeInViewport();
 });

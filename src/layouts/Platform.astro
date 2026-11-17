@@ -84,13 +84,13 @@ const groupIcons: Record<string, string> = {
   Projetos: 'briefcase',
   Gestão: 'gauge',
 };
+const itemIsCurrent = (item: { slug?: string }) =>
+  item.slug === slug || `/plataforma/${item.slug ? `${item.slug}/` : ''}` === Astro.url.pathname;
 const menu = menuPorModulo(catalogoCompleto(modules)).map((mod) => {
-  const firstItem = mod.grupos.flatMap((group) => group.itens)[0];
   return {
     ...mod,
     icon: moduleIcons[mod.id],
-    initialHref: `/plataforma/${firstItem?.slug ? `${firstItem.slug}/` : ''}`,
-    current: mod.grupos.some((group) => group.itens.some((item) => item.slug === slug)),
+    current: mod.grupos.some((group) => group.itens.some(itemIsCurrent)),
   };
 });
 const muni = municipioAtivo();
@@ -106,73 +106,113 @@ const muni = municipioAtivo();
       </div>
       <nav class="side-module-rail" id="side-module-rail" aria-label="Atalhos dos módulos">
         {menu.map((mod) => (
-          <a
-            class="side-module-icon"
-            href={mod.initialHref}
-            aria-label={`Módulo ${mod.nome}`}
-            data-module-id={mod.id}
-            data-current={String(mod.current)}
-            title={mod.nome}
-          >
-            <Icon name={mod.icon} />
-            <span class="side-module-tooltip" aria-hidden="true">{mod.nome}</span>
-          </a>
+          <div class="side-module-rail-item">
+            <button
+              type="button"
+              class="side-module-icon"
+              aria-label={`Módulo ${mod.nome}`}
+              aria-expanded="false"
+              aria-controls={`side-flyout-${mod.id}`}
+              data-module-id={mod.id}
+              data-current={String(mod.current)}
+              title={mod.nome}
+            >
+              <Icon name={mod.icon} />
+              <span class="side-module-tooltip" aria-hidden="true">{mod.nome}</span>
+            </button>
+          </div>
         ))}
       </nav>
       <div class="side-links" id="side-links">
-        {menu.map((mod, i) => (
+        {menu.map((mod) => {
+          const moduleBodyId = `side-m-${mod.id}`;
+          return (
           <div class="side-module">
             <p class="eyebrow">
-              <button type="button" class="side-sec" data-sec={`m:${mod.nome}`} aria-expanded="true" aria-controls={`side-m${i}`}>
+              <button type="button" class="side-sec" data-sec={`m:${mod.nome}`} data-module-id={mod.id} aria-expanded={mod.current ? 'true' : 'false'} aria-controls={moduleBodyId}>
                 <Icon name={mod.icon} />
                 <span class="side-sec-label">{mod.nome}</span>
                 <span class="side-seta" aria-hidden="true"></span>
               </button>
             </p>
-            <div class="side-sec-corpo" id={`side-m${i}`}>
-              {mod.grupos.map((group, j) => (
-                <>
-                  {(mod.grupos.length > 1 || group.grupo !== mod.nome) && (
-                    <h2>
-                      <button
-                        type="button"
-                        class="side-sec"
-                        data-sec={`g:${mod.nome}:${group.grupo}`}
-                        aria-expanded="true"
-                        aria-controls={`side-m${i}g${j}`}
-                      >
-                        <Icon name={groupIcons[group.grupo] || 'grid'} />
-                        <span class="side-sec-label">{group.grupo}</span>
-                        <span class="side-seta" aria-hidden="true"></span>
-                      </button>
-                    </h2>
-                  )}
-                  <div class="side-sec-corpo" id={`side-m${i}g${j}`}>
-                    {group.itens.map((item) => (
-                      <a
-                        href={`/plataforma/${item.slug ? `${item.slug}/` : ''}`}
-                        aria-current={item.slug === slug ? 'page' : undefined}
-                        aria-label={item.title}
-                        title={item.title}
-                      >
-                        <Icon name={menuIcons[item.slug] || groupIcons[group.grupo] || 'file'} />
-                        <span class="side-label">{item.title}</span>
-                        {['solicitacoes', 'pareceres', 'recursos'].includes(item.slug) && <span class="badge">3</span>}
-                        <span class="side-tooltip" aria-hidden="true">{item.title}</span>
-                      </a>
-                    ))}
-                  </div>
-                </>
-              ))}
+            <div class="side-sec-corpo" id={moduleBodyId} hidden={!mod.current}>
+              {mod.grupos.map((group, j) => {
+                const hasGroupHeading = mod.grupos.length > 1 || group.grupo !== mod.nome;
+                const groupCurrent = group.itens.some(itemIsCurrent);
+                const groupBodyId = `${moduleBodyId}-g${j}`;
+                const links = group.itens.map((item) => (
+                  <a
+                    href={`/plataforma/${item.slug ? `${item.slug}/` : ''}`}
+                    aria-current={itemIsCurrent(item) ? 'page' : undefined}
+                    aria-label={item.title}
+                    title={item.title}
+                  >
+                    <Icon name={menuIcons[item.slug] || groupIcons[group.grupo] || 'file'} />
+                    <span class="side-label">{item.title}</span>
+                    {['solicitacoes', 'pareceres', 'recursos'].includes(item.slug) && <span class="badge">3</span>}
+                    <span class="side-tooltip" aria-hidden="true">{item.title}</span>
+                  </a>
+                ));
+                return (
+                  <>
+                    {hasGroupHeading && (
+                      <h2>
+                        <button
+                          type="button"
+                          class="side-sec"
+                          data-sec={`g:${mod.nome}:${group.grupo}`}
+                          data-module-id={mod.id}
+                          aria-expanded={groupCurrent ? 'true' : 'false'}
+                          aria-controls={groupBodyId}
+                        >
+                          <Icon name={groupIcons[group.grupo] || 'grid'} />
+                          <span class="side-sec-label">{group.grupo}</span>
+                          <span class="side-seta" aria-hidden="true"></span>
+                        </button>
+                      </h2>
+                    )}
+                    {hasGroupHeading
+                      ? <div class="side-sec-corpo" id={groupBodyId} hidden={!groupCurrent}>{links}</div>
+                      : links}
+                  </>
+                );
+              })}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
       <a class="sidebar-help" aria-label="Precisa de ajuda? Fale com o suporte" title="Precisa de ajuda? Fale com o suporte" href="/sobre/#contato">
         <Icon name="help" />
         <span class="side-label">Precisa de ajuda?<small>Fale com o suporte</small></span>
       </a>
     </aside>
+    <div class="side-module-flyouts">
+      {menu.map((mod) => (
+        <section class="side-module-flyout" id={`side-flyout-${mod.id}`} aria-label={mod.nome} hidden>
+          <h2>{mod.nome}</h2>
+          {mod.grupos.map((group) => (
+            <div class="side-flyout-group">
+              {(mod.grupos.length > 1 || group.grupo !== mod.nome) && (
+                <h3><Icon name={groupIcons[group.grupo] || 'grid'} /><span>{group.grupo}</span></h3>
+              )}
+              <div class="side-flyout-links">
+                {group.itens.map((item) => (
+                  <a
+                    href={`/plataforma/${item.slug ? `${item.slug}/` : ''}`}
+                    data-atual={String(itemIsCurrent(item))}
+                    aria-label={item.title}
+                  >
+                    <Icon name={menuIcons[item.slug] || groupIcons[group.grupo] || 'file'} />
+                    <span>{item.title}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))}
+        </section>
+      ))}
+    </div>
     <div class="workspace" data-current-module={menu.find((mod) => mod.current)?.id}>
       <p class="notice">{avisoDados}</p>
       <slot />
@@ -192,13 +232,87 @@ const lifecycle=new AbortController();document.addEventListener('astro:before-sw
 const drawer=document.querySelector<HTMLButtonElement>('#drawer-toggle')!;
 const sidebar=document.querySelector<HTMLElement>('.sidebar')!;if(!drawer||!sidebar)return;
 const currentModule=document.querySelector<HTMLElement>('.workspace')?.dataset.currentModule;
-sidebar.querySelectorAll<HTMLAnchorElement>('.side-module-icon').forEach(a=>a.dataset.current=String(a.dataset.moduleId===currentModule));
+sidebar.querySelectorAll<HTMLButtonElement>('.side-module-icon').forEach(button=>button.dataset.current=String(button.dataset.moduleId===currentModule));
 sidebar.querySelectorAll<HTMLAnchorElement>('.side-links a').forEach(a=>{if(new URL(a.href).pathname===location.pathname)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current')});
-/* Blocos e sub-blocos do menu que abrem e fecham. Por padrão os blocos principais começam FECHADOS (interface mais limpa) e os sub-blocos abertos; cada navegador lembra o que a pessoa abriu ou fechou. O bloco da página atual sempre abre. */
-const SEC_CHAVE='govnexa-menu-estado';const estado:Record<string,boolean>=Object.create(null);try{const v=JSON.parse(localStorage.getItem(SEC_CHAVE)||'{}');if(v&&typeof v==='object'&&!Array.isArray(v))for(const [k,a] of Object.entries(v))if(typeof a==='boolean'&&k.length<200)estado[k]=a}catch{}
-const abertoPadrao=(k:string)=>k in estado?estado[k]:!k.startsWith('m:');
-const abrirSec=(btn:HTMLButtonElement,aberto:boolean)=>{btn.setAttribute('aria-expanded',String(aberto));const c=document.getElementById(btn.getAttribute('aria-controls')||'');if(c)c.hidden=!aberto};
-sidebar.querySelectorAll<HTMLButtonElement>('button[data-sec]').forEach(btn=>{const k=btn.dataset.sec||'';const corpo=document.getElementById(btn.getAttribute('aria-controls')||'');const temAtual=!!corpo?.querySelector('a[aria-current=page]');abrirSec(btn,temAtual||abertoPadrao(k));btn.onclick=()=>{const aberto=btn.getAttribute('aria-expanded')!=='true';abrirSec(btn,aberto);estado[k]=aberto;try{localStorage.setItem(SEC_CHAVE,JSON.stringify(estado))}catch{}}});
+const openSec=(button:HTMLButtonElement,open:boolean)=>{button.setAttribute('aria-expanded',String(open));const body=document.getElementById(button.getAttribute('aria-controls')||'');if(body)body.hidden=!open};
+const sectionButtons=[...sidebar.querySelectorAll<HTMLButtonElement>('button[data-sec]')];
+sectionButtons.forEach(button=>{
+  const body=document.getElementById(button.getAttribute('aria-controls')||'');
+  const isModule=button.dataset.sec?.startsWith('m:');
+  const shouldOpen=isModule?button.dataset.moduleId===currentModule:!!body?.querySelector('a[aria-current=page]');
+  openSec(button,shouldOpen);
+  button.addEventListener('click',()=>{
+    const opening=button.getAttribute('aria-expanded')!=='true';
+    if(opening&&isModule){
+      sectionButtons.filter(other=>other!==button&&other.dataset.sec?.startsWith('m:')).forEach(other=>openSec(other,false));
+      sectionButtons.filter(other=>other!==button&&other.dataset.moduleId!==button.dataset.moduleId).forEach(other=>openSec(other,false));
+    }else if(opening){
+      sectionButtons.filter(other=>other!==button&&other.dataset.moduleId===button.dataset.moduleId&&other.dataset.sec?.startsWith('g:')).forEach(other=>openSec(other,false));
+    }
+    openSec(button,opening);
+  },{signal:lifecycle.signal});
+});
+const rail=sidebar.querySelector<HTMLElement>('#side-module-rail')!;
+const flyouts=document.querySelector<HTMLElement>('.side-module-flyouts')!;
+rail.querySelectorAll<HTMLButtonElement>('.side-module-icon').forEach(button=>{button.setAttribute('aria-expanded','false');const panel=document.getElementById(button.getAttribute('aria-controls')||'');if(panel)panel.hidden=true});
+let activeFlyout:HTMLElement|null=null;let activeFlyoutButton:HTMLButtonElement|null=null;let flyoutTimer:ReturnType<typeof setTimeout>|undefined;
+const positionFlyout=()=>{
+  if(!activeFlyout||!activeFlyoutButton)return;
+  const trigger=activeFlyoutButton.getBoundingClientRect();
+  const panel=activeFlyout.getBoundingClientRect();
+  activeFlyout.style.left=`${Math.min(trigger.right+8,innerWidth-panel.width-8)}px`;
+  activeFlyout.style.top=`${Math.max(8,Math.min(trigger.top,innerHeight-panel.height-8))}px`;
+};
+const closeFlyout=(restoreFocus=false)=>{
+  if(flyoutTimer)clearTimeout(flyoutTimer);flyoutTimer=undefined;
+  if(activeFlyout)activeFlyout.hidden=true;
+  if(activeFlyoutButton)activeFlyoutButton.setAttribute('aria-expanded','false');
+  const button=activeFlyoutButton;
+  activeFlyout=null;activeFlyoutButton=null;
+  if(restoreFocus)button?.focus();
+};
+lifecycle.signal.addEventListener('abort',()=>closeFlyout(),{once:true});
+const showFlyout=(button:HTMLButtonElement)=>{
+  if(flyoutTimer)clearTimeout(flyoutTimer);flyoutTimer=undefined;
+  if(activeFlyoutButton===button){positionFlyout();return}
+  closeFlyout();
+  const panel=document.getElementById(button.getAttribute('aria-controls')||'');
+  if(!panel)return;
+  activeFlyout=panel;activeFlyoutButton=button;
+  panel.hidden=false;button.setAttribute('aria-expanded','true');positionFlyout();
+};
+const scheduleFlyoutClose=(preserveFocus=false)=>{if(flyoutTimer)clearTimeout(flyoutTimer);flyoutTimer=setTimeout(()=>{if(activeFlyout?.matches(':hover')||activeFlyoutButton?.matches(':hover'))return;if(preserveFocus&&(rail.contains(document.activeElement)||activeFlyout?.contains(document.activeElement)))return;closeFlyout()},220)};
+rail.querySelectorAll<HTMLButtonElement>('.side-module-icon').forEach(button=>{
+  const item=button.parentElement!;
+  button.addEventListener('pointerenter',()=>showFlyout(button),{signal:lifecycle.signal});
+  button.addEventListener('focus',()=>showFlyout(button),{signal:lifecycle.signal});
+  button.addEventListener('click',()=>showFlyout(button),{signal:lifecycle.signal});
+  item.addEventListener('pointerenter',()=>{if(flyoutTimer)clearTimeout(flyoutTimer);flyoutTimer=undefined},{signal:lifecycle.signal});
+  item.addEventListener('pointerleave',()=>scheduleFlyoutClose(),{signal:lifecycle.signal});
+  item.addEventListener('focusout',()=>setTimeout(()=>{if(!item.contains(document.activeElement))scheduleFlyoutClose(true)},0),{signal:lifecycle.signal});
+  button.addEventListener('keydown',event=>{
+    const panel=document.getElementById(button.getAttribute('aria-controls')||'');
+    const links=panel?[...panel.querySelectorAll<HTMLAnchorElement>('a')]:[];
+    if(event.key==='ArrowDown'||event.key==='ArrowRight'){event.preventDefault();showFlyout(button);links[0]?.focus()}
+    if(event.key==='ArrowUp'||event.key==='ArrowLeft'){event.preventDefault();showFlyout(button);links.at(-1)?.focus()}
+    if(event.key==='Escape'){event.preventDefault();closeFlyout(true)}
+  },{signal:lifecycle.signal});
+});
+flyouts.querySelectorAll<HTMLElement>('.side-module-flyout').forEach(panel=>{
+  panel.addEventListener('pointerenter',()=>{if(flyoutTimer)clearTimeout(flyoutTimer);flyoutTimer=undefined},{signal:lifecycle.signal});
+  panel.addEventListener('pointerleave',()=>scheduleFlyoutClose(),{signal:lifecycle.signal});
+  panel.addEventListener('focusout',()=>setTimeout(()=>{if(!panel.contains(document.activeElement)&&!rail.contains(document.activeElement))scheduleFlyoutClose()},0),{signal:lifecycle.signal});
+  panel.addEventListener('keydown',event=>{
+    const links=[...panel.querySelectorAll<HTMLAnchorElement>('a')];const index=links.indexOf(document.activeElement as HTMLAnchorElement);
+    if(event.key==='Escape'){event.preventDefault();closeFlyout(true)}
+    else if((event.key==='ArrowDown'||event.key==='ArrowRight')&&index>=0){event.preventDefault();links[(index+1)%links.length]?.focus()}
+    else if((event.key==='ArrowUp'||event.key==='ArrowLeft')&&index>=0){event.preventDefault();links[(index-1+links.length)%links.length]?.focus()}
+  },{signal:lifecycle.signal});
+});
+document.addEventListener('pointerdown',event=>{if(activeFlyout&&!rail.contains(event.target as Node)&&!activeFlyout.contains(event.target as Node))closeFlyout()},{signal:lifecycle.signal});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&activeFlyout)closeFlyout(true)},{signal:lifecycle.signal});
+window.addEventListener('resize',positionFlyout,{signal:lifecycle.signal});
+window.addEventListener('scroll',positionFlyout,{capture:true,signal:lifecycle.signal});
 const label=document.querySelector('[data-module-title]');if(label)label.textContent=document.title.split(' | ')[0];
 function closeDrawer(){sidebar.classList.remove('drawer-open');drawer.setAttribute('aria-expanded','false');}
 drawer.onclick=()=>{const open=drawer.getAttribute('aria-expanded')==='true';closeDrawer();if(!open){sidebar.classList.add('drawer-open');drawer.setAttribute('aria-expanded','true');sidebar.querySelector<HTMLElement>('button,a')?.focus();}};
