@@ -1,5 +1,19 @@
 # Changelog
 
+## Correção 3 — Segurança do login (17/11/2026, sem publicação)
+
+- Limite de segundo fator por conta, bloqueio de uma hora e revogação de sessões pendentes; bloqueio progressivo de senha com falhas preservadas até o login completo.
+- Escritas equivalentes para contas ausentes, piso de 800 ms nos POST de login/código/esqueci e e-mail em segundo plano quando waitUntil está disponível.
+- Origem pública HTTPS fixa para links, AES-GCM vinculado ao usuário, saída POST com confirmação GET, tamanho obrigatório de formulários e mensagens de Usuários por códigos fixos.
+- Desativação invalida tokens; limites antigos têm limpeza oportunista. Modo local exige marcador explícito, passado nos scripts locais. Testes unitários e fluxo Playwright atualizados.
+
+## GovNexa — Login próprio e administração de usuários (17/11/2026, sem publicação)
+
+- Migração central 0002: credenciais, sessões, tokens de e-mail, recuperação, limites e auditoria. PBKDF2-SHA256 com pepper, TOTP cifrado por AES-GCM e proteção contra reuso.
+- Convite de 24 h, redefinição de 1 h, 2FA obrigatório e sessões revogáveis. Convite configura aplicativo; redefinição de senha exige novo login. Access permanece padrão por `LOGIN_MODO`.
+- Guia Usuários com cadastro, reenvio, perfis, ativação e redefinição de 2FA; isolamento por prefeitura e proteção do último administrador. Turnstile e cabeçalhos de segurança nas páginas de acesso.
+- E-mail local simulado, semente fictícia sem leitura de segredos, testes Node e projeto Playwright `login` em porta separada. Fluxo do sistema atualizado. Publicação e teste de navegador ficam pendentes para o responsável.
+
 ## GovNexa — Limite de requisições (entrega 1.0)
 - 2026-11-17: limite de 30 ações por minuto por pessoa e prefeitura nas rotas que gravam documentos (enviar, remover), pela ligação `LIMITE_API` do Rate Limiting da Cloudflare (`wrangler.jsonc`). Chave `<prefeitura>:<e-mail>`; sem e-mail, recusado sem contar; falha da ligação recusa o pedido. Código em `src/lib/seguranca/limite.ts`.
 - 2026-11-17: conserto: `tests/seguranca/rate-limit.test.ts`, citado no `test:dados` e inexistente, agora existe (9 testes).
@@ -141,3 +155,8 @@
 - 2026-11-10: Atualização mensal automática (INEP, SINISA e CNES) no GitHub Actions (dia 5 de cada mês, branch dados-mensais-atualizados); status das coletas mensais em data/core/status-coletas-mensais.json, lido pela guia Qualidade dos dados.
 - 2026-11-10: Manual do usuário atualizado (Comparativo, Qualidade dos dados, Principal com educação, saúde e saneamento, agenda iCalendar, Projetos com parecer, rotinas diária e mensal).
 - 2026-11-10: Revisão de segurança (9 vetores, docs/seguranca.md): limitador de tentativas de login (lib/rate-limit.ts), escape do JSON-LD (XSS), cabeçalhos de segurança e CSP no vercel.json, testes (npm run test:dados: 13 testes).
+
+## Correção de login 5
+- Bloqueio limitado a uma hora, sem acúmulo durante bloqueio; desbloqueio administrativo isolado por prefeitura e auditado.
+- Mensagens fixas de falhas administrativas e envio de e-mail aguardado, preservando alterações quando o envio falha.
+- Configuração publicada rejeita AMBIENTE, EMAIL_SIMULADO e ACESSO_LOCAL_LIVRE.

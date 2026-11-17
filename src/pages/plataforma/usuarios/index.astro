@@ -1,24 +1,41 @@
 ---
-// Etapa 3.3 (opção B): quem tem acesso à plataforma, somente leitura, só para administradores.
-// Cadastro e alteração continuam pelo banco, com ordem do dono (ver README, seção 6).
 import Platform from '../../../layouts/Platform.astro';
 import { env } from 'cloudflare:workers';
-import { listarUsuarios, ROTULO_PERFIL } from '../../../lib/usuarios/lista.ts';
-import type { BancoD1 } from '../../../lib/repositorio/d1.ts';
+import { ROTULO_PERFIL } from '../../../lib/usuarios/lista.ts';
+import { servicoLogin, type EnvLogin } from '../../../lib/login/servico.ts';
+import { usuarioPode } from '../../../lib/usuarios/index.ts';
+import { dataBr, dataHoraBr } from '../../../lib/datas.ts';
 export const prerender = false;
-const lista = await listarUsuarios((env as unknown as { DB_CENTRAL: BancoD1 }).DB_CENTRAL, Astro.locals.usuario);
+const lista = usuarioPode(Astro.locals.usuario,'gerenciar_usuarios') ? await servicoLogin(env as unknown as EnvLogin,Astro.request).listar(Astro.locals.usuario) : null;
 if (!lista) Astro.response.status = 403;
-const dia = (iso: string) => iso.slice(0, 10).split('-').reverse().join('/');
+const dia = dataBr;
+const mensagens:Record<string,string>={concluida:'Solicitação concluída.',ultimo_admin:'Mantenha ao menos um administrador ativo.',email_existente:'Este e-mail já está cadastrado.',proprio:'Você não pode fazer isto com a sua própria conta.',email_falhou:'Não foi possível enviar o e-mail. Tente reenviar o convite.',dados:'Confira os dados informados.',falha:'Não foi possível concluir. Confira os dados e a confirmação e tente novamente.'};
+const ok=Astro.url.searchParams.get('ok')==='concluida'?mensagens.concluida:'';
+const codigoErro=Astro.url.searchParams.get('erro')??'';
+const erro=['ultimo_admin','email_existente','proprio','email_falhou','dados','falha'].includes(codigoErro)?mensagens[codigoErro]:'';
+
 ---
 <Platform title="Usuários" slug="usuarios">
-  <div class="section-head"><div><h1>Usuários com acesso</h1><p class="muted">Quem pode entrar na plataforma desta prefeitura e com qual perfil. Somente leitura: para incluir ou alterar alguém, peça ao administrador do sistema.</p></div></div>
+  <div class="section-head"><div><h1>Usuários com acesso</h1><p class="muted">Cadastre pessoas, envie convites e gerencie o acesso desta prefeitura.</p></div></div>
   {!lista && <p class="usr-aviso" role="alert">Sem permissão: só administradores veem esta lista.</p>}
+  {lista && <>
+    {ok && <p role="status">Solicitação concluída.</p>}
+    {erro && <p role="alert">{erro}</p>}
+    <details class="usr-cadastro"><summary>Cadastrar pessoa</summary><form data-astro-reload method="post" action="/plataforma/usuarios/acao/">
+      <input type="hidden" name="acao" value="convidar" />
+      <div><label for="cadastro-nome">Nome</label><input id="cadastro-nome" name="nome" required maxlength="120" /></div>
+      <div><label for="cadastro-email">E-mail</label><input id="cadastro-email" name="email" type="email" required maxlength="254" autocomplete="email" /></div>
+      <div><label for="cadastro-cargo">Cargo</label><input id="cadastro-cargo" name="cargo" maxlength="120" /></div>
+      <div><label for="cadastro-perfil">Perfil</label><select id="cadastro-perfil" name="perfil">{Object.entries(ROTULO_PERFIL).map(([valor,rotulo])=><option value={valor} selected={valor==='leitura'}>{rotulo}</option>)}</select></div>
+      <button class="primary">Cadastrar e enviar convite</button>
+    </form></details>
+  </>}
   {lista && lista.length === 0 && <p role="status">Nenhum usuário cadastrado.</p>}
   {lista && lista.length > 0 && (
     <div class="usr-tabela">
       <table>
         <caption class="sr-only">Usuários com acesso</caption>
-        <thead><tr><th scope="col">Nome</th><th scope="col">E-mail</th><th scope="col">Cargo</th><th scope="col">Perfil</th><th scope="col">Situação</th><th scope="col">Desde</th></tr></thead>
+        <thead><tr><th scope="col">Nome</th><th scope="col">E-mail</th><th scope="col">Cargo</th><th scope="col">Perfil</th><th scope="col">Situação</th><th scope="col">Desde</th><th scope="col">Ações</th></tr></thead>
         <tbody>
           {lista.map((u) => (
             <tr>
@@ -26,8 +43,17 @@ const dia = (iso: string) => iso.slice(0, 10).split('-').reverse().join('/');
               <td data-label="E-mail">{u.email}</td>
               <td data-label="Cargo">{u.cargo || '—'}</td>
               <td data-label="Perfil">{ROTULO_PERFIL[u.perfil] ?? u.perfil}</td>
-              <td data-label="Situação">{u.ativo ? 'Ativo' : 'Inativo'}</td>
+              <td data-label="Situação">{u.bloqueado_ate&&u.bloqueado_ate>new Date().toISOString()?'Bloqueado até '+dataHoraBr(u.bloqueado_ate):!u.ativo?'Desativado':u.totp_ativo?'Verificação em 2 etapas configurada':u.senha_definida_em?'Ativo':u.convite_em?'Convite enviado em '+dataHoraBr(u.convite_em):'Ativo'}</td>
               <td data-label="Desde">{dia(u.criado_em)}</td>
+              <td data-label="Ações"><details><summary>Gerenciar acesso</summary>
+                <form data-astro-reload method="post" action="/plataforma/usuarios/acao/">
+                  <input type="hidden" name="id" value={u.id} />
+                  <div><label for={`usuario-${u.id}-acao`}>Ação</label><select id={`usuario-${u.id}-acao`} name="acao"><option value="perfil">Alterar perfil</option>{!u.senha_definida_em&&u.ativo&&<option value="reenviar">Reenviar convite</option>}<option value={u.ativo?'desativar':'reativar'}>{u.ativo?'Desativar':'Reativar'}</option><option value="desbloquear">Desbloquear acesso</option><option value="2fa">Redefinir verificação em 2 etapas</option></select></div>
+                  <div><label for={`usuario-${u.id}-perfil`}>Novo perfil</label><select id={`usuario-${u.id}-perfil`} name="perfil">{Object.entries(ROTULO_PERFIL).map(([valor,rotulo])=><option value={valor} selected={valor===u.perfil}>{rotulo}</option>)}</select></div>
+                  <p>Desativar encerra as sessões. Redefinir a verificação exige configurar o aplicativo novamente.</p>
+                  <div class="usr-confirmar"><input id={`usuario-${u.id}-confirmar`} type="checkbox" name="confirmar" value="sim" required /><label for={`usuario-${u.id}-confirmar`}>Confirmo a ação para {u.email}.</label></div>
+                  <button>Aplicar alteração</button>
+                </form></details></td>
             </tr>
           ))}
         </tbody>
@@ -36,15 +62,27 @@ const dia = (iso: string) => iso.slice(0, 10).split('-').reverse().join('/');
   )}
 </Platform>
 <style>
+  form,form>div,label,input,select,button,summary{min-width:0;max-width:100%}
+  form,form>div{grid-template-columns:minmax(0,1fr)}
+  form,label,summary{overflow-wrap:anywhere}
+  form,form>div,label{display:grid;gap:.5rem}form{gap:.8rem;margin:1rem 0;max-width:34rem}input,select,button,summary{min-height:44px;box-sizing:border-box;max-width:100%}input,select{width:100%;padding:.5rem;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:6px}summary{cursor:pointer;padding:.6rem}.usr-confirmar{display:flex;align-items:center}.usr-confirmar input{width:22px;flex-shrink:0}button{padding:.5rem}.usr-tabela details{min-width:0}.usr-cadastro{margin-bottom:1rem}
   .usr-aviso{padding:.6rem .9rem;border-radius:8px;border:1px solid #b3261e;max-width:42rem}
+  .usr-tabela td{max-width:22rem}
+  .usr-tabela td>details{flex:1;min-width:0}
+  @media(min-width:721px){.usr-tabela table{table-layout:fixed}}
   .usr-tabela table{width:100%;border-collapse:collapse}
   .usr-tabela th,.usr-tabela td{text-align:left;padding:.5rem .6rem;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
   .usr-tabela thead th{color:var(--muted)}
   .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   @media (max-width:720px){
+    .usr-tabela table,.usr-tabela tbody{display:block;min-width:0;width:100%}
+    .usr-tabela th,.usr-tabela td{max-width:100%;flex-wrap:wrap}
+    .usr-tabela td[data-label="Ações"]{flex-direction:column}
+    .usr-tabela td[data-label="Ações"]::before{flex-basis:auto}
+    .usr-tabela td[data-label="Ações"]>details{width:100%}
     .usr-tabela thead{display:none}
     .usr-tabela tr{display:block;border:1px solid var(--line);border-radius:8px;margin-bottom:.6rem;padding:.3rem .5rem}
-    .usr-tabela th,.usr-tabela td{display:flex;gap:.6rem;justify-content:space-between;border:0;padding:.25rem .1rem}
+    .usr-tabela th,.usr-tabela td{display:flex;gap:.6rem;justify-content:space-between;min-width:0;border:0;padding:.25rem .1rem}
     .usr-tabela [data-label]::before{content:attr(data-label);color:var(--muted);flex:0 0 5.5rem}
   }
 </style>

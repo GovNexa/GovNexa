@@ -1,0 +1,21 @@
+---
+export const prerender=false;
+import Base from '../../layouts/Base.astro';
+import LoginShell from '../../components/login/LoginShell.astro';
+import Icon from '../../components/Icon.astro';
+import { env, waitUntil } from 'cloudflare:workers';
+import { servicoLogin, type EnvLogin } from '../../lib/login/servico.ts';
+import { mensagemPublica, tempoMinimo, conferirPost, conferirTurnstile, campo } from '../../lib/login/http.ts';
+import { modoLocal } from '../../lib/login/base.ts';
+const inicio=performance.now();
+const config=env as unknown as EnvLogin;let mensagem='',erro='';
+try {
+if(!modoLocal(Astro.request,config)&&(!config.TURNSTILE_SITE_KEY||!config.TURNSTILE_SECRET)){Astro.response.status=503;erro='Acesso temporariamente indisponível.';}
+if(Astro.request.method==='POST')try{conferirPost(Astro.request);const f=await Astro.request.formData();await conferirTurnstile(config,Astro.request,f);mensagem=await servicoLogin(config,Astro.request,waitUntil).pedirRedefinicao(campo(f,'email'));}catch(e){erro=mensagemPublica(e);}
+} finally {if(Astro.request.method==='POST')await tempoMinimo(inicio);}
+
+---
+<Base title="Esqueci minha senha"><LoginShell heading="Recuperar acesso" description="Informe seu e-mail para receber um link de uso único, válido por uma hora."><div class="login-form">
+{erro&&<p role="alert">{erro}</p>}{mensagem?<p role="status">{mensagem}</p>:<form data-astro-reload method="post"><div class="login-field"><label class="login-field-label" for="redefinir-email"><Icon name="mail" size={17}/>E-mail</label><span class="login-input-wrap"><input id="redefinir-email" type="email" name="email" autocomplete="email" required maxlength="254" /></span></div>{config.TURNSTILE_SITE_KEY&&<div class="cf-turnstile" data-sitekey={config.TURNSTILE_SITE_KEY}></div>}<button class="primary" type="submit">Enviar link</button></form>}<p><a data-astro-reload href="/entrar/">Voltar ao login</a></p></div></LoginShell>
+{config.TURNSTILE_SITE_KEY&&<script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
+</Base>

@@ -64,6 +64,10 @@ const T = {
 } satisfies Record<string, Tela>;
 
 export const NOS: NoFluxo[] = [
+  { id: 'acesso', raia: 'gestao', linha: 1, tipo: 'tarefa', titulo: 'Acesso e usuários',
+    oQue: 'Administrador cadastra e convida a equipe. No modo senha, a pessoa define a senha, configura o aplicativo autenticador e guarda os códigos de recuperação. O Access continua como padrão até a troca autorizada.',
+    valida: ['Cadastro ativo na prefeitura', 'Senha e segundo fator no modo senha', 'Sessão válida e perfil autorizado'], quem: 'Administrador e equipe', situacao: 'disponivel', fase: 'Etapa 3.3',
+    telas: [{rotulo:'Usuários',url:'/plataforma/usuarios/'},{rotulo:'Entrar',url:'/entrar/'}] },
   // ——— Início e cadastro
   { id: 'inicio', raia: 'projetos', linha: 1, tipo: 'inicio', titulo: 'Início: demanda ou ideia',
     oQue: 'Uma secretaria, o gabinete ou a equipe técnica traz uma necessidade (ex.: nova UBS, ponte, reforma de escola).',

@@ -1,0 +1,80 @@
+---
+import Icon from '../Icon.astro';
+import '../../styles/login.css';
+
+const { heading, description } = Astro.props;
+---
+<section class="login-layout" aria-labelledby="login-heading">
+  <aside class="login-intro">
+    <div class="login-brand">
+      <span class="login-brand-mark" aria-hidden="true">G</span>
+      <span><strong>GovNexa</strong><small>Inteligência para a gestão pública</small></span>
+    </div>
+    <div class="login-intro-copy">
+      <p class="login-eyebrow">Gestão pública em um só lugar</p>
+      <h1 id="login-heading">{heading}</h1>
+      <p class="login-description">{description}</p>
+    </div>
+    <ul class="login-features">
+      <li><span><Icon name="briefcase" size={19}/></span>Carteira de projetos em um só lugar</li>
+      <li><span><Icon name="calendar" size={19}/></span>Prazos da Lei 14.133 acompanhados</li>
+      <li><span><Icon name="bar-chart" size={19}/></span>Decisões com dados atualizados</li>
+    </ul>
+    <p class="login-security"><Icon name="lock" size={17}/>Acesso protegido · verificação em 2 etapas</p>
+    <span class="login-color-bar" aria-hidden="true"></span>
+  </aside>
+  <div class="login-form-panel">
+    <slot/>
+  </div>
+</section>
+
+<script is:inline>
+  (() => {
+    const root = document.querySelector('.login-layout');
+    if (!root || root.dataset.loginReady) return;
+    root.dataset.loginReady = 'true';
+
+    root.querySelectorAll('[data-password-toggle]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const input = button.parentElement?.querySelector('input');
+        if (!(input instanceof HTMLInputElement)) return;
+        const showing = input.type === 'password';
+        input.type = showing ? 'text' : 'password';
+        button.setAttribute('aria-pressed', String(showing));
+        button.setAttribute('aria-label', showing ? 'Ocultar senha' : 'Mostrar senha');
+      });
+    });
+
+    root.querySelectorAll('[data-caps-lock]').forEach((input) => {
+      input.addEventListener('keyup', (event) => {
+        const message = input.parentElement?.parentElement?.querySelector('[data-caps-message]');
+        if (message) message.hidden = !event.getModifierState('CapsLock');
+      });
+      input.addEventListener('blur', () => {
+        const message = input.parentElement?.parentElement?.querySelector('[data-caps-message]');
+        if (message) message.hidden = true;
+      });
+    });
+
+    root.querySelectorAll('[data-login-submit]').forEach((button) => {
+      button.closest('form')?.addEventListener('submit', () => {
+        button.disabled = true;
+        button.querySelector('[data-submit-label]').textContent = 'Entrando…';
+        button.querySelector('[data-submit-spinner]').hidden = false;
+      });
+    });
+
+    root.querySelectorAll('[data-copy-codes]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const status = root.querySelector('[data-copy-status]');
+        const codes = [...root.querySelectorAll('.login-form li code')].map((code) => code.textContent.trim());
+        try {
+          await navigator.clipboard.writeText(codes.join('\n'));
+          status.textContent = 'Copiado';
+        } catch {
+          status.textContent = 'Não foi possível copiar os códigos.';
+        }
+      });
+    });
+  })();
+</script>

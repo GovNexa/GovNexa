@@ -94,9 +94,9 @@ test('Worker: Access RS256, falha fechada, cache e rotas', async () => {
     const antesEntrar = assets;
     for (const path of ['/entrar', '/entrar/', '/entrar/qualquer']) {
       const r = await chamar(undefined, env, path);
-      assert.equal(r.status, 302); assert.equal(r.headers.get('Location'), '/plataforma/');
+      assert.equal(r.status, 200); assert.equal(r.headers.get('Cache-Control'), 'private, no-store');
     }
-    assert.equal(assets, antesEntrar);
+    assert.equal(assets, antesEntrar + 3);
     for (const path of ['/api/logout', '/api/logout/', '/sair', '/sair/']) assert.equal((await chamar(undefined, env, path)).headers.get('Location'), '/cdn-cgi/access/logout');
     assert.equal((await chamar(undefined, env, '/api/login/')).status, 404);
     assert.equal((await chamar(undefined, env, '/')).status, 200);

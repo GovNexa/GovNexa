@@ -113,6 +113,7 @@ const menu = menuPorModulo(catalogoCompleto(modules)).map((mod) => {
 const muni = municipioAtivo();
 ---
 <Base platform title={title} description={`Explore ${title} com dados fictícios de ${muni.nome}.`} userName={userName} userInitials={userInitials} userRole={userRole}>
+  <form slot="saida" data-astro-reload method="post" action="/sair" style="margin:0"><button type="submit"><Icon name="log-out"/>Sair</button></form>
   <div class="platform">
     <aside id="platform-drawer" class="sidebar" data-closed="true" transition:persist="sidebar" aria-label="Módulos da plataforma">
       <div class="sidebar-top">

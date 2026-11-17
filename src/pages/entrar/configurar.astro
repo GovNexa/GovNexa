@@ -1,0 +1,18 @@
+---
+export const prerender=false;
+import Base from '../../layouts/Base.astro';
+import LoginShell from '../../components/login/LoginShell.astro';
+import Icon from '../../components/Icon.astro';
+import { env } from 'cloudflare:workers';
+import { servicoLogin, type EnvLogin } from '../../lib/login/servico.ts';
+import { mensagemPublica, conferirPost, campo } from '../../lib/login/http.ts';
+import { cookieSessao, lerCookie, obterSessao } from '../../lib/login/sessao.ts';
+import { voltaSegura } from '../../lib/login/base.ts';
+const config=env as unknown as EnvLogin,valor=lerCookie(Astro.request,config),s=await obterSessao(config.DB_CENTRAL,valor);let erro='',codigos:string[]=[];
+if(!s||s.etapa!=='configurar_2fa')return Astro.redirect('/entrar/',303);
+const servico=servicoLogin(config,Astro.request);let configuracao:{segredo:string;svg:string}|null=null;
+try {if(Astro.request.method==='POST'){conferirPost(Astro.request);const f=await Astro.request.formData();const r=await servico.confirmarTotp(valor,campo(f,'codigo'));codigos=r.codigos;Astro.response.headers.set('Set-Cookie',cookieSessao(Astro.request,r.valor,false,config));}else configuracao=await servico.configurarTotp(valor);}catch(e){erro=mensagemPublica(e);}
+// Depois de erro no POST, a chave já existente pode ser exibida novamente sem gerar outra.
+if(!codigos.length&&!configuracao)try{configuracao=await servico.configurarTotp(valor);}catch{}
+---
+<Base title="Configurar verificação em 2 etapas"><LoginShell heading="Verificação em 2 etapas" description="Adicione esta conta em um aplicativo autenticador. A verificação é obrigatória para todos."><div class="login-form">{erro&&<p role="alert">{erro}</p>}{codigos.length?<><h2>Guarde seus códigos de recuperação</h2><p>Estes códigos aparecem uma única vez. Cada um permite uma entrada. Guarde-os em um lugar seguro.</p><ul>{codigos.map(c=><li><code>{c}</code></li>)}</ul><button class="login-copy-button" type="button" data-copy-codes><Icon name="file" size={17}/>Copiar códigos</button><p data-copy-status role="status" aria-live="polite"></p><a data-astro-reload class="primary login-action" href={voltaSegura(Astro.url.searchParams.get('volta'))}>Continuar para a plataforma</a></>:configuracao&&<><div class="qr" role="img" aria-label="QR Code para configurar o aplicativo" set:html={configuracao.svg}></div><p>Chave para digitar no aplicativo: <code data-testid="totp-segredo">{configuracao.segredo}</code></p><form data-astro-reload method="post"><div class="login-field login-code-field"><label class="login-field-label" for="configurar-codigo"><Icon name="lock" size={17}/>Código do aplicativo</label><span class="login-input-wrap"><input id="configurar-codigo" name="codigo" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required /></span></div><button class="primary" type="submit">Confirmar configuração</button></form></>}</div></LoginShell></Base>

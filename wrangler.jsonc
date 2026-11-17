@@ -47,10 +47,14 @@
       "bucket_name": "govnexa-documentos"
     }
   ],
+  "send_email": [{ "name": "EMAIL", "allowed_sender_addresses": ["nao-responda@govnexa.com.br"] }],
   "ratelimits": [
     { "name": "LIMITE_API", "namespace_id": "1001", "simple": { "limit": 30, "period": 60 } }
   ],
   "vars": {
+    "LOGIN_MODO": "access",
+    "ORIGEM_PUBLICA": "https://govnexa.com.br",
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAGFOaw3hPt-hrWNM",
     "ACCESS_TEAM_DOMAIN": "equipegovnexa.cloudflareaccess.com",
     "ACCESS_AUD": "07172f6dfb695c95b9c08710223fcc081711f891836aee2c7243e6e4bc2bd1e4"
   },

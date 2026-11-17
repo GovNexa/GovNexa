@@ -10,7 +10,7 @@ Portal público e plataforma de gestão pública **GovNexa**. O piloto é a Pref
   3. [docs/govnexa/historico.md](docs/govnexa/historico.md): tudo o que aconteceu, as regras do dono com data, os testes do SEI, o que vem a seguir, as lições técnicas e todos os PRs (do repositório novo e do antigo);
   4. [CLAUDE.md](CLAUDE.md): as regras de trabalho.
 
-Situação descrita em **16/11/2026**.
+Situação descrita em **17/11/2026**.
 
 ## 1. O que é o GovNexa
 
@@ -90,7 +90,7 @@ São módulos independentes que conversam entre si:
 6. **16/11/2026 — migração para Cloudflare + GitHub (GovNexa):**
    - Repositório público `GovNexa/GovNexa`; dados reais nunca entram. `data/carga-real/` foi retirada de todo o histórico.
    - Site e plataforma em https://govnexa.com.br e https://www.govnexa.com.br, servidos por Cloudflare Worker. A hospedagem antiga será desligada.
-   - Astro 7 + `@astrojs/cloudflare`: site público pré-renderizado; `/plataforma/` montada a cada acesso no Worker, lendo D1. `worker/entrypoint.ts` trata `/entrar`, `/sair` e `/api`; `src/middleware.ts` valida o login e escolhe o banco.
+   - Astro 7 + `@astrojs/cloudflare`: site público pré-renderizado; `/plataforma/` montada a cada acesso no Worker, lendo D1. `worker/entrypoint.ts` encaminha as páginas `/entrar/*` ao Astro e trata `/sair` e `/api`; `src/middleware.ts` valida o login e escolhe o banco.
    - Cloudflare D1 (SQLite): um banco por prefeitura (`govnexa-5208707` para Goiânia) e banco central `govnexa-central` para prefeituras, usuários e importações. Migrações atuais em `db/d1/central` e `db/d1/prefeitura`; `db/migracoes/` é a referência PostgreSQL antiga. O histórico é imutável; fotos e documentos só têm remoção lógica. Arquivos ficam no R2 `govnexa-documentos`. Supabase/PostgreSQL é apenas plano B.
    - Login com Cloudflare Access (equipe `equipegovnexa`, código por e-mail) e cadastro ativo no banco central. Perfis: admin, gestor, editor e leitura; durante a construção, todos os usuários são admin. Quem passa no Access, mas não está cadastrado, vê "Sem permissão".
    - Carga inicial no D1 de produção em 16/11: 334 projetos, 13 cronogramas e 725 etapas. O código 450 estava repetido (SECAP e SEINFRA); o da SECAP virou 506. Planilhas novas são importadas do repositório privado `GovNexa/govnexa-dados` por uma rotina do GitHub (etapa 3.5, ver a seção 6).
@@ -108,7 +108,7 @@ São módulos independentes que conversam entre si:
 | 4 · Contratação, convênios e Gestão | Lei 14.133 ponta a ponta, cláusula suspensiva, painel do prefeito e medições | PNCP e datas reais por licitação |
 | 5 · Integrações e inteligência | PNCP, SIMEC, SISMOB, SINAPI e GOINFRA, WhatsApp real, IA com revisão humana | Conta do WhatsApp Business; IA aprovada |
 
-## 2. Situação atual (16/11/2026)
+## 2. Situação atual (17/11/2026)
 
 | Fase | O que entrega | Situação | % |
 | --- | --- | --- | --- |
@@ -117,11 +117,13 @@ São módulos independentes que conversam entre si:
 | 1 · Carteira de Projetos | Carteira, ficha, Kanban, Gantt, Visão por órgão, celular | Entregue; carga inicial no D1 | 100% |
 | 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, Kanban e Pendências, Histórico, Sala de guerra | Telas prontas; algumas gravações ainda são simulação | 95% |
 | 2 · Cronograma e equipe | Cronogramas, quadro de tarefas, Onde está parado, Reunião semanal, dependências, SEI | Telas entregues; leitura automática do SEI a fazer | 90% |
-| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis e isolamento por prefeitura | Tabelas em produção, carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas no ar e gravada em 16/11 (3.5). Documentos (3.4) publicados em 17/11. Usuários (3.3, opção B): lista somente leitura de quem tem acesso, no ar desde 17/11 | 92% |
+| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis e isolamento por prefeitura | Tabelas em produção, carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas no ar e gravada em 16/11 (3.5). Documentos (3.4) publicados em 17/11. Usuários: lista no ar; cadastro, convites e login próprio com 2FA implementados nesta worktree, aguardando revisão e publicação | 92% |
 | 4 · Contratação, convênios e Gestão | Lei 14.133, alertas, dashboard do prefeito, licitação em detalhe | Prazos da lei, dashboard em três níveis, filtros e modo apresentação; mapa, Central de alertas e Licitação em detalhe; parte ainda em simulação | 75% |
 | 5 · Integrações e inteligência | PNCP, SIMEC, SISMOB, preços, WhatsApp, IA | WhatsApp em simulação | 10% |
 
 ### Entregas recentes
+
+17/11: login próprio com senha e 2FA implementado, ainda sem publicação; Access continua padrão. Percentuais mantidos até homologação.
 
 | Data | O que | Referência |
 | --- | --- | --- |
@@ -150,6 +152,10 @@ O detalhe das entregas está em [docs/CHANGELOG.md](docs/CHANGELOG.md).
 No início (/plataforma/), todos os módulos do menu ficam retraídos: o dashboard não pertence a um módulo. Nas outras telas, a sanfona abre somente o módulo e o sub-bloco da página atual. Nome, iniciais, Meu perfil e Sair ficam apenas no cabeçalho; os links da conta têm alvos de toque de pelo menos 44 px.
 
 Legenda: **Disponível** = leitura ou operação disponível. **Simulação** = as regras rodam, mas a gravação real ainda será ligada nas próximas partes da etapa 3. **Demonstrativo** = protótipo com dados fictícios.
+
+### Conta e acesso
+
+Guia Usuários: cadastro, convite por e-mail, reenvio, perfil, ativação e redefinição do aplicativo, só para administradores da mesma prefeitura. Login próprio: senha, aplicativo autenticador obrigatório e recuperação de senha. Disponíveis no código, aguardando publicação e validação da interface; envio local simulado.
 
 ### Dashboard: efeitos, alertas e atualização automática
 
@@ -292,22 +298,24 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 
 ### Próximas partes da Fase 3
 
-1. **Usuários (3.3, opção B):** lista somente leitura de quem tem acesso (guia Usuários, só administrador). Cadastro e alteração seguem pelo banco, com ordem do dono. A tela de cadastro e a sincronização com o Access ficam para depois de validar os fluxos com o cliente.
+1. **Usuários (3.3):** cadastro, convite e login próprio com 2FA implementados; validar a interface antes da publicação. Access permanece padrão.
 2. **Documentos (3.4):** publicada em produção em 17/11/2026 (PR #10; migração 0002 aplicada): envio, download e remoção lógica.
 3. **Importação de planilhas (3.5):** feita e gravada em produção em 16/11 (334 projetos atualizados, 0 novos).
 4. **SEI automático:** Cron Trigger do Worker para leitura e gravação no D1.
 
-### Usuários (etapa 3.3, opção B)
+### Usuários e login próprio (etapa 3.3)
 
-- **Onde:** `/plataforma/usuarios/` (guia Usuários, no módulo Conta). Só quem tem a ação `gerenciar_usuarios` (administrador) vê a guia e a lista; os outros perfis recebem 403.
-- **O que mostra:** nome, e-mail, cargo, perfil, situação e data de cadastro de quem tem acesso à prefeitura do solicitante. Somente leitura; a consulta sempre filtra pela prefeitura do usuário logado.
-- **Como incluir ou alterar alguém (só com ordem do dono):**
-  1. Incluir o e-mail na política do Cloudflare Access (https://one.dash.cloudflare.com, Zero Trust, Access, Applications, política do GovNexa).
-  2. Cadastrar no banco central: `npx wrangler d1 execute DB_CENTRAL --remote --command "INSERT INTO usuario(id,email,nome,cargo,perfil,prefeitura_id) VALUES(lower(hex(randomblob(16))),'<e-mail em minúsculas>','<nome>','<cargo>','<admin|gestor|editor|leitura>',5208707)"`.
-  3. Regras do comando: o e-mail vai em minúsculas (o banco recusa maiúsculas) e todo apóstrofo dentro de um valor deve ser duplicado (`'` vira `''`).
-  4. Para desativar: `UPDATE usuario SET ativo = 0, atualizado_em = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE email = '<e-mail>'`.
-  5. Conferir na guia Usuários.
-- **Fica para depois:** tela de cadastro e edição, convite e sincronização com um grupo do Access (opção A), após a validação dos fluxos com o cliente.
+- `/plataforma/usuarios/`: só `gerenciar_usuarios`, sempre na prefeitura do administrador; impede desativar o próprio acesso ou remover o último administrador ativo.
+- `LOGIN_MODO=access` (também padrão quando ausente) mantém o Access; `senha` exige senha e aplicativo autenticador. Os convites permitem preparar contas antes da troca, sem sincronizar políticas do Access.
+- Convite vale 24 horas; redefinição vale uma hora. Links são de uso único e um novo link invalida os anteriores do mesmo tipo. GET não consome o token.
+- Primeira senha abre sessão de configuração por dez minutos. Confirmação do aplicativo mostra dez códigos de recuperação uma vez e cria sessão completa. Login sempre exige código ou configuração.
+- Redefinir senha revoga todas as sessões e exige novo login, preservando o aplicativo. Redefinir 2FA revoga sessões, apaga chave e códigos e exige configuração no próximo login.
+- Sessão completa: 12 horas absolutas e duas horas sem uso. Cinco tentativas de código; conta bloqueada por 15 minutos após cinco falhas; limite de 20 tentativas por IP em 15 minutos, incluindo acertos (opção conservadora). Esqueci: três pedidos por e-mail/hora e dez por IP/hora, resposta sempre genérica.
+- Configure ORIGEM_PUBLICA (HTTPS público), `SENHA_PEPPER`, `TOTP_CHAVE` (32 bytes em base64), `TURNSTILE_SECRET`, `TURNSTILE_SITE_KEY` e binding `EMAIL` antes de habilitar. Sem Turnstile em produção, login e recuperação retornam 503. A chave TOTP deve ser preservada: perdê-la exige redefinir os aplicativos.
+- Local: `EMAIL_SIMULADO=1` disponibiliza os últimos 20 e-mails em `/entrar/_emails-locais`, só localhost/127.0.0.1 sem `cf-ray`; logs nunca contêm o link. Em produção a simulação é ignorada. Cookie local `govnexa_local`; fora desse modo, `__Host-govnexa` com Secure.
+- `db:local` aplica a migração central `0002_login.sql` e semeia somente `@exemplo.invalid`, sem ler arquivos de segredos. Playwright usa valores fictícios próprios; não reutilize a semente ou os exemplos de configuração fora dos testes locais.
+- Validação local desta entrega: `astro check` sem erros, 316 testes Node passando, build concluído e mapa de impacto sem arquivos descobertos. Playwright escrito e listado, sem execução de navegador no sandbox.
+- Esta entrega não foi publicada. A migração central precisa ser aplicada pelo responsável antes de publicar as novas telas, mesmo mantendo Access. E-mails reais e políticas Access dependem da configuração do responsável.
 
 ### Documentos de projeto (etapa 3.4)
 
@@ -358,8 +366,8 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Domínios:** `govnexa.com.br` e `www.govnexa.com.br`.
 - **Hospedagem e código:** Cloudflare + GitHub; o repositório público não recebe dados reais.
 - **Banco:** D1, um por prefeitura, e um D1 central para prefeituras, usuários e importações. Supabase/PostgreSQL fica apenas como plano B.
-- **Login:** Cloudflare Access mais cadastro ativo no banco central. Perfis admin, gestor, editor e leitura; todos são admin durante a construção.
-- **Cadastro e Access (17/11/2026):** etapa 3.3 na opção B: só a lista de quem tem acesso. O cadastro de usuários pela tela e a sincronização com o Access esperam a validação dos fluxos com o cliente, para evitar retrabalho.
+- **Login (17/11/2026):** modo próprio com senha e 2FA obrigatório autorizado; Access permanece padrão até decisão expressa de troca. Perfis admin, gestor, editor e leitura.
+- **Cadastro (17/11/2026):** administrador cadastra e envia convite pelo GovNexa. Preparar senha e 2FA antes de mudar `LOGIN_MODO`; sem sincronização automática com Access.
 - **Datas (17/11/2026):** padrão brasileiro em todo o sistema: `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` no horário de Brasília.
 - **Dados reais:** somente no banco e no repositório privado de dados; nunca no repositório público.
 - **Importação:** planilhas pelo repositório privado `GovNexa/govnexa-dados`; o importador deverá avisar códigos repetidos. O código 450 duplicado foi resolvido como 506 para SECAP.
@@ -386,7 +394,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 
 ### Próximos passos
 
-1. **3.3 — usuários (opção B):** feita no código (lista somente leitura); cadastro pelo banco. Tela de cadastro e Access ficam para depois da validação dos fluxos.
+1. **3.3 — usuários e login:** revisar as correções de segurança da ordem 3, executar `npx playwright test --project=login`, homologar os dois temas e configurar e-mail/segredos. Publicação, migração central e troca de modo ficam com o responsável; Access continua padrão.
 2. **3.4 — documentos:** publicada em 17/11/2026.
 3. **3.5 — importação:** feita e gravada em 16/11.
 4. Automatizar a leitura do SEI com Cron Trigger.
@@ -435,8 +443,8 @@ As regras completas estão em [CLAUDE.md](CLAUDE.md). Resumo:
 ## 11. Estrutura
 
 ```
-worker/                         Worker e entrada para Access, login, saída e API
-  entrypoint.ts                 Roteamento de /entrar, /sair e /api
+worker/                         Worker e entrada para Access, sessões, saída e API
+  entrypoint.ts                 Roteamento Astro, /sair e /api
 db/d1/central/                  Migrações do D1 central
 db/d1/prefeitura/               Migrações dos bancos das prefeituras
 db/migracoes/                   Referência antiga de migrações PostgreSQL
@@ -448,7 +456,7 @@ data/core/                       Dados públicos tratados, com proveniência
 data/exemplo/                    Dados fictícios para desenvolvimento e testes
 scripts/db-local.mjs             Preparação dos bancos D1 locais e exemplos
 scripts/                         Importadores, testes auxiliares e rotinas locais
-src/middleware.ts                Access, cadastro ativo e seleção do banco
+src/middleware.ts                Access ou sessão, cadastro ativo e seleção do banco
 src/pages/                       Site público e rotas da plataforma
 src/layouts/                     Layouts do site e da plataforma
 src/lib/                         Regras, dados e repositórios D1
@@ -483,6 +491,12 @@ Nenhum valor secreto fica no código. Só os nomes e a finalidade:
 | Binding R2 `DOCUMENTOS` | `wrangler.jsonc` | Bucket `govnexa-documentos` |
 | Domínios `govnexa.com.br` e `www.govnexa.com.br` | `wrangler.jsonc` | Domínios do Worker |
 | `ACESSO_LOCAL_LIVRE`, `DEV_EMAIL` | `.dev.vars` local | Desenvolvimento local; nunca configurar a liberação em produção |
+| `LOGIN_MODO` | Variável do Worker | `access` padrão; `senha` habilita autenticação própria |
+| `SENHA_PEPPER` | Segredo do Worker | HMAC anterior ao PBKDF2-SHA256 (100000 iterações); preservar e proteger |
+| `TOTP_CHAVE` | Segredo do Worker | AES-GCM, 32 bytes base64; cifra as chaves do aplicativo |
+| `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET` | Variável e segredo do Worker | Widget e validação no servidor; obrigatórios em produção |
+| `EMAIL` | Binding SendEmail | Remetente permitido `nao-responda@govnexa.com.br` |
+| `EMAIL_SIMULADO` | Somente ambiente local | `1` captura os últimos 20 e-mails em memória, nunca em produção |
 | `PORTAL_TRANSPARENCIA_CHAVE` | Segredo do GitHub | Coletor de convênios; precisa ser cadastrado de novo no repositório novo |
 | `CLOUDFLARE_API_TOKEN` e `CLOUDFLARE_ACCOUNT_ID` | Segredos do repositório privado `GovNexa/govnexa-dados` (ambiente `producao`) | Só a rotina de gravação da importação usa; a conferência não precisa. A criar pelo dono |
 
@@ -490,7 +504,16 @@ Não reutilize variáveis de autenticação ou publicação da arquitetura antig
 
 ## 14. Segurança
 
-- O acesso à plataforma exige um JWT válido do Cloudflare Access e cadastro ativo no banco central.
+- Senha com PBKDF2 e pepper; TOTP cifrado por AES-GCM vinculado ao ID da conta, com proteção contra reuso e códigos de recuperação de uso único.
+- Cinco erros de senha por janela bloqueiam inicialmente por 15 minutos; a cada dez falhas acumuladas em 24 h o período dobra até uma hora (15 → 30 → 60 min). Tentativas durante o bloqueio não acumulam falhas nem estendem o prazo. Administradores podem desbloquear contas da própria prefeitura na guia Usuários; a ação limpa os limites da conta e fica na auditoria. A senha correta só zera falhas depois do segundo fator.
+- Dez erros de TOTP/recuperação por conta em uma hora bloqueiam por uma hora e revogam sessões pendentes, além do limite de cinco códigos por sessão. Sucesso no segundo fator limpa os contadores da conta.
+- Login e recuperação fazem escritas equivalentes para e-mail existente/ausente. POST de login, código e esqueci completam pelo menos 800 ms; e-mail usa waitUntil quando disponível e envio síncrono como fallback.
+- Links de convite e redefinição usam ORIGEM_PUBLICA=https://govnexa.com.br; origem ausente ou sem HTTPS recusa envio e registra evento. URL da requisição só serve no modo local.
+- Modo local exige AMBIENTE=local, host local e ausência de cf-ray; scripts de desenvolvimento passam a variável por --var, nunca pela configuração de produção.
+- Saída no modo senha exige POST de mesma origem; GET apenas confirma. POST de login e ações de Usuários exigem tamanho decimal declarado até 16 KiB.
+- Mensagens da guia Usuários vêm de códigos fixos. Desativação invalida sessões, convites e redefinições; janelas de limites com mais de 24 h são limpas a cada cem chamadas.
+
+- O acesso exige cadastro ativo e JWT válido do Access no modo padrão; no modo senha, sessão completa após senha e segundo fator.
 - Quem autentica no Access, mas não tem cadastro ativo, recebe "Sem permissão".
 - O middleware escolhe a prefeitura e o binding D1 a partir do cadastro; prefeitura nunca vem da URL.
 - Respostas da plataforma usam `private, no-store`; o Worker envia cabeçalhos de segurança e CSP.
@@ -528,3 +551,5 @@ Ordem de leitura: README, [plano](docs/govnexa/plano.md), [histórico](docs/govn
 - Os dados de Captação vêm de fontes públicas oficiais, com a origem indicada.
 - Os dados reais da carteira e dos cronogramas ficam no D1 e nunca no repositório público.
 - O projeto não é um canal oficial da Prefeitura de Goiânia.
+
+Na guia Usuários, erros administrativos usam códigos e mensagens fixos. O envio de e-mail é aguardado; se falhar, a alteração gravada permanece e a tela orienta reenviar o convite. Rotas anônimas mantêm envio em segundo plano e piso de tempo.

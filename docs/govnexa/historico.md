@@ -6,6 +6,7 @@ A versão integral do histórico é privada e fica fora do repositório público
 
 | Data | Regra |
 | --- | --- |
+| 17/11/2026 | Login próprio com senha e aplicativo autenticador obrigatório; convite pelo administrador. Access segue padrão até troca expressa. Redefinir senha encerra sessões e exige login; redefinir 2FA exige novo aplicativo. |
 | 09/11/2026 | Manter a arquitetura atual (Astro + TypeScript, JSON); coletores em Node/TypeScript; GitHub Actions como agendador; banco futuro PostgreSQL; multimunicípio (Goiânia só como configuração); portável para outro servidor. |
 | 09/11/2026 | Trabalhar sempre em branch própria, com PR; o merge na `main` é sempre do dono. Commit e push de branches de trabalho autorizados. |
 | 10/11/2026 | Login: manter exatamente como está; não alterar `api/`, `lib/session.ts`, `middleware.ts`, `src/pages/entrar.astro` nem `vercel.json` sem autorização. |
@@ -69,7 +70,7 @@ Por que ainda não é automático: o navegador não deixa uma página do GovNexa
 
 ### 5.3 Próximas entregas
 
-1. **3.3, usuários (opção B, decisão do dono em 17/11/2026):** lista somente leitura de quem tem acesso; cadastro pelo banco. Tela de cadastro e sincronização com o Access esperam a validação dos fluxos com o cliente, para evitar retrabalho.
+1. **3.3, login próprio (17/11/2026):** código de cadastro, convite e 2FA implementado; revisar, executar o projeto Playwright `login`, homologar e configurar segredos/e-mail. Access permanece padrão; nenhuma publicação nesta entrega.
 2. **3.4, documentos:** publicada em produção em 17/11/2026 (migração 0002 aplicada).
 3. **3.5, importação:** feita (novo #9) e gravada em produção em 16/11: 334 projetos atualizados, 0 novos, 0 pulados.
 4. **SEI automático:** leitura diária dos links guardados no D1, por Cron Trigger. Sem contornar captcha, e documento restrito continua entrando por PDF.
@@ -149,6 +150,8 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 
 ## 6. Lições técnicas (para não repetir erros)
 
+17/11/2026: D1 exige operações condicionais e atômicas para consumo de token/código. Não consumir links no GET. Workers limita PBKDF2 a 100000 iterações. Cookie __Host exige HTTPS; exceção local deve verificar host e ausência de cf-ray. Astro ignora arquivos iniciados por sublinhado: a rota local de e-mails usa um endpoint dinâmico que aceita apenas `_emails-locais`.
+
 | Situação | O que aprendemos |
 | --- | --- |
 | Página nova com o nome de uma guia que já existia (16/11, novo #10) | A pasta `documentos/` das rotas da etapa 3.4 sobrescreveu a guia de demonstração "Documentos" e derrubou um teste antigo. As rotas passaram a ficar em `documentos-projeto/`. Antes de criar rota nova sob `/plataforma/`, conferir `src/data/modules.json` e o catálogo. |
@@ -173,6 +176,8 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 ## 7. Todos os PRs (descrição completa)
 
 ### 7.1 Repositório novo (`GovNexa/GovNexa`)
+
+17/11/2026 — Login próprio e usuários, sem PR/publicação nesta entrega: migração central, senha com pepper, TOTP cifrado, convites, recuperação, sessões, limites, Turnstile e administração isolada por prefeitura. Validação: astro check sem erros, 316 testes Node passando, build concluído e impacto conferido com Fluxo atualizado. Testes de navegador escritos e listados para execução externa. Percentuais anteriores mantidos até homologação.
 
 | PR | Data | Título |
 | --- | --- | --- |

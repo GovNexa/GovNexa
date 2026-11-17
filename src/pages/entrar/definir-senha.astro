@@ -1,0 +1,15 @@
+---
+export const prerender=false;
+import Base from '../../layouts/Base.astro';
+import LoginShell from '../../components/login/LoginShell.astro';
+import Icon from '../../components/Icon.astro';
+import { env, waitUntil } from 'cloudflare:workers';
+import { servicoLogin, type EnvLogin } from '../../lib/login/servico.ts';
+import { consultarToken } from '../../lib/login/tokens.ts';
+import { mensagemPublica, conferirPost, campo } from '../../lib/login/http.ts';
+import { cookieSessao } from '../../lib/login/sessao.ts';
+const config=env as unknown as EnvLogin,token=Astro.url.searchParams.get('token')??'',tipo=Astro.url.searchParams.get('tipo')==='redefinicao'?'redefinicao':'convite';
+let erro='';const valido=await consultarToken(config.DB_CENTRAL,token,tipo);
+if(Astro.request.method==='POST')try{conferirPost(Astro.request);const f=await Astro.request.formData();if(campo(f,'senha')!==campo(f,'confirmacao'))throw new Error('As senhas precisam ser iguais.');const valor=await servicoLogin(config,Astro.request,waitUntil).definirSenhaComToken(token,tipo,campo(f,'senha'));const resposta=Astro.redirect(valor?'/entrar/configurar/':'/entrar/?senha=alterada',303);resposta.headers.set('Set-Cookie',cookieSessao(Astro.request,valor??'',!valor,config));return resposta;}catch(e){erro=mensagemPublica(e);}
+---
+<Base title="Defina sua senha"><LoginShell heading="Crie sua senha" description="Use de 10 a 128 caracteres. Evite senhas comuns, seu nome e seu e-mail."><div class="login-form">{erro&&<p role="alert">{erro}</p>}{valido?<form data-astro-reload method="post"><div class="login-field"><label class="login-field-label" for="nova-senha"><Icon name="lock" size={17}/>Nova senha</label><span class="login-input-wrap"><input id="nova-senha" type="password" name="senha" autocomplete="new-password" minlength="10" maxlength="128" required /><button class="login-password-toggle" type="button" data-password-toggle aria-label="Mostrar senha" aria-pressed="false"><Icon name="eye" size={19}/></button></span></div><div class="login-field"><label class="login-field-label" for="confirmacao-senha"><Icon name="lock" size={17}/>Confirme a senha</label><span class="login-input-wrap"><input id="confirmacao-senha" type="password" name="confirmacao" autocomplete="new-password" minlength="10" maxlength="128" required /><button class="login-password-toggle" type="button" data-password-toggle aria-label="Mostrar senha" aria-pressed="false"><Icon name="eye" size={19}/></button></span></div><button class="primary" type="submit">Definir senha</button></form>:<p role="alert">Link inválido ou expirado. Peça um novo link.</p>}<p><a data-astro-reload href="/entrar/">Voltar ao login</a></p></div></LoginShell></Base>

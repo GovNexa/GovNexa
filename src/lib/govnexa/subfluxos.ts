@@ -52,6 +52,13 @@ const T = {
 const EXC = 'Exceção aceita e registrada';
 
 export const SUBFLUXOS: Subfluxo[] = [
+  {id:'acesso',no:'acesso',titulo:'Convite e acesso',resumo:'Senha com verificação em 2 etapas obrigatória; Access permanece padrão.',
+   raias:[{id:'equipe',nome:'Equipe',descricao:'Administrador e pessoa convidada'}],
+   nos:[
+    {id:'convite',raia:'equipe',linha:1,tipo:'inicio',titulo:'Cadastrar e convidar',oQue:'Administrador envia link de uso único por 24 horas.',valida:['Perfil e prefeitura do administrador'],quem:'Administrador',situacao:'disponivel',fase:'3.3',telas:[{rotulo:'Usuários',url:'/plataforma/usuarios/'}]},
+    {id:'senha',raia:'equipe',linha:2,tipo:'tarefa',titulo:'Definir senha e configurar aplicativo',oQue:'Confirma o código do aplicativo e guarda dez códigos de recuperação mostrados uma vez.',valida:['Token válido','Senha aceita','Código não reutilizado'],quem:'Pessoa convidada',situacao:'disponivel',fase:'3.3',telas:[{rotulo:'Entrar',url:'/entrar/'}]},
+    {id:'sessao',raia:'equipe',linha:3,tipo:'fim',titulo:'Entrar com senha e código',oQue:'Sessão dura até 12 horas, com até 2 horas sem uso. Redefinir senha encerra sessões e exige novo login; redefinir 2FA exige nova configuração.',valida:['Conta ativa','Dois fatores confirmados'],quem:'Equipe',situacao:'disponivel',fase:'3.3',telas:[{rotulo:'Entrar',url:'/entrar/'}]}
+   ],ligacoes:[{de:'convite',para:'senha'},{de:'senha',para:'sessao'}]},
   // 1) CADASTRO DO PROJETO
   {
     id: 'cadastro', no: 'cadastro', titulo: 'Cadastro do projeto',
