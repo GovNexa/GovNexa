@@ -22,6 +22,11 @@ export interface ResumoCaptacao {
 export function resumoCaptacao(): ResumoCaptacao | null {
   const r = dados.acompanhamento(IBGE)?.resumo;
   if (!r) return null;
+  return resumoCaptacaoDaColeta(r);
+}
+
+/** Mesma transformação, com a coleta injetada para uso em cálculos puros. */
+export function resumoCaptacaoDaColeta(r: Record<string, unknown>): ResumoCaptacao {
   return {
     emExecucao: Number(r.em_execucao ?? 0),
     pactuado: Number(r.valor_repasse_pactuado_em_execucao ?? 0),
@@ -81,7 +86,7 @@ const porDataENome = <T extends { data: string | null; nome: string }>(a: T, b: 
   return da < db ? -1 : da > db ? 1 : a.nome.localeCompare(b.nome, 'pt-BR');
 };
 const RANK_PRIORIDADE: Record<string, number> = { 'Muito Alta': 0, Alta: 1, 'Média': 2, Baixa: 3 };
-const rankPrioridade = (p: string | null): number => (p !== null && p in RANK_PRIORIDADE ? RANK_PRIORIDADE[p] : 4);
+export const rankPrioridade = (p: string | null): number => (p !== null && p in RANK_PRIORIDADE ? RANK_PRIORIDADE[p] : 4);
 const somaDias = (iso: string, n: number): string => new Date(Date.parse(`${iso.slice(0, 10)}T00:00:00Z`) + n * 86400000).toISOString().slice(0, 10);
 
 export function montarPainel(carteira: Carteira, cronogramas: Cronograma[], salas: Sala[], captacao: ResumoCaptacao | null, hoje: string): PainelPrefeito {
