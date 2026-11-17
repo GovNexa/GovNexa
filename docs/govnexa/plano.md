@@ -36,6 +36,7 @@ Regra de apresentação (17/11/2026): datas sempre no padrão brasileiro, `DD/MM
 | Data | Entrega | PR |
 | --- | --- | --- |
 | 17/11 | Entrega 1.0: limite de 30 ações por minuto por pessoa e prefeitura nos documentos (Rate Limiting da Cloudflare; falha recusa) | novo PR |
+| 17/11 | Página inicial nova do site público (gestão de projetos públicos, ciclo por rolagem, módulos e entrada da plataforma) | novo PR |
 | 16/11 | Etapa 3.4: documentos de projeto no R2 (envio, download como anexo, remoção lógica, limite de 30 envios por hora, conferência do tipo pelo conteúdo) | GovNexa #10 |
 | 16/11 | Primeira gravação das planilhas em produção (334 atualizados, 0 novos, 0 pulados) | rotina do repositório de dados |
 | 16/11 | Etapa 3.5: importação das planilhas do repositório privado (rotina do GitHub com conferência e gravação separadas; códigos repetidos avisados; não apaga, não sobrescreve localização, compromisso nem projeto alterado no sistema) | GovNexa #9 |

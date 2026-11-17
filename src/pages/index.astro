@@ -1,7 +1,344 @@
 ---
-import Icon from '../components/Icon.astro';
+// Página inicial do site público: apresenta o GovNexa e leva ao acesso da plataforma.
+// Estilos em src/styles/home.css (classes gx-). Números das telas são exemplos fictícios.
 import Base from '../layouts/Base.astro';
-import {getCollection} from 'astro:content';
-const entries=(await getCollection('insights')).slice(0,3);
+import '../styles/home.css';
 ---
-<Base title="Um território de boas conexões"><section class="hero"><div><span class="eyebrow">Inteligência local. Impacto coletivo.</span><h1>Boas compras.<br/>Novas conexões.<br/><em>Uma cidade melhor.</em></h1><p class="lead">Aproxime quem precisa de soluções de quem sabe entregar. Planejamento, oportunidades e fornecedores em um só lugar.</p><div class="actions"><a class="button primary" href="/demonstracao/">Conheça a GovNexa ↗</a><a data-astro-reload href="/plataforma/">Explorar a plataforma →</a></div><small>Feito para conectar o potencial de Goiânia.</small></div><div class="art"><svg viewBox="0 0 450 430" role="img" aria-label="Ilustração de painel de compras públicas"><rect x="25" y="50" width="400" height="310" rx="24" fill="#fff"/><rect x="25" y="50" width="70" height="310" rx="24" fill="#0A4A6B"/><g fill="#ffffff40"><rect x="40" y="85" width="40" height="8" rx="4"/><rect x="40" y="115" width="40" height="8" rx="4"/><rect x="40" y="145" width="40" height="8" rx="4"/></g><rect x="115" y="78" width="170" height="12" rx="6" fill="#002E47"/><rect x="115" y="115" width="125" height="72" rx="12" fill="#003856"/><rect x="255" y="115" width="145" height="72" rx="12" fill="#FFF1EC"/><g fill="#F36E22"><rect x="135" y="140" width="65" height="18" rx="4"/><rect x="275" y="140" width="85" height="18" rx="4"/></g><path d="M120 320h270" stroke="#D5DDE0"/><g fill="#0A4A6B"><rect x="130" y="260" width="25" height="60" rx="5"/><rect x="190" y="230" width="25" height="90" rx="5"/><rect x="250" y="250" width="25" height="70" rx="5"/><rect x="310" y="210" width="25" height="110" rx="5"/></g><g fill="#F36E22"><rect x="158" y="285" width="18" height="35" rx="4"/><rect x="218" y="265" width="18" height="55" rx="4"/><rect x="278" y="275" width="18" height="45" rx="4"/><rect x="338" y="250" width="18" height="70" rx="4"/></g><rect x="300" y="25" width="125" height="55" rx="14" fill="#FFF1EC"/><path d="m318 52 9 9 16-20" stroke="#1F6B3A" stroke-width="4" fill="none"/><rect x="353" y="46" width="52" height="8" rx="4" fill="#002E47"/></svg><div class="stamp"><strong>Goiânia, em conexão</strong><br/><small>Pessoas · negócios · setor público</small></div></div></section><section class="band"><span class="eyebrow">Três caminhos. Um mesmo horizonte.</span><h2>Qual é o seu próximo passo?</h2><div class="grid">{[['compradores','01','Compradores','Encontre parceiros e organize suas decisões de compra.'],['setor-publico','02','Setor público','Da necessidade à entrega, acompanhe cada etapa.'],['fornecedores','03','Fornecedores','Transforme sua capacidade local em novas oportunidades.']].map(([slug,n,title,text])=><article class="card"><Icon name="box" size={28}/><span class="eyebrow">{n} / CONECTAR</span><h3>{title}</h3><p>{text}</p><a href={`/${slug}/`}>Conhecer a solução →</a></article>)}</div></section><section><div class="section-head"><div><span class="eyebrow">Conhecimento que circula</span><h2>Ideias para avançar</h2></div><a href="/insights/">Todos os Insights →</a></div><div class="grid">{entries.map(e=><article class="card"><span class="pill">{e.data.tipo}</span><h3><a href={`/insights/${e.id}/`}>{e.data.title}</a></h3><p>{e.data.resumo}</p></article>)}</div></section><section class="band"><h2>Vamos desenhar sua próxima conexão?</h2><p>Conheça os caminhos possíveis para sua organização.</p><a class="button primary" href="/demonstracao/">Solicitar demonstração</a></section></Base>
+<Base title="Do desejo do gestor à obra entregue" description="O GovNexa reúne a carteira de projetos da prefeitura, a captação de recursos e a contratação pela Lei 14.133 em uma só tela.">
+<div class="gx">
+<div class="gx-atmos" aria-hidden="true"><div class="gx-orb gx-a"></div><div class="gx-orb gx-b"></div><div class="gx-orb gx-c"></div></div>
+<div class="gx-main">
+  <!-- HERO -->
+  <section class="gx-hero">
+    <div class="gx-wrap gx-grid">
+      <div>
+        <p class="gx-eyebrow">Inteligência para a gestão pública</p>
+        <h1 style="margin-top:16px">Do desejo do gestor à <em>obra entregue</em>. Numa só tela.</h1>
+        <p class="gx-lead">O GovNexa reúne a carteira de projetos da prefeitura, a captação de recursos e a contratação pela Lei 14.133. A equipe registra os fatos. O sistema calcula prazos, alertas e mostra onde cada projeto está parado.</p>
+        <div class="gx-cta">
+          <a class="gx-btn gx-primary gx-magnet" href="/plataforma/" data-astro-reload>Entrar na plataforma <span class="gx-arr" aria-hidden="true">→</span></a>
+          <a class="gx-btn gx-magnet" href="#ciclo">Ver como funciona <span class="gx-arr" aria-hidden="true">↓</span></a>
+        </div>
+        <div class="gx-proof" aria-label="Garantias do produto">
+          <span><i class="gx-dot"></i>Acesso por código no e-mail</span>
+          <span><i class="gx-dot"></i>Dados isolados por prefeitura</span>
+          <span><i class="gx-dot"></i>Histórico que não se apaga</span>
+        </div>
+      </div>
+
+      <div class="gx-glass gx-lit gx-live" id="live" aria-label="Demonstração do quadro de projetos, com dados de exemplo">
+        <div class="gx-live-head"><strong>Carteira por etapa</strong><span class="gx-tag">Dados de exemplo</span></div>
+        <div class="gx-kan" id="kan">
+          <div class="gx-col"><p class="gx-colh">Planejamento</p><div class="gx-sum">12 · R$ 48 mi</div><div class="gx-ghost"></div><div class="gx-ghost gx-s"></div><div class="gx-ghost"></div></div>
+          <div class="gx-col"><p class="gx-colh">Preparatório</p><div class="gx-sum">9 · R$ 31 mi</div><div class="gx-ghost gx-s"></div><div class="gx-ghost"></div></div>
+          <div class="gx-col"><p class="gx-colh">Contratação</p><div class="gx-sum">7 · R$ 64 mi</div><div class="gx-ghost"></div><div class="gx-ghost gx-s"></div></div>
+          <div class="gx-col"><p class="gx-colh">Execução</p><div class="gx-sum">15 · R$ 120 mi</div><div class="gx-ghost"></div><div class="gx-ghost"></div><div class="gx-ghost gx-s"></div></div>
+          <div class="gx-mover" id="mover"><b>Reforma da unidade de saúde</b><small id="moverTag">avança com portão</small></div>
+        </div>
+        <div class="gx-chips">
+          <div class="gx-chip"><i class="gx-bad"></i>Parado há 23 dias no jurídico<span class="gx-k">quem deve</span></div>
+          <div class="gx-chip"><i class="gx-warn"></i>Prazo legal vence em 4 dias úteis<span class="gx-k">Lei 14.133</span></div>
+          <div class="gx-chip"><i class="gx-ok"></i>Programa federal aberto combina com 3 projetos<span class="gx-k">captação</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PERGUNTAS -->
+  <section id="perguntas">
+    <div class="gx-wrap">
+      <div class="gx-sec-head">
+        <p class="gx-eyebrow">O problema</p>
+        <h2>Quatro perguntas que a planilha não responde na hora.</h2>
+        <p>Uma carteira com centenas de projetos costuma viver em planilhas editadas à mão, com painéis refeitos toda semana. O GovNexa responde estas quatro em segundos.</p>
+      </div>
+      <div class="gx-asks">
+        <article class="gx-glass gx-lit gx-ask"><q>Onde o projeto está parado?</q><p class="gx-ans">Etapa e unidade, calculadas pelo cronograma.<br><b>Preparatório · Jurídico</b></p></article>
+        <article class="gx-glass gx-lit gx-ask"><q>Com quem?</q><p class="gx-ans">Toda espera tem dono: quem deve o quê.<br><b>Parecer do edital</b></p></article>
+        <article class="gx-glass gx-lit gx-ask"><q>Há quantos dias?</q><p class="gx-ans">Contagem automática, sem ninguém digitar.<br><b><span class="gx-count" data-to="23">23</span> dias</b></p></article>
+        <article class="gx-glass gx-lit gx-ask"><q>Quanto do orçamento não tem fonte?</q><p class="gx-ans">Saldo sem recurso definido, por projeto e no total.<br><b>R$ <span class="gx-count" data-to="2.1" data-dec="1">2,1</span> mi</b></p></article>
+      </div>
+      <p class="gx-muted" style="margin-top:14px;font-size:.84rem">Valores de exemplo.</p>
+    </div>
+  </section>
+
+  <!-- CICLO -->
+  <section id="ciclo">
+    <div class="gx-wrap">
+      <div class="gx-sec-head">
+        <p class="gx-eyebrow">O ciclo do projeto</p>
+        <h2>Um projeto, sete etapas, um só cadastro.</h2>
+        <p>O projeto nasce uma vez e todas as telas são visões dele. Role para acompanhar um projeto de exemplo da ideia à entrega.</p>
+      </div>
+      <div class="gx-story">
+        <aside class="gx-glass gx-ficha">
+          <div class="gx-live-head" style="margin:0"><span class="gx-tag">Ficha do projeto · exemplo</span><span class="gx-tag" id="fFarol">no prazo</span></div>
+          <h3>Reforma da unidade de saúde</h3>
+          <div class="gx-rail" id="rail" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="gx-stage"><span class="gx-num" id="fNum">00</span><span class="gx-nm" id="fNome">Em estruturação</span></div>
+          <div class="gx-facts">
+            <div class="gx-fact"><small>Com quem está</small><b id="fQuem">Gestão de portfólio</b></div>
+            <div class="gx-fact"><small>Há quanto tempo</small><b id="fDias">2 dias</b></div>
+            <div class="gx-fact"><small>Entrega projetada</small><b id="fEntrega">a calcular</b></div>
+            <div class="gx-fact"><small>Fonte de recurso</small><b id="fFonte">a definir</b></div>
+          </div>
+          <p class="gx-does" id="fFaz">O sistema cria a ficha, o histórico e o lugar do projeto em todas as telas.</p>
+        </aside>
+
+        <div class="gx-steps" id="steps">
+          <article class="gx-glass gx-step gx-active" data-i="0"><span class="gx-n">00 · EM ESTRUTURAÇÃO</span><h3>A ideia vira um projeto de verdade.</h3><p>Um cadastro simples, com os mesmos campos que a equipe já usa. Cada projeto diz o seu compromisso: decidido, condicionado a recurso externo ou ainda uma ideia.</p><ul><li>Cadastro único, sem repetir dados em outras telas</li><li>Importação da planilha atual, com conferência</li></ul></article>
+          <article class="gx-glass gx-step" data-i="1"><span class="gx-n">01 · PLANEJAMENTO</span><h3>O cronograma se calcula sozinho.</h3><p>Etapas, dependências e caminho crítico. Se uma data muda, o sistema projeta a nova entrega e mostra quantos dias o atraso empurra.</p><ul><li>Gantt, Kanban e visão por órgão a partir da mesma base</li><li>Captação mostra as oportunidades de recurso que combinam com o projeto</li></ul></article>
+          <article class="gx-glass gx-step" data-i="2"><span class="gx-n">02 · PREPARATÓRIO PARA CONTRATAÇÃO</span><h3>As peças certas, antes de avançar.</h3><p>DFD, ETP e termo de referência ficam ligados ao projeto. O andamento do processo fica ligado ao projeto, com a etapa sugerida para aprovação.</p><ul><li>Documentos do projeto guardados com segurança</li><li>O sistema sugere a mudança de etapa; uma pessoa aprova</li></ul></article>
+          <article class="gx-glass gx-step" data-i="3"><span class="gx-n">03 · CONTRATAÇÃO</span><h3>A lei é o teto. A meta é menor.</h3><p>Os prazos da Lei 14.133 já estão no sistema, com calendário de feriados. A prefeitura define metas internas mais curtas. Passar do teto legal vira alerta grave no topo do painel.</p><ul><li>Licitação em detalhe, fase a fase</li><li>Prazos mínimos da lei nunca são encurtados</li></ul></article>
+          <article class="gx-glass gx-step" data-i="4"><span class="gx-n">04 · MOBILIZAÇÃO</span><h3>Do contrato assinado ao canteiro.</h3><p>Contrato, garantia e ordem de serviço entram na linha do tempo. Contrato assinado sem ordem de serviço em 15 dias gera aviso ao gestor.</p><ul><li>Alertas com motivo, regra e ação sugerida</li></ul></article>
+          <article class="gx-glass gx-step" data-i="5"><span class="gx-n">05 · EXECUÇÃO</span><h3>Ninguém descobre o atraso na reunião.</h3><p>A pauta da reunião semanal sai pronta. Projetos críticos ganham uma sala de guerra com objetivo, prazo, responsável e riscos. O mapa mostra cada obra na cidade.</p><ul><li>Onde está parado, por unidade e por responsável</li><li>Painel do prefeito com a foto de hoje</li></ul></article>
+          <article class="gx-glass gx-step" data-i="6"><span class="gx-n">06 · CONCLUSÃO</span><h3>A obra entregue, e a história inteira guardada.</h3><p>Cada mudança fica registrada: o que foi feito, por quem, quando e de onde veio. O histórico não pode ser apagado, e as lições ficam para o próximo projeto.</p><ul><li>Histórico com filtros e exportação</li></ul></article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MÓDULOS -->
+  <section id="modulos">
+    <div class="gx-wrap">
+      <div class="gx-sec-head">
+        <p class="gx-eyebrow">Módulos</p>
+        <h2>Módulos que conversam entre si.</h2>
+        <p>Cada módulo funciona sozinho. Juntos, ligam o planejamento do projeto, o dinheiro que o paga e a contratação que o executa. Novos módulos entram sem mudar o que a equipe já usa.</p>
+      </div>
+      <div class="gx-bento">
+        <article class="gx-glass gx-lit gx-tile gx-t-proj">
+          <span class="gx-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="10" rx="1.5"/><rect x="17" y="4" width="4" height="13" rx="1.5"/></svg></span>
+          <h3>Projetos: a carteira inteira em movimento.</h3>
+          <p>Carteira, ficha completa, Kanban com valores no topo, Gantt, cronogramas com dependências e a visão por órgão pronta para imprimir.</p>
+          <div class="gx-gantt" aria-hidden="true">
+            <div>Planejar<i style="--w:34%;--o:0%"></i></div>
+            <div>Contratar<i class="gx-g" style="--w:28%;--o:30%"></i></div>
+            <div>Executar<i style="--w:40%;--o:54%"></i></div>
+          </div>
+          <div class="gx-pills"><span class="gx-pill">Onde está parado</span><span class="gx-pill">Reunião semanal</span><span class="gx-pill">Sala de guerra</span><span class="gx-pill">Etapa sugerida</span><span class="gx-pill">Mapa das obras</span></div>
+        </article>
+        <article class="gx-glass gx-lit gx-tile gx-t-cap">
+          <span class="gx-ico"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 3 8-9"/><path d="M15 6h5v5"/></svg></span>
+          <h3>Captação</h3>
+          <p>Oportunidades de recurso que combinam com o município, repasses e pendências, sempre com origem e data.</p>
+          <div class="gx-pills"><span class="gx-pill">Parecer de elegibilidade</span><span class="gx-pill">Alertas de prazo</span></div>
+        </article>
+        <article class="gx-glass gx-lit gx-tile gx-t-lic">
+          <span class="gx-ico"><svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M7 20V9l5-5 5 5v11"/><path d="M10 13h4"/></svg></span>
+          <h3>Licitações</h3>
+          <p>Prazos da Lei 14.133, metas internas e cada licitação fase a fase.</p>
+          <div class="gx-big">14.133<small>a lei dentro do sistema</small></div>
+        </article>
+        <article class="gx-glass gx-lit gx-tile gx-t-ges">
+          <span class="gx-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 12l5-3"/><path d="M12 7v1"/></svg></span>
+          <h3>Gestão: o painel do prefeito.</h3>
+          <p>A foto de hoje da carteira e dos recursos. Cada número abre o detalhe. A central de alertas põe o vermelho primeiro e diz o que fazer.</p>
+        </article>
+        <article class="gx-glass gx-lit gx-tile gx-t-doc">
+          <span class="gx-ico"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 14h6M10 17h4"/></svg></span>
+          <h3>Documentos no lugar certo.</h3>
+          <p>PDF, imagens e Office ligados ao projeto. O sistema confere o tipo pelo conteúdo e nada é apagado de verdade: a remoção fica registrada.</p>
+        </article>
+        <article class="gx-glass gx-lit gx-tile gx-t-new">
+          <span class="gx-ico"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
+          <h3>Cresce com a prefeitura.</h3>
+          <p>O GovNexa é modular. Novos módulos se ligam ao mesmo projeto, sem retrabalho e sem trocar de sistema.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRINCÍPIOS -->
+  <section id="principios">
+    <div class="gx-wrap">
+      <div class="gx-sec-head">
+        <p class="gx-eyebrow">Como o GovNexa pensa</p>
+        <h2>Calcular, não digitar.</h2>
+        <p>Status, percentual, farol e entrega projetada saem de regras. A equipe só registra o que aconteceu.</p>
+      </div>
+      <div class="gx-rules">
+        <div class="gx-rule"><h3>Uma fonte da verdade</h3><p>O projeto é único. Os módulos se ligam a ele por referência.</p></div>
+        <div class="gx-rule"><h3>Dado ausente não é zero</h3><p>O que falta aparece como pendência. O sistema nunca inventa data ou valor.</p></div>
+        <div class="gx-rule"><h3>Toda espera tem dono</h3><p>Etapa parada mostra quem deve o quê e desde quando.</p></div>
+        <div class="gx-rule"><h3>Simples para quem usa</h3><p>Fichas em texto, poucos cliques e funciona no celular.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AVISOS -->
+  <section id="sinais" style="padding-top:0">
+    <div class="gx-wrap gx-radar-sec">
+      <div class="gx-sec-head" style="margin:0">
+        <p class="gx-eyebrow">Avisos que chegam sozinhos</p>
+        <h2>A informação oficial vem até você.</h2>
+        <p>O GovNexa acompanha o que muda fora da prefeitura e cruza cada novidade com a sua carteira. O aviso aparece pronto na central de alertas: o que mudou, qual projeto é afetado e o que fazer.</p>
+      </div>
+      <div class="gx-glass gx-lit gx-radar" aria-label="Exemplos de avisos automáticos">
+        <div class="gx-scope" aria-hidden="true"><i></i><i></i><i></i></div>
+        <div class="gx-signals">
+          <div class="gx-signal"><small>Oportunidade</small>Recurso novo combina com 3 projetos de saúde</div>
+          <div class="gx-signal"><small>Risco</small>Pendência do município pode travar um repasse</div>
+          <div class="gx-signal"><small>Prazo</small>Convênio vence em 12 dias sem prorrogação pedida</div>
+          <span class="gx-muted" style="font-size:.78rem">Exemplos.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SEGURANÇA -->
+  <section id="seguranca">
+    <div class="gx-wrap gx-sec">
+      <div class="gx-sec-head" style="margin:0">
+        <p class="gx-eyebrow">Segurança e confiança</p>
+        <h2>Dado público merece cuidado de banco.</h2>
+        <p>A prefeitura é a dona dos dados. O GovNexa foi desenhado para que cada município veja só o que é seu e para que nenhuma decisão desapareça.</p>
+        <div class="gx-cta" style="margin-top:8px"><a class="gx-btn gx-magnet" href="/plataforma/" data-astro-reload>Entrar com meu e-mail <span class="gx-arr" aria-hidden="true">→</span></a></div>
+      </div>
+      <div class="gx-checks">
+        <div class="gx-glass gx-check"><span class="gx-ic">01</span><div><b>Entrada sem senha para lembrar</b><span>O acesso usa um código enviado ao e-mail cadastrado. Só entra quem a prefeitura autorizou.</span></div></div>
+        <div class="gx-glass gx-check"><span class="gx-ic">02</span><div><b>Um banco de dados por prefeitura</b><span>Nenhuma consulta, painel ou exportação enxerga dados de outro município.</span></div></div>
+        <div class="gx-glass gx-check"><span class="gx-ic">03</span><div><b>Perfis para cada papel</b><span>Administrador, gestor, editor e leitura. Cada pessoa faz só o que o seu perfil permite.</span></div></div>
+        <div class="gx-glass gx-check"><span class="gx-ic">04</span><div><b>Histórico imutável</b><span>Cada alteração registrada guarda o antes e o depois. Documentos têm remoção apenas lógica.</span></div></div>
+        <div class="gx-glass gx-check"><span class="gx-ic">05</span><div><b>Os dados são da prefeitura</b><span>A prefeitura decide quem acessa e continua dona de tudo o que registra.</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FECHAMENTO -->
+  <section style="padding-top:0">
+    <div class="gx-wrap">
+      <div class="gx-glass gx-lit gx-end">
+        <div>
+          <h2>Veja a sua carteira como ela está agora.</h2>
+          <p>Se a sua prefeitura já usa o GovNexa, entre com o seu e-mail. Se ainda não usa, peça uma demonstração com os projetos da sua cidade.</p>
+          <div class="gx-cta" style="margin-top:18px"><a class="gx-btn gx-magnet" href="/demonstracao/">Solicitar demonstração <span class="gx-arr" aria-hidden="true">→</span></a></div>
+        </div>
+        <div style="display:grid;gap:12px;justify-items:start">
+          <a class="gx-btn gx-gold gx-magnet" href="/plataforma/" data-astro-reload>Entrar na plataforma <span class="gx-arr" aria-hidden="true">→</span></a>
+          <span class="gx-muted" style="font-size:.86rem">Acesso por código no e-mail. Sem senha.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</div>
+</Base>
+<script>
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+gsap.registerPlugin(ScrollTrigger);
+
+// Ficha do projeto: o que muda em cada macroetapa (dados de exemplo, fictícios).
+const ETAPAS = [
+  { n: '00', nome: 'Em estruturação', quem: 'Gestão de portfólio', dias: '2 dias', entrega: 'a calcular', fonte: 'a definir', farol: 'no prazo', faz: 'O sistema cria a ficha, o histórico e o lugar do projeto em todas as telas.' },
+  { n: '01', nome: 'Planejamento', quem: 'Órgão executor', dias: '11 dias', entrega: 'dez/2027', fonte: 'buscando convênio', farol: 'no prazo', faz: 'O sistema calcula a entrega projetada e sugere oportunidades de recurso para o projeto.' },
+  { n: '02', nome: 'Preparatório para contratação', quem: 'Jurídico', dias: '23 dias', entrega: 'jan/2028', fonte: 'convênio em análise', farol: 'atenção', faz: 'O sistema mostra que o parecer está parado há 23 dias e com quem.' },
+  { n: '03', nome: 'Contratação', quem: 'Comissão de contratação', dias: '6 dias', entrega: 'jan/2028', fonte: 'convênio assinado', farol: 'no prazo', faz: 'O sistema conta os prazos da Lei 14.133 em dias úteis e alerta antes do teto legal.' },
+  { n: '04', nome: 'Mobilização', quem: 'Empresa contratada', dias: '4 dias', entrega: 'jan/2028', fonte: '1º repasse liberado', farol: 'no prazo', faz: 'O sistema cobra a ordem de serviço se ela não sair em 15 dias.' },
+  { n: '05', nome: 'Execução', quem: 'Fiscalização da obra', dias: '58 dias', entrega: 'fev/2028', fonte: 'repasses em dia', farol: 'atenção', faz: 'O sistema monta a pauta da reunião semanal e mostra o atraso projetado de 30 dias.' },
+  { n: '06', nome: 'Conclusão', quem: 'Gabinete', dias: 'entregue', entrega: 'fev/2028', fonte: 'prestação de contas', farol: 'concluído', faz: 'O sistema guarda o histórico completo e as lições aprendidas.' },
+];
+
+let contexto: gsap.Context | undefined;
+const limpezas: (() => void)[] = [];
+
+function iniciar() {
+  const raiz = document.querySelector<HTMLElement>('.gx');
+  if (!raiz) return;
+  const $ = (id: string) => document.getElementById(id)!;
+  const calmo = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const trilho = Array.from($('rail').children) as HTMLElement[];
+  const passos = Array.from(raiz.querySelectorAll<HTMLElement>('.gx-step'));
+  let atual = -1;
+
+  const etapa = (i: number) => {
+    const e = ETAPAS[i];
+    if (i === atual || !e) return;
+    atual = i;
+    $('fNum').textContent = e.n; $('fNome').textContent = e.nome; $('fQuem').textContent = e.quem;
+    $('fDias').textContent = e.dias; $('fEntrega').textContent = e.entrega; $('fFonte').textContent = e.fonte;
+    $('fFaz').textContent = e.faz; $('fFarol').textContent = e.farol;
+    trilho.forEach((el, k) => { el.className = k < i ? 'gx-on' : k === i ? 'gx-now' : ''; });
+    passos.forEach((p) => p.classList.toggle('gx-active', Number(p.dataset.i) === i));
+    if (!calmo) gsap.fromTo('#fNum,#fNome', { y: 10 }, { y: 0, duration: 0.45, ease: 'power2.out', stagger: 0.05 });
+  };
+  etapa(0);
+
+  // Luz que segue o ponteiro nos cartões de vidro.
+  raiz.querySelectorAll<HTMLElement>('.gx-lit').forEach((c) => {
+    const mover = (ev: PointerEvent) => {
+      const r = c.getBoundingClientRect();
+      c.style.setProperty('--mx', `${ev.clientX - r.left}px`);
+      c.style.setProperty('--my', `${ev.clientY - r.top}px`);
+    };
+    c.addEventListener('pointermove', mover);
+    limpezas.push(() => c.removeEventListener('pointermove', mover));
+  });
+
+  contexto = gsap.context(() => {
+    passos.forEach((p) => {
+      ScrollTrigger.create({ trigger: p, start: 'top 58%', end: 'bottom 58%', onEnter: () => etapa(Number(p.dataset.i)), onEnterBack: () => etapa(Number(p.dataset.i)) });
+    });
+    if (calmo) return;
+
+    // Entrada do topo: só deslocamento, sem mexer na opacidade (o texto nunca perde contraste).
+    gsap.from('.gx-hero h1, .gx-hero .gx-lead, .gx-hero .gx-cta, .gx-hero .gx-proof', { y: 26, duration: 0.9, ease: 'power3.out', stagger: 0.09 });
+    gsap.from('#live', { y: 40, rotateX: 6, duration: 1.1, ease: 'power3.out', transformPerspective: 900 });
+
+    // O cartão atravessa o quadro três vezes e para (nada se move sem fim).
+    const cartao = $('mover'), quadro = $('kan');
+    const rotulos = ['avança com portão', 'peças conferidas', 'prazo legal contado', 'em obra'];
+    const tl = gsap.timeline({ repeat: 2, repeatDelay: 1.2, defaults: { duration: 1, ease: 'power2.inOut' } });
+    for (let i = 1; i < 4; i++) {
+      tl.to(cartao, { x: () => (i * (quadro.clientWidth + 8)) / 4, y: i % 2 ? 26 : 0, onStart: () => { $('moverTag').textContent = rotulos[i]; } }, '+=1.1');
+    }
+    tl.to(cartao, { x: 0, y: 0, duration: 0.01, onStart: () => { $('moverTag').textContent = rotulos[0]; } }, '+=1.6');
+    const aoRedimensionar = () => tl.invalidate();
+    window.addEventListener('resize', aoRedimensionar);
+    limpezas.push(() => window.removeEventListener('resize', aoRedimensionar));
+
+    // Luzes do fundo acompanham a rolagem.
+    gsap.to('.gx-orb.gx-a', { yPercent: 40, xPercent: 12, ease: 'none', scrollTrigger: { trigger: raiz, start: 'top top', end: 'bottom bottom', scrub: 1 } });
+    gsap.to('.gx-orb.gx-b', { yPercent: 120, xPercent: -20, ease: 'none', scrollTrigger: { trigger: raiz, start: 'top top', end: 'bottom bottom', scrub: 1 } });
+
+    // Revelações suaves por seção.
+    gsap.utils.toArray<HTMLElement>('.gx-sec-head, .gx-ask, .gx-tile, .gx-rule, .gx-check, .gx-radar, .gx-end').forEach((el) => {
+      gsap.from(el, { y: 30, duration: 0.8, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 90%', once: true } });
+    });
+    gsap.utils.toArray<HTMLElement>('.gx-gantt i').forEach((b, k) => {
+      gsap.from(b, { scaleX: 0, duration: 1, delay: k * 0.12, ease: 'power3.out', scrollTrigger: { trigger: b, start: 'top 92%', once: true } });
+    });
+
+    // Números contam até o valor final.
+    gsap.utils.toArray<HTMLElement>('.gx-count').forEach((el) => {
+      const fim = parseFloat(el.dataset.to || '0'), dec = Number(el.dataset.dec || 0), o = { v: 0 };
+      ScrollTrigger.create({ trigger: el, start: 'top 92%', once: true, onEnter: () => {
+        gsap.to(o, { v: fim, duration: 1.3, ease: 'power2.out', onUpdate: () => { el.textContent = o.v.toFixed(dec).replace('.', ','); } });
+      } });
+    });
+
+    // Botões com leve atração do ponteiro.
+    raiz.querySelectorAll<HTMLElement>('.gx-magnet').forEach((b) => {
+      const puxar = (ev: PointerEvent) => {
+        const r = b.getBoundingClientRect();
+        gsap.to(b, { x: (ev.clientX - r.left - r.width / 2) * 0.18, y: (ev.clientY - r.top - r.height / 2) * 0.28, duration: 0.3, ease: 'power2.out' });
+      };
+      const soltar = () => gsap.to(b, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1,.5)' });
+      b.addEventListener('pointermove', puxar);
+      b.addEventListener('pointerleave', soltar);
+      limpezas.push(() => { b.removeEventListener('pointermove', puxar); b.removeEventListener('pointerleave', soltar); });
+    });
+  }, raiz);
+}
+
+function encerrar() {
+  contexto?.revert();
+  contexto = undefined;
+  limpezas.splice(0).forEach((f) => f());
+}
+
+document.addEventListener('astro:page-load', iniciar);
+document.addEventListener('astro:before-swap', encerrar);
+
+</script>
