@@ -12,6 +12,14 @@
 .pd-filtros select,.pd-filtros button,.pd-limpar{min-height:48px}
 .pd-filtros button,.pd-limpar{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
 .pd-limpar{padding:.65rem .9rem;border:1px solid var(--line);border-radius:7px;background:var(--soft);font-weight:700}
+.pd-filtros-resumo{grid-column:auto;display:grid;align-content:center;min-width:0;max-width:14rem;color:var(--muted);font-size:.75em}
+.pd-filtros-resumo p{margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+[data-pd-conteudo][aria-busy="true"] .pd-cartoes{opacity:.65}
+.pd-cartoes{transition:opacity 160ms ease}
+.pd-contagem:has(.pd-numero.pd-mudou)>.pd-contagem-visual{border-radius:8px;background:color-mix(in srgb,var(--orange) 14%,transparent);box-shadow:0 0 0 2px color-mix(in srgb,var(--orange) 35%,transparent);animation:pd-realce 2.4s ease-out both}
+.pd-contagem-visual[data-direcao]:after{content:attr(data-direcao);margin-left:.2em;font-size:.5em}
+.pd-filtros-atualizados .pd-barras,.pd-filtros-atualizados .pd-lista,.pd-filtros-atualizados .pd-regioes{animation:pd-lista-atualizada 240ms ease-out both}
+@keyframes pd-lista-atualizada{from{opacity:.55}to{opacity:1}}
 .pd-secao{min-width:0;padding:clamp(1rem,1.5vw,1.5rem);border:1px solid var(--line);border-radius:14px;background:var(--surface)}
 .pd-cartoes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}
 .pd-cartao{display:grid;align-content:start;gap:.55rem;min-width:0;min-height:155px;padding:1rem;border:1px solid var(--line);border-top:5px solid var(--accent);border-radius:11px;background:var(--surface);color:var(--text);text-decoration:none}
@@ -102,6 +110,7 @@ body.dashboard-presenting .workspace>.notice{display:none!important}
 @media(max-width:360px){.pd-cartoes{grid-template-columns:minmax(0,1fr)}}
 @media(prefers-reduced-motion:no-preference){.pd-painel{animation:pd-entrar 200ms ease-out 1 both}@keyframes pd-entrar{from{transform:translateX(1rem);opacity:.7}to{transform:none;opacity:1}}}
 @media(prefers-reduced-motion:reduce){.pd-painel{animation:none}}
+@media(prefers-reduced-motion:reduce){.pd-cartoes{transition:none}.pd-filtros-atualizados .pd-barras,.pd-filtros-atualizados .pd-lista,.pd-filtros-atualizados .pd-regioes{animation:none}}
 
 /* Dimensões próprias do dashboard e do painel. */
 .prefeito-dashboard{font-size:clamp(16px,.45rem + .6vw,34px)}
@@ -158,7 +167,7 @@ body.dashboard-presenting .workspace>.notice{display:none!important}
 .pd-cartao:hover .pd-calculo,.pd-cartao:focus-visible .pd-calculo{display:block}
 [data-indicador="critico"]{border:2px solid currentColor;border-radius:6px;padding:.1em .3em;width:fit-content}
 [data-indicador="atencao"]{border-bottom:2px solid currentColor;width:fit-content}
-.pd-numero.pd-mudou{background:var(--text);color:var(--surface);border-radius:6px}
+.pd-numero.pd-mudou{background:color-mix(in srgb,var(--orange) 14%,transparent);border-radius:8px}@keyframes pd-realce{0%{box-shadow:0 0 0 6px color-mix(in srgb,var(--orange) 45%,transparent)}100%{box-shadow:0 0 0 0 transparent;background:transparent}}@media(prefers-reduced-motion:reduce){.pd-contagem:has(.pd-numero.pd-mudou)>.pd-contagem-visual{animation:none}}
 .pd-numero.pd-mudou:after{content:attr(data-direcao);font-size:.5em;margin-left:.2em}
 .pd-skeleton{display:none}
 @media(prefers-reduced-motion:no-preference){

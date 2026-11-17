@@ -58,26 +58,53 @@ test('textos brasileiros e quebras do painel sem sobreposição', async ({ page 
   }
 });
 
-test('filtro de região recalcula a carteira sem alterar indicadores municipais', async ({ page }) => {
+test('filtro de região atualiza sem recarregar e mantém o foco', async ({ page }) => {
   await page.goto('/plataforma/');
+  await page.evaluate(() => { (window as Window & { __semRecarregar?: number }).__semRecarregar = 1; });
   const opcoes = await page.locator('select[name="regiao"] option').evaluateAll((items) =>
     items.map((item) => (item as HTMLOptionElement).value).filter(Boolean),
   );
   const conveniosBase = await page.locator('[data-cartao="convenios"] .pd-numero').textContent();
   const carteiraBase = await page.locator('[data-cartao="carteira"] .pd-numero').textContent();
+  const select = page.locator('select[name="regiao"]');
   let mudou = false;
   for (const regiao of opcoes) {
-    const url = new URL('/plataforma/', page.url());
-    url.searchParams.set('regiao', regiao);
-    await page.goto(url.toString());
+    await select.selectOption(regiao);
+    await expect.poll(() => new URL(page.url()).searchParams.get('regiao')).toBe(regiao);
+    await expect(select).toHaveValue(regiao);
+    await expect(select).toBeFocused();
     const carteiraFiltrada = await page.locator('[data-cartao="carteira"] .pd-numero').textContent();
     expect(await page.locator('[data-cartao="convenios"] .pd-numero').textContent()).toBe(conveniosBase);
     if (carteiraFiltrada !== carteiraBase) {
       mudou = true;
+      const numero = page.locator('[data-cartao="carteira"] .pd-numero');
+      await expect(numero).toHaveClass(/pd-mudou/);
+      await expect(numero).toHaveAttribute('data-direcao', /^(↑|↓)$/);
       break;
     }
   }
   expect(mudou, 'ao menos uma região deve reduzir a carteira').toBeTruthy();
+  expect(await page.evaluate(() => (window as Window & { __semRecarregar?: number }).__semRecarregar)).toBe(1);
+  await page.getByRole('link', { name: 'Limpar' }).click();
+  await expect.poll(() => new URL(page.url()).search).toBe('');
+  await expect(page.locator('[data-cartao="carteira"] .pd-numero')).toHaveText(carteiraBase!);
+  await expect(page.getByRole('link', { name: 'Limpar' })).toBeFocused();
+  await expect(page.locator('[data-filtros-status]')).toHaveText('Sem filtros. Mostrando todos.');
+});
+
+test('trocas rápidas de região mantêm apenas o último filtro', async ({ page }) => {
+  await page.goto('/plataforma/');
+  const regioes = await page.locator('select[name="regiao"] option').evaluateAll((items) =>
+    items.map((item) => (item as HTMLOptionElement).value).filter(Boolean),
+  );
+  expect(regioes.length).toBeGreaterThanOrEqual(2);
+  const select = page.locator('select[name="regiao"]');
+  const primeira = select.selectOption(regioes[0]);
+  const ultima = select.selectOption(regioes[1]);
+  await Promise.all([primeira, ultima]);
+  await expect.poll(() => new URL(page.url()).searchParams.get('regiao')).toBe(regioes[1]);
+  await expect(select).toHaveValue(regioes[1]);
+  await expect(select).toBeFocused();
 });
 
 test('painel abre por URL e fecha com Escape, botão e voltar do navegador', async ({ page }) => {
