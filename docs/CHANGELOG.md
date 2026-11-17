@@ -14,6 +14,12 @@
 - Guia Usuários com cadastro, reenvio, perfis, ativação e redefinição de 2FA; isolamento por prefeitura e proteção do último administrador. Turnstile e cabeçalhos de segurança nas páginas de acesso.
 - E-mail local simulado, semente fictícia sem leitura de segredos, testes Node e projeto Playwright `login` em porta separada. Fluxo do sistema atualizado. Publicação e teste de navegador ficam pendentes para o responsável.
 
+## GovNexa — Página inicial do site público
+- 2026-11-17: nova página inicial (`src/pages/index.astro`, estilos em `src/styles/home.css`, classes `gx-`): mensagem "Do desejo do gestor à obra entregue", quadro de exemplo, as quatro perguntas, ciclo do projeto por rolagem (macroetapas 00 a 06), módulos, avisos automáticos, segurança e entrada da plataforma. Mantém cabeçalho, rodapé, paleta e fonte do site. Números das telas são exemplos fictícios.
+- 2026-11-17: decisão do dono: a página não lista as fontes de dados nem a forma de leitura dos processos; o título dos módulos não traz número, porque novos módulos serão acrescentados.
+- 2026-11-17: dependência nova `gsap` 3.13.0 (animações), empacotada pelo build; nenhum script externo e nenhuma mudança em `_headers`.
+- 2026-11-17: teste `tests/home.spec.ts` (mensagem, entrada, ciclo, sem rolagem horizontal em 1280 e 390 px, acessibilidade nos temas claro e escuro).
+
 ## GovNexa — Datas no padrão brasileiro (regra do dono)
 - 2026-11-17: função única `src/lib/datas.ts` (`dataBr`, `dataHoraBr`, `dataOuDataHoraBr`): `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` no horário de Brasília (sem segundos, por decisão do dono). Aplicada no dashboard ("Atualizado em" e datas das fontes), no Histórico de alterações (tela e CSV) e em Documentos ("enviado em").
 - 2026-11-17: correção: "enviado em" dos documentos cortava o dia do texto em UTC e mostrava o dia seguinte para envios depois das 21h de Brasília. 5 testes novos em `tests/datas/datas.test.ts`.

@@ -37,6 +37,7 @@ Percentuais mantidos até homologação do login próprio; Access continua padr�
 
 | Data | Entrega | PR |
 | --- | --- | --- |
+| 17/11 | Página inicial nova do site público (gestão de projetos públicos, ciclo por rolagem, módulos e entrada da plataforma) | novo PR |
 | 17/11 | Login próprio, convites, 2FA obrigatório e administração por prefeitura; implementado, sem publicação | revisão pendente |
 | 16/11 | Etapa 3.4: documentos de projeto no R2 (envio, download como anexo, remoção lógica, limite de 30 envios por hora, conferência do tipo pelo conteúdo) | GovNexa #10 |
 | 16/11 | Primeira gravação das planilhas em produção (334 atualizados, 0 novos, 0 pulados) | rotina do repositório de dados |
