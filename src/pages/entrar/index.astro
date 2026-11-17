@@ -1,6 +1,8 @@
 ---
 export const prerender=false;
 import Base from '../../layouts/Base.astro';
+import LoginShell from '../../components/login/LoginShell.astro';
+import Icon from '../../components/Icon.astro';
 import { env, waitUntil } from 'cloudflare:workers';
 import { servicoLogin, type EnvLogin } from '../../lib/login/servico.ts';
 import { mensagemPublica, tempoMinimo, conferirPost, conferirTurnstile, campo } from '../../lib/login/http.ts';
@@ -22,17 +24,17 @@ if(Astro.request.method==='POST'&&config.LOGIN_MODO==='senha')try{
 ---
 <Base title="Acessar a plataforma">
 <meta slot="head" name="robots" content="noindex" />
-<section class="login-layout"><div class="login-intro"><h1>Acessar a plataforma</h1><p>Entre com sua conta GovNexa.</p></div><div class="login-form">
+<LoginShell heading="Bem-vindo de volta" description="Entre com sua conta GovNexa e continue acompanhando sua gestão."><div class="login-form">
 {erro&&<p role="alert">{erro}</p>}
 {Astro.url.searchParams.has('senha')&&<p role="status">Senha alterada. Entre com sua nova senha.</p>}
 {Astro.url.searchParams.has('saiu')&&<p role="status">Você saiu da plataforma.</p>}
 {config.LOGIN_MODO==='senha'?<form data-astro-reload method="post">
-<label>E-mail<input type="email" name="email" autocomplete="username" required maxlength="254" /></label>
-<label>Senha<input type="password" name="senha" autocomplete="current-password" required maxlength="128" /></label>
+<label class="login-field"><span class="login-field-label"><Icon name="mail" size={17}/>E-mail</span><span class="login-input-wrap"><input type="email" name="email" autocomplete="username" required maxlength="254" /></span></label>
+<label class="login-field"><span class="login-field-label"><Icon name="lock" size={17}/>Senha</span><span class="login-input-wrap"><input type="password" name="senha" autocomplete="current-password" required maxlength="128" data-caps-lock /><button class="login-password-toggle" type="button" data-password-toggle aria-label="Mostrar senha" aria-pressed="false"><Icon name="eye" size={19}/></button></span><span data-caps-message hidden>Caps Lock ativado</span></label>
 {config.TURNSTILE_SITE_KEY&&<div class="cf-turnstile" data-sitekey={config.TURNSTILE_SITE_KEY}></div>}
-<button class="primary" type="submit">Entrar</button><p><a data-astro-reload href="/entrar/esqueci/">Esqueci minha senha</a></p>
+<button class="primary" type="submit" data-login-submit><span data-submit-label>Entrar</span><span class="login-submit-spinner" data-submit-spinner hidden aria-hidden="true"></span></button><p><a data-astro-reload href="/entrar/esqueci/">Esqueci minha senha</a></p>
 </form>:<a data-astro-reload class="primary" href="/plataforma/">Acessar a plataforma</a>}
-<p><a data-astro-reload href="/">Voltar ao site</a></p></div></section>
+<p><a data-astro-reload href="/">Voltar ao site</a></p></div>
+</LoginShell>
 {config.LOGIN_MODO==='senha'&&config.TURNSTILE_SITE_KEY&&<script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
 </Base>
-<style>form,label{display:grid;gap:.6rem}form{gap:1rem}input,button{min-height:44px;max-width:100%;box-sizing:border-box}input{width:100%;padding:.6rem;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:6px}</style>
