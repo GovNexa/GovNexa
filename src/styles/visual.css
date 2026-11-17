@@ -27,6 +27,19 @@ td button[data-detail]{white-space:nowrap;min-width:max-content}.table-wrap td:l
 @media(max-width:1049px){.header #menu-toggle{display:inline-flex}}
 @media(max-width:700px){.appbar{flex-wrap:nowrap}.appbar #drawer-toggle,.appbar #search-toggle{background:var(--surface);color:var(--text);border-color:var(--line)}.dashboard-charts,.management-charts,.management-queue{grid-template-columns:minmax(0,1fr)}.workspace .section-head{display:flex;flex-wrap:wrap}.section-head .actions{flex-wrap:wrap}.pagination{justify-content:center}.pagination label{margin-right:auto}.pagination-controls{width:100%;justify-content:flex-end}.sidebar,.collapsed .sidebar{top:0;height:100dvh}.collapsed .sidebar .eyebrow{display:block}}
 @media(min-width:1050px){.process-table table{white-space:normal;table-layout:auto}.process-table th,.process-table td{padding:.65rem .5rem}.process-table th button{font-size:.75rem}.process-table td:first-child,.process-table td:last-child{white-space:nowrap}.process-table td button{padding:.5rem .65rem}.process-table td{overflow-wrap:anywhere}}
+.public-footer{padding:.7rem 5% 1rem;border:0;background:#002E47;color:#e6eff2}
+.footer-content,.footer-brand,.footer-contact{display:flex;align-items:center}
+.footer-content{justify-content:space-between;gap:1rem;max-width:1280px;margin:0 auto}
+.footer-brand{gap:.75rem;flex:none}
+.footer-brand>a{display:flex;align-items:center;gap:.45rem;color:inherit;text-decoration:none}
+.footer-brand strong{font-size:.9rem}
+.footer-brand>span{font-size:.75rem;color:#d7e6ed;white-space:nowrap}
+.footer-mark{display:grid;place-items:center;width:29px;height:29px;border:1.5px solid #F36E22;border-radius:8px;background:#002E47;color:#fff;font-size:.95rem;font-weight:700}
+.footer-contact{justify-content:flex-end;flex-wrap:wrap;gap:.4rem 1.15rem;margin-left:0;font-size:.75rem}
+.footer-contact a{color:#e6eff2;text-decoration:none}
+.footer-contact a:hover{text-decoration:underline}
+.footer-contact a:nth-last-child(-n+2){font-size:.68rem;color:#b7cbd3}
+@media(max-width:700px){.public-footer{padding:.8rem 1rem 1rem}.footer-content,.footer-brand,.footer-contact{justify-content:center}.footer-content{flex-direction:column;gap:.65rem}.footer-brand{flex-wrap:wrap}.footer-contact{gap:.45rem .9rem;text-align:center}.footer-contact>span{flex-basis:100%}}
 
 @media(min-width:1050px){.platform>.sidebar{position:fixed;top:96px;left:16px;margin:0;width:250px;height:calc(100dvh - 112px);max-height:none;z-index:15}.platform>.workspace{grid-column:2}}
 @media(min-width:1050px){.platform.collapsed>.sidebar{width:88px}}
