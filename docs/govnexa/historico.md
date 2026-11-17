@@ -69,7 +69,7 @@ Por que ainda não é automático: o navegador não deixa uma página do GovNexa
 ### 5.3 Próximas entregas
 
 1. **3.3, usuários:** tela de usuários e sincronização com o grupo do Access.
-2. **3.4, documentos:** código pronto e revisado (novo #10). Falta aplicar a migração 0002 em produção e publicar, com ordem do dono.
+2. **3.4, documentos:** publicada em produção em 17/11/2026 (migração 0002 aplicada).
 3. **3.5, importação:** feita (novo #9) e gravada em produção em 16/11: 334 projetos atualizados, 0 novos, 0 pulados.
 4. **SEI automático:** leitura diária dos links guardados no D1, por Cron Trigger. Sem contornar captcha, e documento restrito continua entrando por PDF.
 5. **Leitura de PDF no navegador** para documentos restritos (biblioteca `pdfjs-dist`, da Mozilla).
