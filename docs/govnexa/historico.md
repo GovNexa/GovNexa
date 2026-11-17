@@ -32,7 +32,7 @@ A versão integral do histórico é privada e fica fora do repositório público
 | 16/11/2026 | `main` protegida (só com PR). Publicação em produção, migração `--remote` e segredos só com ordem expressa do dono, tarefa por tarefa. |
 | 16/11/2026 | Fluxo com executores: Claude gerencia e revisa; Codex (backend) e Copilot (front-end) executam em worktree própria, sem commit, push ou publicação. |
 | 16/11/2026 | Repositório antigo (`SLo0th1/Atlas_Conecta`) **congelado**: tudo segue só no novo, e nada mais aponta para o antigo. |
-| 17/11/2026 | Datas no padrão brasileiro: `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM:SS` (horário de Brasília). Função única em `src/lib/datas.ts`. |
+| 17/11/2026 | Datas no padrão brasileiro: `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` (horário de Brasília). Função única em `src/lib/datas.ts`. |
 
 ## 4. Testes do SEI (registro)
 

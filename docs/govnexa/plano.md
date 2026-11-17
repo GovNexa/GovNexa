@@ -18,7 +18,7 @@
 
 O sistema está no ar com os dados reais da planilha (334 projetos e 13 cronogramas do GEPP); gravação de alterações depende do banco de dados. O que mudou em cada entrega está em `docs/CHANGELOG.md`.
 
-Regra de apresentação (17/11/2026): datas sempre no padrão brasileiro, `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM:SS` (horário de Brasília).
+Regra de apresentação (17/11/2026): datas sempre no padrão brasileiro, `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` (horário de Brasília).
 
 | Fase | O que entrega | Situação | % |
 | --- | --- | --- | --- |

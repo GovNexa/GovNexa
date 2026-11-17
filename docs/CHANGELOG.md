@@ -1,7 +1,7 @@
 # Changelog
 
 ## GovNexa — Datas no padrão brasileiro (regra do dono)
-- 2026-11-17: função única `src/lib/datas.ts` (`dataBr`, `dataHoraBr`, `dataOuDataHoraBr`): `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM:SS` no horário de Brasília. Aplicada no dashboard ("Atualizado em" e datas das fontes), no Histórico de alterações (tela e CSV) e em Documentos ("enviado em"). SEI mantém `DD/MM/AAAA HH:MM`, porque a fonte não registra segundos.
+- 2026-11-17: função única `src/lib/datas.ts` (`dataBr`, `dataHoraBr`, `dataOuDataHoraBr`): `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` no horário de Brasília (sem segundos, por decisão do dono). Aplicada no dashboard ("Atualizado em" e datas das fontes), no Histórico de alterações (tela e CSV) e em Documentos ("enviado em").
 - 2026-11-17: correção: "enviado em" dos documentos cortava o dia do texto em UTC e mostrava o dia seguinte para envios depois das 21h de Brasília. 5 testes novos em `tests/datas/datas.test.ts`.
 
 ## GovNexa — Documentos de projeto (etapa 3.4, Fase 3)

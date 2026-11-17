@@ -25,7 +25,7 @@ export function diaLocal(em: string): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: FUSO, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
 }
 
-/** DD/MM/AAAA HH:MM:SS no horário de Brasília (padrão único em src/lib/datas.ts). */
+/** DD/MM/AAAA HH:MM no horário de Brasília (padrão único em src/lib/datas.ts). */
 import { dataHoraBr } from '../datas.ts';
 export { dataHoraBr };
 
