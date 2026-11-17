@@ -25,17 +25,9 @@ export function diaLocal(em: string): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: FUSO, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
 }
 
-/** dd/mm/aaaa hh:mm no horário de Brasília. */
-export function dataHoraBr(em: string): string {
-  const d = new Date(em);
-  if (Number.isNaN(d.getTime())) return em;
-  const p = Object.fromEntries(
-    new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
-      .formatToParts(d)
-      .map((x) => [x.type, x.value]),
-  );
-  return `${p.day}/${p.month}/${p.year} ${p.hour}:${p.minute}`;
-}
+/** DD/MM/AAAA HH:MM:SS no horário de Brasília (padrão único em src/lib/datas.ts). */
+import { dataHoraBr } from '../datas.ts';
+export { dataHoraBr };
 
 /** Tipos equivalentes: o motor grava 'passo' e 'pendencia'; o filtro usa 'registrar_passo' e 'resolver_pendencia'. */
 export function acaoCanonica(t: string): string {

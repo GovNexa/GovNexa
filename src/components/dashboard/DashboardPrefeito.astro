@@ -1,6 +1,7 @@
 ---
 import Icon from '../Icon.astro';
 import '../../styles/dashboard.css';
+import { dataHoraBr, dataOuDataHoraBr } from '../../lib/datas.ts';
 import { carregarCarteira } from '../../lib/carteira/carga.ts';
 import { carregarCronogramas } from '../../lib/cronograma/carga.ts';
 import { dados } from '../../lib/dados/index.ts';
@@ -28,14 +29,8 @@ const dashboard = montarDashboard(entrada, hoje, filtros);
 const cartaoSelecionado = dashboard.cartoes.find((cartao) => cartao.id === cartaoId);
 const limparPainel = urlCom(filtros);
 const valorFicha = (id: string) => `/plataforma/projetos-carteira/?q=${encodeURIComponent(id)}`;
-const dataFonte = (valor: string | null) => valor
-  ? new Date(valor).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
-  : 'sem data';
-const atualizado = new Intl.DateTimeFormat('pt-BR', {
-  timeZone: 'America/Sao_Paulo',
-  dateStyle: 'short',
-  timeStyle: 'short',
-}).format(new Date());
+const dataFonte = (valor: string | null) => valor ? dataOuDataHoraBr(valor) : 'sem data';
+const atualizado = dataHoraBr(new Date());
 const moeda = (valor: number | null) => valor === null
   ? '—'
   : new Intl.NumberFormat('pt-BR', {

@@ -50,7 +50,7 @@ const semSei = carregarCarteira().projetos.length - projetos.length;
       <li><strong>{resumo.andamentos}</strong> andamentos</li>
       {onde && <li data-sei-onde data-desde={onde.desde}><strong>{onde.unidade}</strong> é onde está agora, desde {br(onde.desde)} (<span data-sei-dias>{onde.dias ?? '?'}</span> dias)</li>}
     </ul>
-    {onde && <p class="sei-nota">Último andamento: {br(onde.ultimo.dataHora)} às {onde.ultimo.dataHora.slice(11)}, “{onde.ultimo.descricao}”.</p>}
+    {onde && <p class="sei-nota">Último andamento: {br(onde.ultimo.dataHora)} {onde.ultimo.dataHora.slice(11)}, “{onde.ultimo.descricao}”.</p>}
 
     <h3>Documentos-chave encontrados</h3>
     <div class="sei-tabela-caixa">

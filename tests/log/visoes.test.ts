@@ -76,7 +76,7 @@ test('paraCsv: separador ;, aspas duplicadas e proteção contra fórmula', () =
   ];
   const linhas = paraCsv(perigosos).split('\r\n');
   assert.equal(linhas[0], '"Data e hora";"Projeto (ID)";"Nome do projeto";"Ação";"O que mudou";"Motivo";"Por";"Origem";"Forçado"');
-  assert.equal(linhas[1], '"05/10/2026 10:10";"P-1";"\'=SOMA(A1)";"Passo registrado";"Disse ""olá""; depois saiu";"";"Pessoa Fictícia 1";"Ficha do projeto";"Não"');
+  assert.equal(linhas[1], '"05/10/2026 10:10:00";"P-1";"\'=SOMA(A1)";"Passo registrado";"Disse ""olá""; depois saiu";"";"Pessoa Fictícia 1";"Ficha do projeto";"Não"');
   assert.ok(linhas[2].includes(';"\'+cmd";'));
   assert.ok(linhas[2].includes(';"\'@alvo";"\'-1+1";"\'\tTab";'));
   assert.equal(linhas[3], '');

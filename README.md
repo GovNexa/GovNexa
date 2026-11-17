@@ -343,6 +343,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Banco:** D1, um por prefeitura, e um D1 central para prefeituras, usuários e importações. Supabase/PostgreSQL fica apenas como plano B.
 - **Login:** Cloudflare Access mais cadastro ativo no banco central. Perfis admin, gestor, editor e leitura; todos são admin durante a construção.
 - **Cadastro e Access:** tela de usuários sincronizada com um grupo do Access (opção A).
+- **Datas (17/11/2026):** padrão brasileiro em todo o sistema: `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM:SS` no horário de Brasília.
 - **Dados reais:** somente no banco e no repositório privado de dados; nunca no repositório público.
 - **Importação:** planilhas pelo repositório privado `GovNexa/govnexa-dados`; o importador deverá avisar códigos repetidos. O código 450 duplicado foi resolvido como 506 para SECAP.
 - **Prazos:** a lei é o limite e a prefeitura define metas internas menores. Passar do teto legal é alerta grave. Prazos-piso não podem ser encurtados.
@@ -405,8 +406,9 @@ As regras completas estão em [CLAUDE.md](CLAUDE.md). Resumo:
 4. Se a mudança afeta etapa, tela ou situação do Fluxo, atualize junto `src/lib/govnexa/fluxo.ts`, `subfluxos.ts` e `impacto.ts`.
 5. Interface sem rolagem horizontal em 1280 e 390 px, textos simples, contraste adequado nos temas claro e escuro e situação escrita, não só indicada por cor.
 6. Claude Code planeja e revisa; Codex e Copilot executam por ordem de serviço. Publicação só com ordem do dono.
-7. O outro desenvolvedor continua no repositório antigo; as mudanças são trazidas para o GovNexa com adaptação. A Licitação em detalhe é um exemplo.
+7. O repositório antigo está congelado desde 16/11/2026; todo o trabalho segue só neste.
 8. Não coloque dados reais, credenciais ou nomes de pessoas no repositório. Use dados fictícios nos testes; nunca contorne captcha.
+9. Datas no padrão brasileiro: `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM:SS` (horário de Brasília), sempre pelas funções de `src/lib/datas.ts`.
 
 ## 11. Estrutura
 

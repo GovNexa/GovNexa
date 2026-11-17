@@ -1,5 +1,9 @@
 # Changelog
 
+## GovNexa — Datas no padrão brasileiro (regra do dono)
+- 2026-11-17: função única `src/lib/datas.ts` (`dataBr`, `dataHoraBr`, `dataOuDataHoraBr`): `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM:SS` no horário de Brasília. Aplicada no dashboard ("Atualizado em" e datas das fontes), no Histórico de alterações (tela e CSV) e em Documentos ("enviado em"). SEI mantém `DD/MM/AAAA HH:MM`, porque a fonte não registra segundos.
+- 2026-11-17: correção: "enviado em" dos documentos cortava o dia do texto em UTC e mostrava o dia seguinte para envios depois das 21h de Brasília. 5 testes novos em `tests/datas/datas.test.ts`.
+
 ## GovNexa — Documentos de projeto (etapa 3.4, Fase 3)
 - 2026-11-16: envio, download e remoção de documentos por projeto, no R2 `DOCUMENTOS` e na tabela `documento`: rotas em `/plataforma/documentos-projeto/` (`enviar/`, `arquivo/<id>/`, `remover/<id>/`, página `projeto/<código>/`), serviço em `src/lib/documentos/` (regras, repositório, serviço). PDF, PNG/JPG/WEBP e Office, até 25 MB; tipo conferido pelo conteúdo; chave do R2 gerada pelo sistema; download sempre como anexo; remoção só lógica.
 - 2026-11-16: migração D1 `0002_documento_removido_por.sql`: coluna `removido_por` e índice único do mesmo conteúdo ativo por projeto. Aplicada em produção em 2026-11-17, junto com a publicação da 3.4.
