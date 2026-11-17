@@ -117,8 +117,8 @@ São módulos independentes que conversam entre si:
 | 1 · Carteira de Projetos | Carteira, ficha, Kanban, Gantt, Visão por órgão, celular | Entregue; carga inicial no D1 | 100% |
 | 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, Kanban e Pendências, Histórico, Sala de guerra | Telas prontas; algumas gravações ainda são simulação | 95% |
 | 2 · Cronograma e equipe | Cronogramas, quadro de tarefas, Onde está parado, Reunião semanal, dependências, SEI | Telas entregues; leitura automática do SEI a fazer | 90% |
-| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis e isolamento por prefeitura | Tabelas em produção, carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas no ar e gravada em 16/11 (3.5). Documentos (3.4) publicados em 17/11. Usuários (3.3, opção B): lista somente leitura de quem tem acesso, em revisão | 92% |
-| 4 · Contratação, convênios e Gestão | Lei 14.133, alertas, painel do prefeito, licitação em detalhe | Prazos da lei, painel, mapa, Central de alertas e Licitação em detalhe; parte ainda em simulação | 75% |
+| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis e isolamento por prefeitura | Tabelas em produção, carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas no ar e gravada em 16/11 (3.5). Documentos (3.4) publicados em 17/11. Usuários (3.3, opção B): lista somente leitura de quem tem acesso, no ar desde 17/11 | 92% |
+| 4 · Contratação, convênios e Gestão | Lei 14.133, alertas, dashboard do prefeito, licitação em detalhe | Prazos da lei, dashboard em três níveis, filtros e modo apresentação; mapa, Central de alertas e Licitação em detalhe; parte ainda em simulação | 75% |
 | 5 · Integrações e inteligência | PNCP, SIMEC, SISMOB, preços, WhatsApp, IA | WhatsApp em simulação | 10% |
 
 ### Entregas recentes
@@ -131,6 +131,8 @@ São módulos independentes que conversam entre si:
 | 16/11 | Primeira gravação das planilhas em produção: 334 atualizados, 0 novos, 0 pulados | rotina do repositório de dados |
 | 16/11 | Etapa 3.5: importação das planilhas (rotina, regras de segurança dos dados, avisos e testes) | PR #9 |
 | 16/11 | Menu lateral com ícones por item, tipografia única, início recolhido, lista flutuante de itens, sanfona e usuário no rodapé | Plataforma |
+| 17/11 | Publicados: dashboard do prefeito (3 níveis, efeitos, pontos de atenção, atualização a cada 5 min, modo apresentação), menu retraído, tema claro com barra branca, datas DD/MM/AAAA HH:MM e guia Usuários | PR #12 e PR #14 |
+| 16/11 | Início da plataforma como dashboard do prefeito: filtros por URL, 10 indicadores, detalhamento acessível em painel e modo apresentação | `/plataforma/` |
 | 16/11 | Otimização publicada (versão 2e1114fa); repositório privado de dados conferido | PR #7 |
 | 16/11 | Leitura do banco otimizada: só a guia aberta é montada e cache de 30 s (páginas de ~400 ms para ~20 ms) | PR #6 |
 | 16/11 | Plano e histórico completos trazidos para o repositório novo; repositório antigo congelado | PR #5 |
@@ -142,7 +144,19 @@ O detalhe das entregas está em [docs/CHANGELOG.md](docs/CHANGELOG.md).
 
 ## 3. Funcionalidades por guia
 
+No início (/plataforma/), todos os módulos do menu ficam retraídos: o dashboard não pertence a um módulo. Nas outras telas, a sanfona abre somente o módulo e o sub-bloco da página atual. Nome, iniciais, Meu perfil e Sair ficam apenas no cabeçalho; os links da conta têm alvos de toque de pelo menos 44 px.
+
 Legenda: **Disponível** = leitura ou operação disponível. **Simulação** = as regras rodam, mas a gravação real ainda será ligada nas próximas partes da etapa 3. **Demonstrativo** = protótipo com dados fictícios.
+
+### Dashboard: efeitos, alertas e atualização automática
+
+Os dez cartões entram em sequência e contam até o valor calculado em cerca de 800 ms quando visíveis. Sem JavaScript, com movimento reduzido ou na impressão, os valores finais permanecem disponíveis. Campos ausentes continuam “—”. Críticos têm indicador com ícone e texto e faixa de até três links; atenção usa indicador estático. Hover e foco explicam o cálculo, também disponível no painel, cujo esqueleto dura 240 ms.
+
+“Atualizar agora” e a consulta automática a cada cinco minutos renovam faixa, cartões e listas sem recarregar; números alterados recebem seta e realce por quatro segundos. O painel aberto é preservado. Aba oculta pausa consultas; falhas mantêm os dados e informam nova tentativa. A apresentação limita a altura dos cartões, amplia a tipografia e mostra funil e decisões abaixo. O botão do cabeçalho alterna para Sair da apresentação; Esc também sai. Dicas ficam dentro dos cartões e o cálculo aparece compacto abaixo do resumo no painel.
+
+### Tema claro/escuro
+
+O tema claro usa menu lateral branco, texto e ícones azul-escuros, destaques azul-claros e KPIs claros. O tema escuro conserva a barra em gradiente azul-escuro. A preferência persiste entre páginas. Menu aberto, recolhido e lista flutuante possuem contraste AA e alvos de pelo menos 44 px.
 
 ### Navegação da plataforma
 
@@ -196,7 +210,8 @@ Código: `src/lib/dados/`, `src/lib/projetos/`, `coletores/`. Detalhes em [docs/
 
 | Guia | O que faz | Situação |
 | --- | --- | --- |
-| Gestão · Painel | Foto atual da carteira e dos recursos, mapa das obras e números clicáveis | Disponível |
+| Início / Gestão · Dashboard do prefeito | Visão geral com 10 indicadores calculados, filtros por URL, painel de detalhamento em três níveis, funil, decisões pendentes, valores regionais e modo apresentação | Disponível |
+| Gestão · Painel | Foto atual da carteira e dos recursos e mapa das obras | Disponível |
 | Alertas | Central de alertas de convênios, contratação, obras, saldo sem fonte, etapas paradas e dados desatualizados | Disponível |
 | WhatsApp | Permissões por cargo, relatórios, perguntas e modelos para aprovação da Meta | Simulação; envio real depende do banco e da conta do WhatsApp Business |
 
@@ -341,6 +356,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Banco:** D1, um por prefeitura, e um D1 central para prefeituras, usuários e importações. Supabase/PostgreSQL fica apenas como plano B.
 - **Login:** Cloudflare Access mais cadastro ativo no banco central. Perfis admin, gestor, editor e leitura; todos são admin durante a construção.
 - **Cadastro e Access (17/11/2026):** etapa 3.3 na opção B: só a lista de quem tem acesso. O cadastro de usuários pela tela e a sincronização com o Access esperam a validação dos fluxos com o cliente, para evitar retrabalho.
+- **Datas (17/11/2026):** padrão brasileiro em todo o sistema: `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` no horário de Brasília.
 - **Dados reais:** somente no banco e no repositório privado de dados; nunca no repositório público.
 - **Importação:** planilhas pelo repositório privado `GovNexa/govnexa-dados`; o importador deverá avisar códigos repetidos. O código 450 duplicado foi resolvido como 506 para SECAP.
 - **Prazos:** a lei é o limite e a prefeitura define metas internas menores. Passar do teto legal é alerta grave. Prazos-piso não podem ser encurtados.
@@ -403,8 +419,9 @@ As regras completas estão em [CLAUDE.md](CLAUDE.md). Resumo:
 4. Se a mudança afeta etapa, tela ou situação do Fluxo, atualize junto `src/lib/govnexa/fluxo.ts`, `subfluxos.ts` e `impacto.ts`.
 5. Interface sem rolagem horizontal em 1280 e 390 px, textos simples, contraste adequado nos temas claro e escuro e situação escrita, não só indicada por cor.
 6. Claude Code planeja e revisa; Codex e Copilot executam por ordem de serviço. Publicação só com ordem do dono.
-7. O outro desenvolvedor continua no repositório antigo; as mudanças são trazidas para o GovNexa com adaptação. A Licitação em detalhe é um exemplo.
+7. O repositório antigo está congelado desde 16/11/2026; todo o trabalho segue só neste.
 8. Não coloque dados reais, credenciais ou nomes de pessoas no repositório. Use dados fictícios nos testes; nunca contorne captcha.
+9. Datas no padrão brasileiro: `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` (horário de Brasília), sempre pelas funções de `src/lib/datas.ts`.
 
 ## 11. Estrutura
 
@@ -440,7 +457,7 @@ Os coletores diário e mensal de Captação continuam no GitHub Actions. A publi
 | Atualizar dados do bloco Captação | Todo dia, 09h30 (Brasília) | Roda coletores e abre PR do ramo `dados-atualizados` |
 | Atualizar dados mensais | Dia 5 de cada mês | Atualiza INEP, SINISA e CNES e abre PR do ramo `dados-mensais-atualizados` |
 | Portal da Transparência | Manual | Coleta de convênios pela API, com chave em segredo do GitHub |
-| Documentos do projeto | Pronta no código; falta publicar (etapa 3.4) | Em `/plataforma/documentos-projeto/`: envio (PDF, imagens e Office, até 25 MB), download sempre como anexo e remoção lógica. Só quem tem perfil de editor, gestor ou administrador envia e remove; todos os perfis baixam. Limite de 30 envios por hora por pessoa |
+| Documentos do projeto | Disponível; no ar desde 17/11/2026 (etapa 3.4) | Em `/plataforma/documentos-projeto/`: envio (PDF, imagens e Office, até 25 MB), download sempre como anexo e remoção lógica. Só quem tem perfil de editor, gestor ou administrador envia e remove; todos os perfis baixam. Limite de 30 envios por hora por pessoa |
 | Importação de planilhas | No ar; gravada em produção em 16/11 (etapa 3.5) | Lê o repositório privado de dados, avisa códigos repetidos e não sobrescreve o que foi feito no sistema |
 | Leitura automática do SEI | A fazer | Cron Trigger no Worker lê links públicos e grava no D1 |
 

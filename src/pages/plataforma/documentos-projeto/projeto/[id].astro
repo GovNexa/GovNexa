@@ -3,6 +3,7 @@ import Platform from '../../../../layouts/Platform.astro';
 import { usuarioPode } from '../../../../lib/usuarios/index.ts';
 import { MENSAGENS } from '../../../../lib/documentos/mensagens.ts';
 import { ID_PROJETO, EXTENSOES_ACEITAS } from '../../../../lib/documentos/regras.ts';
+import { dataHoraBr } from '../../../../lib/datas.ts';
 export const prerender = false;
 const id = String(Astro.params.id ?? '');
 const repo = Astro.locals.repositorio;
@@ -12,7 +13,6 @@ const documentos = repo.documentos ? await repo.documentos.listar(id) : [];
 const podeEnviar = usuarioPode(Astro.locals.usuario, 'enviar_documento') && !!repo.documentos;
 const r = MENSAGENS[Astro.url.searchParams.get('r') ?? ''];
 const tam = (n: number) => (n >= 1048576 ? `${(n / 1048576).toFixed(1).replace('.', ',')} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
-const dia = (iso: string) => iso.slice(0, 10).split('-').reverse().join('/');
 ---
 <Platform title={`Documentos · ${projeto.nome}`} slug="projetos-carteira">
   <div class="section-head"><div>
@@ -34,7 +34,7 @@ const dia = (iso: string) => iso.slice(0, 10).split('-').reverse().join('/');
       {documentos.map((d) => (
         <li>
           <div><a href={`/plataforma/documentos-projeto/arquivo/${d.id}/`}>{d.nome_original}</a>
-          <small class="muted"> · {tam(d.tamanho_bytes)} · enviado em {dia(d.enviado_em)}</small></div>
+          <small class="muted"> · {tam(d.tamanho_bytes)} · enviado em {dataHoraBr(d.enviado_em)}</small></div>
           {podeEnviar && (
             <form method="post" action={`/plataforma/documentos-projeto/remover/${d.id}/`} onsubmit="return confirm('Remover este documento da lista? O arquivo fica guardado para auditoria.')">
               <input type="hidden" name="projeto" value={projeto.id} />
