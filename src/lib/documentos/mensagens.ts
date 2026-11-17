@@ -12,7 +12,7 @@ export const MENSAGENS: Record<string, { texto: string; ok: boolean }> = {
   duplicado: { texto: 'Este arquivo já foi enviado neste projeto.', ok: false },
   projeto: { texto: 'Projeto ou documento não encontrado.', ok: false },
   origem: { texto: 'Pedido recusado por segurança. Recarregue a página e tente de novo.', ok: false },
-  limite: { texto: 'Muitos envios em pouco tempo. Tente de novo mais tarde.', ok: false },
+  limite: { texto: 'Muitas ações em pouco tempo. Aguarde um pouco e tente de novo.', ok: false },
   indisponivel: { texto: 'Armazenamento de documentos indisponível. Tente mais tarde.', ok: false },
 };
 export function codigoDe(r: Extract<Resultado, { ok: false }>): string {

@@ -1,5 +1,9 @@
 # Changelog
 
+## GovNexa — Limite de requisições (entrega 1.0)
+- 2026-11-17: limite de 30 ações por minuto por pessoa e prefeitura nas rotas que gravam documentos (enviar, remover), pela ligação `LIMITE_API` do Rate Limiting da Cloudflare (`wrangler.jsonc`). Chave `<prefeitura>:<e-mail>`; sem e-mail, recusado sem contar; falha da ligação recusa o pedido. Código em `src/lib/seguranca/limite.ts`.
+- 2026-11-17: conserto: `tests/seguranca/rate-limit.test.ts`, citado no `test:dados` e inexistente, agora existe (9 testes).
+
 ## GovNexa — Cabeçalho, logo e mapa na página inicial
 - 2026-11-17: logo do GovNexa no cabeçalho público (`src/components/LogoGovNexa.astro`, cores por `--logo` e `--logo-a` em `visual.css`), no lugar do nome em texto; versão provisória aprovada pelo dono. A logo da Prefeitura de Goiânia permanece.
 - 2026-11-17: menu do topo enxuto: ficam "Acessar plataforma", "Solicitar demonstração" e o botão de tema. Início, Soluções, Insights e Sobre saem do topo e continuam no rodapé.
