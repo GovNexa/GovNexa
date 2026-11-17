@@ -69,7 +69,7 @@
 @media(prefers-reduced-motion:reduce){.login-intro,.login-form-panel,.login-intro:after,.login-form button[type=submit]:not(:disabled):hover:after,.login-submit-spinner{animation:none!important;transition:none!important}}
 
 html:has(.login-layout){height:100%;overflow:hidden}
-body:has(.login-layout){display:grid;grid-template-rows:auto auto minmax(0,1fr);width:100%;height:100dvh;min-height:0;overflow:hidden}
+body:has(.login-layout){display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;width:100%;height:100dvh;min-height:0;overflow:hidden}
 body:has(.login-layout)>.header{z-index:2;min-height:56px;height:56px;padding:.35rem clamp(.75rem,2vw,1.5rem);gap:.75rem}
 body:has(.login-layout)>.header #menu-toggle,body:has(.login-layout)>.header #navigation{display:none!important}
 body:has(.login-layout)>.header .brand{gap:.5rem;font-size:1rem}
@@ -79,7 +79,7 @@ body:has(.login-layout)>.header .brand-name{border-left:1px solid var(--line);pa
 body:has(.login-layout)>.header #theme{display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px;min-width:44px;min-height:44px;margin-left:auto;padding:0;font-size:0}
 body:has(.login-layout)>.header #theme svg{width:20px;height:20px}
 body:has(.login-layout)>main{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;padding:clamp(6px,1.3dvh,14px) clamp(8px,1.7vw,22px);overflow:hidden}
-body:has(.login-layout)>.public-footer{display:none}
+body:has(.login-layout)>.public-footer{display:block}body:has(.login-layout)>main>.breadcrumb{display:none}
 .login-layout{grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);width:min(1420px,100%);height:auto;max-height:100%;min-height:0;margin:0 auto;padding:0;border-radius:clamp(14px,1.5vw,24px)}
 .login-intro{position:relative;gap:clamp(.8rem,2.4dvh,1.8rem);min-height:0;padding:clamp(1.25rem,3.8vmin,3.5rem);justify-content:center}
 .login-brand{gap:clamp(.5rem,1.4vw,.85rem)}
@@ -141,3 +141,6 @@ body:has(.login-layout)>.public-footer{display:none}
 @media(prefers-reduced-motion:reduce){
   .login-intro,.login-form-panel,.login-intro:after,.login-form button[type=submit]:not(:disabled):hover:after,.login-submit-spinner{animation:none!important;transition:none!important}
 }
+/* Telas de acesso: rodapé completo no computador; compacto no celular e em telas baixas, para o formulário caber inteiro. */
+@media (max-width:700px),(max-height:700px){body:has(.login-layout)>.public-footer{padding:.4rem .75rem .6rem}body:has(.login-layout)>.public-footer .footer-brand,body:has(.login-layout)>.public-footer .footer-links{display:none}body:has(.login-layout)>.public-footer .footer-content{flex-direction:row;justify-content:center;gap:.3rem}body:has(.login-layout)>.public-footer .footer-contact{justify-content:center;gap:.15rem .9rem;font-size:.7rem}body:has(.login-layout)>.public-footer .footer-contact>span{flex-basis:auto}}
+@media (max-height:700px){body:has(.login-layout) .login-features,body:has(.login-layout) .login-description,body:has(.login-layout) .login-security{display:none}}

@@ -33,6 +33,16 @@ test('as telas de acesso cabem na janela em todos os tamanhos e temas', async ({
 
       for (const route of pages) {
         await page.goto(route.path);
+        // Pedido do dono: cartão centralizado, sem o caminho "Início / Acessar", e o mesmo rodapé do site visível.
+        await expect(page.locator('main .breadcrumb')).toHaveCount(0);
+        await expect(page.locator('body > footer')).toBeVisible();
+        const centro = await page.evaluate(() => {
+          const c = document.querySelector('.login-layout')!.getBoundingClientRect();
+          const f = document.querySelector('body > footer')!.getBoundingClientRect();
+          return { esquerda: c.left, direita: innerWidth - c.right, abaixoDoCartao: f.top - c.bottom };
+        });
+        expect(Math.abs(centro.esquerda - centro.direita), `${route.path} ${viewport.width}x${viewport.height} centralizado`).toBeLessThanOrEqual(2);
+        expect(centro.abaixoDoCartao, `${route.path} ${viewport.width}x${viewport.height} rodapé abaixo do cartão`).toBeGreaterThanOrEqual(0);
         const dimensions = await page.evaluate(() => ({
           scrollHeight: document.documentElement.scrollHeight,
           scrollWidth: document.documentElement.scrollWidth,
