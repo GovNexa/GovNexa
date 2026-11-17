@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { bancoTeste } from '../helpers/d1.ts';
 import { repositorioD1ParaTestes } from '../../src/lib/repositorio/index.ts';
 import { cabecalhoDownload, nomeSeguro, validarArquivo, LIMITE_BYTES } from '../../src/lib/documentos/regras.ts';
-import { baixarDocumento, enviarDocumento, removerDocumento, type BucketR2, type Contexto } from '../../src/lib/documentos/servico.ts';
+import { ERRO_MUDOU, ERRO_TIPO, baixarDocumento, classificarDocumento, enviarDocumento, removerDocumento, type BucketR2, type Contexto } from '../../src/lib/documentos/servico.ts';
 import { mesmaOrigem } from '../../src/lib/documentos/http.ts';
 import { codigoDe, MENSAGENS } from '../../src/lib/documentos/mensagens.ts';
 import type { Usuario } from '../../src/lib/usuarios/index.ts';
@@ -196,4 +196,119 @@ test('envio: falha no R2 devolve 503 sem registrar no banco', async () => {
   bucket.put = async () => { throw new Error('R2 fora'); };
   assert.equal((await enviarDocumento(c, 'P-1', 'a.pdf', pdfB()) as any).status, 503);
   assert.equal((banco.sqlite.prepare('SELECT count(*) AS n FROM documento').get() as any).n, 0);
+});
+
+const eventos = (banco: ReturnType<typeof bancoTeste>) => banco.sqlite.prepare("SELECT * FROM evento_sistema WHERE tipo = 'documento_classificado' ORDER BY rowid").all() as any[];
+test('tipos: DFD, ETP e TR ativos; os outros existem desativados, por prefeitura', async () => {
+  const { c, banco } = montar();
+  assert.deepEqual((await c.repositorio.documentos!.listarTipos()).map((t) => t.codigo), ['dfd', 'etp', 'tr']);
+  const todos = banco.sqlite.prepare('SELECT codigo, ativo, sistema FROM tipo_documento WHERE prefeitura_id = 5208707 ORDER BY ordem').all() as any[];
+  assert.equal(todos.length, 8);
+  assert.deepEqual(todos.filter((t) => !t.ativo).map((t) => t.codigo), ['mapa_riscos', 'projeto_basico', 'orcamento_referencia', 'art', 'licenca_ambiental']);
+  montar('admin', 3550308, banco);
+  assert.equal((banco.sqlite.prepare('SELECT count(*) AS n FROM tipo_documento WHERE prefeitura_id = 3550308').get() as any).n, 8);
+});
+test('tipos: sem DELETE; tipo de sistema não desativa; código não muda; ativar outro funciona', async () => {
+  const { c, banco } = montar();
+  assert.throws(() => banco.sqlite.exec("DELETE FROM tipo_documento WHERE codigo = 'art'"), /não se apaga/);
+  assert.throws(() => banco.sqlite.exec("UPDATE tipo_documento SET ativo = 0 WHERE codigo = 'dfd'"), /CHECK/);
+  assert.throws(() => banco.sqlite.exec("UPDATE tipo_documento SET codigo = 'xx' WHERE codigo = 'art'"), /não mudam/);
+  banco.sqlite.exec("UPDATE tipo_documento SET ativo = 1 WHERE prefeitura_id = 5208707 AND codigo = 'art'");
+  assert.ok((await c.repositorio.documentos!.listarTipos()).some((t) => t.codigo === 'art'));
+});
+test('envio com tipo: grava o código; inexistente, desativado ou só de outra prefeitura é recusado antes do R2', async () => {
+  const { c, banco, bucket } = montar();
+  assert.equal((await enviarDocumento(c, 'P-1', 'a.pdf', pdfB('t1'), 'dfd')).ok, true);
+  assert.equal((banco.sqlite.prepare('SELECT tipo_codigo FROM documento').get() as any).tipo_codigo, 'dfd');
+  montar('admin', 3550308, banco);
+  banco.sqlite.exec("UPDATE tipo_documento SET ativo = 1 WHERE prefeitura_id = 3550308 AND codigo = 'art'");
+  for (const t of ['xyz', 'art', 'DFD', '../x', 'a', null]) {
+    const r = await enviarDocumento(c, 'P-1', 'b.pdf', pdfB('t2'), t) as any;
+    assert.equal(r.status, 400, String(t));
+    assert.equal(r.erro, ERRO_TIPO);
+  }
+  assert.equal(bucket.itens.size, 1);
+  assert.throws(() => banco.sqlite.exec("INSERT INTO documento (id, prefeitura_id, projeto_id, nome_original, chave_r2, tipo_mime, tamanho_bytes, sha256, enviado_por, tipo_codigo) VALUES ('d9', 5208707, 'P-1', 'x.pdf', 'k9', 'application/pdf', 10, '" + 'b'.repeat(64) + "', 'u@x', 'art')"), /Tipo de documento inválido/);
+  assert.equal((await enviarDocumento(c, 'P-1', 'sem.pdf', pdfB('t3'))).ok, true);
+});
+test('classificar: troca o tipo e grava o evento com de/para e o projeto do banco; mesmo tipo não grava', async () => {
+  const { c, banco } = montar();
+  const id = ((await enviarDocumento(c, 'P-1', 'a.pdf', pdfB())) as any).id as string;
+  assert.equal((await classificarDocumento(c, id, 'etp')).ok, true);
+  assert.equal((banco.sqlite.prepare('SELECT tipo_codigo FROM documento WHERE id = ?').get(id) as any).tipo_codigo, 'etp');
+  let ev = eventos(banco);
+  assert.equal(ev.length, 1);
+  assert.equal(ev[0].prefeitura_id, 5208707);
+  assert.equal(ev[0].autor, 'editor@x.gov.br');
+  assert.equal(ev[0].origem, 'cadastro');
+  assert.deepEqual(JSON.parse(ev[0].detalhes), { projeto_id: 'P-1', documento_id: id, tipo_de: null, tipo_para: 'etp' });
+  // No Histórico: frase legível, e de/para (que são de ETAPA) ficam vazios para não aparecer como troca de etapa.
+  const log = banco.sqlite.prepare("SELECT projeto_id, de, para, descricao FROM log_alteracoes WHERE tipo = 'documento_classificado'").get() as any;
+  assert.deepEqual({ ...log }, { projeto_id: 'P-1', de: null, para: null, descricao: 'Tipo do documento a.pdf: Sem tipo → ETP' });
+  assert.equal((await classificarDocumento(c, id, 'etp')).ok, true);
+  assert.equal(eventos(banco).length, 1);
+  assert.equal((await classificarDocumento(c, id, '')).ok, true);
+  ev = eventos(banco);
+  assert.equal(ev.length, 2);
+  assert.deepEqual(JSON.parse(ev[1].detalhes), { projeto_id: 'P-1', documento_id: id, tipo_de: 'etp', tipo_para: null });
+  assert.equal(ev[1].descricao, 'Tipo do documento a.pdf: ETP → Sem tipo');
+});
+test('classificar: leitura 403; id inválido 404; outra prefeitura 404; tipo inválido ou ausente 400; nada gravado', async () => {
+  const { c, banco } = montar();
+  const id = ((await enviarDocumento(c, 'P-1', 'a.pdf', pdfB(), 'dfd')) as any).id as string;
+  assert.equal((await classificarDocumento({ ...c, usuario: usuario('leitura') }, id, 'etp') as any).status, 403);
+  assert.equal((await classificarDocumento(c, 'nao-e-uuid', 'etp') as any).status, 404);
+  const outra = montar('admin', 3550308, banco);
+  assert.equal((await classificarDocumento({ ...outra.c, bucket: c.bucket }, id, 'etp') as any).status, 404);
+  for (const t of ['xyz', 'art', null, undefined]) assert.equal((await classificarDocumento(c, id, t) as any).status, 400, String(t));
+  assert.equal((banco.sqlite.prepare('SELECT tipo_codigo FROM documento WHERE id = ?').get(id) as any).tipo_codigo, 'dfd');
+  assert.equal(eventos(banco).length, 0);
+});
+test('classificar: documento removido não muda de tipo e não conta', async () => {
+  const { c, banco } = montar();
+  const id = ((await enviarDocumento(c, 'P-1', 'a.pdf', pdfB('r1'), 'dfd')) as any).id as string;
+  await enviarDocumento(c, 'P-1', 'b.pdf', pdfB('r2'), 'tr');
+  assert.deepEqual(await c.repositorio.documentos!.contarPorTipo('P-1'), { dfd: 1, tr: 1 });
+  assert.equal((await removerDocumento(c, id)).ok, true);
+  assert.deepEqual(await c.repositorio.documentos!.contarPorTipo('P-1'), { tr: 1 });
+  assert.equal((await classificarDocumento(c, id, 'etp') as any).status, 404);
+  assert.throws(() => banco.sqlite.prepare("UPDATE documento SET tipo_codigo = 'etp' WHERE id = ?").run(id), /removido não muda/);
+  assert.equal(eventos(banco).length, 0);
+});
+test('classificar: tipo mudou entre ler e gravar responde 409 e não grava evento', async () => {
+  const { c, banco } = montar();
+  const id = ((await enviarDocumento(c, 'P-1', 'a.pdf', pdfB())) as any).id as string;
+  assert.equal(await c.repositorio.documentos!.classificar(id, 'tr', 'etp', 'editor@x.gov.br', 'P-1', 'x'), 'mudou');
+  const docs = c.repositorio.documentos!;
+  const velho = { ...c, repositorio: { ...c.repositorio, documentos: { ...docs, obter: async (x: string) => ({ ...(await docs.obter(x))!, tipo_codigo: 'tr' }) } } };
+  const r = await classificarDocumento(velho, id, 'etp') as any;
+  assert.equal(r.status, 409);
+  assert.equal(r.erro, ERRO_MUDOU);
+  assert.equal(codigoDe(r), 'mudou');
+  assert.equal((banco.sqlite.prepare('SELECT tipo_codigo FROM documento WHERE id = ?').get(id) as any).tipo_codigo, null);
+  assert.equal(eventos(banco).length, 0);
+});
+test('classificar: documento com tipo desativado depois mantém o tipo, aparece com o nome e pode trocar para um ativo', async () => {
+  const { c, banco } = montar();
+  banco.sqlite.exec("UPDATE tipo_documento SET ativo = 1 WHERE prefeitura_id = 5208707 AND codigo = 'art'");
+  const id = ((await enviarDocumento(c, 'P-1', 'a.pdf', pdfB('d1'), 'art')) as any).id as string;
+  banco.sqlite.exec("UPDATE tipo_documento SET ativo = 0 WHERE prefeitura_id = 5208707 AND codigo = 'art'");
+  const docs = c.repositorio.documentos!;
+  assert.equal((await docs.listarTipos()).some((t) => t.codigo === 'art'), false);
+  assert.equal((await docs.nomesTipos()).art, 'ART');
+  assert.deepEqual(await docs.contarPorTipo('P-1'), { art: 1 });
+  // Salvar sem mudar não apaga o tipo nem grava evento.
+  assert.equal((await classificarDocumento(c, id, 'art')).ok, true);
+  assert.equal((banco.sqlite.prepare('SELECT tipo_codigo FROM documento WHERE id = ?').get(id) as any).tipo_codigo, 'art');
+  assert.equal(eventos(banco).length, 0);
+  // Outro documento não pode receber o tipo desativado.
+  const outro = ((await enviarDocumento(c, 'P-1', 'b.pdf', pdfB('d2'))) as any).id as string;
+  assert.equal((await classificarDocumento(c, outro, 'art') as any).status, 400);
+  // Trocar para um tipo ativo funciona e o Histórico traz o nome do tipo antigo.
+  assert.equal((await classificarDocumento(c, id, 'tr')).ok, true);
+  assert.equal(eventos(banco)[0].descricao, 'Tipo do documento a.pdf: ART → TR');
+});
+test('mensagens da classificação', () => {
+  assert.equal(codigoDe({ ok: false, status: 400, erro: ERRO_TIPO }), 'tipodoc');
+  for (const k of ['classificado', 'tipodoc', 'mudou']) assert.ok(MENSAGENS[k], k);
 });

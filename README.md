@@ -127,7 +127,8 @@ São módulos independentes que conversam entre si:
 
 | Data | O que | Referência |
 | --- | --- | --- |
-| 17/11 | Entrega 1.0: limite de 30 ações por minuto por pessoa nos documentos (Rate Limiting da Cloudflare) | novo PR |
+| 17/11 | Entrega 1.1: tipo do documento (DFD, ETP, TR) no envio e na lista, com registro no Histórico; migração 0003 (ainda não aplicada em produção) | novo PR |
+| 17/11 | Entrega 1.0: limite de 30 ações por minuto por pessoa nos documentos (Rate Limiting da Cloudflare) | PR #15, publicada em 17/11 |
 | 17/11 | Site público: logo do GovNexa no cabeçalho (versão provisória), menu do topo só com "Acessar plataforma" e "Solicitar demonstração", e marca-d'água em forma de mapa de cidade na página inicial | novo PR |
 | 17/11 | Página inicial nova do site público: apresenta o GovNexa como gestão de projetos públicos, com o ciclo do projeto por rolagem, módulos e entrada da plataforma (animações com GSAP, empacotado no próprio site) | novo PR |
 | 17/11 | Etapa 3.3 (opção B): guia Usuários, lista somente leitura de quem tem acesso (só administrador) | novo PR |
@@ -332,6 +333,8 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
   8. Remoção só lógica: a linha fica, o arquivo fica no R2, e guarda quem removeu e quando.
   9. No máximo 30 envios por hora por pessoa.
   10. No máximo 30 ações (enviar, remover) por minuto por pessoa na prefeitura, pela ligação `LIMITE_API` do Rate Limiting da Cloudflare. Se a ligação falhar, o pedido é recusado. A contagem da Cloudflare é por local de atendimento e aproximada: protege contra abuso, não é uma cota exata.
+  11. Tipo do documento (entrega 1.1): só tipo ativo da própria prefeitura, conferido no serviço e no banco; documento removido não muda de tipo; cada troca fica no Histórico.
+- **Tipos de documento (entrega 1.1):** DFD, ETP e TR sempre ativos. Mapa de riscos, projeto básico, orçamento de referência, ART e licença ambiental existem desativados; para ativar um deles, por enquanto, pelo banco: `UPDATE tipo_documento SET ativo = 1 WHERE prefeitura_id = <IBGE> AND codigo = '<código>'`. Tela de configuração e exigência por etapa vêm depois.
 - **Limites conhecidos:**
   - Arquivo órfão no R2 (o Worker ser encerrado entre gravar o arquivo e registrar no banco) só seria achado por uma varredura futura.
   - O Office é aceito pela assinatura do formato; o sistema não analisa macros. Por isso o download é sempre anexo.
@@ -378,6 +381,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Privacidade:** nomes de pessoas da reunião não entram no projeto; números de WhatsApp são cadastrados por cargo ou equipe; "Interessados" do SEI não são lidos; nomes em andamentos são mascarados.
 - **Histórico:** imutável. Fotos e documentos têm remoção lógica.
 - **Limite de requisições (17/11/2026):** pela ligação de Rate Limiting da Cloudflare (`LIMITE_API`), por prefeitura e pessoa; falha da ligação recusa o pedido.
+- **Exigências por etapa (17/11/2026, D2):** começam por DFD, ETP e TR, com lista de tipos configurável por prefeitura.
 - **Cabeçalho do site e logo (17/11/2026):** a logo do GovNexa (G em seta com alvo, azul-marinho e laranja) é provisória; a versão final será feita depois. A logo da Prefeitura de Goiânia continua no topo, porque a demonstração é para ela. O topo não lista mais Início, Soluções, Insights e Sobre; essas páginas continuam no rodapé.
 - **Página inicial (17/11/2026):** apresenta o GovNexa como gestão de projetos públicos; não lista as fontes de dados nem a forma de leitura dos processos; o título dos módulos não traz número.
 - **Animações do site (17/11/2026):** biblioteca `gsap` 3.13.0, empacotada no próprio site. A licença é a padrão da GSAP, gratuita para uso comercial, mas não é de código aberto.
@@ -396,6 +400,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 
 1. **3.3 — usuários e login:** revisar as correções de segurança da ordem 3, executar `npx playwright test --project=login`, homologar os dois temas e configurar e-mail/segredos. Publicação, migração central e troca de modo ficam com o responsável; Access continua padrão.
 2. **3.4 — documentos:** publicada em 17/11/2026.
+   Entrega 1.0 (limite de requisições) publicada em 17/11/2026. Entrega 1.1 (tipo do documento) feita no código; a migração 0003 depende de ordem do dono para ir a produção.
 3. **3.5 — importação:** feita e gravada em 16/11.
 4. Automatizar a leitura do SEI com Cron Trigger.
 5. Desligar a hospedagem antiga.

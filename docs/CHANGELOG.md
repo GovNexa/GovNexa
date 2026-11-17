@@ -34,6 +34,11 @@
 - Guia Usuários com cadastro, reenvio, perfis, ativação e redefinição de 2FA; isolamento por prefeitura e proteção do último administrador. Turnstile e cabeçalhos de segurança nas páginas de acesso.
 - E-mail local simulado, semente fictícia sem leitura de segredos, testes Node e projeto Playwright `login` em porta separada. Fluxo do sistema atualizado. Publicação e teste de navegador ficam pendentes para o responsável.
 
+## GovNexa — Tipo do documento (entrega 1.1)
+- 2026-11-17: migração D1 `0003_tipo_documento.sql`: tabela `tipo_documento` por prefeitura (DFD, ETP e TR de sistema; mapa de riscos, projeto básico, orçamento de referência, ART e licença ambiental criados desativados), coluna `documento.tipo_codigo` e travas no banco (só tipo ativo da mesma prefeitura; sem DELETE; documento removido não muda de tipo). Ainda não aplicada em produção.
+- 2026-11-17: tipo opcional no envio e troca do tipo na lista (rota `classificar/<id>/`, com origem, perfil, tamanho e limite antes do corpo). Cada troca grava "Tipo de documento alterado" no Histórico. A página mostra quantas peças de cada tipo o projeto tem.
+- 2026-11-17: registro das publicações do dia: guia Usuários (3.3), página inicial nova, logo provisória, topo enxuto e mapa, limite de requisições (1.0, PR #15), correções do topo e do rodapé da plataforma e símbolo G.
+
 ## GovNexa — Limite de requisições (entrega 1.0)
 - 2026-11-17: limite de 30 ações por minuto por pessoa e prefeitura nas rotas que gravam documentos (enviar, remover), pela ligação `LIMITE_API` do Rate Limiting da Cloudflare (`wrangler.jsonc`). Chave `<prefeitura>:<e-mail>`; sem e-mail, recusado sem contar; falha da ligação recusa o pedido. Código em `src/lib/seguranca/limite.ts`.
 - 2026-11-17: conserto: `tests/seguranca/rate-limit.test.ts`, citado no `test:dados` e inexistente, agora existe (9 testes).

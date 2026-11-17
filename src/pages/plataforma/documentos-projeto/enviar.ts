@@ -27,6 +27,6 @@ export const POST: APIRoute = async ({ request, locals, redirect }) => {
   const arquivo = form.get('arquivo');
   if (!(arquivo instanceof File) || arquivo.size === 0) return redirect(destino('vazio'), 303);
   if (arquivo.size > LIMITE_BYTES) return redirect(destino('tamanho'), 303);
-  const r = await enviarDocumento(contexto, projeto, arquivo.name, arquivo);
+  const r = await enviarDocumento(contexto, projeto, arquivo.name, arquivo, form.get('tipo') ?? '');
   return redirect(destino(r.ok ? 'ok' : codigoDe(r)), 303);
 };
