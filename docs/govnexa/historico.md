@@ -1265,5 +1265,7 @@ mesclado em 16/11/2026 · branch `govnexa-plano`
 | Dados do navegador | Validar forma, tamanho e datas ao ler arquivos ou dados do navegador; mostrar conteúdo como texto. |
 | Arquivos CRLF | Scripts de edição precisam aceitar finais de linha CRLF. |
 | Gravação parcial do projeto | Rota que grava só uma coluna do projeto precisa subir a `revisao`: a edição geral regrava todas as colunas e, sem isso, devolveria o valor antigo. |
+| Limpeza depois da validação | Texto limpo no servidor (caracteres de controle, tamanho) pode ficar vazio: validar de novo o valor que vai ao banco, não só o que chegou. |
+| Ler, decidir e gravar | Comparar com o valor atual e gravar em passos separados deixa passar gravação simultânea: a gravação confere a `revisao` lida e devolve conflito. |
 | Coluna calculada no D1 | `ALTER TABLE ... ADD COLUMN` só aceita coluna calculada do tipo `VIRTUAL`; ela pode ter índice. Usada para ler o histórico de um projeto sem abrir o texto de cada evento. |
 | Verificação do site | Conferir localmente as rotas e recursos gerados após mudanças no build. |

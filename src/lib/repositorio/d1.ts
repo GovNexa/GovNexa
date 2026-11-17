@@ -107,17 +107,23 @@ export function criarRepositorioD1(db: BancoD1, prefeituraId: number): Repositor
         );
         return r.rows.map(linhaParaHistorico);
       }),
-    async definirLocalizacao(projetoId, localizacao, autor, descricao) {
-      // Um só batch: ou gravam a localização e o evento, ou nenhum. Só a coluna da localização muda; a revisão sobe para que
-      // uma edição do projeto baseada em leitura antiga seja recusada em vez de devolver a localização anterior.
+    async definirLocalizacao(projetoId, decidir, autor) {
+      const atual = await db.prepare('SELECT localizacao, revisao FROM projeto WHERE prefeitura_id = ? AND id = ?').bind(prefeituraId, projetoId)
+        .first<{ localizacao: string | null; revisao: number }>();
+      if (!atual) return 'inexistente';
+      const novo = decidir(decodificar('localizacao', atual.localizacao) ?? null);
+      if (!novo) return 'igual';
+      // Um só batch: ou gravam a localização e o evento, ou nenhum. Só a coluna da localização muda. A gravação exige a mesma
+      // revisão da leitura acima (duas gravações ao mesmo tempo: só uma vale) e sobe a revisão, para que uma edição geral do
+      // projeto baseada em leitura antiga seja recusada em vez de devolver a localização anterior.
       const [r] = await db.batch([
-        db.prepare("UPDATE projeto SET localizacao = ?, revisao = revisao + 1, atualizado_em = (strftime('%Y-%m-%dT%H:%M:%fZ','now')) WHERE prefeitura_id = ? AND id = ?")
-          .bind(JSON.stringify(localizacao), prefeituraId, projetoId),
+        db.prepare("UPDATE projeto SET localizacao = ?, revisao = revisao + 1, atualizado_em = (strftime('%Y-%m-%dT%H:%M:%fZ','now')) WHERE prefeitura_id = ? AND id = ? AND revisao = ?")
+          .bind(JSON.stringify(novo.valor), prefeituraId, projetoId, atual.revisao),
         db.prepare(
           "INSERT INTO evento_projeto (id, prefeitura_id, projeto_id, tipo, origem, autor, em, descricao) SELECT ?, ?, ?, 'localizacao_alterada', 'cadastro', ?, ?, ? WHERE changes() = 1",
-        ).bind(crypto.randomUUID(), prefeituraId, projetoId, autor, new Date().toISOString(), descricao),
+        ).bind(crypto.randomUUID(), prefeituraId, projetoId, autor, new Date().toISOString(), novo.descricao),
       ]);
-      return (r?.meta?.changes ?? 0) === 1 ? 'ok' : 'inexistente';
+      return (r?.meta?.changes ?? 0) === 1 ? 'ok' : 'conflito';
     },
     listarHistorico: () =>
       transacao(async (cliente) => {

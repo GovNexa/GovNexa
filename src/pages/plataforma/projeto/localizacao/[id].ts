@@ -1,6 +1,6 @@
 export const prerender = false;
 // POST /plataforma/projeto/localizacao/<id>/ — grava a localização do projeto (ponto ou ruas e trechos). Protegido pelo login da plataforma.
-// Ordem: origem, perfil, tamanho e limite ANTES de ler o corpo. A prefeitura vem da sessão; o projeto é conferido no banco.
+// Ordem: origem, perfil, formato, limite de requisições e tamanho ANTES de ler o corpo. A prefeitura vem da sessão; o projeto é conferido no banco.
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 import { mesmaOrigem } from '../../../../lib/documentos/http.ts';
@@ -10,7 +10,7 @@ import { dentroDoLimite, limitadorDoAmbiente } from '../../../../lib/seguranca/l
 const json = (status: number, corpo: Record<string, unknown>): Response =>
   new Response(JSON.stringify(corpo), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
 
-/** Pedido recusado pelo tamanho: joga fora o que chegou (até 1 MB, sem guardar) para a conexão fechar limpa antes da resposta. */
+/** Pedido recusado pelo tamanho: joga fora o que chegou (até 1 MB, sem guardar) para a conexão fechar limpa antes da resposta. Só roda depois do limite de requisições. */
 async function descartar(request: Request, max = 1_048_576): Promise<void> {
   try {
     const leitor = request.body?.getReader();
@@ -29,14 +29,14 @@ export const POST: APIRoute = async ({ request, params, locals }) => {
   if (!mesmaOrigem(request)) return json(403, { ok: false, erro: 'Pedido recusado: origem diferente do site.' });
   const pode = podeEditarLocalizacao(contexto);
   if (!pode.ok) return json(pode.status, { ok: false, erro: pode.erro });
-  if (!/^application\/json\b/i.test(request.headers.get('content-type') ?? '')) return json(415, { ok: false, erro: 'Formato do pedido inválido.' });
+  if (!/^application\/json\s*(;|$)/i.test(request.headers.get('content-type') ?? '')) return json(415, { ok: false, erro: 'Formato do pedido inválido.' });
+  if (!(await dentroDoLimite(limitadorDoAmbiente(env), contexto.repositorio.prefeituraId, contexto.usuario.email))) return json(429, { ok: false, erro: 'Muitas ações em pouco tempo. Tente de novo em um minuto.' });
   const cabecalhoTamanho = request.headers.get('content-length');
   const tamanho = Number(cabecalhoTamanho);
   if (cabecalhoTamanho === null || !Number.isFinite(tamanho) || tamanho < 0 || tamanho > LIMITE_CORPO_LOCALIZACAO) {
     await descartar(request);
     return json(413, { ok: false, erro: 'Localização grande demais.' });
   }
-  if (!(await dentroDoLimite(limitadorDoAmbiente(env), contexto.repositorio.prefeituraId, contexto.usuario.email))) return json(429, { ok: false, erro: 'Muitas ações em pouco tempo. Tente de novo em um minuto.' });
   const texto = await request.text().catch(() => '');
   if (texto.length > LIMITE_CORPO_LOCALIZACAO) return json(413, { ok: false, erro: 'Localização grande demais.' });
   let corpo: unknown = null;

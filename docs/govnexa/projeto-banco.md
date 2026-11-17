@@ -147,6 +147,11 @@ Cada linha é um PR pequeno, com migração (se houver), rota, tela, testes, atu
 
 A cada entrega: a etapa correspondente do Fluxo deixa de ser "simulação", o aviso de simulação sai da tela, e `README.md`, `plano.md`, `historico.md` e `modelo-dados.md` são atualizados.
 
+### Pendências registradas
+
+- A validação da localização aceita só pontos dentro de Goiânia (`src/lib/mapa/geo.ts`). Antes de uma segunda prefeitura usar o sistema, os limites do município precisam vir do cadastro da prefeitura.
+- Cópia de segurança por exportação do banco: conferir, antes de depender dela, se a exportação e a importação lidam com a coluna calculada da migração 0004.
+
 ## 7. Limites do D1 considerados
 
 Conferidos na documentação da Cloudflare em 17/11/2026.

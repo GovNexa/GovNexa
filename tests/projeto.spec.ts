@@ -39,7 +39,11 @@ test('localização: recusa origem de fora, formato errado, corpo grande e valor
   const semOrigem = await request.post(ROTA, { headers: json, data: PONTO });
   expect(semOrigem.status()).toBe(403);
   const formulario = await request.post(ROTA, { headers: { origin }, form: { tipo: 'ponto' } });
-  expect([403, 415]).toContain(formulario.status());
+  expect([403, 415]).toContain(formulario.status()); // 403 = trava de origem do Astro para formulário; 415 = a nossa recusa
+  const textoPuro = await request.post(ROTA, { headers: { 'content-type': 'text/plain', origin }, data: JSON.stringify(PONTO) });
+  expect(textoPuro.status()).toBe(415);
+  const quaseJson = await request.post(ROTA, { headers: { 'content-type': 'application/json-x', origin }, data: JSON.stringify(PONTO) });
+  expect(quaseJson.status()).toBe(415);
   const grande = await request.post(ROTA, { headers: { ...json, origin }, data: { ...PONTO, endereco: 'x'.repeat(300_000) } });
   expect(grande.status()).toBe(413);
   const invalido = await request.post(ROTA, { headers: { ...json, origin }, data: { tipo: 'ponto', ponto: { lat: 0, lng: 0 } } });

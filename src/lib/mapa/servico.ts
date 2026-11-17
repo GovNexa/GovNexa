@@ -33,14 +33,12 @@ export function normalizarLocalizacao(bruto: unknown): { ok: true; valor: Locali
   const erros = validarLocalizacao(bruto);
   if (erros.length > 0) return { ok: false, erros };
   const l = bruto as Localizacao;
-  if (l.tipo === 'ponto') return { ok: true, valor: { tipo: 'ponto', ponto: ponto(l.ponto), endereco: texto(l.endereco, MAX_ENDERECO) } };
-  return {
-    ok: true,
-    valor: {
-      tipo: 'trechos',
-      trechos: l.trechos.map((t) => ({ rua: texto(t.rua, MAX_RUA) ?? '', de: texto(t.de, MAX_RUA), ate: texto(t.ate, MAX_RUA), linha: t.linha.map(ponto) })),
-    },
-  };
+  const valor: Localizacao = l.tipo === 'ponto'
+    ? { tipo: 'ponto', ponto: ponto(l.ponto), endereco: texto(l.endereco, MAX_ENDERECO) }
+    : { tipo: 'trechos', trechos: l.trechos.map((t) => ({ rua: texto(t.rua, MAX_RUA) ?? '', de: texto(t.de, MAX_RUA), ate: texto(t.ate, MAX_RUA), linha: t.linha.map(ponto) })) };
+  // A limpeza pode esvaziar um texto (ex.: rua só com caracteres de controle): o que vai ao banco é conferido de novo.
+  const depois = validarLocalizacao(valor);
+  return depois.length > 0 ? { ok: false, erros: depois } : { ok: true, valor };
 }
 
 /** Frase para o histórico e para a página do projeto. */
@@ -59,15 +57,18 @@ export function podeEditarLocalizacao(c: ContextoLocalizacao): ResultadoLocaliza
 export async function salvarLocalizacao(c: ContextoLocalizacao, projetoId: string, bruto: unknown): Promise<ResultadoLocalizacao> {
   const pode = podeEditarLocalizacao(c);
   if (!pode.ok) return pode;
-  const projeto = ID_PROJETO.test(projetoId) ? await c.repositorio.obterProjeto(projetoId) : null;
-  if (!projeto) return falha(404, 'Projeto não encontrado.');
+  if (!ID_PROJETO.test(projetoId)) return falha(404, 'Projeto não encontrado.');
   const n = normalizarLocalizacao(bruto);
   if (!n.ok) return falha(400, 'Localização inválida.', n.erros);
-  const antes = projeto.localizacao && validarLocalizacao(projeto.localizacao).length === 0 ? projeto.localizacao : null;
-  if (antes && JSON.stringify(antes) === JSON.stringify(n.valor)) return { ok: true, mudou: false, localizacao: n.valor };
-  const frase = antes ? `Localização alterada: ${resumoLocalizacao(n.valor)}. Antes: ${resumoLocalizacao(antes)}` : `Localização cadastrada: ${resumoLocalizacao(n.valor)}`;
-  const descricao = frase.length > MAX_DESCRICAO ? `${frase.slice(0, MAX_DESCRICAO - 1)}…` : frase;
-  const r = await c.repositorio.definirLocalizacao!(projetoId, n.valor, c.usuario.email, descricao);
-  if (r !== 'ok') return falha(404, 'Projeto não encontrado.');
-  return { ok: true, mudou: true, localizacao: n.valor };
+  const valor = n.valor;
+  // A comparação com o valor atual e a frase do histórico usam o que o repositório leu na hora de gravar.
+  const r = await c.repositorio.definirLocalizacao!(projetoId, (atual) => {
+    const antes = atual && validarLocalizacao(atual).length === 0 ? (atual as Localizacao) : null;
+    if (antes && JSON.stringify(antes) === JSON.stringify(valor)) return null;
+    const frase = antes ? `Localização alterada: ${resumoLocalizacao(valor)}. Antes: ${resumoLocalizacao(antes)}` : `Localização cadastrada: ${resumoLocalizacao(valor)}`;
+    return { valor, descricao: frase.length > MAX_DESCRICAO ? `${frase.slice(0, MAX_DESCRICAO - 1)}…` : frase };
+  }, c.usuario.email);
+  if (r === 'inexistente') return falha(404, 'Projeto não encontrado.');
+  if (r === 'conflito') return falha(409, 'O projeto foi alterado por outra pessoa enquanto você editava. Recarregue a página e tente de novo.');
+  return { ok: true, mudou: r === 'ok', localizacao: valor };
 }

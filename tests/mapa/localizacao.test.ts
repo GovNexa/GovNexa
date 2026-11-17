@@ -1,6 +1,8 @@
 // Gravação da localização (entrega B1): permissão, validação, isolamento por prefeitura, histórico e índices da migração 0004.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { DatabaseSync } from 'node:sqlite';
+import { readFileSync } from 'node:fs';
 import { bancoTeste } from '../helpers/d1.ts';
 import { repositorioD1ParaTestes } from '../../src/lib/repositorio/index.ts';
 import { comInvalidacao, lerComCache, invalidarCache } from '../../src/lib/repositorio/cache.ts';
@@ -31,6 +33,8 @@ test('normalizar: só os campos conhecidos, 6 casas e textos limpos', () => {
   assert.equal(t.ok && t.valor.tipo === 'trechos' && t.valor.trechos[0].rua.length, 120);
   assert.equal(t.ok && t.valor.tipo === 'trechos' && Object.keys(t.valor.trechos[0]).join(), 'rua,de,ate,linha');
   assert.equal(normalizarLocalizacao({ tipo: 'ponto', ponto: { lat: 0, lng: 0 } }).ok, false);
+  // Rua só com caracteres de controle passa na primeira conferência e fica vazia depois da limpeza: recusada.
+  assert.deepEqual(normalizarLocalizacao({ tipo: 'trechos', trechos: [{ ...TRECHOS.trechos[0], rua: '\u0001\u0002' }] }), { ok: false, erros: ['Trecho 1: informe o nome da rua.'] });
   assert.equal(normalizarLocalizacao('x').ok, false);
   assert.equal(normalizarLocalizacao(null).ok, false);
 });
@@ -95,6 +99,28 @@ test('salvar: uma prefeitura não altera o projeto de mesmo código de outra', a
   assert.equal((await b.c.repositorio.historico('P-1')).length, 1);
 });
 
+test('salvar: duas gravações ao mesmo tempo: só uma vale, a outra recebe conflito e nada fica pela metade', async () => {
+  const { banco, c } = montar();
+  const repo = c.repositorio;
+  // Enquanto a primeira pessoa decide, outra grava: a revisão lida já não é a do banco.
+  const r = await repo.definirLocalizacao!('P-1', () => {
+    banco.sqlite.exec("UPDATE projeto SET localizacao = '{\"tipo\":\"ponto\",\"ponto\":{\"lat\":-16.6,\"lng\":-49.2},\"endereco\":null}', revisao = revisao + 1 WHERE id = 'P-1'");
+    return { valor: SALVO as any, descricao: 'x' };
+  }, 'editor@x.gov.br');
+  assert.equal(r, 'conflito');
+  assert.deepEqual(JSON.parse(linha(banco).localizacao!).ponto, { lat: -16.6, lng: -49.2 });
+  assert.equal(eventos(banco).length, 0);
+  // Pelo serviço, o conflito vira 409 com mensagem para recarregar.
+  const conflitante = { ...c, repositorio: { ...repo, definirLocalizacao: async () => 'conflito' as const } };
+  const s = (await salvarLocalizacao(conflitante, 'P-1', PONTO)) as any;
+  assert.equal(s.status, 409);
+  assert.match(s.erro, /Recarregue/);
+  // Localização antiga em formato que a validação não aceita conta como "sem localização": grava como cadastrada.
+  banco.sqlite.exec("UPDATE projeto SET localizacao = '{\"tipo\":\"ponto\",\"lat\":-16.68,\"lng\":-49.25}' WHERE id = 'P-1'");
+  assert.equal((await salvarLocalizacao(c, 'P-1', PONTO)).ok, true);
+  assert.match(eventos(banco)[0].descricao, /^Localização cadastrada:/);
+});
+
 test('salvar: edição do projeto baseada em leitura anterior à localização é recusada', async () => {
   const { banco, c } = montar();
   const revAntiga = linha(banco).revisao;
@@ -136,6 +162,33 @@ test('histórico do projeto: junta eventos de projeto e de sistema, em ordem, ig
   const colunas = (banco.sqlite.prepare('SELECT id, projeto_id FROM evento_sistema ORDER BY id').all() as any[]).map((x) => `${x.id}:${x.projeto_id}`);
   assert.deepEqual(colunas, ['s1:P-1', 's2:null', 's3:P-9', 's4:null']);
   assert.throws(() => banco.sqlite.exec("INSERT INTO evento_sistema (id, prefeitura_id, tipo, origem, autor, em, projeto_id) VALUES ('s5', 5208707, 'x', 'x', 'x', '2020-01-05T00:00:00.000Z', 'P-1')"));
+});
+
+test('migração 0004: aplicada sobre banco já com dados, mantém a visão do histórico e os gatilhos', () => {
+  const sqlite = new DatabaseSync(':memory:');
+  sqlite.exec('PRAGMA foreign_keys = ON');
+  const migrar = (arq: string) => sqlite.exec(readFileSync(`db/d1/prefeitura/${arq}`, 'utf8'));
+  for (const arq of ['0001_carteira.sql', '0002_documento_removido_por.sql', '0003_tipo_documento.sql']) migrar(arq);
+  sqlite.exec("INSERT INTO prefeitura (id, nome, uf) VALUES (1, 'A', 'GO')");
+  sqlite.exec("INSERT INTO projeto (prefeitura_id, id, codigo_legado, nome) VALUES (1, 'P-1', 1, 'Obra')");
+  sqlite.exec("INSERT INTO evento_projeto (id, prefeitura_id, projeto_id, tipo, origem, autor, em) VALUES ('e1', 1, 'P-1', 'criado', 'cadastro', 'a', '2020-01-01T00:00:00.000Z')");
+  const ins = sqlite.prepare("INSERT INTO evento_sistema (id, prefeitura_id, tipo, origem, autor, em, descricao, detalhes) VALUES (?, 1, 'x', 'importacao', 'a', ?, 'd', ?)");
+  ins.run('s1', '2020-01-02T00:00:00.000Z', JSON.stringify({ projeto_id: 'P-1', de: '00', para: '01' }));
+  ins.run('s2', '2020-01-03T00:00:00.000Z', null);
+  ins.run('s3', '2020-01-04T00:00:00.000Z', JSON.stringify(['P-1']));
+  ins.run('s4', '2020-01-05T00:00:00.000Z', JSON.stringify('texto solto'));
+  const visao = () => JSON.stringify(sqlite.prepare('SELECT * FROM log_alteracoes ORDER BY em, id').all());
+  const antes = visao();
+  migrar('0004_historico_por_projeto.sql');
+  assert.equal(visao(), antes);
+  assert.deepEqual((sqlite.prepare('SELECT id, projeto_id FROM evento_sistema ORDER BY id').all() as any[]).map((x) => x.projeto_id), ['P-1', null, null, null]);
+  // O código anterior à migração continua gravando: INSERT com e sem lista de colunas.
+  sqlite.exec("INSERT INTO evento_sistema (id, prefeitura_id, tipo, origem, autor, em) VALUES ('s5', 1, 'x', 'x', 'a', '2020-01-06T00:00:00.000Z')");
+  sqlite.exec("INSERT INTO evento_sistema VALUES ('s6', 1, 'x', 'x', 'a', '2020-01-07T00:00:00.000Z', NULL, NULL)");
+  assert.throws(() => sqlite.exec("UPDATE evento_sistema SET descricao = 'y' WHERE id = 's1'"), /Histórico imutável/);
+  assert.throws(() => sqlite.exec("DELETE FROM evento_projeto WHERE id = 'e1'"), /Histórico imutável/);
+  assert.equal((sqlite.prepare('PRAGMA integrity_check').get() as any).integrity_check, 'ok');
+  assert.equal(sqlite.prepare('PRAGMA foreign_key_check').all().length, 0);
 });
 
 test('migração 0004: o histórico de um projeto usa os índices, sem varrer as tabelas', () => {

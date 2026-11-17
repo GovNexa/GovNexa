@@ -214,7 +214,8 @@ document.addEventListener('astro:page-load', () => {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(valor),
       });
-      resposta = await r.json();
+      if (r.redirected || !(r.headers.get('content-type') ?? '').includes('json')) resposta = { ok: false, erro: 'Sua sessão terminou. Entre de novo e repita a gravação.' };
+      else resposta = await r.json();
     } catch {
       resposta = { ok: false, erro: 'Não foi possível salvar agora. Confira a conexão e tente de novo.' };
     } finally {
