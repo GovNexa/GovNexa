@@ -5,7 +5,7 @@ const {columns:sourceColumns,rows:sourceRows,title='Registros',cockpit=false,slu
 const indices=sourceColumns.map((_,i)=>i).filter(i=>!/^a[çc][aã]o$/i.test(sourceColumns[i]));
 const columns=indices.map(i=>sourceColumns[i]==='Code'?'Código':sourceColumns[i]);const rows=sourceRows.map(r=>indices.map(i=>r[i]));
 // Colunas que só aparecem no painel de detalhes (pedido do dono, 17/11/2026): continuam nos dados, saem da tabela.
-const soDetalhe:Record<string,string[]>={atas:['PDM']};
+const soDetalhe:Record<string,string[]>={atas:['PDM','UASG gerenciadora','Quantidade empenhada']};
 const oculta=(i:number)=>(soDetalhe[slug]??[]).includes(columns[i]);
 // Valores curtos (códigos, datas, números, valores) não quebram no meio.
 const curto=(v:string|number)=>String(v).length<=22;
