@@ -1,0 +1,127 @@
+---
+// Página do projeto (entrega B1): tudo o que o sistema sabe de UM projeto, lido direto do banco.
+// Leituras: o projeto, o histórico dele (por índice) e os documentos. Cronograma e origem vêm do contexto já carregado.
+import Platform from '../../../layouts/Platform.astro';
+import { carregarCarteira } from '../../../lib/carteira/carga.ts';
+import { detalheProjeto } from '../../../lib/carteira/modulos.ts';
+import { nomeMacroetapa } from '../../../lib/carteira/macroetapas.ts';
+import { ID_PROJETO } from '../../../lib/documentos/regras.ts';
+import { dataHoraBr } from '../../../lib/datas.ts';
+import { maisRecentes, resumoRegistro, rotuloAcao, rotuloOrigem } from '../../../lib/log/visoes.ts';
+import type { RegistroLog } from '../../../lib/log/tipos.ts';
+import { validarLocalizacao } from '../../../lib/mapa/geo.ts';
+import { carregarGeoBairros } from '../../../lib/mapa/obras.ts';
+import { resumoLocalizacao } from '../../../lib/mapa/servico.ts';
+import { usuarioPode } from '../../../lib/usuarios/index.ts';
+export const prerender = false;
+
+const id = String(Astro.params.id ?? '');
+const repo = Astro.locals.repositorio;
+const projeto = ID_PROJETO.test(id) ? await repo.obterProjeto(id) : null;
+if (!projeto) return new Response('Página não encontrada', { status: 404 });
+
+const fonte = carregarCarteira().fonte;
+const ficha = detalheProjeto(projeto, fonte.ficticio, fonte.arquivo, fonte.importado_em);
+// O histórico da ficha resumida vem do cache; aqui ele é lido do banco, completo, mais abaixo.
+const secoes = ficha.secoes.filter((s) => s.titulo !== 'Histórico').map((s) => ({
+  titulo: s.titulo,
+  itens: (s.itens ?? []).map((i) => {
+    const corte = i.indexOf(': ');
+    return corte > 0 ? { rotulo: i.slice(0, corte), valor: i.slice(corte + 2) } : { rotulo: '', valor: i };
+  }),
+}));
+const endereco = `/plataforma/projeto/${encodeURIComponent(projeto.id)}/`;
+const links = (ficha.links ?? []).filter((l) => l.url !== endereco && !l.url.startsWith('/plataforma/projetos-localizacao/'));
+
+const local = projeto.localizacao && validarLocalizacao(projeto.localizacao).length === 0 ? projeto.localizacao : null;
+const bairroNoMapa = !!(projeto.bairro && carregarGeoBairros().bairros[projeto.bairro.trim()]?.encontrado);
+const situacaoLocal = local ? `Cadastrada: ${resumoLocalizacao(local)}` : bairroNoMapa ? `Aproximada pelo centro do bairro ${projeto.bairro}` : 'Sem localização no mapa';
+const podeEditar = usuarioPode(Astro.locals.usuario, 'editar_projeto');
+
+const documentos = repo.documentos ? await repo.documentos.listar(projeto.id) : [];
+const contagem: Record<string, number> = repo.documentos ? await repo.documentos.contarPorTipo(projeto.id) : {};
+const nomesTipos: Record<string, string> = repo.documentos ? await repo.documentos.nomesTipos() : {};
+const porTipo = Object.entries(contagem).map(([c, n]) => `${c ? nomesTipos[c] ?? c : 'Sem tipo'}: ${n}`);
+
+const LIMITE_HISTORICO = 50;
+const historico = maisRecentes((await repo.historico(projeto.id)) as RegistroLog[]);
+const visiveis = historico.slice(0, LIMITE_HISTORICO);
+---
+<Platform title="Projeto" slug="projetos-carteira">
+  <p slot="contexto" class="muted pj-contexto"><a href="/plataforma/projetos-carteira/">← Carteira de projetos</a></p>
+  <div class="section-head"><div>
+    <h1 class="pj-titulo">{projeto.id} · {projeto.nome}</h1>
+    <p class="muted">{nomeMacroetapa(projeto.macroetapa)} · {projeto.orgao ?? 'Órgão não informado'}</p>
+  </div></div>
+
+  <div class="pj-grade">
+    {secoes.map((s, n) => (
+      <section class="card pj-bloco" aria-labelledby={`pj-s${n}`}>
+        <h2 id={`pj-s${n}`}>{s.titulo}</h2>
+        {s.itens.some((i) => i.rotulo) ? (
+          <dl class="pj-lista">
+            {s.itens.map((i) => <div><dt>{i.rotulo}</dt><dd>{i.valor}</dd></div>)}
+          </dl>
+        ) : (
+          <ul class="pj-itens">{s.itens.map((i) => <li>{i.valor}</li>)}</ul>
+        )}
+      </section>
+    ))}
+
+    <section class="card pj-bloco" aria-labelledby="pj-local">
+      <h2 id="pj-local">Localização</h2>
+      <p data-pj-local>{situacaoLocal}</p>
+      {local?.tipo === 'trechos' && <ul class="pj-itens">{local.trechos.map((t) => <li>{t.rua}{t.de || t.ate ? ` (de ${t.de ?? 'início'} até ${t.ate ?? 'fim'})` : ''}</li>)}</ul>}
+      <p><a href={`/plataforma/projetos-localizacao/?id=${encodeURIComponent(projeto.id)}`}>{podeEditar ? 'Alterar a localização no mapa' : 'Ver no mapa'}</a></p>
+    </section>
+
+    <section class="card pj-bloco" aria-labelledby="pj-docs">
+      <h2 id="pj-docs">Documentos</h2>
+      <p data-pj-docs>{documentos.length === 0 ? 'Nenhum documento enviado.' : `${documentos.length} ${documentos.length === 1 ? 'documento' : 'documentos'} · ${porTipo.join(' · ')}`}</p>
+      <p><a href={`/plataforma/documentos-projeto/projeto/${encodeURIComponent(projeto.id)}/`}>Abrir os documentos do projeto</a></p>
+    </section>
+
+    {links.length > 0 && (
+      <section class="card pj-bloco" aria-labelledby="pj-links">
+        <h2 id="pj-links">Outras telas deste projeto</h2>
+        <ul class="pj-itens">{links.map((l) => <li><a href={l.url}>{l.rotulo}</a></li>)}</ul>
+      </section>
+    )}
+  </div>
+
+  <section class="card pj-bloco pj-historico" aria-labelledby="pj-hist">
+    <h2 id="pj-hist">Histórico</h2>
+    {visiveis.length === 0 ? <p>Nenhuma alteração registrada ainda.</p> : (
+      <ol class="pj-eventos" data-pj-historico>
+        {visiveis.map((h) => (
+          <li>
+            <span class="pj-quando">{dataHoraBr(h.em)}</span>
+            <span class="pj-oque">{resumoRegistro(h).startsWith(rotuloAcao(h.tipo)) ? resumoRegistro(h) : <><strong>{rotuloAcao(h.tipo)}</strong> · {resumoRegistro(h)}</>}{h.motivo ? ` · Motivo: ${h.motivo}` : ''}</span>
+            <span class="pj-quem muted">{rotuloOrigem(h.origem)} · por {h.autor}</span>
+          </li>
+        ))}
+      </ol>
+    )}
+    {historico.length > LIMITE_HISTORICO && <p class="muted">Mostrando os {LIMITE_HISTORICO} registros mais recentes de {historico.length}.</p>}
+  </section>
+</Platform>
+<style>
+  .pj-contexto{margin:0 0 .75rem;overflow-wrap:anywhere}
+  .pj-titulo{overflow-wrap:anywhere}
+  .pj-grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr));gap:1rem;align-items:start;margin-bottom:1rem}
+  .pj-bloco{margin:0;min-width:0}
+  .pj-bloco h2{margin-top:0;font-size:1.05rem}
+  .pj-lista{margin:0;display:grid;gap:.35rem}
+  .pj-lista div{display:flex;flex-wrap:wrap;gap:.15rem .6rem;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:.3rem}
+  .pj-lista div:last-child{border-bottom:0}
+  .pj-lista dt{color:var(--muted);min-width:0}
+  .pj-lista dd{margin:0;font-weight:600;text-align:right;min-width:0;overflow-wrap:anywhere}
+  .pj-itens{margin:0;padding-left:1.1rem;overflow-wrap:anywhere}
+  .pj-bloco p{overflow-wrap:anywhere}
+  .pj-eventos{list-style:none;margin:0;padding:0;display:grid;gap:.6rem}
+  .pj-eventos li{display:grid;grid-template-columns:9.5rem minmax(0,1fr);gap:.1rem .9rem;border-bottom:1px solid var(--line);padding-bottom:.6rem}
+  .pj-eventos li:last-child{border-bottom:0}
+  .pj-oque,.pj-quem{overflow-wrap:anywhere;min-width:0}
+  .pj-quem{grid-column:2}
+  @media(max-width:600px){.pj-eventos li{grid-template-columns:minmax(0,1fr)}.pj-quem{grid-column:1}.pj-lista dd{text-align:left}}
+</style>

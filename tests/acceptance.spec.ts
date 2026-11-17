@@ -639,7 +639,7 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  await page.screenshot({path:'test-results/mapa-1280.png',fullPage:false});
  await page.locator('#mapa .leaflet-marker-icon').first().click();
  const popup=page.locator('.leaflet-popup-content');
- await expect(popup.getByRole('link',{name:'Abrir a ficha'})).toHaveAttribute('href',/^\/plataforma\/projetos-carteira\/\?q=/);
+ await expect(popup.getByRole('link',{name:'Abrir a ficha'})).toHaveAttribute('href',/^\/plataforma\/projeto\/P-\d+\/$/);
  await expect(popup.getByRole('link',{name:'Editar localização'})).toBeVisible();
  await page.screenshot({path:'test-results/mapa-popup.png'});
  await page.keyboard.press('Escape');
@@ -661,7 +661,7 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  await expect(tp.locator('.leaflet-popup-content').getByRole('link',{name:'Abrir a ficha'})).toBeVisible();
  await tp.screenshot({path:'test-results/mapa-390.png'});
  await touch.close();
- // tela de localização: trocar para ruas e trechos, desenhar 2 pontos e salvar (simulação)
+ // tela de localização: trocar para ruas e trechos, desenhar 2 pontos e salvar (grava no banco)
  await page.goto('/plataforma/projetos-localizacao/?id=P-905');
  await expect(page.locator('h1')).toHaveText('Localização e fotos');
  await expect(page.locator('#lp-enviar-fotos')).toBeDisabled();
@@ -673,14 +673,15 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  await areaMapa.click({position:{x:120,y:120}});
  await areaMapa.click({position:{x:260,y:180}});
  await expect(page.locator('#lp-loc .mp-pontos')).toHaveText('2 pontos');
- await page.getByRole('button',{name:'Salvar localização (simulação)'}).click();
+ await page.getByRole('button',{name:'Salvar localização',exact:true}).click();
  await expect(page.locator('[data-lp-ok]')).toBeVisible();
- await expect(page.locator('[data-lp-ok]')).toContainText('Modo simulação');
+ await expect(page.locator('[data-lp-ok]')).toContainText('registrada no Histórico');
+ await expect(page.getByText('Modo simulação')).toHaveCount(0);
  // trecho sem rua não salva
  await page.getByLabel('Rua (obrigatório)').fill('');
- await page.getByRole('button',{name:'Salvar localização (simulação)'}).click();
+ await page.getByRole('button',{name:'Salvar localização',exact:true}).click();
  await expect(page.locator('#lp-loc [data-ed-erros]')).toContainText('informe o nome da rua');
- // a simulação aparece no mapa do painel (mesma aba)
+ // a localização salva aparece no mapa do painel
  await page.goto('/plataforma/gestao/');
  await expect(page.locator('#mapa [data-mp-contagem]')).toContainText('obra');
  // sem rolagem horizontal e axe, claro e escuro

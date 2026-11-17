@@ -1,6 +1,6 @@
 # GovNexa · Projeto do banco de dados
 
-Proposta de 17/11/2026, **aguardando aprovação do dono**. Define como o banco deve crescer para que as telas hoje em simulação passem a gravar de verdade, uma etapa do Fluxo por vez.
+Aprovado pelo dono em 17/11/2026 (PR #28). Define como o banco deve crescer para que as telas hoje em simulação passem a gravar de verdade, uma etapa do Fluxo por vez.
 
 Este documento vale como regra de trabalho: toda entrega que crie ou use dados confere antes as seções 3 (princípios) e 6 (roteiro por entrega).
 
@@ -80,8 +80,9 @@ Tabelas novas e mudanças, agrupadas pela etapa do Fluxo que destravam. Tudo no 
 ### 4.1 Projeto (Fluxo: Cadastro, Movimentar, Portão)
 Sem tabela nova.
 - `projeto`: índice único em (`prefeitura_id`, `codigo_legado`), para dois cadastros simultâneos nunca receberem o mesmo código.
-- `evento_projeto`: índice em (`prefeitura_id`, `projeto_id`, `em`), para o histórico da página do projeto.
-- `evento_sistema`: coluna calculada `projeto_id` (tirada de `detalhes`) com índice, pelo mesmo motivo.
+- `evento_projeto`: índice em (`prefeitura_id`, `projeto_id`, `em`), para o histórico da página do projeto (feito na migração 0004).
+- `evento_sistema`: coluna calculada `projeto_id` (tirada de `detalhes`) com índice, pelo mesmo motivo (feito na migração 0004).
+- Gravação de uma só coluna do projeto (como a localização) sobe a `revisao`, para a edição geral baseada em leitura antiga ser recusada.
 
 ### 4.2 Catálogos (Fluxo: Cadastro)
 | Tabela | Chave | Campos |
@@ -135,7 +136,7 @@ Cada linha é um PR pequeno, com migração (se houver), rota, tela, testes, atu
 
 | Entrega | O que passa a funcionar | Banco |
 | --- | --- | --- |
-| B1 | Página do projeto (leitura) e Localização gravando | Índices da 4.1 |
+| B1 (feita no código em 17/11/2026) | Página do projeto (leitura) e Localização gravando | Migração 0004: índices do histórico por projeto |
 | B2 | Novo projeto gravando; edição dos campos na página do projeto | Índice único do código |
 | B3 | Kanban e Pendências de etapa gravando (movimentar, portão, motivo) | — |
 | B4 | Catálogos de órgão, região e tipo | 4.2 |
@@ -161,7 +162,7 @@ Conferidos na documentação da Cloudflare em 17/11/2026.
 
 Consequências no projeto: gravações em lote dividem os parâmetros em blocos; nenhuma tabela larga demais; textos longos têm limite de tamanho conferido na rota e no banco.
 
-## 8. Decisões que dependem do dono
+## 8. Decisões do dono
 
-1. Aprovar os princípios e a ordem do roteiro (seção 6).
-2. Plano da Cloudflare: antes de as equipes passarem a gravar no dia a dia, recomenda-se o plano pago, pelos 30 dias de restauração.
+1. Princípios e ordem do roteiro (seção 6): aprovados em 17/11/2026.
+2. Plano da Cloudflare: a conta está no plano pago (conferido pelo dono em 17/11/2026). Valem 30 dias de restauração e 1000 consultas por acesso.

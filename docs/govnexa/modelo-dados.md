@@ -85,3 +85,8 @@ crypto.randomUUID(); os códigos legados dos projetos continuam preservados.
 Triggers BEFORE UPDATE/DELETE impedem reescrever ou apagar eventos; a visão log_alteracoes reúne
 eventos de projeto e de sistema. Fotos e documentos guardam chaves R2, nunca URLs públicas.
 A carga local aceita `--dialeto sqlite`, sem BEGIN/COMMIT, com upserts idempotentes.
+
+O desenho que orienta as próximas tabelas (catálogos, governança, SEI e contratação) e as regras para toda entrega com
+dados estão em `docs/govnexa/projeto-banco.md`. Desde a migração 0004, `evento_sistema` tem a coluna calculada `projeto_id`
+(tirada de `detalhes`) e o histórico de um projeto é lido pelos índices `(prefeitura_id, projeto_id, em)` das duas tabelas
+de eventos. A localização do projeto é gravada só na coluna `projeto.localizacao`, junto com o evento `localizacao_alterada`.

@@ -36,6 +36,7 @@ A versão integral do histórico é privada e fica fora do repositório público
 | 16/11/2026 | Repositório antigo (`SLo0th1/Atlas_Conecta`) **congelado**: tudo segue só no novo, e nada mais aponta para o antigo. |
 | 17/11/2026 | Login próprio do GovNexa (senha + verificação em 2 etapas obrigatória) substitui o Cloudflare Access na plataforma; cadastro e convites pela guia Usuários; e-mails do sistema saem de nao-responda@govnexa.com.br. |
 | 17/11/2026 | Datas no padrão brasileiro: `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` (horário de Brasília). Função única em `src/lib/datas.ts`. |
+| 17/11/2026 | Banco de dados: a cada incremento que crie ou use dados, estudar e projetar antes de criar, respeitando relacionamentos, dependências e integridade, com segurança e agilidade. As telas saem da simulação na ordem do Fluxo, que é atualizado a cada entrega. Projeto em `docs/govnexa/projeto-banco.md`. |
 
 ## 4. Testes do SEI (registro)
 
@@ -193,7 +194,9 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 | novo #6 | 16/11/2026 | Leitura do banco otimizada (desempenho) |
 | novo #5 | 16/11/2026 | Plano e histórico trazidos para o repositório novo, atualizados para a migração (este PR) |
 | novo #15 | 17/11/2026 | Entrega 1.0: limite de requisições por pessoa (Rate Limiting da Cloudflare) e conserto do teste citado no `test:dados` |
-| novo (a numerar) | 17/11/2026 | Entrega 1.1: tipo do documento (DFD, ETP, TR), classificação com registro no Histórico e migração 0003 |
+| novo #27 | 17/11/2026 | Entrega 1.1: tipo do documento (DFD, ETP, TR), classificação com registro no Histórico e migração 0003 |
+| novo #28 | 17/11/2026 | Banco de dados: projeto (diagnóstico, princípios, modelo e roteiro pelo Fluxo) |
+| novo (a numerar) | 17/11/2026 | Entrega B1: página do projeto, localização gravando no banco e migração 0004 |
 | novo (a numerar) | 17/11/2026 | Site público: logo provisória no cabeçalho, menu enxuto e mapa de cidade na página inicial |
 | novo (a numerar) | 17/11/2026 | Página inicial nova do site público, aprovada pelo dono a partir de prévia de design |
 
@@ -1261,4 +1264,6 @@ mesclado em 16/11/2026 · branch `govnexa-plano`
 | Datas | Datas e faróis devem ser recalculados no navegador no fuso de Brasília. |
 | Dados do navegador | Validar forma, tamanho e datas ao ler arquivos ou dados do navegador; mostrar conteúdo como texto. |
 | Arquivos CRLF | Scripts de edição precisam aceitar finais de linha CRLF. |
+| Gravação parcial do projeto | Rota que grava só uma coluna do projeto precisa subir a `revisao`: a edição geral regrava todas as colunas e, sem isso, devolveria o valor antigo. |
+| Coluna calculada no D1 | `ALTER TABLE ... ADD COLUMN` só aceita coluna calculada do tipo `VIRTUAL`; ela pode ter índice. Usada para ler o histórico de um projeto sem abrir o texto de cada evento. |
 | Verificação do site | Conferir localmente as rotas e recursos gerados após mudanças no build. |

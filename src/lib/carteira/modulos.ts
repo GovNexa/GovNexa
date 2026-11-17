@@ -30,7 +30,8 @@ function ordenar(l: Projeto[]): Projeto[] {
   });
 }
 
-function detalheProjeto(p: Projeto, ficticio: boolean, arquivo: string, importadoEm: string): Detalhe {
+/** Ficha do projeto em seções de texto. Usada na lista da Carteira (resumo) e na página do projeto. */
+export function detalheProjeto(p: Projeto, ficticio: boolean, arquivo: string, importadoEm: string): Detalhe {
   const v = p.valores;
   const r = p.recurso;
   const secoes: Detalhe['secoes'] = [
@@ -103,7 +104,7 @@ function detalheProjeto(p: Projeto, ficticio: boolean, arquivo: string, importad
       ],
     });
   }
-  const links: Detalhe['links'] = [];
+  const links: Detalhe['links'] = [{ rotulo: 'Abrir a página do projeto', url: `/plataforma/projeto/${encodeURIComponent(p.id)}/` }];
   for (const c of carregarCronogramas().cronogramas.filter((x) => x.projeto_id === p.id)) {
     const r = resumoCronograma(c);
     secoes.push({

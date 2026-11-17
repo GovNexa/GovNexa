@@ -25,6 +25,8 @@ export interface RepositorioProjetos {
   /** Cadastra um projeto novo na macroetapa 00 (grava só com o banco configurado). */
   criarProjeto(dados: Partial<Projeto> & { nome: string; orgao: string }, autor: string): Promise<ResultadoCriacaoProjeto>;
   listarCronogramas(): Promise<Cronograma[]>;
+  /** Grava a localização e o evento de histórico juntos (só no D1). 'inexistente' = projeto não é desta prefeitura. */
+  definirLocalizacao?(projetoId: string, localizacao: import('../mapa/tipos.ts').Localizacao, autor: string, descricao: string): Promise<'ok' | 'inexistente'>;
   /** Documentos de projeto (só no D1; ausente nos demais repositórios). */
   documentos?: import('../documentos/repositorio.ts').RepositorioDocumentos;
 }

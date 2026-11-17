@@ -93,12 +93,32 @@ export function criarRepositorioD1(db: BancoD1, prefeituraId: number): Repositor
       }),
     historico: (projetoId) =>
       transacao(async (cliente) => {
+        // Direto nas duas tabelas, pelos índices (prefeitura_id, projeto_id, em) da migração 0004. Mesmo resultado da visão
+        // log_alteracoes para um projeto, sem ler os eventos de sistema dos outros projetos.
         const r = await cliente.query(
-          `SELECT ${COLUNAS_LOG} FROM log_alteracoes WHERE prefeitura_id = ? AND projeto_id = ? ORDER BY em, id`,
-          [prefeituraId, projetoId],
+          `SELECT id, projeto_id, tipo, origem, autor, em, de, para, campos, motivo, forcado, descricao
+             FROM evento_projeto WHERE prefeitura_id = ? AND projeto_id = ?
+           UNION ALL
+           SELECT id, projeto_id, tipo, origem, autor, em, json_extract(detalhes, '$.de'), json_extract(detalhes, '$.para'),
+                  json_extract(detalhes, '$.campos'), json_extract(detalhes, '$.motivo'), json_extract(detalhes, '$.forcado'), descricao
+             FROM evento_sistema WHERE prefeitura_id = ? AND projeto_id = ?
+           ORDER BY em, id`,
+          [prefeituraId, projetoId, prefeituraId, projetoId],
         );
         return r.rows.map(linhaParaHistorico);
       }),
+    async definirLocalizacao(projetoId, localizacao, autor, descricao) {
+      // Um só batch: ou gravam a localização e o evento, ou nenhum. Só a coluna da localização muda; a revisão sobe para que
+      // uma edição do projeto baseada em leitura antiga seja recusada em vez de devolver a localização anterior.
+      const [r] = await db.batch([
+        db.prepare("UPDATE projeto SET localizacao = ?, revisao = revisao + 1, atualizado_em = (strftime('%Y-%m-%dT%H:%M:%fZ','now')) WHERE prefeitura_id = ? AND id = ?")
+          .bind(JSON.stringify(localizacao), prefeituraId, projetoId),
+        db.prepare(
+          "INSERT INTO evento_projeto (id, prefeitura_id, projeto_id, tipo, origem, autor, em, descricao) SELECT ?, ?, ?, 'localizacao_alterada', 'cadastro', ?, ?, ? WHERE changes() = 1",
+        ).bind(crypto.randomUUID(), prefeituraId, projetoId, autor, new Date().toISOString(), descricao),
+      ]);
+      return (r?.meta?.changes ?? 0) === 1 ? 'ok' : 'inexistente';
+    },
     listarHistorico: () =>
       transacao(async (cliente) => {
         // A visão une eventos de projeto e de sistema; o filtro mantém o isolamento.

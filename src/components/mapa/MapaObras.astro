@@ -111,7 +111,7 @@ function resumo(o: ObraVista): HTMLElement {
   if (o.precisao === 'bairro') r.append(el('p', `Local aproximado (centro do bairro ${o.bairro ?? ''})`, 'mp-aviso-local'));
   const links = el('div', undefined, 'mp-links');
   const ficha = el('a', 'Abrir a ficha');
-  ficha.href = `/plataforma/projetos-carteira/?q=${encodeURIComponent(o.id)}`;
+  ficha.href = `/plataforma/projeto/${encodeURIComponent(o.id)}/`;
   const editar = el('a', 'Editar localização');
   editar.href = `/plataforma/projetos-localizacao/?id=${encodeURIComponent(o.id)}`;
   links.append(ficha, editar);
