@@ -11,7 +11,7 @@
 
 ## Entrega B2: Novo projeto grava no banco
 - 2026-11-18: o formulário Novo projeto deixa de ser simulação. Rota `POST /plataforma/projeto/criar/` (só perfil de editor, gestor ou administrador), com todos os campos conferidos de novo no servidor; o projeto nasce na macroetapa 00 com código único (P-N) e o cadastro entra no Histórico no mesmo lote.
-- Migração `db/d1/prefeitura/0005_codigo_projeto_unico.sql`: índice único do código dentro da prefeitura. Dois cadastros ao mesmo tempo não repetem o número: o segundo recalcula e grava de novo. Não muda nenhum dado.
+- Migração `db/d1/prefeitura/0006_codigo_projeto_unico.sql`: índice único do código dentro da prefeitura. Dois cadastros ao mesmo tempo não repetem o número: o segundo recalcula e grava de novo. Não muda nenhum dado.
 - A carga de planilhas nunca sobrescreve um projeto cadastrado pela tela (origem CADASTRO). Se a planilha trouxer o mesmo código, o projeto da planilha é ignorado em silêncio: faixa de códigos separada ou aviso no relatório ficam para decisão do dono.
 - Revisão independente: repetição só para código ou id repetido, com espera; texto sem caracteres invisíveis e de direção; localização inicial no Histórico; listas de opções da tela vindas do servidor.
 

@@ -137,7 +137,7 @@ Cada linha é um PR pequeno, com migração (se houver), rota, tela, testes, atu
 | Entrega | O que passa a funcionar | Banco |
 | --- | --- | --- |
 | B1 (feita; no ar desde 18/11/2026) | Página do projeto (leitura) e Localização gravando | Migração 0004: índices do histórico por projeto |
-| B2a (feita no código em 18/11/2026) | Novo projeto gravando (código único, histórico junto, repetição quando dois cadastros calculam o mesmo número) | Migração 0005: índice único do código |
+| B2a (feita no código em 18/11/2026) | Novo projeto gravando (código único, histórico junto, repetição quando dois cadastros calculam o mesmo número) | Migração 0006: índice único do código |
 | B2b | Edição dos campos na página do projeto | — |
 | B3 | Kanban e Pendências de etapa gravando (movimentar, portão, motivo) | — |
 | B4 | Catálogos de órgão, região e tipo | 4.2 |

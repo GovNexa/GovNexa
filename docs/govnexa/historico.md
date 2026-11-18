@@ -199,7 +199,7 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 | novo #27 | 17/11/2026 | Entrega 1.1: tipo do documento (DFD, ETP, TR), classificação com registro no Histórico e migração 0003 |
 | novo #28 | 17/11/2026 | Banco de dados: projeto (diagnóstico, princípios, modelo e roteiro pelo Fluxo) |
 | novo #29 | 17/11/2026 | Entrega B1: página do projeto, localização gravando no banco (cidade e entorno) e migração 0004 |
-| novo (a numerar) | 18/11/2026 | Entrega B2: Novo projeto gravando no banco e migração 0005 (código único) |
+| novo (a numerar) | 18/11/2026 | Entrega B2: Novo projeto gravando no banco e migração 0006 (código único) |
 | novo (a numerar) | 17/11/2026 | Site público: logo provisória no cabeçalho, menu enxuto e mapa de cidade na página inicial |
 | novo (a numerar) | 17/11/2026 | Página inicial nova do site público, aprovada pelo dono a partir de prévia de design |
 

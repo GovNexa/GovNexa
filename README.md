@@ -127,7 +127,7 @@ São módulos independentes que conversam entre si:
 
 | Data | O que | Referência |
 | --- | --- | --- |
-| 18/11 | Entrega B2: Novo projeto grava no banco (macroetapa 00, código único P-N, cadastro no Histórico); migração 0005 (índice único do código; ainda não aplicada em produção) | novo PR |
+| 18/11 | Entrega B2: Novo projeto grava no banco (macroetapa 00, código único P-N, cadastro no Histórico); migração 0006 (índice único do código; ainda não aplicada em produção) | novo PR |
 | 17/11 | Entrega B1: página do projeto (todas as informações num só endereço) e localização gravando no banco; migração 0004 | PR #29 (no ar desde 18/11/2026) |
 | 17/11 | Projeto do banco de dados aprovado: princípios e roteiro B1 a B8, na ordem do Fluxo (`docs/govnexa/projeto-banco.md`) | PR #28 |
 | 17/11 | Entrega 1.1: tipo do documento (DFD, ETP, TR) no envio e na lista, com registro no Histórico; migração 0003 aplicada | PR #27, publicada em 17/11 |
@@ -409,7 +409,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 1. **3.3 — usuários e login:** revisar as correções de segurança da ordem 3, executar `npx playwright test --project=login`, homologar os dois temas e configurar e-mail/segredos. Publicação, migração central e troca de modo ficam com o responsável; Access continua padrão.
 2. **3.4 — documentos:** publicada em 17/11/2026.
    Entregas 1.0 (limite de requisições) e 1.1 (tipo do documento, migração 0003) publicadas em 17/11/2026.
-   Entregas B1 (página do projeto e localização, no ar desde 18/11/2026) e B2a (Novo projeto gravando; a migração 0005 e a publicação dependem de ordem do dono). Em seguida: B2b (edição dos campos na página do projeto) e B3 (Kanban e Pendências de etapa). Pendência de decisão: Importação e cadastro pela tela: a carga de planilhas (`scripts/gerar-sql-carga.ts`) agora NUNCA sobrescreve um projeto de origem CADASTRO. Fica a decisão do dono: se a planilha trouxer o mesmo código de um projeto cadastrado pela tela, o projeto da planilha é ignorado em silêncio. Definir uma faixa de códigos separada para a tela, ou um aviso no relatório da importação, antes da próxima planilha.
+   Entregas B1 (página do projeto e localização, no ar desde 18/11/2026) e B2a (Novo projeto gravando; a migração 0006 e a publicação dependem de ordem do dono). Em seguida: B2b (edição dos campos na página do projeto) e B3 (Kanban e Pendências de etapa). Pendência de decisão: Importação e cadastro pela tela: a carga de planilhas (`scripts/gerar-sql-carga.ts`) agora NUNCA sobrescreve um projeto de origem CADASTRO. Fica a decisão do dono: se a planilha trouxer o mesmo código de um projeto cadastrado pela tela, o projeto da planilha é ignorado em silêncio. Definir uma faixa de códigos separada para a tela, ou um aviso no relatório da importação, antes da próxima planilha.
 3. **3.5 — importação:** feita e gravada em 16/11.
 4. Automatizar a leitura do SEI com Cron Trigger.
 5. Desligar a hospedagem antiga.

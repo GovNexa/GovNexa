@@ -197,7 +197,7 @@ export function criarRepositorioD1(db: BancoD1, prefeituraId: number): Repositor
       }),
     async criarProjeto(dados, autor): Promise<ResultadoCriacaoProjeto> {
       // O próximo código é lido e gravado em passos separados: duas pessoas cadastrando juntas podem calcular o mesmo número.
-      // O índice único projeto_codigo_unico (migração 0005) faz o banco recusar o segundo lote inteiro (nada fica gravado pela
+      // O índice único projeto_codigo_unico (migração 0006) faz o banco recusar o segundo lote inteiro (nada fica gravado pela
       // metade); aqui o número é recalculado e a gravação repetida, algumas vezes, antes de desistir.
       for (let tentativa = 1; ; tentativa++) {
         try { return await criarUmProjeto(dados, autor); } catch (erro) {

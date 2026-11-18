@@ -1,5 +1,5 @@
 // Cadastro de projeto novo (entrega B2): permissão, validação no servidor, campos conhecidos, histórico junto,
-// isolamento por prefeitura, código único (migração 0005) e cadastros simultâneos.
+// isolamento por prefeitura, código único (migração 0006) e cadastros simultâneos.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
@@ -161,8 +161,8 @@ test('códigos: se o banco recusar sempre, o repositório desiste com mensagem e
   await assert.rejects(criarRepositorioD1(quebrado as any, 5208707).criarProjeto({ nome: 'A', orgao: 'B' }, 'x@x'), /disco cheio/);
 });
 
-test('migração 0005: índice único parcial do código e nenhuma alteração de dados', () => {
-  const sql = readFileSync('db/d1/prefeitura/0005_codigo_projeto_unico.sql', 'utf8');
+test('migração 0006: índice único parcial do código e nenhuma alteração de dados', () => {
+  const sql = readFileSync('db/d1/prefeitura/0006_codigo_projeto_unico.sql', 'utf8');
   assert.match(sql, /CREATE UNIQUE INDEX IF NOT EXISTS projeto_codigo_unico ON projeto \(prefeitura_id, codigo_legado\) WHERE codigo_legado IS NOT NULL/);
   assert.doesNotMatch(sql.replace(/--[^\n]*/g, ''), /\b(UPDATE|DELETE|DROP|ALTER|INSERT)\b/i);
 });
