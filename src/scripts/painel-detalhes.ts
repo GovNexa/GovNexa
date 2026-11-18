@@ -180,7 +180,7 @@ function construirPainel(
   const valoresOriginais = JSON.parse(registro.dataset.values ?? '[]') as ItemDetalhe[];
   const tabela = registro.closest('table');
   const cabecalhos = [...(tabela?.querySelectorAll('thead th') ?? [])]
-    .map((cabecalho) => cabecalho.textContent?.replace(' ↕', '').trim() ?? '')
+    .map((cabecalho) => cabecalho.textContent?.replace(/\s*↕/, '').trim() ?? '')
     .filter((rotulo) => !/^(detalhes|a[çc][aã]o)$/i.test(rotulo));
   const detalhe = registro.dataset.detalhe
     ? JSON.parse(registro.dataset.detalhe) as DetalheRegistro
