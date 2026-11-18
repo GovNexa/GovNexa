@@ -150,7 +150,7 @@ A cada entrega: a etapa correspondente do Fluxo deixa de ser "simulação", o av
 
 ### Pendências registradas
 
-- Importação e cadastro pela tela: a carga de planilhas grava por (prefeitura, id) e atualiza o projeto se o id já existir. Um projeto cadastrado pela tela (P-<maior código + 1>) pode ser sobrescrito se uma planilha futura trouxer o mesmo código. Decidir com o dono a regra (por exemplo, a carga não sobrescreve projeto de origem CADASTRO) antes de a próxima importação.
+- Importação e cadastro pela tela: a carga de planilhas (`scripts/gerar-sql-carga.ts`) agora NUNCA sobrescreve um projeto de origem CADASTRO. Fica a decisão do dono: se a planilha trouxer o mesmo código de um projeto cadastrado pela tela, o projeto da planilha é ignorado em silêncio. Definir uma faixa de códigos separada para a tela, ou um aviso no relatório da importação, antes da próxima planilha.
 
 - A validação da localização aceita pontos em Goiânia e no entorno, até cerca de 10 km além do retângulo da cidade (`src/lib/mapa/geo.ts`; regra do dono, 18/11/2026: obra na divisa ou em acordo com cidade vizinha). O limite ainda é fixo no código: antes de uma segunda prefeitura usar o sistema, o retângulo e a margem precisam vir do cadastro da prefeitura.
 - Cópia de segurança por exportação do banco: conferir, antes de depender dela, se a exportação e a importação lidam com a coluna calculada da migração 0004.

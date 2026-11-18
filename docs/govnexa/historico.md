@@ -38,7 +38,7 @@ A versão integral do histórico é privada e fica fora do repositório público
 | 17/11/2026 | Datas no padrão brasileiro: `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` (horário de Brasília). Função única em `src/lib/datas.ts`. |
 | 17/11/2026 | Banco de dados: a cada incremento que crie ou use dados, estudar e projetar antes de criar, respeitando relacionamentos, dependências e integridade, com segurança e agilidade. As telas saem da simulação na ordem do Fluxo, que é atualizado a cada entrega. Projeto em `docs/govnexa/projeto-banco.md`. |
 | 18/11/2026 | Limite da localização: a localização de um projeto aceita pontos em Goiânia e no entorno, até cerca de 10 km além do retângulo da cidade, porque a prefeitura pode ter obra na divisa ou em acordo com cidade vizinha. |
-| 18/11/2026 | Importação x cadastro pela tela (risco registrado na B2): a carga de planilhas atualiza por id e pode sobrescrever um projeto cadastrado pela tela se a planilha trouxer o mesmo código; a regra precisa ser decidida antes da próxima importação. |
+| 18/11/2026 | Importação x cadastro pela tela (risco registrado na B2): a carga de planilhas passou a nunca sobrescrever projeto de origem CADASTRO (revisão da B2); se a planilha trouxer o mesmo código de um projeto da tela, o da planilha é ignorado em silêncio, e a faixa de códigos ou o aviso no relatório precisam ser decididos antes da próxima importação. |
 
 ## 4. Testes do SEI (registro)
 
