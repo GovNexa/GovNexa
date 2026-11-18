@@ -281,3 +281,11 @@ body:has(.platform)>.app-footer{flex:none;margin-top:auto}
   .workspace [data-table]>.filtros-tabela .filtro-valor .filtro-rotulo{font-size:.75rem;color:var(--muted);white-space:nowrap;font-weight:600}
   .workspace [data-table] [data-table-count]{margin:.15rem 0 .5rem;font-size:.78rem;color:var(--muted)}
 }
+/* Topo dos módulos: texto usa a largura disponível; botão alinhado ao título; linha da fonte discreta. */
+@media (min-width:701px){
+  .workspace>.section-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;column-gap:1.5rem}
+  .workspace>.section-head>div:first-child{min-width:0}
+  .workspace>.section-head p.muted{max-width:120ch;text-wrap:pretty}
+  .workspace>.section-head p.muted small{display:block;margin-top:.2rem;font-size:.72rem;opacity:.85}
+  .workspace>.section-head>.primary,.workspace>.section-head>button,.workspace>.section-head>.actions{align-self:start;margin-top:.1rem}
+}
