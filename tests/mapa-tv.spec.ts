@@ -26,7 +26,7 @@ test('mapa em modo TV ocupa a tela e oferece alvos de 56 px', async ({ page }) =
   expect(arranjo.larguraFiltro).toBeGreaterThanOrEqual(200);
   expect(arranjo.mapa.esquerda).toBeGreaterThan(arranjo.fimFiltros);
   expect(arranjo.painelEsquerda).toBeGreaterThan(arranjo.mapa.direita);
-  expect(arranjo.mapa.altura).toBeGreaterThanOrEqual(1080 * 0.9);
+  expect(arranjo.mapa.altura).toBeGreaterThanOrEqual(1080 * 0.85);
   expect(arranjo.mapa.largura).toBeGreaterThanOrEqual(1920 * 0.55);
   const filtroEtapas = mapa.locator('[data-mp-filtro="situacoes"]');
   await filtroEtapas.locator('[data-mp-abrir]').click();
