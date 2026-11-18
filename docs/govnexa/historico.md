@@ -35,6 +35,8 @@ A versão integral do histórico é privada e fica fora do repositório público
 | 16/11/2026 | Fluxo com executores: Claude gerencia e revisa; Codex (backend) e Copilot (front-end) executam em worktree própria, sem commit, push ou publicação. |
 | 16/11/2026 | Repositório antigo (`SLo0th1/Atlas_Conecta`) **congelado**: tudo segue só no novo, e nada mais aponta para o antigo. |
 | 17/11/2026 | Login próprio do GovNexa (senha + verificação em 2 etapas obrigatória) substitui o Cloudflare Access na plataforma; cadastro e convites pela guia Usuários; e-mails do sistema saem de nao-responda@govnexa.com.br. |
+| 18/11/2026 | Copilot CLI sai do fluxo (consumo alto): executores passam a ser só o Codex; o Claude assume o que for pequeno ou quando o Codex estiver sem cota. |
+| 18/11/2026 | Modelos do Codex atualizados: `gpt-6.2-sol` (complexa ou sensível), `gpt-6.1-terra` (média) e `gpt-6-luna` (simples). |
 | 17/11/2026 | Datas no padrão brasileiro: `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` (horário de Brasília). Função única em `src/lib/datas.ts`. |
 | 17/11/2026 | Banco de dados: a cada incremento que crie ou use dados, estudar e projetar antes de criar, respeitando relacionamentos, dependências e integridade, com segurança e agilidade. As telas saem da simulação na ordem do Fluxo, que é atualizado a cada entrega. Projeto em `docs/govnexa/projeto-banco.md`. |
 | 18/11/2026 | Limite da localização: a localização de um projeto aceita pontos em Goiânia e no entorno, até cerca de 10 km além do retângulo da cidade, porque a prefeitura pode ter obra na divisa ou em acordo com cidade vizinha. |
