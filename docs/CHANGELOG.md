@@ -1,5 +1,8 @@
 # Changelog
 
+## Editor de localização — camadas (18/11/2026)
+- Mapa, Satélite e Híbrido no editor, com preferência compartilhada com a Gestão e controles isolados; troca preserva campos e desenhos sem alterar o endereço. Definições reunidas em `src/lib/mapa/camadas.ts`.
+
 ## GovNexa — Mapa da cidade para TV touch (Gestão · Painel, 18/11/2026)
 - Mapa abre com todas as obras; contagem "no mapa · ocultas pelos filtros · sem localização".
 - Filtros enxutos: situação do prazo (Todas, No prazo, Atenção, Atrasadas), etapas e tipos numa linha com rolagem.

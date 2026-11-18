@@ -88,6 +88,7 @@ const dados = JSON.stringify({ obras, semLocalLista, semLocal }).replaceAll('<',
 
 <script>
 import * as L from 'leaflet';
+import { criarCamadasFundo, ehCamada, preferenciaCamada, type NomeCamada } from '../../lib/mapa/camadas.ts';
 import 'leaflet/dist/leaflet.css';
 import { dataBr } from '../../lib/datas.ts';
 import { GOIANIA, ROTULO_CATEGORIA, ROTULO_SITUACAO_MAPA, espalharSobrepostos, type SituacaoMapa } from '../../lib/mapa/geo.ts';
@@ -213,32 +214,19 @@ document.addEventListener('astro:page-load', () => {
     centroValido ? [centroInicial[0]!, centroInicial[1]!] : [GOIANIA.centro.lat, GOIANIA.centro.lng],
     zoomValido ? zoomInicial : 12,
   );
-  // Camadas de fundo (pedido do dono, 18/11/2026): Mapa (OpenStreetMap), Satélite e Híbrido (Esri World Imagery + referências).
-  type NomeCamada = 'mapa' | 'satelite' | 'hibrido';
-  const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services';
-  const ATRIB_ESRI = 'Imagens © Esri — Fonte: Esri, Maxar, Earthstar Geographics e comunidade de usuários GIS';
-  const camadasFundo: Record<NomeCamada, L.TileLayer[]> = {
-    mapa: [L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© colaboradores do OpenStreetMap', maxZoom: 18 })],
-    satelite: [L.tileLayer(`${ESRI}/World_Imagery/MapServer/tile/{z}/{y}/{x}`, { attribution: ATRIB_ESRI, maxZoom: 18 })],
-    hibrido: [
-      L.tileLayer(`${ESRI}/World_Imagery/MapServer/tile/{z}/{y}/{x}`, { attribution: ATRIB_ESRI, maxZoom: 18 }),
-      L.tileLayer(`${ESRI}/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 18 }),
-      L.tileLayer(`${ESRI}/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 18 }),
-    ],
-  };
-  const ehCamada = (v: string | null | undefined): v is NomeCamada => v === 'mapa' || v === 'satelite' || v === 'hibrido';
+  const camadasFundo = criarCamadasFundo(L);
+  const botoesCamada = raiz.querySelectorAll<HTMLButtonElement>('[data-mp-camada]');
   let camadaAtual: NomeCamada = 'mapa';
   function aplicarCamada(nome: NomeCamada): void {
     for (const lista of Object.values(camadasFundo)) for (const c of lista) if (mapa.hasLayer(c)) mapa.removeLayer(c);
     for (const c of camadasFundo[nome]) c.addTo(mapa);
     camadaAtual = nome;
     q('[data-mp-mapa]').dataset.camada = nome;
-    for (const b of document.querySelectorAll<HTMLButtonElement>('[data-mp-camada]')) b.setAttribute('aria-pressed', String(b.dataset.mpCamada === nome));
-    try { localStorage.setItem('govnexa-mapa-camada', nome); } catch { /* sem armazenamento: segue sem lembrar */ }
+    for (const b of botoesCamada) b.setAttribute('aria-pressed', String(b.dataset.mpCamada === nome));
+    preferenciaCamada(nome);
   }
   {
-    let lembrada: string | null = null;
-    try { lembrada = localStorage.getItem('govnexa-mapa-camada'); } catch { lembrada = null; }
+    const lembrada = preferenciaCamada();
     const pedida = parametrosIniciais.get('camada');
     aplicarCamada(ehCamada(pedida) ? pedida : ehCamada(lembrada) ? lembrada : 'mapa');
   }
@@ -797,7 +785,7 @@ document.addEventListener('astro:page-load', () => {
     renderPainel(obrasFiltradas());
     salvarURL();
   });
-  for (const b of document.querySelectorAll<HTMLButtonElement>('[data-mp-camada]')) b.addEventListener('click', () => { const n = b.dataset.mpCamada; if (ehCamada(n)) { aplicarCamada(n); salvarURL(); } });
+  for (const b of botoesCamada) b.addEventListener('click', () => { const n = b.dataset.mpCamada; if (ehCamada(n)) { aplicarCamada(n); salvarURL(); } });
   q('[data-mp-zoom-in]').addEventListener('click', () => mapa.zoomIn());
   q('[data-mp-zoom-out]').addEventListener('click', () => mapa.zoomOut());
   mapa.on('zoomend', desenhar);
