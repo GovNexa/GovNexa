@@ -10,7 +10,7 @@ export type ResultadoAplicacao =
 
 export type ResultadoCriacaoProjeto =
   | { ok: true; projeto: Projeto; historico: RegistroHistorico[] }
-  | { ok: false; erro: string; faltando?: string[] };
+  | { ok: false; erro: string; faltando?: string[]; codigo?: 'concorrencia' };
 
 export interface RepositorioProjetos {
   podeGravar: boolean;

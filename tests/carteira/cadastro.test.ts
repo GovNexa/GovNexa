@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import { bancoTeste } from '../helpers/d1.ts';
+import { carregarExemplo } from '../helpers/carga.ts';
 import { repositorioD1ParaTestes } from '../../src/lib/repositorio/index.ts';
 import { criarRepositorioD1 } from '../../src/lib/repositorio/d1.ts';
 import { cadastrarProjeto, normalizarCadastro, type ContextoCadastro } from '../../src/lib/carteira/cadastro.ts';
@@ -133,7 +134,11 @@ test('códigos: cada cadastro recebe o número seguinte e o código nunca se rep
 
 test('códigos: dois cadastros ao mesmo tempo não repetem número, não perdem projeto nem deixam histórico solto', async () => {
   const { banco, c } = montar('editor');
+  let lotes = 0;
+  const original = banco.db.batch.bind(banco.db);
+  banco.db.batch = (s: any[]) => { lotes += 1; return original(s); };
   const resultados = await Promise.all(Array.from({ length: 5 }, (_, i) => cadastrarProjeto(c, { ...BASE, nome: `Simultâneo ${i}` })));
+  assert.ok(lotes > 5, `houve colisão de verdade e repetição (lotes enviados: ${lotes})`);
   assert.ok(resultados.every((r) => r.ok), JSON.stringify(resultados.filter((r) => !r.ok)));
   const ids = projetos(banco).map((p) => p.id).sort();
   assert.deepEqual(ids, ['P-1', 'P-2', 'P-3', 'P-4', 'P-5']);
@@ -149,7 +154,7 @@ test('códigos: se o banco recusar sempre, o repositório desiste com mensagem e
   };
   const repo = criarRepositorioD1(teimoso as any, 5208707);
   const r = await repo.criarProjeto({ nome: 'A', orgao: 'B' }, 'x@x');
-  assert.deepEqual(r, { ok: false, erro: 'Muitos cadastros ao mesmo tempo. Tente de novo em instantes.' });
+  assert.deepEqual(r, { ok: false, codigo: 'concorrencia', erro: 'Muitos cadastros ao mesmo tempo. Tente de novo em instantes.' });
   assert.equal(projetos(banco).length, 0);
   // Outro erro do banco não é engolido.
   const quebrado = { prepare: teimoso.prepare, async batch() { throw new Error('D1_ERROR: disco cheio'); } };
@@ -160,4 +165,37 @@ test('migração 0005: índice único parcial do código e nenhuma alteração d
   const sql = readFileSync('db/d1/prefeitura/0005_codigo_projeto_unico.sql', 'utf8');
   assert.match(sql, /CREATE UNIQUE INDEX IF NOT EXISTS projeto_codigo_unico ON projeto \(prefeitura_id, codigo_legado\) WHERE codigo_legado IS NOT NULL/);
   assert.doesNotMatch(sql.replace(/--[^\n]*/g, ''), /\b(UPDATE|DELETE|DROP|ALTER|INSERT)\b/i);
+});
+
+test('normalizar: invisíveis, controles C1 e marcas de direção viram espaço; o corte não parte caractere', () => {
+  const n = normalizarCadastro({ nome: 'Obra‮x​y', orgao: 'S­mS', responsavel: '😀'.repeat(200) });
+  assert.ok(n.ok);
+  if (!n.ok) return;
+  assert.equal(n.dados.nome, 'Obra x  y');
+  assert.equal(n.dados.orgao, 'S mS');
+  assert.equal(Array.from(n.dados.responsavel ?? '').length, 120);
+  assert.equal(n.dados.responsavel, '😀'.repeat(120));
+});
+
+test('histórico do cadastro inclui a localização inicial', async () => {
+  const { banco, c } = montar('editor');
+  await cadastrarProjeto(c, { ...BASE, localizacao: { tipo: 'ponto', ponto: { lat: -16.7, lng: -49.3 }, endereco: null } });
+  const campos = JSON.parse((banco.sqlite.prepare("SELECT campos FROM evento_projeto WHERE tipo = 'criado'").get() as any).campos);
+  assert.ok(campos.some((x: any) => x.campo === 'localizacao' && x.depois.tipo === 'ponto'));
+});
+
+test('repetição: só código ou id repetido é tentado de novo; outro índice único vira erro de verdade', async () => {
+  const { banco } = montar('editor');
+  const outro = { prepare: (sql: string) => banco.db.prepare(sql), async batch() { throw new Error('D1_ERROR: UNIQUE constraint failed: projeto.prefeitura_id, projeto.sei: SQLITE_CONSTRAINT'); } };
+  await assert.rejects(criarRepositorioD1(outro as any, 5208707).criarProjeto({ nome: 'A', orgao: 'B' }, 'x@x'), /projeto\.sei/);
+});
+
+test('carga de planilha: nunca sobrescreve projeto cadastrado pela tela, mesmo com o mesmo código', () => {
+  const banco = bancoTeste('prefeitura');
+  const sql = carregarExemplo(banco.sqlite);
+  assert.match(sql, /DO UPDATE SET[^;]*WHERE json_extract\(projeto\.origem, '\$\.aba'\) IS NOT 'CADASTRO';/);
+  banco.sqlite.exec("UPDATE projeto SET nome = 'Cadastrado pela tela', origem = '{\"aba\":\"CADASTRO\",\"linha\":0}' WHERE id = 'P-900'");
+  banco.sqlite.exec(sql); // nova importação com o mesmo código
+  assert.equal((banco.sqlite.prepare("SELECT nome FROM projeto WHERE id = 'P-900'").get() as any).nome, 'Cadastrado pela tela');
+  assert.notEqual((banco.sqlite.prepare("SELECT nome FROM projeto WHERE id = 'P-901'").get() as any).nome, 'Cadastrado pela tela');
 });

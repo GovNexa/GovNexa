@@ -1,6 +1,7 @@
 ---
 import '../../styles/carteira.css';
 import { carregarCarteira } from '../../lib/carteira/carga.ts';
+import { ORIGENS_RECURSO, PRIORIDADES, TIPOS, TIPOS_CONTRATACAO } from '../../lib/carteira/cadastro.ts';
 import { usuarioPode } from '../../lib/usuarios/index.ts';
 import EditorLocalizacao from '../mapa/EditorLocalizacao.astro';
 import { carregarGeoBairros } from '../../lib/mapa/obras.ts';
@@ -39,7 +40,7 @@ const blocos: { titulo: string; dica?: string; campos: Campo[] }[] = [
       { id: 'nome', rotulo: 'Nome do projeto', tipo: 'texto', obrigatorio: true, largo: true },
       { id: 'orgao', rotulo: 'Órgão', tipo: 'select', obrigatorio: true, opcoes: orgaos, vazio: 'Escolha o órgão', outro: true },
       { id: 'responsavel', rotulo: 'Responsável', tipo: 'texto' },
-      { id: 'tipo', rotulo: 'Tipo', tipo: 'select', opcoes: ['OBRA INFRA', 'OBRA CIVIL', 'REFORMA', 'SERVIÇO'], vazio: 'Não informado' },
+      { id: 'tipo', rotulo: 'Tipo', tipo: 'select', opcoes: [...TIPOS], vazio: 'Não informado' },
       { id: 'detalhamento', rotulo: 'Detalhamento', tipo: 'texto', lista: detalhamentos, dica: 'Ex.: edificação, ponte, corredor. Você pode escolher um já usado ou digitar.' },
       { id: 'regiao', rotulo: 'Região', tipo: 'select', opcoes: regioes, vazio: 'Não informada' },
       { id: 'bairro', rotulo: 'Bairro', tipo: 'texto' },
@@ -59,7 +60,7 @@ const blocos: { titulo: string; dica?: string; campos: Campo[] }[] = [
   {
     titulo: '4. Recurso',
     campos: [
-      { id: 'recurso_origem', rotulo: 'Origem do recurso', tipo: 'select', opcoes: ['Municipal', 'Federal', 'Estadual', 'Outro'], vazio: 'Não informada' },
+      { id: 'recurso_origem', rotulo: 'Origem do recurso', tipo: 'select', opcoes: [...ORIGENS_RECURSO], vazio: 'Não informada' },
       { id: 'fonte_programa', rotulo: 'Fonte ou programa', tipo: 'texto' },
       { id: 'unidade_financiadora', rotulo: 'Unidade financiadora', tipo: 'texto' },
       { id: 'termo', rotulo: 'Termo de compromisso', tipo: 'select', opcoes: SIM_NAO, vazio: 'Não informado' },
@@ -69,8 +70,8 @@ const blocos: { titulo: string; dica?: string; campos: Campo[] }[] = [
   {
     titulo: '5. Prioridade e contratação',
     campos: [
-      { id: 'prioridade', rotulo: 'Prioridade', tipo: 'select', opcoes: ['Muito Alta', 'Alta', 'Média', 'Baixa'], vazio: 'Não informada' },
-      { id: 'tipo_contratacao', rotulo: 'Tipo de contratação', tipo: 'select', opcoes: ['LICITAÇÃO', 'Execução Própria', 'Adesão a Ata', 'Dispensa', 'Termo de compensação'], vazio: 'Não informado' },
+      { id: 'prioridade', rotulo: 'Prioridade', tipo: 'select', opcoes: [...PRIORIDADES], vazio: 'Não informada' },
+      { id: 'tipo_contratacao', rotulo: 'Tipo de contratação', tipo: 'select', opcoes: [...TIPOS_CONTRATACAO], vazio: 'Não informado' },
       { id: 'orgao_contratacao', rotulo: 'Órgão da contratação', tipo: 'texto' },
     ],
   },

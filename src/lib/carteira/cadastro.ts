@@ -21,6 +21,10 @@ export const ORIGENS_RECURSO = ['Municipal', 'Federal', 'Estadual', 'Outro'] as 
 const COMPROMISSOS = ['decidido', 'condicionado', 'ideia'] as const;
 const SEI = /^\d{2}\.\d{1,2}\.\d{9}-\d$/;
 const DATA = /^\d{4}-\d{2}-\d{2}$/;
+// Controles (inclui os C1), invisíveis e marcas de direção do texto (permitem nome enganoso): viram espaço.
+const INVISIVEIS = '\\u0080-\\u009f\\u00ad\\u200b-\\u200f\\u2028\\u2029\\u202a-\\u202e\\u2060-\\u2069\\ufeff';
+const CONTROLE = new RegExp(`[\\u0000-\\u001f\\u007f${INVISIVEIS}]`, 'g');
+const CONTROLE_COM_QUEBRA = new RegExp(`[\\u0000-\\u0009\\u000b-\\u001f\\u007f${INVISIVEIS}]`, 'g');
 const MAX_VALOR = 1e12;
 const MAX_SEI = 10;
 
@@ -41,8 +45,8 @@ export function podeCadastrar(c: ContextoCadastro): ResultadoCadastro | { ok: tr
 /** Texto curto: sem caracteres de controle (a observação mantém quebras de linha); vazio vira null. */
 function texto(v: unknown, max: number, quebras = false): string | null {
   if (typeof v !== 'string') return null;
-  const limpo = v.replace(quebras ? /[\u0000-\u0009\u000b-\u001f\u007f]/g : /[\u0000-\u001f\u007f]/g, ' ').trim();
-  return limpo ? limpo.slice(0, max).trim() : null;
+  const limpo = v.replace(quebras ? CONTROLE_COM_QUEBRA : CONTROLE, ' ').trim();
+  return limpo ? Array.from(limpo).slice(0, max).join('').trim() || null : null;
 }
 
 /** Valida e reconstrói os dados do cadastro. Devolve só os campos conhecidos ou a lista de erros em português simples. */
@@ -151,8 +155,7 @@ export async function cadastrarProjeto(c: ContextoCadastro, bruto: unknown): Pro
   // Regras de negócio (macroetapa 00, pendências, histórico "criado") são as da função única do sistema, aplicadas no repositório.
   const r = await c.repositorio.criarProjeto(n.dados as Parameters<RepositorioProjetos['criarProjeto']>[0], c.usuario.email);
   if (!r.ok) {
-    if (/Grava..o indispon/.test(r.erro)) return falha(503, 'Gravação indisponível no momento.');
-    if (/Muitos cadastros/.test(r.erro)) return falha(409, r.erro);
+    if (r.codigo === 'concorrencia') return falha(409, r.erro);
     return falha(400, r.erro, r.faltando);
   }
   const p = r.projeto;

@@ -24,7 +24,7 @@ function montar(perfil: Usuario['perfil'] = 'editor', pref = 5208707, bancoExist
 const linha = (banco: Banco, pref = 5208707) =>
   banco.sqlite.prepare('SELECT localizacao, revisao FROM projeto WHERE prefeitura_id = ? AND id = ?').get(pref, 'P-1') as { localizacao: string | null; revisao: number };
 const eventos = (banco: Banco) =>
-  banco.sqlite.prepare("SELECT prefeitura_id, projeto_id, tipo, origem, autor, descricao FROM evento_projeto WHERE tipo = 'localizacao_alterada' ORDER BY em, id").all() as any[];
+  banco.sqlite.prepare("SELECT prefeitura_id, projeto_id, tipo, origem, autor, descricao FROM evento_projeto WHERE tipo = 'localizacao_alterada' ORDER BY rowid").all() as any[];
 
 test('normalizar: só os campos conhecidos, 6 casas e textos limpos', () => {
   const n = normalizarLocalizacao({ ...PONTO, intruso: '<script>', ponto: { ...PONTO.ponto, extra: 1 } });

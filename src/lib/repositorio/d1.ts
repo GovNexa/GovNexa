@@ -201,9 +201,11 @@ export function criarRepositorioD1(db: BancoD1, prefeituraId: number): Repositor
       // metade); aqui o número é recalculado e a gravação repetida, algumas vezes, antes de desistir.
       for (let tentativa = 1; ; tentativa++) {
         try { return await criarUmProjeto(dados, autor); } catch (erro) {
-          const repetido = /UNIQUE constraint failed: projeto\./i.test(String(erro));
+          // Só a recusa do código (ou do id) repetido é tentada de novo; qualquer outro índice único futuro é erro de verdade.
+          const repetido = /UNIQUE constraint failed: projeto\.prefeitura_id, projeto\.(codigo_legado|id)\b/i.test(String(erro));
           if (!repetido) throw erro;
-          if (tentativa >= 4) return { ok: false, erro: 'Muitos cadastros ao mesmo tempo. Tente de novo em instantes.' };
+          if (tentativa >= 5) return { ok: false, codigo: 'concorrencia', erro: 'Muitos cadastros ao mesmo tempo. Tente de novo em instantes.' };
+          await new Promise((r) => setTimeout(r, 20 + Math.random() * 80 * tentativa));
         }
       }
     },

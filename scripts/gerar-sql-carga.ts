@@ -66,9 +66,11 @@ function upsert(tabela: string, pk: string[], cols: Record<string, string>, pres
   const nomes = Object.keys(cols);
   const atualiza = nomes.filter((c) => !pk.includes(c) && !preservar.includes(c)).map((c) => `${c} = EXCLUDED.${c}`);
   if (sqlite && tabela === 'projeto') atualiza.push('revisao = projeto.revisao + 1');
+  // Projeto cadastrado pela tela (origem.aba = CADASTRO) nunca é sobrescrito pela planilha, mesmo que ela traga o mesmo código.
+  const protegeCadastro = sqlite && tabela === 'projeto' ? " WHERE json_extract(projeto.origem, '$.aba') IS NOT 'CADASTRO'" : '';
   return (
     `INSERT INTO ${tabela} (${nomes.join(', ')}) VALUES (${nomes.map((c) => cols[c]).join(', ')})\n` +
-    `  ON CONFLICT (${pk.join(', ')}) DO UPDATE SET ${atualiza.join(', ')};`
+    `  ON CONFLICT (${pk.join(', ')}) DO UPDATE SET ${atualiza.join(', ')}${protegeCadastro};`
   );
 }
 
