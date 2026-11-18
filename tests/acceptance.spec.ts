@@ -625,40 +625,51 @@ test('govnexa: painel do prefeito',async({page})=>{
 test('govnexa: mapa das obras',async({page,browser})=>{
  await page.route('https://tile.openstreetmap.org/**',r=>r.abort());
  const semRolagem=()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth);
- const numero=async()=>Number((await page.locator('[data-mp-contagem]').innerText()).match(/^(\d+)/)![1]);
  // painel do prefeito com o mapa
  await page.setViewportSize({width:1280,height:900});
  const resposta=await page.goto('/plataforma/gestao/');
  expect(resposta?.status()).toBe(200);
  await expect(page.locator('#mapa')).toBeVisible();
  await expect(page.locator('#mapa .leaflet-container')).toBeVisible();
+ await expect(page.locator('#mapa [data-mp-contagem]')).toContainText('ocultas pelos filtros');
+ const antes=await page.locator('#mapa [data-mp-lista-corpo] tr').count();
+ expect(antes).toBeGreaterThanOrEqual(2);
+ await expect(page.locator('#mapa .mp-chip-etapa[aria-pressed="true"]')).toHaveCount(6);
+ await expect(page.locator('#mapa .mp-chip-categoria[aria-pressed="true"]')).toHaveCount(9);
+ await page.screenshot({path:'test-results/mapa-1280.png',fullPage:false});
+ await page.locator('#mapa .leaflet-container').scrollIntoViewIfNeeded();
+ await page.locator('#mapa .mp-bolha-caixa').first().click();
+ await expect(page.locator('#mapa [data-mp-painel]')).toContainText('obras');
+ await expect(page.locator('#mapa .mp-bolha-caixa').first()).toBeVisible();
+ await page.locator('#mapa .mp-bolha-caixa').first().click();
+ await expect(page.locator('#mapa [data-mp-painel] .mp-item').first()).toBeVisible();
+ await page.locator('#mapa [data-mp-painel] .mp-item').first().click();
+ await expect(page.locator('#mapa [data-mp-painel] a', { hasText: 'Abrir ficha completa' })).toHaveAttribute('href',/^\/plataforma\/projeto\/P-\d+\/$/);
+ await page.screenshot({path:'test-results/mapa-ficha.png'});
+ await page.locator('#mapa [data-mp-painel]').getByRole('button',{name:'Voltar',exact:true}).click();
+ await expect(page.locator('#mapa [data-mp-painel] .mp-item').first()).toBeVisible();
+ await page.locator('#mapa').getByRole('button',{name:'Cidade inteira'}).click();
+ for(let i=0;i<3;i++)await page.locator('#mapa [data-mp-zoom-in]').click();
  await expect(page.locator('#mapa .leaflet-marker-icon .mp-marcador').first()).toBeVisible();
  await expect(page.locator('#mapa path.leaflet-interactive').first()).toBeAttached();
- const antes=await numero();
- expect(antes).toBeGreaterThanOrEqual(2);
- await page.screenshot({path:'test-results/mapa-1280.png',fullPage:false});
- await page.locator('#mapa .leaflet-marker-icon').first().click();
- const popup=page.locator('.leaflet-popup-content');
- await expect(popup.getByRole('link',{name:'Abrir a ficha'})).toHaveAttribute('href',/^\/plataforma\/projeto\/P-\d+\/$/);
- await expect(popup.getByRole('link',{name:'Editar localização'})).toBeVisible();
- await page.screenshot({path:'test-results/mapa-popup.png'});
- await page.keyboard.press('Escape');
- await page.locator('#mapa').getByRole('button',{name:'Em execução'}).click();
- await expect(page.locator('#mapa').getByRole('button',{name:'Em execução'})).toHaveAttribute('aria-pressed','false');
- expect(await numero()).toBeLessThan(antes);
- await page.locator('#mapa').getByRole('button',{name:'Em execução'}).click();
- expect(await numero()).toBe(antes);
+ await page.goto('/plataforma/gestao/');
+ await page.locator('#mapa').getByRole('button',{name:'Atrasadas',exact:true}).click();
+ expect(await page.locator('#mapa [data-mp-lista-corpo] tr').count()).toBeLessThan(antes);
+ await page.locator('#mapa').getByRole('button',{name:'Limpar filtros'}).click();
+ await expect(page.locator('#mapa .mp-chip-etapa[aria-pressed="true"]')).toHaveCount(6);
  // lista alternativa
  await page.locator('#mapa summary').click();
  await expect(page.locator('#mapa [data-mp-lista-corpo] tr')).toHaveCount(antes);
- // toque (monitor touch): abrir o resumo tocando no ícone
+ // toque na bolha regional, na de bairro e na obra abre o painel lateral.
  const touch=await browser.newContext({hasTouch:true,viewport:{width:390,height:844}});
  const tp=await touch.newPage();
  await tp.route('https://tile.openstreetmap.org/**',r=>r.abort());
  await tp.goto('/plataforma/gestao/');
- await tp.locator('#mapa').scrollIntoViewIfNeeded();
- await tp.locator('#mapa .leaflet-marker-icon').first().tap();
- await expect(tp.locator('.leaflet-popup-content').getByRole('link',{name:'Abrir a ficha'})).toBeVisible();
+ await tp.locator('#mapa .leaflet-container').scrollIntoViewIfNeeded();
+ await tp.locator('#mapa .mp-bolha-caixa').first().tap();
+ await tp.locator('#mapa .mp-bolha-caixa').first().tap();
+ await tp.locator('#mapa [data-mp-painel] .mp-item').first().tap();
+ await expect(tp.locator('#mapa [data-mp-painel] a', { hasText: 'Abrir ficha completa' })).toHaveAttribute('href',/^\/plataforma\/projeto\/P-\d+\/$/);
  await tp.screenshot({path:'test-results/mapa-390.png'});
  await touch.close();
  // tela de localização: trocar para ruas e trechos, desenhar 2 pontos e salvar (grava no banco)
@@ -667,8 +678,9 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  await expect(page.locator('#lp-enviar-fotos')).toBeDisabled();
  await page.screenshot({path:'test-results/localizacao-1280.png'});
  await page.getByRole('radio',{name:/Ruas e trechos/}).check();
+ for(const trecho of await page.locator('#lp-loc [data-ed-lista] .mp-trecho').all())await trecho.getByRole('button',{name:/Limpar linha/}).click();
  await page.getByLabel('Rua (obrigatório)').fill('Avenida Exemplo');
- await page.getByRole('button',{name:/Desenhar no mapa/}).click();
+ await page.getByRole('button',{name:/Desenhar no mapa/}).first().click();
  const areaMapa=page.locator('#lp-loc [data-ed-mapa]');
  await areaMapa.click({position:{x:120,y:120}});
  await areaMapa.click({position:{x:260,y:180}});

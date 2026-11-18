@@ -1,19 +1,16 @@
 ---
 import '../../styles/mapa.css';
-import { reaisAbreviado } from '../../lib/gestao/painel.ts';
 import type { ObraBasica, ObraMapa } from '../../lib/mapa/obras.ts';
 
 interface Props {
   obras: ObraMapa[];
   semLocal: number;
-  /** Projetos sem localização (dados mínimos): só aparecem se houver localização simulada na sessão do navegador. */
   semLocalLista?: ObraBasica[];
   altura?: string;
   id?: string;
 }
 const { obras, semLocal, semLocalLista = [], altura = 'min(70vh, 640px)', id = 'mapa-obras' } = Astro.props;
-const comTexto = <T extends ObraBasica>(o: T): T & { valorTxt: string | null } => ({ ...o, valorTxt: o.valor === null ? null : reaisAbreviado(o.valor) });
-const dados = JSON.stringify({ obras: obras.map(comTexto), semLocalLista: semLocalLista.map(comTexto), semLocal }).replaceAll('<', '\\u003c');
+const dados = JSON.stringify({ obras, semLocalLista, semLocal }).replaceAll('<', '\\u003c');
 ---
 <div class="mp-secao" data-mapa-obras={id} id={id}>
   <div class="mp-cab">
@@ -23,29 +20,47 @@ const dados = JSON.stringify({ obras: obras.map(comTexto), semLocalLista: semLoc
   <p class="mp-contagem" role="status" aria-live="polite" data-mp-contagem></p>
 
   <div class="mp-filtros">
-    <fieldset class="mp-grupo" data-mp-situacoes>
-      <legend>Situação</legend>
+    <fieldset class="mp-grupo mp-prazo" data-mp-farol>
+      <legend>Situação do prazo</legend>
     </fieldset>
-    <fieldset class="mp-grupo" data-mp-categorias>
-      <legend>Tipo de obra</legend>
-    </fieldset>
+    <div class="mp-filtros-linha" role="group" aria-label="Filtros por etapa e tipo de obra">
+      <fieldset class="mp-grupo" data-mp-situacoes>
+        <legend>Etapas</legend>
+      </fieldset>
+      <fieldset class="mp-grupo" data-mp-categorias>
+        <legend>Tipos de obra</legend>
+      </fieldset>
+    </div>
     <div class="mp-acoes">
-      <button type="button" class="mp-btn" data-mp-centralizar>Centralizar Goiânia</button>
-      <button type="button" class="mp-btn" data-mp-tela-cheia hidden>Tela cheia</button>
+      <button type="button" class="mp-btn" data-mp-limpar>Limpar filtros</button>
+      <button type="button" class="mp-btn" data-mp-centralizar>Cidade inteira</button>
+      <button type="button" class="mp-btn" data-mp-apresentar>Apresentar mapa</button>
     </div>
   </div>
 
-  <div class="mp-mapa" data-mp-mapa role="region" aria-label="Mapa das obras de Goiânia" style={`height:${altura}`}></div>
+  <div class="mp-layout">
+    <div class="mp-mapa" data-mp-mapa role="region" aria-label="Mapa das obras de Goiânia" style={`height:${altura}`}>
+      <div class="mp-zoom" role="group" aria-label="Controles de zoom">
+        <button type="button" data-mp-zoom-in aria-label="Aumentar zoom">+</button>
+        <button type="button" data-mp-zoom-out aria-label="Diminuir zoom">−</button>
+      </div>
+    </div>
+    <aside class="mp-painel" aria-label="Resumo do mapa" aria-live="polite" data-mp-painel></aside>
+  </div>
 
-  <ul class="mp-legenda" aria-label="Legenda dos tipos de obra" data-mp-legenda></ul>
-  <p class="mp-nota">Ícone com borda tracejada = local aproximado (centro do bairro). Toque ou clique em um ícone ou em uma rua destacada para ver o resumo.</p>
+  <ul class="mp-legenda" aria-label="Legenda da situação do prazo">
+    <li><span class="mp-ponto-farol mp-farol-verde" aria-hidden="true"></span>No prazo</li>
+    <li><span class="mp-ponto-farol mp-farol-amarelo" aria-hidden="true"></span>Atenção</li>
+    <li><span class="mp-ponto-farol mp-farol-vermelho" aria-hidden="true"></span>Atrasada</li>
+    <li><span class="mp-contorno-aprox" aria-hidden="true"></span>Contorno tracejado = local aproximado (centro do bairro)</li>
+  </ul>
 
   <details class="mp-lista">
     <summary>Ver as obras em lista</summary>
     <div class="table-wrap">
       <table>
-        <caption class="mp-nota" data-mp-lista-legenda>Obras visíveis com os filtros escolhidos</caption>
-        <thead><tr><th scope="col">Obra</th><th scope="col">Órgão</th><th scope="col">Situação</th><th scope="col">Categoria</th><th scope="col">Local</th></tr></thead>
+        <caption class="mp-nota">Obras visíveis com os filtros escolhidos</caption>
+        <thead><tr><th scope="col">Obra</th><th scope="col">Órgão</th><th scope="col">Situação do prazo</th><th scope="col">Etapa</th><th scope="col">Tipo de obra</th><th scope="col">Local</th></tr></thead>
         <tbody data-mp-lista-corpo></tbody>
       </table>
     </div>
@@ -56,18 +71,35 @@ const dados = JSON.stringify({ obras: obras.map(comTexto), semLocalLista: semLoc
 <script>
 import * as L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { GOIANIA, ROTULO_CATEGORIA, ROTULO_SITUACAO_MAPA, type SituacaoMapa } from '../../lib/mapa/geo.ts';
-import { COR_CATEGORIA, elementoGlifo } from '../../lib/mapa/icones.ts';
+import { dataBr } from '../../lib/datas.ts';
+import { GOIANIA, ROTULO_CATEGORIA, ROTULO_SITUACAO_MAPA, espalharSobrepostos, type SituacaoMapa } from '../../lib/mapa/geo.ts';
+import { agruparPorBairro, agruparPorRegiao, type AgrupamentoMapa, type CorFarol, type ObraAgrupavel } from '../../lib/mapa/agrupar.ts';
+import { elementoGlifo } from '../../lib/mapa/icones.ts';
 import type { ObraBasica, ObraMapa } from '../../lib/mapa/obras.ts';
 import { lerLocalizacoesSimuladas } from '../../lib/mapa/simulacao.ts';
-import type { CategoriaObra } from '../../lib/mapa/tipos.ts';
+import type { CategoriaObra, Localizacao, PontoGeo } from '../../lib/mapa/tipos.ts';
 
-type ObraVista = ObraMapa & { valorTxt: string | null; simulada?: boolean };
-type SemLocalVista = ObraBasica & { valorTxt: string | null };
+type ObraVista = ObraMapa & { simulada?: boolean };
+type SemLocalVista = ObraBasica;
 interface Dados { obras: ObraVista[]; semLocalLista: SemLocalVista[]; semLocal: number }
+type FarolFiltro = CorFarol | 'todas';
+type Selecao =
+  | { tipo: 'cidade' }
+  | { tipo: 'grupo'; grupo: AgrupamentoMapa }
+  | { tipo: 'obra'; obra: ObraVista };
 
 const SITUACOES = Object.keys(ROTULO_SITUACAO_MAPA) as SituacaoMapa[];
 const CATEGORIAS = Object.keys(ROTULO_CATEGORIA) as CategoriaObra[];
+const FAROIS: { valor: FarolFiltro; texto: string }[] = [
+  { valor: 'todas', texto: 'Todas' },
+  { valor: 'verde', texto: 'No prazo' },
+  { valor: 'amarelo', texto: 'Atenção' },
+  { valor: 'vermelho', texto: 'Atrasadas' },
+];
+const CORES_FAROL: Record<CorFarol, string> = { verde: '#238636', amarelo: '#b76e00', vermelho: '#c62828' };
+const ROTULO_FAROL: Record<CorFarol, string> = { verde: 'No prazo', amarelo: 'Atenção', vermelho: 'Atrasada' };
+const MOEDA = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+const tamanhoBolha = (total: number): number => Math.min(88, 52 + Math.sqrt(total) * 5);
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, texto?: string, classe?: string): HTMLElementTagNameMap[K] {
   const e = document.createElement(tag);
@@ -75,48 +107,31 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, texto?: string, class
   if (classe) e.className = classe;
   return e;
 }
-const dataBr = (iso: string): string => iso.slice(0, 10).split('-').reverse().join('/');
 
-function marcador(cat: CategoriaObra, aprox: boolean): HTMLElement {
-  const d = el('div', undefined, `mp-marcador${aprox ? ' mp-aprox' : ''}`);
-  d.style.setProperty('--c', COR_CATEGORIA[cat]);
-  d.append(elementoGlifo(cat));
-  return d;
+function pontosDaLocalizacao(localizacao: Localizacao): PontoGeo[] {
+  return localizacao.tipo === 'ponto'
+    ? [localizacao.ponto]
+    : localizacao.trechos.flatMap((trecho) => trecho.linha);
 }
 
 function localTexto(o: ObraVista): string {
-  const l = o.localizacao;
+  const local = o.localizacao;
   if (o.precisao === 'bairro') return `Aproximado: centro do bairro ${o.bairro ?? ''}`.trim();
-  if (l.tipo === 'ponto') return l.endereco ? `Ponto: ${l.endereco}` : 'Ponto marcado no mapa';
-  const ruas = l.trechos.map((t) => t.rua).join(', ');
-  return `${l.trechos.length} ${l.trechos.length === 1 ? 'trecho' : 'trechos'}: ${ruas}`;
+  if (local.tipo === 'ponto') return local.endereco ? `Ponto: ${local.endereco}` : 'Ponto marcado no mapa';
+  return `${local.trechos.length} ${local.trechos.length === 1 ? 'trecho' : 'trechos'}: ${local.trechos.map((trecho) => trecho.rua).join(', ')}`;
 }
 
-function resumo(o: ObraVista): HTMLElement {
-  const r = el('div', undefined, 'mp-res');
-  if (o.foto) {
-    const img = el('img');
-    img.src = o.foto;
-    img.alt = `Foto da obra: ${o.nome}`;
-    img.loading = 'lazy';
-    r.append(img);
-  }
-  r.append(el('strong', o.nome));
-  if (o.simulada) r.append(el('span', 'simulação', 'mp-selo'));
-  r.append(el('p', `${o.orgao ?? 'Sem órgão'} · ${ROTULO_SITUACAO_MAPA[o.situacao]}`));
-  r.append(el('p', `Valor: ${o.valorTxt ?? '—'}`));
-  if (o.percentual !== null) r.append(el('p', `Execução: ${Math.round(o.percentual).toLocaleString('pt-BR')}%`));
-  if (o.prazo) r.append(el('p', `Prazo da etapa: ${dataBr(o.prazo)}`));
-  r.append(el('p', `● ${o.farol.texto}`));
-  if (o.precisao === 'bairro') r.append(el('p', `Local aproximado (centro do bairro ${o.bairro ?? ''})`, 'mp-aviso-local'));
-  const links = el('div', undefined, 'mp-links');
-  const ficha = el('a', 'Abrir a ficha');
-  ficha.href = `/plataforma/projeto/${encodeURIComponent(o.id)}/`;
-  const editar = el('a', 'Editar localização');
-  editar.href = `/plataforma/projetos-localizacao/?id=${encodeURIComponent(o.id)}`;
-  links.append(ficha, editar);
-  r.append(links);
-  return r;
+function valorTexto(obras: ObraBasica[]): string {
+  const conhecidos = obras.filter((obra) => obra.valor !== null);
+  if (conhecidos.length === 0) return `— (0 de ${obras.length} com valor)`;
+  const total = conhecidos.reduce((soma, obra) => soma + (obra.valor ?? 0), 0);
+  return `${MOEDA.format(total)} (${conhecidos.length} de ${obras.length} com valor)`;
+}
+
+function contagemFarol(obras: ObraBasica[]): Record<CorFarol, number> {
+  const contagem: Record<CorFarol, number> = { verde: 0, amarelo: 0, vermelho: 0 };
+  for (const obra of obras) contagem[obra.farol.cor]++;
+  return contagem;
 }
 
 document.addEventListener('astro:page-load', () => {
@@ -125,92 +140,422 @@ document.addEventListener('astro:page-load', () => {
   raiz.dataset.pronto = 'sim';
   let dados: Dados;
   try {
-    dados = JSON.parse(raiz.querySelector('[data-mp-dados]')?.textContent || '{}');
-  } catch {
-    dados = { obras: [], semLocalLista: [], semLocal: 0 };
+    const bruto = JSON.parse(raiz.querySelector('[data-mp-dados]')?.textContent || '') as Partial<Dados>;
+    if (!Array.isArray(bruto.obras) || !Array.isArray(bruto.semLocalLista) || typeof bruto.semLocal !== 'number') {
+      throw new Error('Estrutura de dados incompleta.');
+    }
+    dados = { obras: bruto.obras, semLocalLista: bruto.semLocalLista, semLocal: bruto.semLocal };
+  } catch (erro) {
+    const mensagem = el('p', 'Não foi possível carregar os dados do mapa.', 'mp-aviso');
+    mensagem.setAttribute('role', 'alert');
+    raiz.append(mensagem);
+    console.error('Falha ao carregar dados do mapa.', erro);
+    return;
   }
-  dados = { obras: dados.obras ?? [], semLocalLista: dados.semLocalLista ?? [], semLocal: dados.semLocal ?? 0 };
-  const q = <T extends HTMLElement>(s: string) => raiz.querySelector<T>(s)!;
+  const q = <T extends HTMLElement>(seletor: string) => raiz.querySelector<T>(seletor)!;
 
-  // Localização simulada (sessionStorage) substitui a da obra; obras sem local mas com simulação passam a aparecer.
-  const sim = lerLocalizacoesSimuladas();
-  const todas: ObraVista[] = dados.obras.map((o) => (sim[o.id] ? { ...o, localizacao: sim[o.id], precisao: 'cadastrada' as const, simulada: true } : o));
+  const simuladas = lerLocalizacoesSimuladas();
+  const todas: ObraVista[] = dados.obras.map((obra) => (
+    simuladas[obra.id] ? { ...obra, localizacao: simuladas[obra.id], precisao: 'cadastrada', simulada: true } : obra
+  ));
   let semLocal = dados.semLocal;
-  for (const o of dados.semLocalLista) {
-    if (sim[o.id]) {
-      todas.push({ ...o, localizacao: sim[o.id], precisao: 'cadastrada', simulada: true });
+  for (const obra of dados.semLocalLista) {
+    if (simuladas[obra.id]) {
+      todas.push({ ...obra, localizacao: simuladas[obra.id], precisao: 'cadastrada', simulada: true });
       semLocal--;
     }
   }
+  semLocal = Math.max(0, semLocal);
 
-  const situacoes = new Set<SituacaoMapa>(['execucao', 'mobilizacao']);
+  const situacoes = new Set<SituacaoMapa>(SITUACOES);
   const categorias = new Set<CategoriaObra>(CATEGORIAS);
-
-  const mapa = L.map(q('[data-mp-mapa]'), { zoomControl: true, tap: true, minZoom: 10, maxZoom: 18 }).setView([GOIANIA.centro.lat, GOIANIA.centro.lng], 12);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© colaboradores do OpenStreetMap', maxZoom: 18 }).addTo(mapa);
+  let farolFiltro: FarolFiltro = 'todas';
+  let selecao: Selecao = { tipo: 'cidade' };
+  const historico: Selecao[] = [];
+  const mapa = L.map(q('[data-mp-mapa]'), {
+    zoomControl: false,
+    tap: true,
+    minZoom: 10,
+    maxZoom: 18,
+    zoomAnimation: !matchMedia('(prefers-reduced-motion: reduce)').matches,
+    fadeAnimation: !matchMedia('(prefers-reduced-motion: reduce)').matches,
+    markerZoomAnimation: !matchMedia('(prefers-reduced-motion: reduce)').matches,
+  }).setView([GOIANIA.centro.lat, GOIANIA.centro.lng], 12);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© colaboradores do OpenStreetMap',
+    maxZoom: 18,
+  }).addTo(mapa);
   const camada = L.layerGroup().addTo(mapa);
-
   const contagem = q('[data-mp-contagem]');
   const corpo = q('[data-mp-lista-corpo]');
+  const painel = q('[data-mp-painel]');
+  const aviso = el('p', undefined, 'mp-aviso');
+  aviso.setAttribute('role', 'status');
+  aviso.hidden = true;
+  painel.after(aviso);
 
-  function chip(pai: HTMLElement, texto: string, ativo: boolean, aoAlternar: (ligado: boolean) => void): void {
-    const b = el('button', texto, 'mp-chip');
-    b.type = 'button';
-    b.setAttribute('aria-pressed', String(ativo));
-    b.addEventListener('click', () => {
-      const ligado = b.getAttribute('aria-pressed') !== 'true';
-      b.setAttribute('aria-pressed', String(ligado));
+  function mostrarAviso(texto: string): void {
+    aviso.textContent = texto;
+    aviso.hidden = false;
+  }
+
+  function chip(pai: HTMLElement, texto: string, ativo: boolean, classe: string, aoAlternar: (ligado: boolean) => void): HTMLButtonElement {
+    const botao = el('button', texto, `mp-chip ${classe}`);
+    botao.type = 'button';
+    botao.setAttribute('aria-pressed', String(ativo));
+    botao.addEventListener('click', () => {
+      const ligado = botao.getAttribute('aria-pressed') !== 'true';
+      botao.setAttribute('aria-pressed', String(ligado));
       aoAlternar(ligado);
       desenhar();
     });
-    pai.append(b);
+    pai.append(botao);
+    return botao;
   }
-  for (const s of SITUACOES) chip(q('[data-mp-situacoes]'), ROTULO_SITUACAO_MAPA[s], situacoes.has(s), (l) => (l ? situacoes.add(s) : situacoes.delete(s)));
-  for (const c of CATEGORIAS) chip(q('[data-mp-categorias]'), ROTULO_CATEGORIA[c], true, (l) => (l ? categorias.add(c) : categorias.delete(c)));
 
-  const legenda = q('[data-mp-legenda]');
-  for (const c of CATEGORIAS) {
-    const li = el('li');
-    const ic = marcador(c, false);
-    ic.className = 'mp-icone';
-    li.append(ic, el('span', ROTULO_CATEGORIA[c]));
-    legenda.append(li);
+  for (const filtro of FAROIS) {
+    const botao = el('button', filtro.texto, `mp-chip mp-chip-farol mp-farol-${filtro.valor}`);
+    botao.type = 'button';
+    botao.setAttribute('aria-pressed', String(filtro.valor === farolFiltro));
+    botao.addEventListener('click', () => {
+      farolFiltro = filtro.valor;
+      q('[data-mp-farol]').querySelectorAll('button').forEach((item) => {
+        item.setAttribute('aria-pressed', String(item === botao));
+      });
+      desenhar();
+    });
+    q('[data-mp-farol]').append(botao);
+  }
+  for (const situacao of SITUACOES) {
+    chip(q('[data-mp-situacoes]'), ROTULO_SITUACAO_MAPA[situacao], true, 'mp-chip-etapa', (ligado) => {
+      if (ligado) situacoes.add(situacao);
+      else situacoes.delete(situacao);
+    });
+  }
+  for (const categoria of CATEGORIAS) {
+    chip(q('[data-mp-categorias]'), ROTULO_CATEGORIA[categoria], true, 'mp-chip-categoria', (ligado) => {
+      if (ligado) categorias.add(categoria);
+      else categorias.delete(categoria);
+    });
+  }
+
+  function obrasFiltradas(): ObraVista[] {
+    return todas.filter((obra) =>
+      situacoes.has(obra.situacao) &&
+      categorias.has(obra.categoria) &&
+      (farolFiltro === 'todas' || obra.farol.cor === farolFiltro),
+    );
+  }
+
+  function obrasAgrupaveis(obras: ObraVista[]): ObraAgrupavel[] {
+    return obras.map((obra) => ({
+      id: obra.id,
+      regiao: obra.regiao,
+      bairro: obra.bairro,
+      farol: obra.farol.cor,
+      pontos: pontosDaLocalizacao(obra.localizacao),
+    }));
+  }
+
+  function selecionar(nova: Selecao, voltar = true): void {
+    if (voltar) historico.push(selecao);
+    selecao = nova;
+    renderPainel(obrasFiltradas());
+  }
+
+  function selecionarGrupo(grupo: AgrupamentoMapa, zoom: number): void {
+    if (!grupo.centro) return;
+    selecionar({ tipo: 'grupo', grupo });
+    mapa.setView([grupo.centro.lat, grupo.centro.lng], zoom);
+  }
+
+  function selecionarObra(obra: ObraVista): void {
+    const local = obra.localizacao;
+    const ponto = local.tipo === 'ponto'
+      ? local.ponto
+      : local.trechos[0]?.linha[0];
+    selecionar({ tipo: 'obra', obra });
+    if (ponto) mapa.setView([ponto.lat, ponto.lng], Math.max(15, mapa.getZoom()));
+  }
+
+  function botaoObra(obra: ObraVista, texto = obra.nome): HTMLButtonElement {
+    const botao = el('button', undefined, 'mp-item');
+    const nome = el('strong', texto);
+    const detalhe = el('span', `${obra.orgao ?? 'Sem órgão'} · ${ROTULO_SITUACAO_MAPA[obra.situacao]}`);
+    const prazo = el('span', `${ROTULO_FAROL[obra.farol.cor]} · ${obra.farol.texto}`, `mp-texto-farol mp-texto-${obra.farol.cor}`);
+    botao.append(nome, detalhe, prazo);
+    botao.type = 'button';
+    botao.addEventListener('click', () => selecionarObra(obra));
+    return botao;
+  }
+
+  function renderPainel(obras: ObraVista[]): void {
+    painel.replaceChildren();
+    const cabecalho = el('div', undefined, 'mp-painel-cab');
+    const titulo = el('h3');
+    const acoes = el('div', undefined, 'mp-painel-acoes');
+    if (selecao.tipo !== 'cidade') {
+      const voltar = el('button', 'Voltar', 'mp-btn mp-btn-voltar');
+      voltar.type = 'button';
+      voltar.addEventListener('click', () => {
+        const anterior: Selecao = historico.pop() ?? { tipo: 'cidade' };
+        selecao = anterior;
+        if (anterior.tipo === 'cidade') mapa.setView([GOIANIA.centro.lat, GOIANIA.centro.lng], 12);
+        else if (anterior.tipo === 'grupo' && anterior.grupo.centro) {
+          mapa.setView(
+            [anterior.grupo.centro.lat, anterior.grupo.centro.lng],
+            anterior.grupo.nivel === 'regiao' ? 13 : 15,
+          );
+        }
+        renderPainel(obrasFiltradas());
+      });
+      acoes.append(voltar);
+    }
+    if (selecao.tipo === 'obra') {
+      const obra = selecao.obra;
+      titulo.textContent = obra.nome;
+      cabecalho.append(titulo, acoes);
+      painel.append(cabecalho);
+      if (obra.simulada) painel.append(el('span', 'Simulação', 'mp-selo'));
+      painel.append(
+        el('p', obra.orgao ?? 'Sem órgão'),
+        el('p', `Etapa: ${ROTULO_SITUACAO_MAPA[obra.situacao]}`),
+        el('p', `Valor: ${obra.valor === null ? '—' : MOEDA.format(obra.valor)}`),
+      );
+      if (obra.percentual !== null) painel.append(el('p', `Executado: ${Math.round(obra.percentual)}%`));
+      painel.append(el('p', `Prazo da etapa: ${obra.prazo ? dataBr(obra.prazo) : '—'}`));
+      painel.append(el('p', `${ROTULO_FAROL[obra.farol.cor]} · ${obra.farol.texto}`, `mp-texto-farol mp-texto-${obra.farol.cor}`));
+      if (obra.foto) {
+        const foto = el('img');
+        foto.src = obra.foto;
+        foto.alt = `Foto da obra: ${obra.nome}`;
+        foto.loading = 'lazy';
+        painel.append(foto);
+      }
+      if (obra.precisao === 'bairro') painel.append(el('p', `Local aproximado (centro do bairro ${obra.bairro ?? ''})`, 'mp-aviso-local'));
+      const links = el('div', undefined, 'mp-painel-links');
+      const ficha = el('a', 'Abrir ficha completa');
+      ficha.href = `/plataforma/projeto/${encodeURIComponent(obra.id)}/`;
+      const editar = el('a', 'Editar localização');
+      editar.href = `/plataforma/projetos-localizacao/?id=${encodeURIComponent(obra.id)}`;
+      links.append(ficha, editar);
+      painel.append(links);
+      return;
+    }
+
+    const gruposRegiao = agruparPorRegiao(obrasAgrupaveis(obras));
+    if (selecao.tipo === 'grupo') {
+      const grupo = selecao.grupo;
+      const membros = obras.filter((obra) => grupo.ids.includes(obra.id));
+      titulo.textContent = grupo.nome;
+      cabecalho.append(titulo, acoes);
+      painel.append(cabecalho, el('p', `${membros.length} ${membros.length === 1 ? 'obra' : 'obras'}`));
+      painel.append(el('p', `Valor: ${valorTexto(membros)}`));
+      const contagens = contagemFarol(membros);
+      painel.append(el('p', `No prazo: ${contagens.verde} · Atenção: ${contagens.amarelo} · Atrasadas: ${contagens.vermelho}`));
+      const lista = el('div', undefined, 'mp-painel-lista');
+      for (const obra of membros) lista.append(botaoObra(obra));
+      painel.append(lista);
+      return;
+    }
+
+    titulo.textContent = 'Goiânia';
+    cabecalho.append(titulo, acoes);
+    painel.append(cabecalho, el('p', `${obras.length} ${obras.length === 1 ? 'obra no mapa' : 'obras no mapa'}`));
+    painel.append(el('p', `Valor: ${valorTexto(obras)}`));
+    const contagens = contagemFarol(obras);
+    painel.append(el('p', `No prazo: ${contagens.verde} · Atenção: ${contagens.amarelo} · Atrasadas: ${contagens.vermelho}`));
+    const regiaoTitulo = el('h4', 'Obras por região');
+    painel.append(regiaoTitulo);
+    const lista = el('div', undefined, 'mp-painel-lista');
+    for (const grupo of gruposRegiao) {
+      const botao = el('button', undefined, 'mp-item mp-item-regiao');
+      botao.type = 'button';
+      botao.append(
+        el('strong', grupo.nome),
+        el('span', `${grupo.total} ${grupo.total === 1 ? 'obra' : 'obras'} · No prazo: ${grupo.farois.verde}, Atenção: ${grupo.farois.amarelo}, Atrasadas: ${grupo.farois.vermelho}`),
+      );
+      botao.addEventListener('click', () => selecionarGrupo(grupo, 13));
+      lista.append(botao);
+    }
+    painel.append(lista);
+  }
+
+  function elementoMarcador(obra: ObraVista): HTMLElement {
+    const marcador = el('div', undefined, `mp-marcador mp-farol-${obra.farol.cor}${obra.precisao === 'bairro' ? ' mp-aprox' : ''}`);
+    marcador.title = `${obra.nome} · ${ROTULO_FAROL[obra.farol.cor]}`;
+    marcador.setAttribute('aria-label', marcador.title);
+    marcador.append(elementoGlifo(obra.categoria));
+    return marcador;
+  }
+
+  function elementoBolha(grupo: AgrupamentoMapa): HTMLElement {
+    const bolha = el('div', undefined, 'mp-bolha');
+    const nome = grupo.nivel === 'regiao' && grupo.nome === 'Região não informada' ? 'não informada' : grupo.nome;
+    const rotuloGrupo = grupo.nivel === 'regiao' ? 'Região' : 'Bairro';
+    const total = Math.max(1, grupo.total);
+    const pctVerde = (grupo.farois.verde / total) * 100;
+    const pctAmarelo = (grupo.farois.amarelo / total) * 100;
+    const tamanho = tamanhoBolha(grupo.total);
+    bolha.style.width = `${tamanho}px`;
+    bolha.style.height = `${tamanho}px`;
+    bolha.style.background = `conic-gradient(${CORES_FAROL.verde} 0 ${pctVerde}%, ${CORES_FAROL.amarelo} ${pctVerde}% ${pctVerde + pctAmarelo}%, ${CORES_FAROL.vermelho} ${pctVerde + pctAmarelo}% 100%)`;
+    bolha.setAttribute('aria-label', `${rotuloGrupo} ${nome}, ${grupo.total} obras; No prazo: ${grupo.farois.verde}, Atenção: ${grupo.farois.amarelo}, Atrasadas: ${grupo.farois.vermelho}`);
+    bolha.title = bolha.getAttribute('aria-label')!;
+    bolha.append(el('span', String(grupo.total), 'mp-bolha-miolo'));
+    return bolha;
+  }
+
+  function adicionarBolha(grupo: AgrupamentoMapa, zoomSeguinte: number, centroVisivel?: PontoGeo): void {
+    if (!grupo.centro) return;
+    const conteudo = elementoBolha(grupo);
+    const tamanho = Number.parseFloat(conteudo.style.width);
+    const icone = L.divIcon({ html: conteudo, className: 'mp-bolha-caixa', iconSize: [tamanho, tamanho], iconAnchor: [tamanho / 2, tamanho / 2] });
+    const posicao = centroVisivel ?? grupo.centro;
+    L.marker([posicao.lat, posicao.lng], { icon: icone, title: conteudo.title, alt: conteudo.title, riseOnHover: true })
+      .on('click', () => selecionarGrupo(grupo, zoomSeguinte))
+      .addTo(camada);
+  }
+
+  function adicionarBolhas(grupos: AgrupamentoMapa[], zoomSeguinte: number): void {
+    const conjuntos: { centro: L.Point; grupos: AgrupamentoMapa[] }[] = [];
+    for (const grupo of grupos) {
+      if (!grupo.centro) continue;
+      const ponto = mapa.latLngToLayerPoint([grupo.centro.lat, grupo.centro.lng]);
+      const conjunto = conjuntos.find((item) => ponto.distanceTo(item.centro) < 72);
+      if (conjunto) conjunto.grupos.push(grupo);
+      else conjuntos.push({ centro: ponto, grupos: [grupo] });
+    }
+    for (const conjunto of conjuntos) {
+      const { grupos: itens } = conjunto;
+      itens.forEach((grupo, indice) => {
+        if (itens.length === 1) {
+          adicionarBolha(grupo, zoomSeguinte);
+          return;
+        }
+        const diametro = Math.max(...itens.map((item) => tamanhoBolha(item.total)));
+        const raio = Math.max(56, (diametro + 8) / (2 * Math.sin(Math.PI / itens.length)));
+        const angulo = (2 * Math.PI * indice) / itens.length;
+        // Afasta visualmente centros coincidentes; selecionar ainda leva ao centro médio original.
+        const ponto = conjunto.centro.add(L.point(Math.cos(angulo) * raio, Math.sin(angulo) * raio));
+        const centroVisivel = mapa.layerPointToLatLng(ponto);
+        adicionarBolha(grupo, zoomSeguinte, centroVisivel);
+      });
+    }
+  }
+
+  function adicionarObra(obra: ObraVista, pontosEspalhados: Map<string, PontoGeo>): void {
+    const local = obra.localizacao;
+    if (local.tipo === 'ponto') {
+      const ponto = pontosEspalhados.get(obra.id) ?? local.ponto;
+      const icone = L.divIcon({ html: elementoMarcador(obra), className: 'mp-marcador-caixa', iconSize: [44, 44], iconAnchor: [22, 22] });
+      L.marker([ponto.lat, ponto.lng], {
+        icon: icone,
+        title: obra.nome,
+        alt: `${obra.nome} · ${ROTULO_FAROL[obra.farol.cor]}`,
+        riseOnHover: true,
+      }).on('click', () => selecionarObra(obra)).addTo(camada);
+      return;
+    }
+    for (const trecho of local.trechos) {
+      const linha = L.polyline(trecho.linha.map((ponto): [number, number] => [ponto.lat, ponto.lng]), {
+        color: CORES_FAROL[obra.farol.cor],
+        weight: 8,
+        opacity: 0.9,
+        dashArray: obra.precisao === 'bairro' ? '7 7' : undefined,
+      }).addTo(camada);
+      linha.on('click', () => selecionarObra(obra));
+      const tornarAcessivel = () => {
+        const path = linha.getElement();
+        if (!path) return;
+        path.setAttribute('tabindex', '0');
+        path.setAttribute('role', 'button');
+        path.setAttribute('aria-label', `${obra.nome} · ${ROTULO_FAROL[obra.farol.cor]}`);
+        path.addEventListener('keydown', (evento: Event) => {
+          if (evento instanceof KeyboardEvent && (evento.key === 'Enter' || evento.key === ' ')) {
+            evento.preventDefault();
+            selecionarObra(obra);
+          }
+        });
+      };
+      linha.on('add', tornarAcessivel);
+      tornarAcessivel();
+    }
   }
 
   function desenhar(): void {
-    camada.clearLayers();
-    const vis = todas.filter((o) => situacoes.has(o.situacao) && categorias.has(o.categoria));
-    for (const o of vis) {
-      const cor = COR_CATEGORIA[o.categoria];
-      const l = o.localizacao;
-      if (l.tipo === 'ponto') {
-        const icone = L.divIcon({ html: marcador(o.categoria, o.precisao === 'bairro'), className: 'mp-marcador-caixa', iconSize: [36, 36], iconAnchor: [18, 18], popupAnchor: [0, -18] });
-        L.marker([l.ponto.lat, l.ponto.lng], { icon: icone, title: o.nome, alt: o.nome, riseOnHover: true }).bindPopup(() => resumo(o), { maxWidth: 300 }).addTo(camada);
-      } else {
-        for (const t of l.trechos) {
-          L.polyline(t.linha.map((p): [number, number] => [p.lat, p.lng]), { color: cor, weight: 7, opacity: 0.85 }).bindPopup(() => resumo(o), { maxWidth: 300 }).addTo(camada);
-        }
-      }
-    }
-    contagem.textContent = `${vis.length} ${vis.length === 1 ? 'obra' : 'obras'} no mapa · ${semLocal} sem localização`;
+    const visiveis = obrasFiltradas();
+    contagem.textContent = `${todas.length} ${todas.length === 1 ? 'obra' : 'obras'} no mapa · ${todas.length - visiveis.length} ocultas pelos filtros · ${semLocal} sem localização`;
     corpo.replaceChildren();
-    for (const o of vis) {
-      const tr = el('tr');
-      tr.append(el('td', o.nome), el('td', o.orgao ?? '—'), el('td', ROTULO_SITUACAO_MAPA[o.situacao]), el('td', ROTULO_CATEGORIA[o.categoria]), el('td', localTexto(o)));
-      corpo.append(tr);
+    for (const obra of visiveis) {
+      const linha = el('tr');
+      linha.append(
+        el('td', obra.nome),
+        el('td', obra.orgao ?? '—'),
+        el('td', `${ROTULO_FAROL[obra.farol.cor]} · ${obra.farol.texto}`),
+        el('td', ROTULO_SITUACAO_MAPA[obra.situacao]),
+        el('td', ROTULO_CATEGORIA[obra.categoria]),
+        el('td', localTexto(obra)),
+      );
+      corpo.append(linha);
     }
+    camada.clearLayers();
+    const zoom = mapa.getZoom();
+    if (zoom <= 12) {
+      adicionarBolhas(agruparPorRegiao(obrasAgrupaveis(visiveis)), 13);
+    } else if (zoom <= 14) {
+      adicionarBolhas(agruparPorBairro(obrasAgrupaveis(visiveis)), 15);
+    } else {
+      const pontos = visiveis
+        .filter((obra) => obra.localizacao.tipo === 'ponto')
+        .map((obra) => ({
+          id: obra.id,
+          ponto: obra.localizacao.tipo === 'ponto' ? obra.localizacao.ponto : GOIANIA.centro,
+        }));
+      const espalhados = espalharSobrepostos(pontos);
+      for (const obra of visiveis) adicionarObra(obra, espalhados);
+    }
+    renderPainel(visiveis);
   }
 
-  q('[data-mp-centralizar]').addEventListener('click', () => mapa.setView([GOIANIA.centro.lat, GOIANIA.centro.lng], 12));
-  const cheia = q<HTMLButtonElement>('[data-mp-tela-cheia]');
-  if (document.fullscreenEnabled) {
-    cheia.hidden = false;
-    cheia.addEventListener('click', () => {
-      if (document.fullscreenElement) void document.exitFullscreen();
-      else void raiz.requestFullscreen();
-    });
-    document.addEventListener('fullscreenchange', () => setTimeout(() => mapa.invalidateSize(), 100));
-  }
+  q('[data-mp-limpar]').addEventListener('click', () => {
+    situacoes.clear();
+    SITUACOES.forEach((situacao) => situacoes.add(situacao));
+    categorias.clear();
+    CATEGORIAS.forEach((categoria) => categorias.add(categoria));
+    farolFiltro = 'todas';
+    q('[data-mp-situacoes]').querySelectorAll('button').forEach((botao) => botao.setAttribute('aria-pressed', 'true'));
+    q('[data-mp-categorias]').querySelectorAll('button').forEach((botao) => botao.setAttribute('aria-pressed', 'true'));
+    q('[data-mp-farol]').querySelectorAll('button').forEach((botao, indice) => botao.setAttribute('aria-pressed', String(indice === 0)));
+    desenhar();
+  });
+  q('[data-mp-centralizar]').addEventListener('click', () => {
+    historico.length = 0;
+    selecao = { tipo: 'cidade' };
+    mapa.setView([GOIANIA.centro.lat, GOIANIA.centro.lng], 12);
+    renderPainel(obrasFiltradas());
+  });
+  q('[data-mp-zoom-in]').addEventListener('click', () => mapa.zoomIn());
+  q('[data-mp-zoom-out]').addEventListener('click', () => mapa.zoomOut());
+  mapa.on('zoomend', desenhar);
+
+  const apresentar = q<HTMLButtonElement>('[data-mp-apresentar]');
+  if (!document.fullscreenEnabled) apresentar.hidden = true;
+  apresentar.addEventListener('click', () => {
+    const acao = document.fullscreenElement === raiz ? document.exitFullscreen() : raiz.requestFullscreen();
+    void acao.catch(() => mostrarAviso('Não foi possível abrir o modo de apresentação neste dispositivo.'));
+  });
+  document.addEventListener('keydown', (evento) => {
+    if (evento.key === 'Escape' && document.fullscreenElement === raiz) {
+      void document.exitFullscreen().catch(() => mostrarAviso('Não foi possível sair do modo de apresentação.'));
+    }
+  });
+  document.addEventListener('fullscreenchange', () => {
+    const ativo = document.fullscreenElement === raiz;
+    apresentar.textContent = ativo ? 'Sair da apresentação' : 'Apresentar mapa';
+    apresentar.setAttribute('aria-pressed', String(ativo));
+    requestAnimationFrame(() => mapa.invalidateSize());
+  });
 
   desenhar();
 });
