@@ -90,3 +90,10 @@ O desenho que orienta as próximas tabelas (catálogos, governança, SEI e contr
 dados estão em `docs/govnexa/projeto-banco.md`. Desde a migração 0004, `evento_sistema` tem a coluna calculada `projeto_id`
 (tirada de `detalhes`) e o histórico de um projeto é lido pelos índices `(prefeitura_id, projeto_id, em)` das duas tabelas
 de eventos. A localização do projeto é gravada só na coluna `projeto.localizacao`, junto com o evento `localizacao_alterada`.
+
+
+## Centros de bairros no D1 — migração 0005
+
+Tabela `bairro_geo` no banco da prefeitura: `prefeitura_id INTEGER NOT NULL`, `bairro TEXT NOT NULL`, `busca TEXT NOT NULL`, `encontrado INTEGER NOT NULL CHECK(encontrado IN (0,1))`, `lat REAL`, `lng REAL`, `fonte TEXT NOT NULL`, `gerado_em TEXT NOT NULL`.
+Chave primária composta `(prefeitura_id,bairro)`; toda leitura filtra a prefeitura autenticada. Se encontrado, latitude/longitude são obrigatórias e ficam entre -16.85/-16.45 e -49.5/-49.05; se não encontrado, ambas são nulas.
+Centros públicos do Nominatim são aceitos só com município Goiânia e caixa válida, preferindo bairro/suburb/neighbourhood/quarter. Dados reais ficam no D1; exemplos fictícios ficam em `data/exemplo/`. A fonte e a data acompanham a busca; carga por SQL idempotente. O contexto compartilha o cache de 30 s e usa o exemplo se a leitura falhar ou vier vazia.
