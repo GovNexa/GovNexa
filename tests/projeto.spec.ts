@@ -48,7 +48,7 @@ test('localização: recusa origem de fora, formato errado, corpo grande e valor
   expect(grande.status()).toBe(413);
   const invalido = await request.post(ROTA, { headers: { ...json, origin }, data: { tipo: 'ponto', ponto: { lat: 0, lng: 0 } } });
   expect(invalido.status()).toBe(400);
-  expect((await invalido.json()).erros).toEqual(['O ponto está fora de Goiânia.']);
+  expect((await invalido.json()).erros).toEqual(['O ponto está fora de Goiânia e do entorno.']);
   const quebrado = await request.post(ROTA, { headers: { ...json, origin }, data: '{nao e json' });
   expect(quebrado.status()).toBe(400);
   const inexistente = await request.post('/plataforma/projeto/localizacao/P-NAO-EXISTE/', { headers: { ...json, origin }, data: PONTO });

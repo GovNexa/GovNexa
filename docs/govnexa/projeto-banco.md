@@ -149,7 +149,7 @@ A cada entrega: a etapa correspondente do Fluxo deixa de ser "simulação", o av
 
 ### Pendências registradas
 
-- A validação da localização aceita só pontos dentro de Goiânia (`src/lib/mapa/geo.ts`). Antes de uma segunda prefeitura usar o sistema, os limites do município precisam vir do cadastro da prefeitura.
+- A validação da localização aceita pontos em Goiânia e no entorno, até cerca de 10 km além do retângulo da cidade (`src/lib/mapa/geo.ts`; regra do dono, 18/11/2026: obra na divisa ou em acordo com cidade vizinha). O limite ainda é fixo no código: antes de uma segunda prefeitura usar o sistema, o retângulo e a margem precisam vir do cadastro da prefeitura.
 - Cópia de segurança por exportação do banco: conferir, antes de depender dela, se a exportação e a importação lidam com a coluna calculada da migração 0004.
 
 ## 7. Limites do D1 considerados

@@ -77,7 +77,7 @@ test('salvar: perfil de leitura, projeto inexistente e valor inválido são recu
   assert.equal(((await salvarLocalizacao(c, "P-1' OR '1'='1", PONTO)) as any).status, 404);
   const fora = (await salvarLocalizacao(c, 'P-1', { tipo: 'ponto', ponto: { lat: -10, lng: -40 }, endereco: null })) as any;
   assert.equal(fora.status, 400);
-  assert.deepEqual(fora.erros, ['O ponto está fora de Goiânia.']);
+  assert.deepEqual(fora.erros, ['O ponto está fora de Goiânia e do entorno.']);
   assert.equal(((await salvarLocalizacao(c, 'P-1', { tipo: 'outro' })) as any).status, 400);
   for (const b of [leitura.banco, inativo.banco, banco]) {
     assert.equal(linha(b).localizacao, null);
