@@ -79,11 +79,11 @@ Responder sempre em português.
 - 🟠 Codex: backend (Workers, D1, R2, filas, Workflows, cron, e-mail), testes, correções.
     CODEX=/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex
     mkdir -p "<wt>/.tmp"
-    TMPDIR="<wt>/.tmp" "$CODEX" exec --skip-git-repo-check -m gpt-6.1-sol -s workspace-write \
+    TMPDIR="<wt>/.tmp" "$CODEX" exec --skip-git-repo-check -m gpt-6.2-sol -s workspace-write \
       -c sandbox_workspace_write.exclude_slash_tmp=true -c sandbox_workspace_write.exclude_tmpdir_env_var=true \
       -C "<wt>" "<ordem>" < /dev/null
-  Modelos (alternar conforme a tarefa, decisão do dono 18/11/2026): `gpt-6.1-sol` = complexa ou sensível; `gpt-6-terra` = média;
-  `gpt-6-luna` = simples. Se um modelo estourar a cota, tentar outro antes de passar ao Claude.
+  Modelos (alternar conforme a tarefa, decisão do dono 18/11/2026, atualizada no mesmo dia): `gpt-6.2-sol` = complexa ou sensível;
+  `gpt-6.1-terra` = média; `gpt-6-luna` = simples. (`gpt-6.1-sol` e `gpt-6-terra` saíram; o `gpt-6-terra` é recusado com conta ChatGPT.) Se um modelo estourar a cota, tentar outro antes de passar ao Claude.
   As opções do /tmp são obrigatórias no Mac (sem elas o Codex escreve fora da pasta).
 - Copilot CLI: **fora do fluxo desde 18/11/2026** (decisão do dono, por consumo alto). Telas, CSS e documentação passam ao Codex;
   ajustes pequenos ou quando o Codex estiver sem cota ficam com o Claude (Sonnet), avisando a substituição.
