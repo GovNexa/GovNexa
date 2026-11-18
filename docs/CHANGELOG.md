@@ -1,5 +1,10 @@
 # Changelog
 
+## Centros dos bairros no D1 (17/11/2026)
+- Migração 0005, leitura isolada por prefeitura com cache curto e fallback ao exemplo; região aparada nos dados das obras, sem mudança visual.
+- Geocodificador manual aceita lista de bairros, valida município Goiânia, respeita limites e gera SQL idempotente escapado. Semente local exclusivamente fictícia.
+- Consultas reais e carga em produção não executadas.
+
 ## GovNexa — Painel de detalhes (17/11/2026)
 - "Ver detalhes" das tabelas passa a abrir um painel lateral: código e nome no topo, situação colorida com o motivo, botões para a ficha completa, cronograma, documentos, localização e histórico, até 4 números-chave, seções em grade de 2 colunas, datas como linha do tempo com "Hoje", histórico em lista, campos vazios agrupados em "Sem informação", navegação ‹ › entre registros, Esc e arrastar para fechar. Tabelas sem detalhe usam o texto exibido nas células (valores em R$). Só apresentação; dados inalterados.
 

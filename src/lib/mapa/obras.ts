@@ -1,11 +1,23 @@
 // Dados do mapa das obras: lê a geocodificação por bairro e monta a lista de obras com localização.
 import geoExemplo from '../../../data/exemplo/carteira/geo-bairros.json' with { type: 'json' };
+import { contextoDados } from '../repositorio/contexto.ts';
 import type { Carteira, Projeto } from '../carteira/tipos.ts';
 import { farol, fimDaMacroetapaAtual, valorProjeto } from '../carteira/visoes.ts';
 import { categoriaObra, espalharSobrepostos, localizarProjeto, situacaoMapa, type GeoBairros, type SituacaoMapa } from './geo.ts';
 import type { CategoriaObra, Localizacao, PrecisaoLocal } from './tipos.ts';
 
-export function carregarGeoBairros(): GeoBairros { return geoExemplo as GeoBairros; }
+export function carregarGeoBairros(): GeoBairros {
+  const geo = contextoDados.getStore()?.geoBairros;
+  return geo && Object.keys(geo.bairros).length ? geo : geoExemplo as GeoBairros;
+}
+
+/** Leitura tolerante à ausência do banco/tabela, compartilhada pelo cache do contexto. */
+export async function lerGeoBairrosDoRepositorio(repo?: Pick<import('../repositorio/tipos.ts').RepositorioProjetos, 'listarGeoBairros'>): Promise<GeoBairros> {
+  try {
+    const geo = await repo?.listarGeoBairros?.();
+    return geo && Object.keys(geo.bairros).length ? geo : geoExemplo as GeoBairros;
+  } catch { return geoExemplo as GeoBairros; }
+}
 
 export interface ObraBasica {
   id: string;
@@ -21,6 +33,7 @@ export interface ObraBasica {
   farol: { cor: 'verde' | 'amarelo' | 'vermelho'; texto: string };
   foto: string | null;
   bairro: string | null;
+  regiao: string | null;
 }
 export interface ObraMapa extends ObraBasica {
   precisao: PrecisaoLocal;
@@ -45,6 +58,7 @@ function basica(p: Projeto, hoje: string): ObraBasica {
     farol: { cor: f.cor, texto: f.motivo },
     foto: capa ? capa.url : null,
     bairro: p.bairro,
+    regiao: p.regiao?.trim() || null,
   };
 }
 

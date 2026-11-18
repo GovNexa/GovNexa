@@ -16,6 +16,8 @@ export interface RepositorioProjetos {
   podeGravar: boolean;
   /** Prefeitura de que este repositório lê e grava (chave do cache; preenchida por `repositorioDoUsuario`). */
   prefeituraId?: number;
+  /** Ausente apenas nos adaptadores legados. */
+  listarGeoBairros?(): Promise<import('../mapa/geo.ts').GeoBairros>;
   listarProjetos(): Promise<Projeto[]>;
   obterProjeto(id: string): Promise<Projeto | null>;
   historico(projetoId: string): Promise<RegistroHistorico[]>;
