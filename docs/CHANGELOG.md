@@ -1,5 +1,13 @@
 # Changelog
 
+## GovNexa — Mapa da cidade para TV touch (Gestão · Painel, 18/11/2026)
+- Mapa abre com todas as obras; contagem "no mapa · ocultas pelos filtros · sem localização".
+- Filtros enxutos: situação do prazo (Todas, No prazo, Atenção, Atrasadas), etapas e tipos numa linha com rolagem.
+- Cor do marcador = situação do prazo; bolhas por região (cidade) e por bairro (zoom médio), com número de obras e anel de cores; obras individuais de perto.
+- Painel lateral: resumo da cidade e por região; lista de obras da região/bairro; ficha resumida da obra com "Abrir ficha completa"; obra escolhida destacada no mapa.
+- Modo "Apresentar mapa" em tela cheia para a TV (letra grande, alvos de 56 px); fundo do mapa mais claro; no celular, painel abaixo do mapa e filtros sem ficar presos no topo.
+- Funções puras de agrupamento em `src/lib/mapa/agrupar.ts` com testes.
+
 ## Centros dos bairros no D1 (17/11/2026)
 - Migração 0005, leitura isolada por prefeitura com cache curto e fallback ao exemplo; região aparada nos dados das obras, sem mudança visual.
 - Geocodificador manual aceita lista de bairros, valida município Goiânia, respeita limites e gera SQL idempotente escapado. Semente local exclusivamente fictícia.

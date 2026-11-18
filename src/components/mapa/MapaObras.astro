@@ -186,6 +186,7 @@ document.addEventListener('astro:page-load', () => {
     maxZoom: 18,
   }).addTo(mapa);
   const camada = L.layerGroup().addTo(mapa);
+  const marcadoresObra = new Map<string, L.Marker>();
   const contagem = q('[data-mp-contagem]');
   const corpo = q('[data-mp-lista-corpo]');
   const painel = q('[data-mp-painel]');
@@ -197,6 +198,15 @@ document.addEventListener('astro:page-load', () => {
   function mostrarAviso(texto: string): void {
     aviso.textContent = texto;
     aviso.hidden = false;
+  }
+
+  function atualizarMarcadoresSelecionados(): void {
+    const obraSelecionada = selecao.tipo === 'obra' ? selecao.obra.id : null;
+    for (const [id, marcador] of marcadoresObra) {
+      const selecionado = id === obraSelecionada;
+      marcador.getElement()?.querySelector('.mp-marcador')?.classList.toggle('mp-marcador-selecionado', selecionado);
+      marcador.setZIndexOffset(selecionado ? 1000 : 0);
+    }
   }
 
   function chip(pai: HTMLElement, texto: string, ativo: boolean, classe: string, aoAlternar: (ligado: boolean) => void): HTMLButtonElement {
@@ -260,6 +270,7 @@ document.addEventListener('astro:page-load', () => {
   function selecionar(nova: Selecao, voltar = true): void {
     if (voltar) historico.push(selecao);
     selecao = nova;
+    atualizarMarcadoresSelecionados();
     renderPainel(obrasFiltradas());
   }
 
@@ -300,6 +311,7 @@ document.addEventListener('astro:page-load', () => {
       voltar.addEventListener('click', () => {
         const anterior: Selecao = historico.pop() ?? { tipo: 'cidade' };
         selecao = anterior;
+        atualizarMarcadoresSelecionados();
         if (anterior.tipo === 'cidade') mapa.setView([GOIANIA.centro.lat, GOIANIA.centro.lng], 12);
         else if (anterior.tipo === 'grupo' && anterior.grupo.centro) {
           mapa.setView(
@@ -382,7 +394,8 @@ document.addEventListener('astro:page-load', () => {
   }
 
   function elementoMarcador(obra: ObraVista): HTMLElement {
-    const marcador = el('div', undefined, `mp-marcador mp-farol-${obra.farol.cor}${obra.precisao === 'bairro' ? ' mp-aprox' : ''}`);
+    const selecionado = selecao.tipo === 'obra' && selecao.obra.id === obra.id;
+    const marcador = el('div', undefined, `mp-marcador mp-farol-${obra.farol.cor}${obra.precisao === 'bairro' ? ' mp-aprox' : ''}${selecionado ? ' mp-marcador-selecionado' : ''}`);
     marcador.title = `${obra.nome} · ${ROTULO_FAROL[obra.farol.cor]}`;
     marcador.setAttribute('aria-label', marcador.title);
     marcador.append(elementoGlifo(obra.categoria));
@@ -449,12 +462,14 @@ document.addEventListener('astro:page-load', () => {
     if (local.tipo === 'ponto') {
       const ponto = pontosEspalhados.get(obra.id) ?? local.ponto;
       const icone = L.divIcon({ html: elementoMarcador(obra), className: 'mp-marcador-caixa', iconSize: [44, 44], iconAnchor: [22, 22] });
-      L.marker([ponto.lat, ponto.lng], {
+      const marcador = L.marker([ponto.lat, ponto.lng], {
         icon: icone,
         title: obra.nome,
         alt: `${obra.nome} · ${ROTULO_FAROL[obra.farol.cor]}`,
         riseOnHover: true,
+        zIndexOffset: selecao.tipo === 'obra' && selecao.obra.id === obra.id ? 1000 : 0,
       }).on('click', () => selecionarObra(obra)).addTo(camada);
+      marcadoresObra.set(obra.id, marcador);
       return;
     }
     for (const trecho of local.trechos) {
@@ -500,6 +515,7 @@ document.addEventListener('astro:page-load', () => {
       corpo.append(linha);
     }
     camada.clearLayers();
+    marcadoresObra.clear();
     const zoom = mapa.getZoom();
     if (zoom <= 12) {
       adicionarBolhas(agruparPorRegiao(obrasAgrupaveis(visiveis)), 13);
