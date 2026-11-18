@@ -22,6 +22,12 @@ if (!projeto) return new Response('Página não encontrada', { status: 404 });
 
 const fonte = carregarCarteira().fonte;
 const ficha = detalheProjeto(projeto, fonte.ficticio, fonte.arquivo, fonte.importado_em);
+const voltaCandidato = Astro.url.searchParams.get('volta');
+let voltaMapa: string | null = null;
+if (voltaCandidato?.startsWith('/plataforma/gestao/')) {
+  const destino = new URL(voltaCandidato, Astro.url.origin);
+  if (destino.origin === Astro.url.origin && destino.pathname.startsWith('/plataforma/gestao/')) voltaMapa = `${destino.pathname}${destino.search}${destino.hash}`;
+}
 // O histórico da ficha resumida vem do cache; aqui ele é lido do banco, completo, mais abaixo.
 const secoes = ficha.secoes.filter((s) => s.titulo !== 'Histórico').map((s) => ({
   titulo: s.titulo,
@@ -48,7 +54,7 @@ const historico = maisRecentes((await repo.historico(projeto.id)) as RegistroLog
 const visiveis = historico.slice(0, LIMITE_HISTORICO);
 ---
 <Platform title="Projeto" slug="projetos-carteira">
-  <p slot="contexto" class="muted pj-contexto"><a href="/plataforma/projetos-carteira/">← Carteira de projetos</a></p>
+  <p slot="contexto" class="muted pj-contexto">{voltaMapa ? <a href={voltaMapa}>← Voltar ao mapa</a> : <a href="/plataforma/projetos-carteira/">← Carteira de projetos</a>}</p>
   <div class="section-head"><div>
     <h1 class="pj-titulo">{projeto.id} · {projeto.nome}</h1>
     <p class="muted">{nomeMacroetapa(projeto.macroetapa)} · {projeto.orgao ?? 'Órgão não informado'}</p>

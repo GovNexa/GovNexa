@@ -1,5 +1,22 @@
 # Changelog
 
+## GovNexa — Mapa da cidade para TV touch (Gestão · Painel, 18/11/2026)
+- Mapa abre com todas as obras; contagem "no mapa · ocultas pelos filtros · sem localização".
+- Filtros enxutos: situação do prazo (Todas, No prazo, Atenção, Atrasadas), etapas e tipos numa linha com rolagem.
+- Cor do marcador = situação do prazo; bolhas por região (cidade) e por bairro (zoom médio), com número de obras e anel de cores; obras individuais de perto.
+- Painel lateral: resumo da cidade e por região; lista de obras da região/bairro; ficha resumida da obra com "Abrir ficha completa"; obra escolhida destacada no mapa.
+- Modo "Apresentar mapa" em tela cheia para a TV (letra grande, alvos de 56 px); fundo do mapa mais claro; no celular, painel abaixo do mapa e filtros sem ficar presos no topo.
+- Funções puras de agrupamento em `src/lib/mapa/agrupar.ts` com testes.
+- Gestão compacta: cartões em faixa baixa; "Exportar em PDF" abaixo do mapa; filtros em caixas de seleção (Situação, Etapas, Tipos) numa linha com as ações.
+- Voltar ao mapa sem perder nada: estado (filtros, zoom, seleção) no endereço; "Abrir ficha completa" abre a ficha por cima do mapa (também em tela cheia) com "← Voltar ao mapa"; página do projeto mostra "← Voltar ao mapa" quando aberta a partir do mapa.
+- Camadas do mapa: botões Mapa, Satélite e Híbrido (imagens Esri World Imagery; híbrido com ruas e nomes da Esri). A escolha fica no endereço (`camada=`) e no navegador. A CSP libera `server.arcgisonline.com` só para imagens.
+- Apresentação (TV) em três colunas: contagem e filtros à esquerda, com Limpar filtros, Cidade inteira e Sair no pé da coluna; mapa no centro com a altura toda e a legenda embaixo; resumo à direita. As listas de filtro abrem por cima do mapa.
+
+## Centros dos bairros no D1 (17/11/2026)
+- Migração 0005, leitura isolada por prefeitura com cache curto e fallback ao exemplo; região aparada nos dados das obras, sem mudança visual.
+- Geocodificador manual aceita lista de bairros, valida município Goiânia, respeita limites e gera SQL idempotente escapado. Semente local exclusivamente fictícia.
+- Consultas reais e carga em produção não executadas.
+
 ## GovNexa — Painel de detalhes (17/11/2026)
 - "Ver detalhes" das tabelas passa a abrir um painel lateral: código e nome no topo, situação colorida com o motivo, botões para a ficha completa, cronograma, documentos, localização e histórico, até 4 números-chave, seções em grade de 2 colunas, datas como linha do tempo com "Hoje", histórico em lista, campos vazios agrupados em "Sem informação", navegação ‹ › entre registros, Esc e arrastar para fechar. Tabelas sem detalhe usam o texto exibido nas células (valores em R$). Só apresentação; dados inalterados.
 

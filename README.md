@@ -152,6 +152,8 @@ O detalhe das entregas está em [docs/CHANGELOG.md](docs/CHANGELOG.md).
 
 ## 3. Funcionalidades por guia
 
+O mapa usa os centros dos bairros da tabela D1 `bairro_geo`, isolados por prefeitura e no cache de 30 s. Sem banco, com tabela vazia ou erro de leitura, mantém o JSON de exemplo. Obras posicionadas pelo bairro têm precisão `bairro`; a região é preservada. O visual permanece igual.
+
 No início (/plataforma/), todos os módulos do menu ficam retraídos: o dashboard não pertence a um módulo. Nas outras telas, a sanfona abre somente o módulo e o sub-bloco da página atual. Nome, iniciais, Meu perfil e Sair ficam apenas no cabeçalho; os links da conta têm alvos de toque de pelo menos 44 px.
 
 Legenda: **Disponível** = leitura ou operação disponível. **Simulação** = as regras rodam, mas a gravação real ainda será ligada nas próximas partes da etapa 3. **Demonstrativo** = protótipo com dados fictícios.
@@ -286,6 +288,10 @@ Os pedidos vêm dos áudios do dono, da reunião com a equipe e das planilhas.
 
 ## 6. O que funciona de verdade e o que é simulação
 
+Centros de bairros: migração local `0005_bairro_geo.sql`; `npm run db:local` aplica as migrações e semeia somente bairros fictícios de `data/exemplo/`, com centros explicitamente simulados.
+O geocodificador é manual, fora do build: `node scripts/geocodificar-bairros.ts --bairros .tmp/bairros.json --saida .tmp/geo-bairros.json --sql .tmp/bairros.sql --prefeitura 5208707`. Mantém `--carteira`, `--refazer` e `--refazer-faltantes`. A próxima carga real deve usar `--refazer`; a saída grava `versao_regras: 2` e só reaproveita entradas da versão atual.
+A entrada nova é `[{"bairro":"Bairro Exemplo","regiao":"Centro","obras":1}]`. Nominatim: consulta estruturada, município Goiânia e caixa obrigatórios; preferência por bairro, consultas sequenciais a cada ≥1,1 s e até três novas tentativas de 429/5xx após o maior entre 5 s e `Retry-After`, com timeout de 30 s por requisição. O SQL escapa valores e atualiza por prefeitura/bairro. Entradas e saídas reais ficam fora do repositório; os centros reais ficam no D1 da prefeitura.
+
 O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pelo Worker. Na prática:
 - **Leitura real no D1:** carteira, cronogramas e histórico da carga inicial.
 - **Captação:** leitura de dados públicos.
@@ -394,6 +400,8 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Animações do site (17/11/2026):** biblioteca `gsap` 3.13.0, empacotada no próprio site. A licença é a padrão da GSAP, gratuita para uso comercial, mas não é de código aberto.
 
 ## 8. Pendências e próximos passos
+
+Centros dos bairros: código e migração 0005 preparados; consulta real e carga ficam com o revisor, fora desta execução. Não houve consulta externa nem alteração de produção. Conferir o relatório de bairros não encontrados antes da carga; nenhuma coordenada real é inventada.
 
 ### Dependem do dono
 
