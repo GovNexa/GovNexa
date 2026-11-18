@@ -127,7 +127,7 @@ São módulos independentes que conversam entre si:
 
 | Data | O que | Referência |
 | --- | --- | --- |
-| 17/11 | Entrega B1: página do projeto (todas as informações num só endereço) e localização gravando no banco; migração 0004 (ainda não aplicada em produção) | novo PR |
+| 17/11 | Entrega B1: página do projeto (todas as informações num só endereço) e localização gravando no banco; migração 0004 (ainda não aplicada em produção) | PR #29 |
 | 17/11 | Projeto do banco de dados aprovado: princípios e roteiro B1 a B8, na ordem do Fluxo (`docs/govnexa/projeto-banco.md`) | PR #28 |
 | 17/11 | Entrega 1.1: tipo do documento (DFD, ETP, TR) no envio e na lista, com registro no Histórico; migração 0003 aplicada | PR #27, publicada em 17/11 |
 | 17/11 | Entrega 1.0: limite de 30 ações por minuto por pessoa nos documentos (Rate Limiting da Cloudflare) | PR #15, publicada em 17/11 |
@@ -187,7 +187,7 @@ O tema claro usa menu lateral branco, texto e ícones azul-escuros, destaques az
 | Novo projeto | Cadastro com os campos da planilha | Simulação | `src/components/carteira/NovoProjeto.astro` |
 | Carteira de projetos | Projetos, busca e ficha completa com valores, recursos, datas e histórico | Disponível | `src/lib/carteira/` |
 | Página do projeto | Tudo de um projeto num só endereço: resumo, valores e recursos, datas, localização, documentos, cronograma e histórico | Disponível no código (entrega B1); publicação depende de ordem do dono | `src/pages/plataforma/projeto/[id].astro` |
-| Localização e fotos | Ponto ou trecho da obra no mapa e lista de obras sem localização | Localização grava no banco e entra no Histórico (entrega B1; publicação depende de ordem do dono); fotos numa próxima entrega | `src/lib/mapa/`, `src/components/mapa/`, `src/pages/plataforma/projeto/localizacao/` |
+| Localização e fotos | Ponto ou trecho da obra no mapa e lista de obras sem localização | Localização grava no banco e entra no Histórico; aceita a cidade e o entorno (cerca de 10 km) (entrega B1; publicação depende de ordem do dono); fotos numa próxima entrega | `src/lib/mapa/`, `src/components/mapa/`, `src/pages/plataforma/projeto/localizacao/` |
 | Kanban por macroetapa | Colunas com quantidade e valor; mover com portões e motivo | Simulação | `src/components/carteira/Kanban.astro`, `src/lib/carteira/movimentacao.ts` |
 | Gantt geral | Linha do tempo prevista por macroetapa | Disponível | `src/components/carteira/Gantt.astro` |
 | Visão por órgão | Obras por órgão e macroetapa; pronta para imprimir | Disponível | `src/components/carteira/VisaoOrgaos.astro` |
@@ -396,6 +396,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Cabeçalho do site e logo (17/11/2026):** a logo do GovNexa (G em seta com alvo, azul-marinho e laranja) é provisória; a versão final será feita depois. A logo da Prefeitura de Goiânia continua no topo, porque a demonstração é para ela. O topo não lista mais Início, Soluções, Insights e Sobre; essas páginas continuam no rodapé.
 - **Página inicial (17/11/2026):** apresenta o GovNexa como gestão de projetos públicos; não lista as fontes de dados nem a forma de leitura dos processos; o título dos módulos não traz número.
 - **Banco de dados (17/11/2026):** toda entrega que crie ou use dados segue `docs/govnexa/projeto-banco.md`: estudar e projetar antes de criar; um só caminho de gravação (tela, rota, serviço, repositório, banco); integridade garantida pelo banco; histórico junto com a gravação; e a ordem das entregas segue o Fluxo (B1 a B8).
+- **Limite da localização (18/11/2026):** a localização de um projeto aceita pontos em Goiânia e no entorno, até cerca de 10 km além do retângulo da cidade, porque a prefeitura pode ter obra na divisa ou em acordo com cidade vizinha. O limite ainda é fixo no código (`src/lib/mapa/geo.ts`); para uma segunda prefeitura, passa a vir do cadastro da prefeitura.
 - **Animações do site (17/11/2026):** biblioteca `gsap` 3.13.0, empacotada no próprio site. A licença é a padrão da GSAP, gratuita para uso comercial, mas não é de código aberto.
 
 ## 8. Pendências e próximos passos

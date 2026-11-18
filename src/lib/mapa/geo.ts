@@ -2,9 +2,21 @@
 import type { Projeto } from '../carteira/tipos.ts';
 import type { CategoriaObra, Localizacao, PontoGeo, PrecisaoLocal } from './tipos.ts';
 
+/** Margem do entorno em graus (0,09° ≈ 10 km): obra na divisa ou feita em acordo com cidade vizinha (regra do dono, 18/11/2026). */
+export const MARGEM_ENTORNO_GRAUS = 0.09;
+const CAIXA_CIDADE = { latMin: -16.85, latMax: -16.45, lngMin: -49.5, lngMax: -49.05 } as const;
+
 export const GOIANIA = {
   centro: { lat: -16.6869, lng: -49.2648 },
-  caixa: { latMin: -16.85, latMax: -16.45, lngMin: -49.5, lngMax: -49.05 },
+  /** Retângulo da cidade: usado para localizar os bairros. */
+  caixa: CAIXA_CIDADE,
+  /** Cidade mais o entorno: é o limite aceito ao gravar a localização de um projeto. */
+  entorno: {
+    latMin: CAIXA_CIDADE.latMin - MARGEM_ENTORNO_GRAUS,
+    latMax: CAIXA_CIDADE.latMax + MARGEM_ENTORNO_GRAUS,
+    lngMin: CAIXA_CIDADE.lngMin - MARGEM_ENTORNO_GRAUS,
+    lngMax: CAIXA_CIDADE.lngMax + MARGEM_ENTORNO_GRAUS,
+  },
 } as const;
 
 export interface GeoBairro { busca: string; lat?: number; lng?: number; encontrado: boolean }
@@ -40,6 +52,11 @@ export const dentroDeGoiania = (p: PontoGeo): boolean =>
   Number.isFinite(p?.lat) && Number.isFinite(p?.lng) &&
   p.lat >= GOIANIA.caixa.latMin && p.lat <= GOIANIA.caixa.latMax && p.lng >= GOIANIA.caixa.lngMin && p.lng <= GOIANIA.caixa.lngMax;
 
+/** Limite da localização de um projeto: a cidade e o entorno (divisas e cidades vizinhas próximas). */
+export const dentroDaAreaAceita = (p: PontoGeo): boolean =>
+  Number.isFinite(p?.lat) && Number.isFinite(p?.lng) &&
+  p.lat >= GOIANIA.entorno.latMin && p.lat <= GOIANIA.entorno.latMax && p.lng >= GOIANIA.entorno.lngMin && p.lng <= GOIANIA.entorno.lngMax;
+
 const MAX_TRECHOS = 20;
 const MAX_PONTOS = 200;
 const ehNumero = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
@@ -52,7 +69,7 @@ export function validarLocalizacao(l: unknown): string[] {
   const loc = l as Record<string, unknown>;
   if (loc.tipo === 'ponto') {
     if (!ehPonto(loc.ponto)) erros.push('O ponto precisa de latitude e longitude numéricas.');
-    else if (!dentroDeGoiania(loc.ponto)) erros.push('O ponto está fora de Goiânia.');
+    else if (!dentroDaAreaAceita(loc.ponto)) erros.push('O ponto está fora de Goiânia e do entorno.');
     return erros;
   }
   if (loc.tipo === 'trechos') {
@@ -70,7 +87,7 @@ export function validarLocalizacao(l: unknown): string[] {
       }
       if (linha.length > MAX_PONTOS) erros.push(`Trecho ${n}: no máximo ${MAX_PONTOS} pontos.`);
       if (!linha.every(ehPonto)) erros.push(`Trecho ${n}: há ponto sem latitude e longitude numéricas.`);
-      else if (!linha.every(dentroDeGoiania)) erros.push(`Trecho ${n}: há ponto fora de Goiânia.`);
+      else if (!linha.every(dentroDaAreaAceita)) erros.push(`Trecho ${n}: há ponto fora de Goiânia e do entorno.`);
     });
     return erros;
   }
