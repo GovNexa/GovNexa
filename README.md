@@ -376,6 +376,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Login (17/11/2026):** modo próprio com senha e 2FA obrigatório autorizado; Access permanece padrão até decisão expressa de troca. Perfis admin, gestor, editor e leitura.
 - **Cadastro (17/11/2026):** administrador cadastra e envia convite pelo GovNexa. Preparar senha e 2FA antes de mudar `LOGIN_MODO`; sem sincronização automática com Access.
 - **Datas (17/11/2026):** padrão brasileiro em todo o sistema: `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` no horário de Brasília.
+- **Importações (17/11/2026):** por enquanto os dados entram por importação de planilhas; a data de importação passa a ser registrada a partir da próxima planilha enviada. O cadastro direto no sistema vem numa fase seguinte.
 - **Dados reais:** somente no banco e no repositório privado de dados; nunca no repositório público.
 - **Importação:** planilhas pelo repositório privado `GovNexa/govnexa-dados`; o importador deverá avisar códigos repetidos. O código 450 duplicado foi resolvido como 506 para SECAP.
 - **Prazos:** a lei é o limite e a prefeitura define metas internas menores. Passar do teto legal é alerta grave. Prazos-piso não podem ser encurtados.

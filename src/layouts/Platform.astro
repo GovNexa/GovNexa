@@ -6,6 +6,7 @@ import { municipioAtivo } from '../lib/municipio-ativo.ts';
 import { catalogoCompleto, menuPorModulo } from '../lib/govnexa/catalogo.ts';
 import { carregarCarteira } from '../lib/carteira/carga.ts';
 import { usuarioPode } from '../lib/usuarios/index.ts';
+import '../styles/painel-detalhes.css';
 
 const fonteCarteira = carregarCarteira().fonte;
 const avisoDados = fonteCarteira.ficticio
@@ -240,12 +241,29 @@ const muni = municipioAtivo();
     </div>
   </div>
   <div id="toast" class="toast" role="status" hidden></div>
-  <dialog id="record-dialog">
-    <h2>Detalhes do registro</h2>
-    <div id="record-body" style="max-height:70vh;overflow:auto"></div>
-    <form method="dialog"><button><Icon name="x" size={16} />Fechar</button></form>
+  <dialog id="record-dialog" class="record-dialog" aria-labelledby="record-title">
+    <header class="rd-header">
+      <div class="rd-toolbar">
+        <p class="rd-code" id="record-code"></p>
+        <nav class="rd-navigation" aria-label="Navegar entre registros">
+          <button type="button" class="rd-nav-button" data-record-prev aria-label="Registro anterior">‹</button>
+          <button type="button" class="rd-nav-button" data-record-next aria-label="Próximo registro">›</button>
+        </nav>
+        <button type="button" class="rd-close" data-record-close aria-label="Fechar"><Icon name="x" size={20} /><span>Fechar</span></button>
+      </div>
+      <h2 id="record-title" class="rd-title" tabindex="-1">Detalhes do registro</h2>
+      <p class="rd-status" data-record-status hidden></p>
+      <nav class="rd-actions" data-record-actions aria-label="Ações do registro"></nav>
+    </header>
+    <div id="record-content" class="rd-content" tabindex="0" aria-label="Conteúdo dos detalhes do registro">
+      <div id="record-body" class="rd-body"></div>
+    </div>
   </dialog>
 </Base>
+<script>
+  import { iniciarPainelDetalhes } from '../scripts/painel-detalhes';
+  iniciarPainelDetalhes();
+</script>
 <script is:inline>
 (() => {
   if (window.__sidebarVisualSync) return;
@@ -357,7 +375,7 @@ drawer.onclick=()=>{const open=drawer.getAttribute('aria-expanded')==='true';clo
 document.addEventListener('keydown',e=>{if(drawer.getAttribute('aria-expanded')!=='true')return;if(e.key==='Escape'){closeDrawer();drawer.focus();}if(e.key==='Tab'){const nodes=[drawer,...sidebar.querySelectorAll<HTMLElement>('button,a')].filter(n=>n.getClientRects().length);const i=nodes.indexOf(document.activeElement as HTMLElement);e.preventDefault();nodes[(i+(e.shiftKey?-1:1)+nodes.length)%nodes.length].focus();}},{signal:lifecycle.signal});
 const query=new URLSearchParams(location.search).get('q');const search=document.querySelector<HTMLInputElement>('[data-table-search]');if(query&&search){search.value=query;requestAnimationFrame(()=>search.dispatchEvent(new Event('input')));}
 const b=document.querySelector<HTMLButtonElement>('#sidebar-toggle')!;const sincronizarSidebar=()=>{const recolhido=document.documentElement.dataset.sidebar!=='aberto';b.setAttribute('aria-expanded',String(!recolhido));b.setAttribute('aria-label',recolhido?'Expandir menu':'Recolher menu')};sincronizarSidebar();document.addEventListener('astro:after-swap',sincronizarSidebar,{signal:lifecycle.signal});b.onclick=()=>{const recolhido=document.documentElement.dataset.sidebar!=='aberto';document.documentElement.dataset.sidebar=recolhido?'aberto':'recolhido';sincronizarSidebar();try{localStorage.setItem('govnexa-sidebar',String(!recolhido))}catch{}};
-let timer:ReturnType<typeof setTimeout>;document.addEventListener('astro:before-swap',()=>clearTimeout(timer),{once:true});document.addEventListener('click',e=>{const target=e.target as HTMLElement;if(target.closest('[data-prototype]')){const toast=document.querySelector<HTMLElement>('#toast')!;toast.textContent='protótipo: nada é gravado';toast.hidden=false;clearTimeout(timer);timer=setTimeout(()=>toast.hidden=true,3000);}const detail=target.closest('[data-detail]');if(detail){const row=detail.closest<HTMLElement>('[data-row]')!;const vals:Array<string|number>=JSON.parse(row.dataset.values!);const heads=[...row.closest('table')!.querySelectorAll('thead th')];const body=document.querySelector('#record-body')!;body.replaceChildren();const det=row.dataset.detalhe?JSON.parse(row.dataset.detalhe):null;if(det){const h=document.createElement('h3');h.textContent=det.titulo;body.append(h);for(const s of det.secoes){const t=document.createElement('h4');t.textContent=s.titulo;body.append(t);if(s.texto){const q=document.createElement('p');q.textContent=s.texto;body.append(q)}if(s.itens){const ul=document.createElement('ul');for(const it of s.itens){const li=document.createElement('li');li.textContent=it;ul.append(li)}body.append(ul)}}const lks=[...(det.links??[]),...(det.link?[det.link]:[])].filter((l:{url:string})=>String(l.url).startsWith("https://")||/^\/plataforma\/[a-z0-9\/_-]*(\?[a-z0-9=&_.-]*)?$/i.test(String(l.url)));if(lks.length){const ul=document.createElement('ul');for(const l of lks){const li=document.createElement('li');const a=document.createElement('a');a.href=l.url;a.textContent=l.rotulo;if(String(l.url).startsWith("https://")){a.target='_blank';a.rel='noopener noreferrer';}li.append(a);ul.append(li)}body.append(ul)}document.querySelector<HTMLDialogElement>('#record-dialog')!.showModal();return;}vals.forEach((v,i)=>{const p=document.createElement('p');p.textContent=`${heads[i].textContent?.replace(' ↕','')}: ${v}`;body.append(p)});document.querySelector<HTMLDialogElement>('#record-dialog')!.showModal();}},{signal:lifecycle.signal});
+let timer:ReturnType<typeof setTimeout>;document.addEventListener('astro:before-swap',()=>clearTimeout(timer),{once:true});document.addEventListener('click',e=>{const target=e.target as HTMLElement;if(target.closest('[data-prototype]')){const toast=document.querySelector<HTMLElement>('#toast')!;toast.textContent='protótipo: nada é gravado';toast.hidden=false;clearTimeout(timer);timer=setTimeout(()=>toast.hidden=true,3000);}},{signal:lifecycle.signal});
 document.querySelectorAll<HTMLFormElement>('[data-prototype-form]').forEach(f=>f.addEventListener('submit',e=>{e.preventDefault();document.querySelector<HTMLElement>('#toast')!.textContent='protótipo: nada é gravado';document.querySelector<HTMLElement>('#toast')!.hidden=false;clearTimeout(timer);timer=setTimeout(()=>{const toast=document.querySelector<HTMLElement>('#toast');if(toast)toast.hidden=true},3000)}));
 
 });

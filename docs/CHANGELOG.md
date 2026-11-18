@@ -1,5 +1,8 @@
 # Changelog
 
+## GovNexa — Painel de detalhes (17/11/2026)
+- "Ver detalhes" das tabelas passa a abrir um painel lateral: código e nome no topo, situação colorida com o motivo, botões para a ficha completa, cronograma, documentos, localização e histórico, até 4 números-chave, seções em grade de 2 colunas, datas como linha do tempo com "Hoje", histórico em lista, campos vazios agrupados em "Sem informação", navegação ‹ › entre registros, Esc e arrastar para fechar. Tabelas sem detalhe usam o texto exibido nas células (valores em R$). Só apresentação; dados inalterados.
+
 ## GovNexa — Auditoria de layout de todas as páginas (17/11/2026)
 - Auditoria de 79 páginas em 4 situações (computador claro e escuro, tablet 1024×768, celular 390 px): rolagem, sobreposição, cortes, alvos de toque, texto pequeno, contraste e fotos.
 - Corrigido: um único aviso no topo da plataforma; rodapé da plataforma no fim da janela em páginas curtas; círculos decorativos dos cartões atrás do texto; abas numa linha com rolagem no celular; tabelas em cartões até 1100 px e coluna "Detalhes" sem corte no computador; e-mails longos quebram na própria coluna (Usuários); cabeçalho público numa linha no celular; Perfil/Configurações com rótulo "Foto" e campos vazios com dicas; alvos de toque de 44 px em telas de toque; texto informativo com no mínimo 11 px; nomes acessíveis começando pelo texto visível.
