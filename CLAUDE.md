@@ -75,14 +75,16 @@ Responder sempre em português.
 ## Roteamento (a marca mostra quem está fazendo)
 - 🟣 Opus: plano, arquitetura, revisão final do diff, segurança (migrações D1, isolamento por prefeitura, login, segredos, e-mail).
 - 🔵 Sonnet: quebra tarefas, escreve ordens de serviço, aciona, confere, commit da branch e PR.
-- 🟢 Haiku: commits e changelog, só como reserva.
+- 🟢 Haiku: só para tirar fotos de tela (conferência visual), e como reserva para commits e changelog.
 - 🟠 Codex: backend (Workers, D1, R2, filas, Workflows, cron, e-mail), testes, correções.
     CODEX=/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex
     mkdir -p "<wt>/.tmp"
     TMPDIR="<wt>/.tmp" "$CODEX" exec --skip-git-repo-check -m gpt-6.1-sol -s workspace-write \
       -c sandbox_workspace_write.exclude_slash_tmp=true -c sandbox_workspace_write.exclude_tmpdir_env_var=true \
       -C "<wt>" "<ordem>" < /dev/null
-  Tarefa simples: -m gpt-6-luna. As opções do /tmp são obrigatórias no Mac (sem elas o Codex escreve fora da pasta).
+  Modelos (alternar conforme a tarefa, decisão do dono 18/11/2026): `gpt-6.1-sol` = complexa ou sensível; `gpt-6-terra` = média;
+  `gpt-6-luna` = simples. Se um modelo estourar a cota, tentar outro antes de passar ao Claude.
+  As opções do /tmp são obrigatórias no Mac (sem elas o Codex escreve fora da pasta).
 - Copilot CLI: **fora do fluxo desde 18/11/2026** (decisão do dono, por consumo alto). Telas, CSS e documentação passam ao Codex;
   ajustes pequenos ou quando o Codex estiver sem cota ficam com o Claude (Sonnet), avisando a substituição.
 - Uma tarefa = um executor.
@@ -125,7 +127,7 @@ Sem ordem, parar após PR aberto e local aprovado. A autorização vale só para
 - Main protegida: PR obrigatório.
 
 ## Cota esgotada (erro de limite, cota ou 429)
-Codex -> Sonnet (Claude executa). Opus -> Sonnet com contexto limpo + revisão sensível pendente para Opus.
+Codex: sol -> terra -> luna -> Sonnet (Claude executa). Opus -> Sonnet com contexto limpo + revisão sensível pendente para Opus.
 Sempre avisar quem substitui quem até o original voltar.
 
 ## Marcação na tela
