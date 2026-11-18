@@ -341,9 +341,9 @@ test('govnexa: novo projeto',async({page})=>{
  await page.locator('.workspace').getByRole('link',{name:'Novo projeto',exact:true}).click();
  await page.waitForURL(/projetos-novo/);
  await expect(page.getByRole('heading',{name:'Novo projeto',level:1})).toBeVisible();
- await expect(page.getByText('Modo simulação').first()).toBeVisible();
+ await expect(page.getByText('Modo simulação')).toHaveCount(0);
  // enviar vazio mostra erros de Nome e Órgão
- await page.getByRole('button',{name:'Validar e simular cadastro'}).click();
+ await page.getByRole('button',{name:'Cadastrar projeto'}).click();
  await expect(page.locator('[data-np-resumo]')).toContainText('Informe o nome do projeto');
  await expect(page.locator('[data-np-resumo]')).toContainText('Escolha o órgão');
  await expect(page.locator('#np-nome')).toHaveAttribute('aria-invalid','true');
@@ -351,11 +351,11 @@ test('govnexa: novo projeto',async({page})=>{
  // preencher nome e órgão
  await page.locator('#np-nome').fill('Nova UBS do teste');
  await page.locator('#np-orgao').selectOption({index:1});
- await page.getByRole('button',{name:'Validar e simular cadastro'}).click();
+ await page.getByRole('button',{name:'Cadastrar projeto'}).click();
  const ok=page.locator('[data-np-ok]');
- await expect(ok).toContainText('Simulação');
- await expect(ok).toContainText('00 – Em estruturação');
- await expect(ok).toContainText('Nada foi gravado');
+ await expect(ok).toContainText('foi cadastrado em 00 – Em estruturação');
+ await expect(ok).toContainText('registrado no Histórico');
+ await expect(ok).not.toContainText('Nada foi gravado');
  // sem rolagem horizontal em 1280 e 390px
  for(const width of [1280,390]){await page.setViewportSize({width,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${width}px`).toBeTruthy();}
  // axe claro/escuro
@@ -442,11 +442,11 @@ test('govnexa: novo projeto em colunas e foco no resultado',async({page})=>{
  expect(await colunas()).toBe(3);
  await page.setViewportSize({width:800,height:900});expect(await colunas()).toBe(2);
  await page.setViewportSize({width:390,height:900});expect(await colunas()).toBe(1);
- await page.getByRole('button',{name:'Validar e simular cadastro'}).click();
+ await page.getByRole('button',{name:'Cadastrar projeto'}).click();
  await expect(page.locator('[data-np-resumo]')).toBeFocused();
  await page.locator('#np-nome').fill('Projeto do teste de foco');
  await page.locator('#np-orgao').selectOption({index:1});
- await page.getByRole('button',{name:'Validar e simular cadastro'}).click();
+ await page.getByRole('button',{name:'Cadastrar projeto'}).click();
  await expect(page.locator('[data-np-ok]')).toBeFocused();
  await expect(page.locator('[data-np-ok]')).toBeInViewport();
 });

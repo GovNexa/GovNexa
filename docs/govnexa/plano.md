@@ -37,6 +37,7 @@ Percentuais mantidos até homologação do login próprio; Access continua padr�
 
 | Data | Entrega | PR |
 | --- | --- | --- |
+| 18/11 | Entrega B2: Novo projeto grava no banco (código único, macroetapa 00, cadastro no Histórico); migração 0006 (índice único do código) | novo PR |
 | 17/11 | Entrega B1: página do projeto e localização gravando no banco, com registro no Histórico; migração 0004 (índices do histórico por projeto); em 18/11, limite da localização ampliado para a cidade e o entorno (cerca de 10 km) | GovNexa #29 |
 | 17/11 | Projeto do banco de dados aprovado (`docs/govnexa/projeto-banco.md`): princípios para toda entrega com dados e roteiro B1 a B8 na ordem do Fluxo | GovNexa #28 |
 | 17/11 | Entrega 1.1: tipo do documento (DFD, ETP e TR de sistema; outros ativáveis por prefeitura) no envio e na lista; troca registrada no Histórico; migração 0003 | GovNexa #27, publicada |

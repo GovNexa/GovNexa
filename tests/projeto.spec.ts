@@ -94,3 +94,57 @@ test('página do projeto: sem rolagem horizontal e sem falhas de acessibilidade,
     expect(a11y.violations.filter((v) => ['serious', 'critical'].includes(v.impact ?? '')), tema).toEqual([]);
   }
 });
+
+// Cadastro de projeto novo (entrega B2). Cria projetos novos no banco local; os nomes são exclusivos destes testes.
+const CRIAR = '/plataforma/projeto/criar/';
+const CADASTRO = { nome: 'Projeto B2 do teste de cadastro', orgao: 'SMS', compromisso: 'decidido', valor_obra: 1500000.5, sei: ['00.0.000000001-0'], datas: { pecas_tecnicas: '2026-03-01', planejamento: '2026-02-01', execucao_dias: 180 }, localizacao: { tipo: 'ponto', ponto: { lat: -16.7, lng: -49.3 }, endereco: 'Praça do teste' } };
+
+test('cadastro: recusa origem de fora, formato errado, corpo grande, JSON quebrado e dado inválido', async ({ page, request }) => {
+  await page.goto(PAGINA);
+  const origin = new URL(page.url()).origin;
+  const json = { 'content-type': 'application/json' };
+  expect((await request.post(CRIAR, { headers: { ...json, origin: 'https://site-malicioso.example' }, data: CADASTRO })).status()).toBe(403);
+  expect((await request.post(CRIAR, { headers: json, data: CADASTRO })).status()).toBe(403);
+  expect((await request.post(CRIAR, { headers: { 'content-type': 'text/plain', origin }, data: JSON.stringify(CADASTRO) })).status()).toBe(415);
+  expect((await request.post(CRIAR, { headers: { ...json, origin }, data: { ...CADASTRO, observacao: 'x'.repeat(400_000) } })).status()).toBe(413);
+  expect((await request.post(CRIAR, { headers: { ...json, origin }, data: '{nao e json' })).status()).toBe(400);
+  const invalido = await request.post(CRIAR, { headers: { ...json, origin }, data: { nome: '', orgao: '', valor_obra: -5, sei: ['1'] } });
+  expect(invalido.status()).toBe(400);
+  expect((await invalido.json()).erros).toEqual(expect.arrayContaining(['Informe o nome do projeto.', 'Escolha o órgão ou digite a sigla.']));
+  const fora = await request.post(CRIAR, { headers: { ...json, origin }, data: { ...CADASTRO, localizacao: { tipo: 'ponto', ponto: { lat: 0, lng: 0 } } } });
+  expect(fora.status()).toBe(400);
+  expect((await fora.json()).erros).toEqual(['Localização: O ponto está fora de Goiânia e do entorno.']);
+  expect((await request.get(CRIAR)).status()).not.toBe(200); // GET não grava nada
+});
+
+test('cadastro: o projeto criado abre na própria página, com histórico e localização', async ({ page, request }) => {
+  await page.goto(PAGINA);
+  const origin = new URL(page.url()).origin;
+  const r = await request.post(CRIAR, { headers: { 'content-type': 'application/json', origin }, data: { ...CADASTRO, id: 'P-1', prefeitura_id: 1, macroetapa: '05' } });
+  expect(r.status()).toBe(201);
+  const corpo = await r.json();
+  expect(corpo.ok).toBe(true);
+  expect(corpo.projeto.macroetapa).toBe('00');
+  expect(corpo.projeto.id).toMatch(/^P-\d+$/);
+  expect(corpo.projeto.id).not.toBe('P-1');
+  expect(corpo.avisos[0]).toContain('Datas fora de ordem');
+  await page.goto(`/plataforma/projeto/${corpo.projeto.id}/`);
+  await expect(page.locator('h1')).toContainText(CADASTRO.nome);
+  await expect(page.locator('[data-pj-local]')).toContainText('Cadastrada: ponto em latitude -16.7, longitude -49.3 (Praça do teste)');
+  await expect(page.locator('[data-pj-historico] li').filter({ hasText: 'Projeto incluído no cadastro' })).toHaveCount(1);
+});
+
+test('cadastro: o formulário grava de verdade e leva à página do projeto', async ({ page }) => {
+  await page.goto('/plataforma/projetos-novo/');
+  await expect(page.getByText('Modo simulação')).toHaveCount(0);
+  await page.locator('#np-nome').fill('Projeto B2 pelo formulário');
+  await page.locator('#np-orgao').selectOption({ index: 1 });
+  await page.getByRole('button', { name: 'Cadastrar projeto' }).click();
+  const ok = page.locator('[data-np-ok]');
+  await expect(ok).toContainText('foi cadastrado em 00 – Em estruturação');
+  const href = await page.locator('[data-np-ok-pagina]').getAttribute('href');
+  expect(href).toMatch(/^\/plataforma\/projeto\/P-\d+\/$/);
+  await page.locator('[data-np-ok-pagina]').click();
+  await expect(page.locator('h1')).toContainText('Projeto B2 pelo formulário');
+  await expect(page.locator('[data-pj-historico] li').filter({ hasText: 'Projeto incluído no cadastro' })).toHaveCount(1);
+});

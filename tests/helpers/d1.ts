@@ -17,9 +17,18 @@ export function bancoTeste(tipo: 'central' | 'prefeitura' = 'prefeitura') {
   async all() { if (!/^\s*SELECT\b/i.test(this.sql)) throw new Error('Escrita fora do batch'); return { success: true, results: sqlite.prepare(this.sql).all(...this.valores) }; }
   async run() { if (!emBatch) throw new Error('Escrita fora do batch'); const r = sqlite.prepare(this.sql).run(...this.valores); return { success: true, results: [], meta: { changes: Number(r.changes) } }; }
  }
+ // O D1 executa cada batch inteiro, um de cada vez: o auxiliar também (senão dois batches simultâneos abririam transação dentro de transação).
+ let fila: Promise<unknown> = Promise.resolve();
  const db: BancoD1 = {
   prepare(sql) { return new Statement(sql); },
-  async batch(statements) {
+  batch(statements) {
+   const vez = fila.then(() => executar(statements));
+   fila = vez.catch(() => undefined);
+   return vez;
+  },
+ };
+ async function executar(statements: StatementD1[]) {
+  {
    sqlite.exec('BEGIN');
    emBatch = true;
    try {
@@ -28,7 +37,7 @@ export function bancoTeste(tipo: 'central' | 'prefeitura' = 'prefeitura') {
     sqlite.exec('COMMIT');
     return results;
    } catch (e) { sqlite.exec('ROLLBACK'); throw e; } finally { emBatch = false; }
-  },
- };
+  }
+ }
  return { db, sqlite };
 }

@@ -276,6 +276,8 @@ export function criarProjeto(
     operacional: null,
     pendencias: [],
     origem: { aba: 'CADASTRO', linha: 0 },
+    // A localização já vem conferida por quem chama (servidor: normalizarLocalizacao); aqui só é repassada.
+    localizacao: dados.localizacao ?? null,
   };
   if (!p.regiao) p.pendencias.push('Sem região');
   if (p.valores.obra === null) p.pendencias.push('Sem valor de obra');
@@ -286,6 +288,7 @@ export function criarProjeto(
     if (depois !== null && depois !== undefined && !(Array.isArray(depois) && depois.length === 0)) campos.push({ campo, antes: null, depois });
   };
   for (const c of ['nome', 'orgao', 'responsavel', 'tipo', 'detalhamento', 'sei', 'observacao', 'regiao', 'bairro', 'origem_valor', 'tem_projeto', 'prioridade', 'compromisso', 'tipo_contratacao', 'orgao_contratacao'] as const) add(c, p[c]);
+  add('localizacao', p.localizacao);
   for (const k of CHAVES_VALORES) add(`valores.${k}`, p.valores[k]);
   for (const k of [...CHAVES_RECURSO, 'termo_compromisso'] as const) add(`recurso.${k}`, (p.recurso as any)[k]);
   for (const k of [...CHAVES_DATAS, 'execucao_dias'] as const) add(`datas.${k}`, (p.datas as any)[k]);
