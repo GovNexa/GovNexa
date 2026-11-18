@@ -205,3 +205,5 @@
 @media (prefers-reduced-motion: reduce){
   .gx *,.gx *::before,.gx *::after{animation:none!important;transition:none!important}
 }
+.gx-tag,.gx-col .gx-colh{font-size:.75rem}
+.gx-mover b,.gx-mover small,.gx-fact small,.gx-signal small{font-size:max(11px,.75rem)}

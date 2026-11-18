@@ -198,3 +198,94 @@ td button[data-detail]{white-space:nowrap;min-width:max-content}.table-wrap td:l
 .footer-mark{border-color:#ffffff33}
 .login-brand-mark{border-color:#ffffff33!important}
 .simbolo-gx{display:block;flex:none}
+.app-org small,.sidebar-help small{font-size:max(11px,.75rem)}
+body:has(.platform){display:flex;flex-direction:column;min-height:100dvh}
+body:has(.platform)>.appbar{flex:none}
+body:has(.platform)>main{flex:1;min-width:0}
+body:has(.platform)>.app-footer{flex:none;margin-top:auto}
+.platform{min-height:100%;min-width:0;align-items:stretch}
+.workspace{min-width:0}
+.workspace small{font-size:max(11px,.75rem)}
+.workspace>.notice{display:flex;flex-wrap:wrap;gap:.15rem 1rem;max-width:none;font-size:.8rem;padding:.55rem .85rem;margin:0 0 .75rem}
+.workspace>.notice span+span::before{content:"· ";color:var(--muted)}
+.workspace .tabs{justify-content:flex-start}
+.workspace .tabs button{min-height:44px}
+.workspace .table-wrap{overflow-x:auto;scrollbar-width:thin;box-shadow:inset -12px 0 12px -12px var(--muted)}
+.workspace .table-wrap th,.workspace .table-wrap td{white-space:normal;overflow-wrap:anywhere}
+.workspace .table-wrap td:first-child{white-space:normal}
+.kpi-arcs{z-index:0;width:145px;right:-28px;bottom:-32px;opacity:.035}
+.kpi>:not(.kpi-arcs){position:relative;z-index:1}
+@media(max-width:700px){
+  body:has(.platform)>main{min-height:0}
+  .workspace>.notice{display:block;margin-bottom:.65rem}
+  .workspace>.notice span{display:block}
+  .workspace>.notice span+span::before{content:none}
+  .header{flex-wrap:nowrap;gap:.35rem;padding:.65rem .75rem}
+  .header .brand{flex:1;min-width:0;gap:.3rem}
+  .header .brand-name{max-width:58px;padding-left:.35rem;font-size:.68rem}
+  .municipal-logo{width:clamp(72px,23vw,90px);height:auto}
+  .header #menu-toggle{flex:none;margin:0;padding:.45rem .55rem;white-space:nowrap;font-size:.85rem}
+  .header #theme{flex:none}
+  .workspace .tabs{width:max-content;max-width:100%;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;overscroll-behavior-x:contain}
+  .workspace .tabs button{flex:0 0 auto;white-space:nowrap}
+  .workspace .cr-abas .tabs{width:100%}
+  .workspace .cr-abas .tabs button{flex:0 0 auto}
+}
+@media(max-width:1100px){
+  .workspace [data-table]>.table-wrap{border:0;overflow:visible}
+  .workspace [data-table]>.table-wrap table,.workspace [data-table]>.table-wrap tbody,.workspace [data-table]>.table-wrap tr,.workspace [data-table]>.table-wrap td{display:block;width:100%}
+  .workspace [data-table]>.table-wrap thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .workspace [data-table]>.table-wrap tr{border:1px solid var(--line);border-radius:10px;margin:0 0 .75rem;padding:.5rem .75rem;background:var(--surface)}
+  .workspace [data-table]>.table-wrap td{display:grid;grid-template-columns:minmax(8rem,32%) minmax(0,1fr);gap:.5rem;padding:.35rem 0!important;border:0;white-space:normal;text-align:left}
+  .workspace [data-table]>.table-wrap td::before{content:attr(data-label);font-weight:600;color:var(--muted)}
+  .workspace [data-table]>.table-wrap td.td-acao{display:block;width:100%}
+  .workspace [data-table]>.table-wrap td.td-acao::before{content:none}
+  .workspace [data-table]>.table-wrap td.td-acao button{width:100%;min-height:44px}
+  .workspace [data-table]>.table-wrap td>*{justify-self:start}
+}
+@media(pointer:coarse){
+  .fx-zoom button[data-fx-zoom-menos],.fx-zoom button[data-fx-zoom-mais],
+  .mp-chip,.mp-btn,.kb-mover,.lg-ver,.pagination button,.table-wrap td button[data-detail],
+  .cr-abas .tabs button,.workspace .tabs button{min-width:44px;min-height:44px}
+}
+/* Coluna "Detalhes" fixa na borda direita das tabelas largas (computador): o botão "Ver detalhes" fica sempre visível; as demais colunas rolam por baixo. */
+@media (min-width:1101px){
+  .workspace [data-table]>.table-wrap thead th:last-child,
+  .workspace [data-table]>.table-wrap td.td-acao{position:sticky;right:0;z-index:2;background:var(--surface);box-shadow:-10px 0 12px -10px #002e4733}
+  .workspace [data-table]>.table-wrap thead th:last-child{z-index:3;background:var(--surface-2)}
+  .workspace [data-table]>.table-wrap tbody tr:hover td.td-acao{background:var(--orange-soft)}
+}
+/* Tabelas (pedido do dono, 17/11/2026): fonte menor, conteúdo centralizado, valores curtos sem quebra, colunas "só nos detalhes" escondidas. */
+.workspace [data-table] .so-detalhe{display:none!important}
+@media (min-width:1101px){
+  .workspace [data-table]>.table-wrap table{font-size:.8rem}
+  .workspace [data-table]>.table-wrap th,.workspace [data-table]>.table-wrap td{text-align:center;vertical-align:middle}
+  .workspace [data-table]>.table-wrap th button{font-size:.72rem;line-height:1.25;text-align:center;justify-content:center;width:100%}
+  .workspace [data-table]>.table-wrap td.td-curto{white-space:nowrap}
+}
+@media (min-width:1101px){
+  .workspace [data-table]>.table-wrap th,.workspace [data-table]>.table-wrap td{padding-left:.45rem;padding-right:.45rem}
+  .workspace [data-table]>.table-wrap td .status{padding:.2rem .5rem}
+}
+/* Topo compacto das páginas de módulo (pedido do dono, 17/11/2026): aviso fino, título menor com o botão na mesma linha, busca e filtro numa linha só. */
+@media (min-width:701px){
+  .workspace>.notice{padding:.3rem .8rem;margin:0 0 .6rem;font-size:.74rem;border-radius:999px;min-height:0}
+  .workspace>.section-head{align-items:center;gap:1rem;margin:0 0 .75rem}
+  .workspace>.section-head h1{font-size:clamp(1.25rem,1.6vw,1.5rem);margin:0 0 .15rem;line-height:1.2}
+  .workspace>.section-head p.muted{font-size:.82rem;margin:0;line-height:1.4}
+  .workspace>.section-head>.primary,.workspace>.section-head .primary{min-height:40px;padding:.45rem .9rem;font-size:.85rem}
+  .workspace [data-table]>.filtros-tabela{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:.5rem;margin:0 0 .35rem;align-items:center}
+  .workspace [data-table]>.filtros-tabela label{display:flex;align-items:center;gap:.5rem;margin:0;min-width:0}
+  .workspace [data-table]>.filtros-tabela input,.workspace [data-table]>.filtros-tabela select{min-height:40px;padding:.4rem .7rem;font-size:.85rem;flex:1;min-width:0;margin:0}
+  .workspace [data-table]>.filtros-tabela .filtro-busca .filtro-rotulo{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .workspace [data-table]>.filtros-tabela .filtro-valor .filtro-rotulo{font-size:.75rem;color:var(--muted);white-space:nowrap;font-weight:600}
+  .workspace [data-table] [data-table-count]{margin:.15rem 0 .5rem;font-size:.78rem;color:var(--muted)}
+}
+/* Topo dos módulos: texto usa a largura disponível; botão alinhado ao título; linha da fonte discreta. */
+@media (min-width:701px){
+  .workspace>.section-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;column-gap:1.5rem}
+  .workspace>.section-head>div:first-child{min-width:0}
+  .workspace>.section-head p.muted{max-width:120ch;text-wrap:pretty}
+  .workspace>.section-head p.muted small{display:block;margin-top:.2rem;font-size:.72rem;opacity:.85}
+  .workspace>.section-head>.primary,.workspace>.section-head>button,.workspace>.section-head>.actions{align-self:start;margin-top:.1rem}
+}

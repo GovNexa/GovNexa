@@ -15,7 +15,19 @@ const atrasDoMenu = (page: Page) => page.evaluate(async () => {
       if (!temTexto && !controle) continue;
       const estilo = getComputedStyle(el);
       if (estilo.visibility === 'hidden' || estilo.display === 'none' || Number(estilo.opacity) === 0) continue;
-      const r = el.getBoundingClientRect();
+      const caixa = el.getBoundingClientRect();
+      // Considera só a parte visível: recorta pela área dos ancestrais com overflow escondido
+      // (ex.: a camada SVG do Leaflet é maior que o mapa, mas fica recortada e invisível).
+      const r = { left: caixa.left, top: caixa.top, right: caixa.right, bottom: caixa.bottom, width: 0, height: 0 };
+      for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+        const oa = getComputedStyle(a);
+        if (/(hidden|clip|auto|scroll)/.test(oa.overflowX + oa.overflowY)) {
+          const ra = a.getBoundingClientRect();
+          r.left = Math.max(r.left, ra.left); r.top = Math.max(r.top, ra.top);
+          r.right = Math.min(r.right, ra.right); r.bottom = Math.min(r.bottom, ra.bottom);
+        }
+      }
+      r.width = r.right - r.left; r.height = r.bottom - r.top;
       if (r.width < 1 || r.height < 1) continue;
       const largura = Math.min(r.right, m.right) - Math.max(r.left, m.left);
       const altura = Math.min(r.bottom, m.bottom) - Math.max(r.top, m.top);

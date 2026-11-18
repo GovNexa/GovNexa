@@ -195,8 +195,8 @@
 .fx-l-forma{fill:var(--surface);stroke:var(--text);stroke-width:2}
 .fx-l-fino{stroke-width:1.5}
 .fx-l-grosso{stroke-width:4}
-.fx-quadro{border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:auto;max-width:100%}
-.fx-zoom{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;margin:0 0 .6rem}
+.fx-quadro{border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:auto;max-width:100%;min-width:0}
+.fx-zoom{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem;margin:0 0 .6rem;max-width:100%;min-width:0}
 .fx-zoom button{min-width:2.4rem;padding:.35rem .7rem}
 .fx-zoom output{min-width:3.2rem;text-align:center;font-weight:600;color:var(--text)}
 .fx-svg{display:block;width:100%;max-width:1000px;height:auto;margin:0 auto}
@@ -357,6 +357,7 @@
 .sl-reuniao p{margin:.2rem 0;overflow-wrap:anywhere}
 .sl-marcos{margin:0;padding-left:1.2rem}
 @media (max-width:900px){.sl-proj{grid-template-columns:minmax(0,1fr)}.sl-raid,.sl-notas{grid-template-columns:minmax(0,1fr)}.sl-candidato{grid-template-columns:minmax(0,1fr)}.sl-dl{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:700px){.cr-abas .tabs{width:100%;justify-content:flex-start;gap:.5rem}.cr-abas .tabs button{flex:0 1 auto;min-height:44px}}
 @media print{
  .sl-nao-imprimir{display:none!important}
  [data-cart] [data-sl-reuniao][hidden]{display:block!important}
