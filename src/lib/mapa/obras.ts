@@ -16,7 +16,11 @@ export async function lerGeoBairrosDoRepositorio(repo?: Pick<import('../reposito
   try {
     const geo = await repo?.listarGeoBairros?.();
     return geo && Object.keys(geo.bairros).length ? geo : geoExemplo as GeoBairros;
-  } catch { return geoExemplo as GeoBairros; }
+  } catch (erro) {
+    const mensagem = erro instanceof Error ? erro.message : String(erro);
+    if (!/no such table/i.test(mensagem)) console.error('[mapa] bairros indisponíveis:', mensagem);
+    return geoExemplo as GeoBairros;
+  }
 }
 
 export interface ObraBasica {

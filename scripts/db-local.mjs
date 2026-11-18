@@ -18,9 +18,9 @@ executar('npx', ['wrangler', 'd1', 'execute', 'DB_PREFEITURA_5208707', '--local'
 const carteiraExemplo = JSON.parse(readFileSync('data/exemplo/carteira/carteira.json', 'utf8'));
 const bairrosExemplo = [...new Set(carteiraExemplo.projetos.map(p => p.bairro?.trim()).filter(Boolean))];
 const escapar = valor => "'" + valor.replaceAll("'", "''") + "'";
-writeFileSync('.tmp/bairros-local.sql', bairrosExemplo.map(bairro =>
+writeFileSync('.tmp/bairros-local.sql', bairrosExemplo.map((bairro, indice) =>
  `INSERT INTO bairro_geo(prefeitura_id,bairro,busca,encontrado,lat,lng,fonte,gerado_em)
- VALUES(${carteiraExemplo.prefeitura_id},${escapar(bairro)},${escapar(bairro)},1,-16.6869,-49.2648,'exemplo fictício — centro simulado',strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+ VALUES(${carteiraExemplo.prefeitura_id},${escapar(bairro)},${escapar(bairro)},1,${-16.72 + 0.08 * (indice + 1) / (bairrosExemplo.length + 1)},${-49.32 + 0.1 * (indice + 1) / (bairrosExemplo.length + 1)},'exemplo fictício — centro simulado',strftime('%Y-%m-%dT%H:%M:%fZ','now'))
  ON CONFLICT(prefeitura_id,bairro) DO UPDATE SET busca=excluded.busca,encontrado=excluded.encontrado,lat=excluded.lat,lng=excluded.lng,fonte=excluded.fonte,gerado_em=excluded.gerado_em;`
 ).join('\n'), 'utf8');
 executar('npx', ['wrangler', 'd1', 'execute', 'DB_PREFEITURA_5208707', '--local', '--file', '.tmp/bairros-local.sql']);

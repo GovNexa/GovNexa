@@ -11,6 +11,10 @@ import { expandirBairro, semTipoDeBairro, GOIANIA, dentroDeGoiania, type GeoBair
 
 const FONTE = 'OpenStreetMap Nominatim (© colaboradores do OpenStreetMap, ODbL)';
 const ESPERA_MS = 1100;
+export const VERSAO_REGRAS = 2;
+export function reaproveitarEntradas(geo: { versao_regras?: number; bairros?: Record<string, GeoBairro> }): Record<string, GeoBairro> {
+  return geo.versao_regras === VERSAO_REGRAS ? geo.bairros ?? {} : {};
+}
 
 function argumento(nome: string): string | null {
   const i = process.argv.indexOf(nome);
@@ -42,7 +46,14 @@ export function selecionarResultado(lista: ResultadoNominatim[], procurado: stri
     const encontrado = identificar(r.name);
     if (!alvo.nome || encontrado.nome !== alvo.nome) return false;
     if (alvo.tipo && encontrado.tipo && alvo.tipo !== encontrado.tipo) return false;
-    if (!encontrado.tipo && !(segundaTentativa && alvo.tipo && !ambiguo)) return false;
+    if (alvo.tipo && !encontrado.tipo && !(segundaTentativa && !ambiguo)) return false;
+    if (!alvo.tipo && encontrado.tipo) {
+      const outros = [...nomes, ...lista.flatMap(r => typeof r.name === 'string' ? [r.name] : [])];
+      if (outros.some(n => {
+        const outro = identificar(n);
+        return outro.nome === alvo.nome && outro.tipo !== null && outro.tipo !== encontrado.tipo;
+      })) return false;
+    }
     const municipio = [r.address?.city, r.address?.municipality, r.address?.town];
     return municipio.some(n => typeof n === 'string' && normalizar(n) === 'goiania')
       && dentroDeGoiania({ lat: Number(r.lat), lng: Number(r.lon) });
@@ -61,8 +72,14 @@ export async function consultar(busca: string, requisitar: typeof fetch = fetch,
     bounded: '1', viewbox: `${GOIANIA.caixa.lngMin},${GOIANIA.caixa.latMax},${GOIANIA.caixa.lngMax},${GOIANIA.caixa.latMin}`,
   }).toString();
   for (let tentativa = 0; ; tentativa++) {
-    const resp = await requisitar(url, { headers: { 'User-Agent': 'GovNexa-geocodificacao/1.0 (+https://govnexa.com.br)' } });
-    if ((resp.status === 429 || resp.status >= 500) && tentativa < 3) { await esperar(5000); continue; }
+    const resp = await requisitar(url, { signal: AbortSignal.timeout(30000), headers: { 'User-Agent': 'GovNexa-geocodificacao/1.0 (+https://govnexa.com.br)' } });
+    if ((resp.status === 429 || resp.status >= 500) && tentativa < 3) {
+      const cabecalho = resp.headers.get('Retry-After');
+      const segundos = cabecalho !== null && /^\d+(\.\d+)?$/.test(cabecalho.trim()) ? Number(cabecalho) * 1000 : NaN;
+      const prazo = Number.isFinite(segundos) ? segundos : cabecalho ? Date.parse(cabecalho) - Date.now() : 0;
+      await esperar(Math.max(5000, Number.isFinite(prazo) ? prazo : 0));
+      continue;
+    }
     if (!resp.ok) throw new Error(`Nominatim respondeu ${resp.status}`);
     return selecionarResultado(await resp.json() as ResultadoNominatim[], procurado, nomes, segundaTentativa);
   }
@@ -75,7 +92,10 @@ export function invalidarPontosAmbiguos(bairros: Record<string, GeoBairro>): str
     const chave = `${cinco(g.lat!)},${cinco(g.lng!)}`;
     pontos.set(chave, [...(pontos.get(chave) ?? []), nome]);
   }
-  const ambiguos = [...pontos.values()].filter(grupo => grupo.length > 1).flat();
+  const ambiguos = [...pontos.values()].filter(grupo => new Set(grupo.map(nome => {
+    const identificado = identificar(nome);
+    return JSON.stringify([identificado.tipo, identificado.nome]);
+  })).size > 1).flat();
   for (const nome of ambiguos) bairros[nome] = { busca: bairros[nome].busca, encontrado: false };
   return ambiguos;
 }
@@ -107,7 +127,7 @@ export async function main(): Promise<void> {
 
   let existentes: Record<string, GeoBairro> = {};
   if (existsSync(arqSaida) && !refazer) {
-    try { existentes = (JSON.parse(readFileSync(arqSaida, 'utf8')) as { bairros?: Record<string, GeoBairro> }).bairros ?? {}; } catch { existentes = {}; }
+    try { existentes = reaproveitarEntradas(JSON.parse(readFileSync(arqSaida, 'utf8'))); } catch { existentes = {}; }
   }
 
   const resultado: Record<string, GeoBairro> = {};
@@ -130,7 +150,7 @@ export async function main(): Promise<void> {
     const g = resultado[k];
     ordenado[k] = g.encontrado ? { busca: g.busca, encontrado: true, lat: g.lat, lng: g.lng } : { busca: g.busca, encontrado: false };
   }
-  const saida = { bairros: ordenado, fonte: FONTE, gerado_em: new Date().toISOString() };
+  const saida = { versao_regras: VERSAO_REGRAS, bairros: ordenado, fonte: FONTE, gerado_em: new Date().toISOString() };
   if (arqSql) writeFileSync(resolve(arqSql), gerarSql(saida, prefeitura), 'utf8');
   writeFileSync(arqSaida, JSON.stringify(saida, null, 2) + '\n', 'utf8');
 
