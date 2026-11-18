@@ -7,6 +7,8 @@
 - Painel lateral: resumo da cidade e por região; lista de obras da região/bairro; ficha resumida da obra com "Abrir ficha completa"; obra escolhida destacada no mapa.
 - Modo "Apresentar mapa" em tela cheia para a TV (letra grande, alvos de 56 px); fundo do mapa mais claro; no celular, painel abaixo do mapa e filtros sem ficar presos no topo.
 - Funções puras de agrupamento em `src/lib/mapa/agrupar.ts` com testes.
+- Gestão compacta: cartões em faixa baixa; "Exportar em PDF" abaixo do mapa; filtros em caixas de seleção (Situação, Etapas, Tipos) numa linha com as ações.
+- Voltar ao mapa sem perder nada: estado (filtros, zoom, seleção) no endereço; "Abrir ficha completa" abre a ficha por cima do mapa (também em tela cheia) com "← Voltar ao mapa"; página do projeto mostra "← Voltar ao mapa" quando aberta a partir do mapa.
 
 ## Centros dos bairros no D1 (17/11/2026)
 - Migração 0005, leitura isolada por prefeitura com cache curto e fallback ao exemplo; região aparada nos dados das obras, sem mudança visual.

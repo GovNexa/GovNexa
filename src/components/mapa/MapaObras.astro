@@ -478,6 +478,22 @@ document.addEventListener('astro:page-load', () => {
       const documento = new DOMParser().parseFromString(await resposta.text(), 'text/html');
       const workspace = documento.querySelector<HTMLElement>('.workspace');
       if (!workspace) throw new Error('Conteúdo da ficha não encontrado.');
+      documento.head.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"][href]').forEach((link) => {
+        const href = new URL(link.getAttribute('href')!, resposta.url).href;
+        const jaCarregado = [...document.head.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"][href]')]
+          .some((atual) => new URL(atual.getAttribute('href')!, location.href).href === href);
+        if (!jaCarregado) {
+          const copia = document.importNode(link, true);
+          copia.href = href;
+          document.head.append(copia);
+        }
+      });
+      documento.head.querySelectorAll('style').forEach((style) => {
+        const conteudo = style.textContent?.trim();
+        if (!conteudo || [...document.head.querySelectorAll('style')].some((atual) => atual.textContent?.trim() === conteudo)) return;
+        document.head.append(document.importNode(style, true));
+      });
+      workspace.querySelectorAll('.pj-contexto, .pj-titulo, .notice').forEach((item) => item.remove());
       workspace.querySelectorAll('script').forEach((script) => script.remove());
       const fragmento = document.createDocumentFragment();
       workspace.childNodes.forEach((no) => fragmento.append(document.importNode(no, true)));

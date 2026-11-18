@@ -10,6 +10,15 @@ test('mapa em modo TV ocupa a tela e oferece alvos de 56 px', async ({ page }) =
   const mapa = page.locator('[data-mapa-obras]');
   await mapa.getByRole('button', { name: 'Apresentar mapa' }).click();
   await expect.poll(() => mapa.evaluate((element) => element.matches(':fullscreen'))).toBe(true);
+  const linhaFiltros = await mapa.locator('.mp-filtros').evaluate((linha) => {
+    const controles = [...linha.querySelectorAll('.mp-filtro-abrir, .mp-acoes .mp-btn')];
+    return {
+      topos: controles.map((controle) => controle.getBoundingClientRect().top),
+      largurasFiltros: [...linha.querySelectorAll('.mp-filtro')].map((filtro) => filtro.getBoundingClientRect().width),
+    };
+  });
+  expect(Math.max(...linhaFiltros.topos) - Math.min(...linhaFiltros.topos)).toBeLessThanOrEqual(1);
+  expect(linhaFiltros.largurasFiltros.every((largura) => largura >= 200)).toBe(true);
   const filtroEtapas = mapa.locator('[data-mp-filtro="situacoes"]');
   await filtroEtapas.locator('[data-mp-abrir]').click();
   for (const opcao of await filtroEtapas.locator('.mp-opcao-filtro').all()) {
@@ -44,8 +53,19 @@ test('mapa em modo TV ocupa a tela e oferece alvos de 56 px', async ({ page }) =
   await mapa.locator('.mp-bolha-caixa').first().click();
   await mapa.locator('.mp-painel-lista .mp-item').first().click();
   await mapa.getByRole('link', { name: 'Abrir ficha completa' }).click();
-  await expect(mapa.locator('[data-mp-ficha]')).toBeVisible();
+  const ficha = mapa.locator('[data-mp-ficha]');
+  await expect(ficha).toBeVisible();
   await expect(mapa.locator('[data-mp-ficha-titulo]')).not.toHaveText('Ficha do projeto');
+  await expect(ficha.locator('.pj-contexto, .pj-titulo, .notice')).toHaveCount(0);
+  await expect(ficha.getByRole('link', { name: '← Carteira de projetos' })).toHaveCount(0);
+  const resumo = ficha.locator('.pj-bloco').filter({ hasText: 'Resumo' });
+  await expect(resumo).toBeVisible();
+  const estiloResumo = await resumo.evaluate((element) => {
+    const estilo = getComputedStyle(element);
+    return { fundo: estilo.backgroundColor, borda: estilo.borderTopWidth };
+  });
+  expect(estiloResumo.fundo).not.toBe('rgba(0, 0, 0, 0)');
+  expect(estiloResumo.borda).not.toBe('0px');
   await mapa.getByRole('button', { name: '← Voltar ao mapa' }).click();
   await expect.poll(() => mapa.evaluate((element) => element.matches(':fullscreen'))).toBe(true);
   await mapa.getByRole('button', { name: 'Sair da apresentação' }).click();
