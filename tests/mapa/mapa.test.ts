@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import type { Carteira, Projeto } from '../../src/lib/carteira/tipos.ts';
-import { categoriaObra, espalharSobrepostos, expandirBairro, semTipoDeBairro, localizarProjeto, situacaoMapa, validarLocalizacao, type GeoBairros } from '../../src/lib/mapa/geo.ts';
+import { categoriaObra, espalharSobrepostos, expandirBairro, semTipoDeBairro, localizarProjeto, situacaoMapa, validarLocalizacao, dentroDeGoiania, type GeoBairros } from '../../src/lib/mapa/geo.ts';
 import { obrasDoMapa } from '../../src/lib/mapa/obras.ts';
 import type { Localizacao } from '../../src/lib/mapa/tipos.ts';
 
@@ -80,6 +80,15 @@ test('situacaoMapa por macroetapa', () => {
 test('validarLocalizacao', () => {
   assert.deepEqual(validarLocalizacao(ponto()), []);
   assert.ok(validarLocalizacao(ponto(-23.55, -46.63)).length > 0, 'ponto fora de Goiânia');
+  // Entorno (regra do dono, 18/11/2026): divisa e cidade vizinha próxima são aceitas; longe disso, não.
+  assert.deepEqual(validarLocalizacao(ponto(-16.92, -49.25)), [], 'ao sul da cidade, no entorno');
+  assert.deepEqual(validarLocalizacao(ponto(-16.7, -48.98)), [], 'a leste da cidade, no entorno');
+  assert.deepEqual(validarLocalizacao(ponto(-16.65, -49.58)), [], 'a oeste da cidade, no entorno');
+  assert.deepEqual(validarLocalizacao(ponto(-16.37, -49.25)), [], 'ao norte da cidade, no entorno');
+  assert.deepEqual(validarLocalizacao(ponto(-16.95, -49.25)), ['O ponto está fora de Goiânia e do entorno.'], 'além do entorno, ao sul');
+  assert.deepEqual(validarLocalizacao(ponto(-16.7, -48.9)), ['O ponto está fora de Goiânia e do entorno.'], 'além do entorno, a leste');
+  assert.equal(dentroDeGoiania({ lat: -16.92, lng: -49.25 }), false, 'o retângulo da cidade (bairros) não muda');
+  assert.ok(validarLocalizacao({ tipo: 'trechos', trechos: [{ ...trecho(), linha: [{ lat: -16.7, lng: -49.27 }, { lat: -17.2, lng: -49.27 }] }] }).some((e) => e.includes('fora de Goiânia e do entorno')), 'trecho que sai do entorno');
   assert.ok(validarLocalizacao({ tipo: 'ponto', ponto: { lat: 'x', lng: -49.25 }, endereco: null }).length > 0, 'latitude não numérica');
   assert.ok(validarLocalizacao({ tipo: 'trechos', trechos: [] }).length > 0, 'trechos vazio');
   assert.ok(validarLocalizacao({ tipo: 'trechos', trechos: [trecho('  ')] }).length > 0, 'trecho sem rua');

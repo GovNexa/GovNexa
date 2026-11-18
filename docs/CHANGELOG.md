@@ -13,6 +13,7 @@
 - 2026-11-17: página nova `/plataforma/projeto/<código>/`, com tudo o que o sistema sabe de um projeto (resumo, valores e recursos, datas, localização, documentos, cronograma e histórico), aberta pela Carteira, pelo mapa e pela tela de documentos.
 - A tela Localização e fotos deixa de ser simulação: o ponto ou os trechos são gravados no banco (rota `POST /plataforma/projeto/localizacao/<código>/`), só por quem tem perfil de editor, gestor ou administrador, e cada alteração entra no Histórico.
 - Migração `db/d1/prefeitura/0004_historico_por_projeto.sql`: o histórico de um projeto passa a ser lido por índice. Não muda nenhum dado.
+- 2026-11-18 (regra do dono): a localização de um projeto aceita pontos em Goiânia e no entorno, até cerca de 10 km além do retângulo da cidade, porque a prefeitura pode ter obra na divisa ou em acordo com cidade vizinha. Antes só o retângulo da cidade era aceito. A localização dos bairros continua usando o retângulo da cidade.
 - Projeto do banco de dados em `docs/govnexa/projeto-banco.md`, aprovado pelo dono em 17/11/2026: princípios para toda entrega com dados e roteiro B1 a B8.
 
 ## Correção: layout duplicado depois de um conflito de merge
