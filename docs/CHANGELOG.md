@@ -9,6 +9,11 @@
 - Mantido por decisão do outro desenvolvedor: link de voltar antes do aviso em Documentos do projeto (teste `documentos.spec.ts`).
 - Pendente (já existia na main): `acceptance.spec.ts` "mapa das obras" depende da ordem dos testes, porque a carga local preserva localizações gravadas por outros testes.
 
+## Entrega B2: Novo projeto grava no banco
+- 2026-11-18: o formulário Novo projeto deixa de ser simulação. Rota `POST /plataforma/projeto/criar/` (só perfil de editor, gestor ou administrador), com todos os campos conferidos de novo no servidor; o projeto nasce na macroetapa 00 com código único (P-N) e o cadastro entra no Histórico no mesmo lote.
+- Migração `db/d1/prefeitura/0005_codigo_projeto_unico.sql`: índice único do código dentro da prefeitura. Dois cadastros ao mesmo tempo não repetem o número: o segundo recalcula e grava de novo. Não muda nenhum dado.
+- Risco registrado: a carga de planilhas atualiza por id e pode sobrescrever um projeto cadastrado pela tela se a planilha trouxer o mesmo código (regra a decidir com o dono).
+
 ## Entrega B1: página do projeto e localização gravando no banco
 - 2026-11-17: página nova `/plataforma/projeto/<código>/`, com tudo o que o sistema sabe de um projeto (resumo, valores e recursos, datas, localização, documentos, cronograma e histórico), aberta pela Carteira, pelo mapa e pela tela de documentos.
 - A tela Localização e fotos deixa de ser simulação: o ponto ou os trechos são gravados no banco (rota `POST /plataforma/projeto/localizacao/<código>/`), só por quem tem perfil de editor, gestor ou administrador, e cada alteração entra no Histórico.

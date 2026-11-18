@@ -136,8 +136,9 @@ Cada linha é um PR pequeno, com migração (se houver), rota, tela, testes, atu
 
 | Entrega | O que passa a funcionar | Banco |
 | --- | --- | --- |
-| B1 (feita no código em 17/11/2026) | Página do projeto (leitura) e Localização gravando | Migração 0004: índices do histórico por projeto |
-| B2 | Novo projeto gravando; edição dos campos na página do projeto | Índice único do código |
+| B1 (feita; no ar desde 18/11/2026) | Página do projeto (leitura) e Localização gravando | Migração 0004: índices do histórico por projeto |
+| B2a (feita no código em 18/11/2026) | Novo projeto gravando (código único, histórico junto, repetição quando dois cadastros calculam o mesmo número) | Migração 0005: índice único do código |
+| B2b | Edição dos campos na página do projeto | — |
 | B3 | Kanban e Pendências de etapa gravando (movimentar, portão, motivo) | — |
 | B4 | Catálogos de órgão, região e tipo | 4.2 |
 | B5 | Reunião semanal e ações | `reuniao`, `reuniao_item`, `acao` |
@@ -148,6 +149,8 @@ Cada linha é um PR pequeno, com migração (se houver), rota, tela, testes, atu
 A cada entrega: a etapa correspondente do Fluxo deixa de ser "simulação", o aviso de simulação sai da tela, e `README.md`, `plano.md`, `historico.md` e `modelo-dados.md` são atualizados.
 
 ### Pendências registradas
+
+- Importação e cadastro pela tela: a carga de planilhas grava por (prefeitura, id) e atualiza o projeto se o id já existir. Um projeto cadastrado pela tela (P-<maior código + 1>) pode ser sobrescrito se uma planilha futura trouxer o mesmo código. Decidir com o dono a regra (por exemplo, a carga não sobrescreve projeto de origem CADASTRO) antes de a próxima importação.
 
 - A validação da localização aceita pontos em Goiânia e no entorno, até cerca de 10 km além do retângulo da cidade (`src/lib/mapa/geo.ts`; regra do dono, 18/11/2026: obra na divisa ou em acordo com cidade vizinha). O limite ainda é fixo no código: antes de uma segunda prefeitura usar o sistema, o retângulo e a margem precisam vir do cadastro da prefeitura.
 - Cópia de segurança por exportação do banco: conferir, antes de depender dela, se a exportação e a importação lidam com a coluna calculada da migração 0004.

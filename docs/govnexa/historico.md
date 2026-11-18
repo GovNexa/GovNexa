@@ -38,6 +38,7 @@ A versão integral do histórico é privada e fica fora do repositório público
 | 17/11/2026 | Datas no padrão brasileiro: `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` (horário de Brasília). Função única em `src/lib/datas.ts`. |
 | 17/11/2026 | Banco de dados: a cada incremento que crie ou use dados, estudar e projetar antes de criar, respeitando relacionamentos, dependências e integridade, com segurança e agilidade. As telas saem da simulação na ordem do Fluxo, que é atualizado a cada entrega. Projeto em `docs/govnexa/projeto-banco.md`. |
 | 18/11/2026 | Limite da localização: a localização de um projeto aceita pontos em Goiânia e no entorno, até cerca de 10 km além do retângulo da cidade, porque a prefeitura pode ter obra na divisa ou em acordo com cidade vizinha. |
+| 18/11/2026 | Importação x cadastro pela tela (risco registrado na B2): a carga de planilhas atualiza por id e pode sobrescrever um projeto cadastrado pela tela se a planilha trouxer o mesmo código; a regra precisa ser decidida antes da próxima importação. |
 
 ## 4. Testes do SEI (registro)
 
@@ -198,6 +199,7 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 | novo #27 | 17/11/2026 | Entrega 1.1: tipo do documento (DFD, ETP, TR), classificação com registro no Histórico e migração 0003 |
 | novo #28 | 17/11/2026 | Banco de dados: projeto (diagnóstico, princípios, modelo e roteiro pelo Fluxo) |
 | novo #29 | 17/11/2026 | Entrega B1: página do projeto, localização gravando no banco (cidade e entorno) e migração 0004 |
+| novo (a numerar) | 18/11/2026 | Entrega B2: Novo projeto gravando no banco e migração 0005 (código único) |
 | novo (a numerar) | 17/11/2026 | Site público: logo provisória no cabeçalho, menu enxuto e mapa de cidade na página inicial |
 | novo (a numerar) | 17/11/2026 | Página inicial nova do site público, aprovada pelo dono a partir de prévia de design |
 

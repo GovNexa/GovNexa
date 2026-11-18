@@ -127,7 +127,8 @@ São módulos independentes que conversam entre si:
 
 | Data | O que | Referência |
 | --- | --- | --- |
-| 17/11 | Entrega B1: página do projeto (todas as informações num só endereço) e localização gravando no banco; migração 0004 (ainda não aplicada em produção) | PR #29 |
+| 18/11 | Entrega B2: Novo projeto grava no banco (macroetapa 00, código único P-N, cadastro no Histórico); migração 0005 (índice único do código; ainda não aplicada em produção) | novo PR |
+| 17/11 | Entrega B1: página do projeto (todas as informações num só endereço) e localização gravando no banco; migração 0004 | PR #29 (no ar desde 18/11/2026) |
 | 17/11 | Projeto do banco de dados aprovado: princípios e roteiro B1 a B8, na ordem do Fluxo (`docs/govnexa/projeto-banco.md`) | PR #28 |
 | 17/11 | Entrega 1.1: tipo do documento (DFD, ETP, TR) no envio e na lista, com registro no Histórico; migração 0003 aplicada | PR #27, publicada em 17/11 |
 | 17/11 | Entrega 1.0: limite de 30 ações por minuto por pessoa nos documentos (Rate Limiting da Cloudflare) | PR #15, publicada em 17/11 |
@@ -182,10 +183,10 @@ O tema claro usa menu lateral branco, texto e ícones azul-escuros, destaques az
 | --- | --- | --- | --- |
 | Projetos · Início | Resumo da carteira por macroetapa: quantidade, valor e farol de prazo | Disponível | `src/lib/carteira/` |
 | Fluxo do sistema | Diagrama em raias com etapas, validações, responsáveis e links para as telas; inclui fluxos detalhados e zoom | Disponível | `src/lib/govnexa/fluxo.ts`, `subfluxos.ts`, `src/components/fluxo/` |
-| Novo projeto | Cadastro com os campos da planilha | Simulação | `src/components/carteira/NovoProjeto.astro` |
+| Novo projeto | Cadastro com os campos da planilha; grava no banco na macroetapa 00 e registra no Histórico | Disponível no código (entrega B2; publicação depende de ordem do dono) | `src/components/carteira/NovoProjeto.astro` |
 | Carteira de projetos | Projetos, busca e ficha completa com valores, recursos, datas e histórico | Disponível | `src/lib/carteira/` |
-| Página do projeto | Tudo de um projeto num só endereço: resumo, valores e recursos, datas, localização, documentos, cronograma e histórico | Disponível no código (entrega B1); publicação depende de ordem do dono | `src/pages/plataforma/projeto/[id].astro` |
-| Localização e fotos | Ponto ou trecho da obra no mapa e lista de obras sem localização | Localização grava no banco e entra no Histórico; aceita a cidade e o entorno (cerca de 10 km) (entrega B1; publicação depende de ordem do dono); fotos numa próxima entrega | `src/lib/mapa/`, `src/components/mapa/`, `src/pages/plataforma/projeto/localizacao/` |
+| Página do projeto | Tudo de um projeto num só endereço: resumo, valores e recursos, datas, localização, documentos, cronograma e histórico | Disponível (entrega B1, no ar desde 18/11/2026) | `src/pages/plataforma/projeto/[id].astro` |
+| Localização e fotos | Ponto ou trecho da obra no mapa e lista de obras sem localização | Localização grava no banco e entra no Histórico; aceita a cidade e o entorno (cerca de 10 km) (entrega B1, no ar desde 18/11/2026); fotos numa próxima entrega | `src/lib/mapa/`, `src/components/mapa/`, `src/pages/plataforma/projeto/localizacao/` |
 | Kanban por macroetapa | Colunas com quantidade e valor; mover com portões e motivo | Simulação | `src/components/carteira/Kanban.astro`, `src/lib/carteira/movimentacao.ts` |
 | Gantt geral | Linha do tempo prevista por macroetapa | Disponível | `src/components/carteira/Gantt.astro` |
 | Visão por órgão | Obras por órgão e macroetapa; pronta para imprimir | Disponível | `src/components/carteira/VisaoOrgaos.astro` |
@@ -289,8 +290,8 @@ Os pedidos vêm dos áudios do dono, da reunião com a equipe e das planilhas.
 O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pelo Worker. Na prática:
 - **Leitura real no D1:** carteira, cronogramas e histórico da carga inicial.
 - **Captação:** leitura de dados públicos.
-- **Gravam de verdade:** documentos do projeto e, a partir da entrega B1, a localização da obra.
-- **Ainda é simulação:** cadastro, Kanban, pendências, reunião, sala de guerra, SEI na interface e WhatsApp. Essas partes passam a gravar de verdade pelo roteiro B2 a B8 de `docs/govnexa/projeto-banco.md`.
+- **Gravam de verdade:** documentos do projeto, a localização da obra (entrega B1) e o cadastro de projeto novo (entrega B2, publicação depende de ordem do dono).
+- **Ainda é simulação:** Kanban, pendências, reunião, sala de guerra, SEI na interface e WhatsApp. Essas partes passam a gravar de verdade pelo roteiro B3 a B8 de `docs/govnexa/projeto-banco.md`.
 - A plataforma lê o D1 em produção desde 16/11/2026. A leitura foi otimizada (só a guia aberta é montada e a leitura do banco fica em cache de 30 s); a otimização foi publicada em 16/11/2026 às 19h35 (versão 2e1114fa do Worker).
 - Acesso à plataforma exige sessão do login próprio (senha + verificação em 2 etapas) e cadastro ativo no banco central. A prefeitura não é escolhida pela URL.
 
@@ -408,7 +409,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 1. **3.3 — usuários e login:** revisar as correções de segurança da ordem 3, executar `npx playwright test --project=login`, homologar os dois temas e configurar e-mail/segredos. Publicação, migração central e troca de modo ficam com o responsável; Access continua padrão.
 2. **3.4 — documentos:** publicada em 17/11/2026.
    Entregas 1.0 (limite de requisições) e 1.1 (tipo do documento, migração 0003) publicadas em 17/11/2026.
-   Entrega B1 (página do projeto e localização) feita no código; a migração 0004 e a publicação dependem de ordem do dono. Em seguida: B2 (Novo projeto gravando e edição na página do projeto) e B3 (Kanban e Pendências de etapa).
+   Entregas B1 (página do projeto e localização, no ar desde 18/11/2026) e B2a (Novo projeto gravando; a migração 0005 e a publicação dependem de ordem do dono). Em seguida: B2b (edição dos campos na página do projeto) e B3 (Kanban e Pendências de etapa). Pendência de decisão: Importação e cadastro pela tela: a carga de planilhas grava por (prefeitura, id) e atualiza o projeto se o id já existir. Um projeto cadastrado pela tela (P-<maior código + 1>) pode ser sobrescrito se uma planilha futura trouxer o mesmo código. Decidir com o dono a regra (por exemplo, a carga não sobrescreve projeto de origem CADASTRO) antes de a próxima importação.
 3. **3.5 — importação:** feita e gravada em 16/11.
 4. Automatizar a leitura do SEI com Cron Trigger.
 5. Desligar a hospedagem antiga.
