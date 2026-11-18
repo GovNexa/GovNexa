@@ -289,8 +289,8 @@ Os pedidos vêm dos áudios do dono, da reunião com a equipe e das planilhas.
 ## 6. O que funciona de verdade e o que é simulação
 
 Centros de bairros: migração local `0005_bairro_geo.sql`; `npm run db:local` aplica as migrações e semeia somente bairros fictícios de `data/exemplo/`, com centros explicitamente simulados.
-O geocodificador é manual, fora do build: `node scripts/geocodificar-bairros.ts --bairros .tmp/bairros.json --saida .tmp/geo-bairros.json --sql .tmp/bairros.sql --prefeitura 5208707`. Mantém `--carteira`, `--refazer` e `--refazer-faltantes`.
-A entrada nova é `[{"bairro":"Bairro Exemplo","regiao":"Centro","obras":1}]`. Nominatim: consulta estruturada, município Goiânia e caixa obrigatórios; preferência por bairro, consultas sequenciais a cada ≥1,1 s e até três novas tentativas de 429/5xx após 5 s. O SQL escapa valores e atualiza por prefeitura/bairro. Entradas e saídas reais ficam fora do repositório; os centros reais ficam no D1 da prefeitura.
+O geocodificador é manual, fora do build: `node scripts/geocodificar-bairros.ts --bairros .tmp/bairros.json --saida .tmp/geo-bairros.json --sql .tmp/bairros.sql --prefeitura 5208707`. Mantém `--carteira`, `--refazer` e `--refazer-faltantes`. A próxima carga real deve usar `--refazer`; a saída grava `versao_regras: 2` e só reaproveita entradas da versão atual.
+A entrada nova é `[{"bairro":"Bairro Exemplo","regiao":"Centro","obras":1}]`. Nominatim: consulta estruturada, município Goiânia e caixa obrigatórios; preferência por bairro, consultas sequenciais a cada ≥1,1 s e até três novas tentativas de 429/5xx após o maior entre 5 s e `Retry-After`, com timeout de 30 s por requisição. O SQL escapa valores e atualiza por prefeitura/bairro. Entradas e saídas reais ficam fora do repositório; os centros reais ficam no D1 da prefeitura.
 
 O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pelo Worker. Na prática:
 - **Leitura real no D1:** carteira, cronogramas e histórico da carga inicial.
