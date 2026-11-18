@@ -47,6 +47,11 @@ const dados = JSON.stringify({ obras, semLocalLista, semLocal }).replaceAll('<',
         <button type="button" data-mp-zoom-in aria-label="Aumentar zoom">+</button>
         <button type="button" data-mp-zoom-out aria-label="Diminuir zoom">−</button>
       </div>
+      <div class="mp-camadas" role="group" aria-label="Camada do mapa">
+        <button type="button" data-mp-camada="mapa" aria-pressed="true">Mapa</button>
+        <button type="button" data-mp-camada="satelite" aria-pressed="false">Satélite</button>
+        <button type="button" data-mp-camada="hibrido" aria-pressed="false">Híbrido</button>
+      </div>
     </div>
     <aside class="mp-painel" aria-label="Resumo do mapa" aria-live="polite" data-mp-painel></aside>
   </div>
@@ -208,10 +213,35 @@ document.addEventListener('astro:page-load', () => {
     centroValido ? [centroInicial[0]!, centroInicial[1]!] : [GOIANIA.centro.lat, GOIANIA.centro.lng],
     zoomValido ? zoomInicial : 12,
   );
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© colaboradores do OpenStreetMap',
-    maxZoom: 18,
-  }).addTo(mapa);
+  // Camadas de fundo (pedido do dono, 18/11/2026): Mapa (OpenStreetMap), Satélite e Híbrido (Esri World Imagery + referências).
+  type NomeCamada = 'mapa' | 'satelite' | 'hibrido';
+  const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services';
+  const ATRIB_ESRI = 'Imagens © Esri — Fonte: Esri, Maxar, Earthstar Geographics e comunidade de usuários GIS';
+  const camadasFundo: Record<NomeCamada, L.TileLayer[]> = {
+    mapa: [L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© colaboradores do OpenStreetMap', maxZoom: 18 })],
+    satelite: [L.tileLayer(`${ESRI}/World_Imagery/MapServer/tile/{z}/{y}/{x}`, { attribution: ATRIB_ESRI, maxZoom: 18 })],
+    hibrido: [
+      L.tileLayer(`${ESRI}/World_Imagery/MapServer/tile/{z}/{y}/{x}`, { attribution: ATRIB_ESRI, maxZoom: 18 }),
+      L.tileLayer(`${ESRI}/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 18 }),
+      L.tileLayer(`${ESRI}/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}`, { maxZoom: 18 }),
+    ],
+  };
+  const ehCamada = (v: string | null | undefined): v is NomeCamada => v === 'mapa' || v === 'satelite' || v === 'hibrido';
+  let camadaAtual: NomeCamada = 'mapa';
+  function aplicarCamada(nome: NomeCamada): void {
+    for (const lista of Object.values(camadasFundo)) for (const c of lista) if (mapa.hasLayer(c)) mapa.removeLayer(c);
+    for (const c of camadasFundo[nome]) c.addTo(mapa);
+    camadaAtual = nome;
+    q('[data-mp-mapa]').dataset.camada = nome;
+    for (const b of document.querySelectorAll<HTMLButtonElement>('[data-mp-camada]')) b.setAttribute('aria-pressed', String(b.dataset.mpCamada === nome));
+    try { localStorage.setItem('govnexa-mapa-camada', nome); } catch { /* sem armazenamento: segue sem lembrar */ }
+  }
+  {
+    let lembrada: string | null = null;
+    try { lembrada = localStorage.getItem('govnexa-mapa-camada'); } catch { lembrada = null; }
+    const pedida = parametrosIniciais.get('camada');
+    aplicarCamada(ehCamada(pedida) ? pedida : ehCamada(lembrada) ? lembrada : 'mapa');
+  }
   const camada = L.layerGroup().addTo(mapa);
   const marcadoresObra = new Map<string, L.Marker>();
   const contagem = q('[data-mp-contagem]');
@@ -258,6 +288,8 @@ document.addEventListener('astro:page-load', () => {
     const centro = mapa.getCenter();
     url.searchParams.set('c', `${centro.lat.toFixed(5)},${centro.lng.toFixed(5)}`);
     const selecionado = selecao.tipo === 'obra' ? `obra:${selecao.obra.id}` : selecao.tipo === 'grupo' ? selecao.grupo.id : null;
+    if (camadaAtual === 'mapa') url.searchParams.delete('camada');
+    else url.searchParams.set('camada', camadaAtual);
     if (selecionado) url.searchParams.set('sel', selecionado);
     else url.searchParams.delete('sel');
     history.replaceState(history.state, '', `${url.pathname}${url.search}${url.hash}`);
@@ -765,6 +797,7 @@ document.addEventListener('astro:page-load', () => {
     renderPainel(obrasFiltradas());
     salvarURL();
   });
+  for (const b of document.querySelectorAll<HTMLButtonElement>('[data-mp-camada]')) b.addEventListener('click', () => { const n = b.dataset.mpCamada; if (ehCamada(n)) { aplicarCamada(n); salvarURL(); } });
   q('[data-mp-zoom-in]').addEventListener('click', () => mapa.zoomIn());
   q('[data-mp-zoom-out]').addEventListener('click', () => mapa.zoomOut());
   mapa.on('zoomend', desenhar);

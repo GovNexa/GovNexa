@@ -10,15 +10,24 @@ test('mapa em modo TV ocupa a tela e oferece alvos de 56 px', async ({ page }) =
   const mapa = page.locator('[data-mapa-obras]');
   await mapa.getByRole('button', { name: 'Apresentar mapa' }).click();
   await expect.poll(() => mapa.evaluate((element) => element.matches(':fullscreen'))).toBe(true);
-  const linhaFiltros = await mapa.locator('.mp-filtros').evaluate((linha) => {
-    const controles = [...linha.querySelectorAll('.mp-filtro-abrir, .mp-acoes .mp-btn')];
+  // Apresentação: filtros empilhados numa coluna à esquerda; mapa no centro com quase toda a altura; resumo à direita.
+  const arranjo = await mapa.evaluate((raiz) => {
+    const caixa = (seletor: string) => raiz.querySelector(seletor)!.getBoundingClientRect();
+    const controles = [...raiz.querySelectorAll('.mp-filtros .mp-filtro-abrir, .mp-filtros .mp-acoes .mp-btn')];
     return {
-      topos: controles.map((controle) => controle.getBoundingClientRect().top),
-      largurasFiltros: [...linha.querySelectorAll('.mp-filtro')].map((filtro) => filtro.getBoundingClientRect().width),
+      esquerdas: controles.map((controle) => Math.round(controle.getBoundingClientRect().left)),
+      larguraFiltro: caixa('.mp-filtro').width,
+      fimFiltros: caixa('.mp-filtros').right,
+      mapa: { esquerda: caixa('[data-mp-mapa]').left, direita: caixa('[data-mp-mapa]').right, altura: caixa('[data-mp-mapa]').height, largura: caixa('[data-mp-mapa]').width },
+      painelEsquerda: caixa('.mp-painel').left,
     };
   });
-  expect(Math.max(...linhaFiltros.topos) - Math.min(...linhaFiltros.topos)).toBeLessThanOrEqual(1);
-  expect(linhaFiltros.largurasFiltros.every((largura) => largura >= 200)).toBe(true);
+  expect(new Set(arranjo.esquerdas).size, JSON.stringify(arranjo)).toBe(1);
+  expect(arranjo.larguraFiltro).toBeGreaterThanOrEqual(200);
+  expect(arranjo.mapa.esquerda).toBeGreaterThan(arranjo.fimFiltros);
+  expect(arranjo.painelEsquerda).toBeGreaterThan(arranjo.mapa.direita);
+  expect(arranjo.mapa.altura).toBeGreaterThanOrEqual(1080 * 0.9);
+  expect(arranjo.mapa.largura).toBeGreaterThanOrEqual(1920 * 0.55);
   const filtroEtapas = mapa.locator('[data-mp-filtro="situacoes"]');
   await filtroEtapas.locator('[data-mp-abrir]').click();
   for (const opcao of await filtroEtapas.locator('.mp-opcao-filtro').all()) {
@@ -146,4 +155,22 @@ test('painel compacto, PDF abaixo do mapa e filtros restaurados pela URL', async
   await page.reload();
   await filtro.locator('[data-mp-abrir]').click();
   await expect(filtro.locator('input[type="checkbox"]:checked')).toHaveCount(5);
+});
+
+test('mapa: camadas Mapa, Satélite e Híbrido (Esri) com estado no endereço', async ({ page }) => {
+  await page.route('https://tile.openstreetmap.org/**', (route) => route.abort());
+  await page.route('https://server.arcgisonline.com/**', (route) => route.abort());
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/plataforma/gestao/');
+  const grupo = page.getByRole('group', { name: 'Camada do mapa' });
+  await expect(grupo.getByRole('button', { name: 'Mapa' })).toHaveAttribute('aria-pressed', 'true');
+  await grupo.getByRole('button', { name: 'Satélite' }).click();
+  await expect(grupo.getByRole('button', { name: 'Satélite' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page).toHaveURL(/camada=satelite/);
+  await expect(page.locator('[data-mp-mapa]')).toHaveAttribute('data-camada', 'satelite');
+  await expect.poll(() => page.locator('[data-mp-mapa] .leaflet-tile-pane .leaflet-layer').count()).toBe(1);
+  await grupo.getByRole('button', { name: 'Híbrido' }).click();
+  await expect.poll(() => page.locator('[data-mp-mapa] .leaflet-tile-pane .leaflet-layer').count()).toBe(3);
+  await page.goto('/plataforma/gestao/?camada=hibrido');
+  await expect(page.getByRole('group', { name: 'Camada do mapa' }).getByRole('button', { name: 'Híbrido' })).toHaveAttribute('aria-pressed', 'true');
 });

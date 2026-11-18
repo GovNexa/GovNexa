@@ -9,6 +9,8 @@
 - Funções puras de agrupamento em `src/lib/mapa/agrupar.ts` com testes.
 - Gestão compacta: cartões em faixa baixa; "Exportar em PDF" abaixo do mapa; filtros em caixas de seleção (Situação, Etapas, Tipos) numa linha com as ações.
 - Voltar ao mapa sem perder nada: estado (filtros, zoom, seleção) no endereço; "Abrir ficha completa" abre a ficha por cima do mapa (também em tela cheia) com "← Voltar ao mapa"; página do projeto mostra "← Voltar ao mapa" quando aberta a partir do mapa.
+- Camadas do mapa: botões Mapa, Satélite e Híbrido (imagens Esri World Imagery; híbrido com ruas e nomes da Esri). A escolha fica no endereço (`camada=`) e no navegador. A CSP libera `server.arcgisonline.com` só para imagens.
+- Apresentação (TV) em três colunas: filtros, contagem e legenda numa coluna à esquerda; mapa no centro com a altura toda da tela; resumo à direita. As listas de filtro abrem por cima do mapa.
 
 ## Centros dos bairros no D1 (17/11/2026)
 - Migração 0005, leitura isolada por prefeitura com cache curto e fallback ao exemplo; região aparada nos dados das obras, sem mudança visual.
