@@ -267,3 +267,17 @@ body:has(.platform)>.app-footer{flex:none;margin-top:auto}
   .workspace [data-table]>.table-wrap th,.workspace [data-table]>.table-wrap td{padding-left:.45rem;padding-right:.45rem}
   .workspace [data-table]>.table-wrap td .status{padding:.2rem .5rem}
 }
+/* Topo compacto das páginas de módulo (pedido do dono, 17/11/2026): aviso fino, título menor com o botão na mesma linha, busca e filtro numa linha só. */
+@media (min-width:701px){
+  .workspace>.notice{padding:.3rem .8rem;margin:0 0 .6rem;font-size:.74rem;border-radius:999px;min-height:0}
+  .workspace>.section-head{align-items:center;gap:1rem;margin:0 0 .75rem}
+  .workspace>.section-head h1{font-size:clamp(1.25rem,1.6vw,1.5rem);margin:0 0 .15rem;line-height:1.2}
+  .workspace>.section-head p.muted{font-size:.82rem;margin:0;line-height:1.4}
+  .workspace>.section-head>.primary,.workspace>.section-head .primary{min-height:40px;padding:.45rem .9rem;font-size:.85rem}
+  .workspace [data-table]>.filtros-tabela{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:.5rem;margin:0 0 .35rem;align-items:center}
+  .workspace [data-table]>.filtros-tabela label{display:flex;align-items:center;gap:.5rem;margin:0;min-width:0}
+  .workspace [data-table]>.filtros-tabela input,.workspace [data-table]>.filtros-tabela select{min-height:40px;padding:.4rem .7rem;font-size:.85rem;flex:1;min-width:0;margin:0}
+  .workspace [data-table]>.filtros-tabela .filtro-busca .filtro-rotulo{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .workspace [data-table]>.filtros-tabela .filtro-valor .filtro-rotulo{font-size:.75rem;color:var(--muted);white-space:nowrap;font-weight:600}
+  .workspace [data-table] [data-table-count]{margin:.15rem 0 .5rem;font-size:.78rem;color:var(--muted)}
+}
