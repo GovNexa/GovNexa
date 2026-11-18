@@ -153,6 +153,8 @@ O detalhe das entregas está em [docs/CHANGELOG.md](docs/CHANGELOG.md).
 
 ## 3. Funcionalidades por guia
 
+O mapa usa os centros dos bairros da tabela D1 `bairro_geo`, isolados por prefeitura e no cache de 30 s. Sem banco, com tabela vazia ou erro de leitura, mantém o JSON de exemplo. Obras posicionadas pelo bairro têm precisão `bairro`; a região é preservada. O visual permanece igual.
+
 No início (/plataforma/), todos os módulos do menu ficam retraídos: o dashboard não pertence a um módulo. Nas outras telas, a sanfona abre somente o módulo e o sub-bloco da página atual. Nome, iniciais, Meu perfil e Sair ficam apenas no cabeçalho; os links da conta têm alvos de toque de pelo menos 44 px.
 
 Legenda: **Disponível** = leitura ou operação disponível. **Simulação** = as regras rodam, mas a gravação real ainda será ligada nas próximas partes da etapa 3. **Demonstrativo** = protótipo com dados fictícios.
@@ -287,6 +289,10 @@ Os pedidos vêm dos áudios do dono, da reunião com a equipe e das planilhas.
 
 ## 6. O que funciona de verdade e o que é simulação
 
+Centros de bairros: migração local `0005_bairro_geo.sql`; `npm run db:local` aplica as migrações e semeia somente bairros fictícios de `data/exemplo/`, com centros explicitamente simulados.
+O geocodificador é manual, fora do build: `node scripts/geocodificar-bairros.ts --bairros .tmp/bairros.json --saida .tmp/geo-bairros.json --sql .tmp/bairros.sql --prefeitura 5208707`. Mantém `--carteira`, `--refazer` e `--refazer-faltantes`. A próxima carga real deve usar `--refazer`; a saída grava `versao_regras: 2` e só reaproveita entradas da versão atual.
+A entrada nova é `[{"bairro":"Bairro Exemplo","regiao":"Centro","obras":1}]`. Nominatim: consulta estruturada, município Goiânia e caixa obrigatórios; preferência por bairro, consultas sequenciais a cada ≥1,1 s e até três novas tentativas de 429/5xx após o maior entre 5 s e `Retry-After`, com timeout de 30 s por requisição. O SQL escapa valores e atualiza por prefeitura/bairro. Entradas e saídas reais ficam fora do repositório; os centros reais ficam no D1 da prefeitura.
+
 O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pelo Worker. Na prática:
 - **Leitura real no D1:** carteira, cronogramas e histórico da carga inicial.
 - **Captação:** leitura de dados públicos.
@@ -396,6 +402,8 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 
 ## 8. Pendências e próximos passos
 
+Centros dos bairros: código e migração 0005 preparados; consulta real e carga ficam com o revisor, fora desta execução. Não houve consulta externa nem alteração de produção. Conferir o relatório de bairros não encontrados antes da carga; nenhuma coordenada real é inventada.
+
 ### Dependem do dono
 
 | Pendência | Para quê |
@@ -449,7 +457,7 @@ As regras completas estão em [CLAUDE.md](CLAUDE.md). Resumo:
 3. Antes do PR, rode `npx astro check`, `npm run test:dados`, `npx playwright test --project=chromium` e `npm run impacto`.
 4. Se a mudança afeta etapa, tela ou situação do Fluxo, atualize junto `src/lib/govnexa/fluxo.ts`, `subfluxos.ts` e `impacto.ts`.
 5. Interface sem rolagem horizontal em 1280 e 390 px, textos simples, contraste adequado nos temas claro e escuro e situação escrita, não só indicada por cor.
-6. Claude Code planeja e revisa; Codex e Copilot executam por ordem de serviço. Publicação só com ordem do dono.
+6. Claude Code planeja e revisa; o Codex executa por ordem de serviço (Copilot fora do fluxo desde 18/11/2026). Publicação só com ordem do dono.
 7. O repositório antigo está congelado desde 16/11/2026; todo o trabalho segue só neste.
 8. Não coloque dados reais, credenciais ou nomes de pessoas no repositório. Use dados fictícios nos testes; nunca contorne captcha.
 9. Datas no padrão brasileiro: `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` (horário de Brasília), sempre pelas funções de `src/lib/datas.ts`.

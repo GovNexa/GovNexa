@@ -64,6 +64,9 @@ test('Worker: Access RS256, falha fechada, cache e rotas', async () => {
       assert.equal(resposta.headers.get('Cache-Control'), 'private, no-store');
       assert.equal(resposta.headers.get('X-Frame-Options'), 'DENY');
       assert.match(resposta.headers.get('Content-Security-Policy')!, /tile.openstreetmap.org/);
+      // Camadas Satélite/Híbrido do mapa (Esri World Imagery, decisão do dono 18/11/2026): só imagens, nenhum script de fora.
+      assert.match(resposta.headers.get('Content-Security-Policy')!, /img-src [^;]*https:\/\/server\.arcgisonline\.com/);
+      assert.doesNotMatch(resposta.headers.get('Content-Security-Policy')!, /script-src [^;]*arcgisonline/);
     }
     assert.equal(consultas, 1);
     assert.equal((await chamar(await token({ aud: 'plataforma' }))).status, 200);

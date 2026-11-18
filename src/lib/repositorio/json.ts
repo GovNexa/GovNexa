@@ -5,10 +5,12 @@ import { carregarCronogramas } from '../cronograma/carga.ts';
 import { carregarHistorico } from '../log/carga.ts';
 import { maisRecentes } from '../log/visoes.ts';
 import type { RepositorioProjetos } from './tipos.ts';
+import geoExemplo from '../../../data/exemplo/carteira/geo-bairros.json' with { type: 'json' };
 
 export function criarRepositorioJson(): RepositorioProjetos {
   return {
     podeGravar: false,
+    async listarGeoBairros() { return geoExemplo; },
     async listarProjetos() {
       return carregarCarteira().projetos;
     },

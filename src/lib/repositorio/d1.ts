@@ -112,6 +112,17 @@ export function criarRepositorioD1(db: BancoD1, prefeituraId: number): Repositor
 
   return {
     podeGravar: true,
+    async listarGeoBairros() {
+      const { results } = await db.prepare('SELECT bairro, busca, encontrado, lat, lng, fonte, gerado_em FROM bairro_geo WHERE prefeitura_id = ? ORDER BY bairro').bind(prefeituraId).all();
+      return {
+        fonte: results[0]?.fonte,
+        gerado_em: results[0]?.gerado_em,
+        bairros: Object.fromEntries(results.map(r => [r.bairro, {
+          busca: r.busca, encontrado: r.encontrado === 1,
+          ...(r.encontrado === 1 ? { lat: r.lat, lng: r.lng } : {}),
+        }])),
+      };
+    },
     documentos: criarRepositorioDocumentos(db, prefeituraId),
     listarProjetos: () =>
       transacao(async (cliente) => {
