@@ -1,7 +1,7 @@
 ---
 import '../../styles/carteira.css';
 import { carregarCarteira } from '../../lib/carteira/carga.ts';
-import { AVISO_SIMULACAO } from '../../lib/carteira/simulacao.ts';
+import { usuarioPode } from '../../lib/usuarios/index.ts';
 import EditorLocalizacao from '../mapa/EditorLocalizacao.astro';
 import { carregarGeoBairros } from '../../lib/mapa/obras.ts';
 import type { PontoGeo } from '../../lib/mapa/tipos.ts';
@@ -17,7 +17,7 @@ const orgaos = unicos(projetos.map((p) => p.orgao));
 const regioes = unicos(projetos.map((p) => p.regiao));
 const origensValor = unicos(projetos.map((p) => p.origem_valor));
 const detalhamentos = unicos(projetos.map((p) => p.detalhamento));
-const proximoCodigo = Math.max(0, ...projetos.map((p) => p.codigo_legado)) + 1;
+const podeSalvar = usuarioPode(Astro.locals.usuario, 'editar_projeto') && Astro.locals.repositorio?.podeGravar === true;
 
 type Campo = {
   id: string;
@@ -95,8 +95,8 @@ const compromissos = [
 ];
 const descreve = (c: Campo) => [c.dica ? `np-${c.id}-dica` : '', `np-${c.id}-erro`].filter(Boolean).join(' ');
 ---
-<div data-novo-projeto data-proximo={proximoCodigo}>
-  <p class="cart-aviso" role="note">{AVISO_SIMULACAO}</p>
+<div data-novo-projeto>
+  {!podeSalvar && <p class="cart-aviso" role="note">Seu perfil permite ver o formulário, mas não cadastrar projetos.</p>}
   <div class="cart-erro" role="alert" tabindex="-1" data-np-resumo hidden></div>
   <form class="np-form" data-np-form novalidate>
     {blocos.map((b, i) => (
@@ -164,42 +164,32 @@ const descreve = (c: Campo) => [c.dica ? `np-${c.id}-dica` : '', `np-${c.id}-err
       <EditorLocalizacao idPrefixo="np-loc" bairros={nomesBairros} geo={geoCentros} />
     </fieldset>
     <div class="actions np-acoes">
-      <button type="submit" class="primary">Validar e simular cadastro</button>
+      {podeSalvar && <button type="submit" class="primary" data-np-enviar>Cadastrar projeto</button>}
       <button type="button" class="secondary" data-np-limpar>Limpar</button>
     </div>
   </form>
   <div class="np-ok" role="region" data-np-ok tabindex="-1" aria-labelledby="np-ok-titulo" hidden>
-    <h2 id="np-ok-titulo">Cadastro simulado</h2>
+    <h2 id="np-ok-titulo">Projeto cadastrado</h2>
     <p data-np-ok-texto role="status"></p>
     <div data-np-ok-pendencias hidden>
       <h3>Pendências de dado e avisos</h3>
       <ul data-np-ok-lista></ul>
     </div>
     <div class="actions">
-      <a class="button primary" href="/plataforma/projetos-log/" data-np-ok-log>Ver no Histórico de alterações</a>
+      <a class="button primary" href="/plataforma/projetos-carteira/" data-np-ok-pagina>Abrir a página do projeto</a>
+      <a class="button secondary" href="/plataforma/projetos-log/" data-np-ok-log>Ver no Histórico de alterações</a>
       <a class="button secondary" href="/plataforma/projetos-carteira/">Voltar à carteira</a>
     </div>
   </div>
 </div>
 <script>
-import { criarProjeto } from '../../lib/carteira/movimentacao.ts';
-import { AUTOR_SIMULACAO, avisar, guardarLogSimulacao, nomeEtapa } from '../../lib/carteira/simulacao.ts';
+import { avisar, nomeEtapa } from '../../lib/carteira/simulacao.ts';
 import type { Projeto } from '../../lib/carteira/tipos.ts';
 import { validarLocalizacao } from '../../lib/mapa/geo.ts';
-import { guardarLocalizacaoSimulada } from '../../lib/mapa/simulacao.ts';
 import type { Localizacao } from '../../lib/mapa/tipos.ts';
 
 const SEI = /^\d{2}\.\d{1,2}\.\d{9}-\d$/;
-const ROTULO_DATAS: [string, string][] = [
-  ['d_pecas', 'Entrega das peças técnicas'],
-  ['d_planejamento', 'Fim do planejamento'],
-  ['d_preparatorio', 'Fim do preparatório'],
-  ['d_contratacao', 'Fim da contratação'],
-  ['d_mobilizacao', 'Fim da mobilização'],
-  ['d_entrega', 'Entrega final'],
-];
 const reduzMovimento = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const dataBr = (iso: string) => iso.split('-').reverse().join('/');
 
 document.addEventListener('astro:page-load', () => {
   const raiz = document.querySelector<HTMLElement>('[data-novo-projeto]');
@@ -208,7 +198,7 @@ document.addEventListener('astro:page-load', () => {
   const form = raiz.querySelector<HTMLFormElement>('[data-np-form]')!;
   const resumo = raiz.querySelector<HTMLElement>('[data-np-resumo]')!;
   const ok = raiz.querySelector<HTMLElement>('[data-np-ok]')!;
-  let proximo = Number(raiz.dataset.proximo) || 1;
+  const botao = raiz.querySelector<HTMLButtonElement>('[data-np-enviar]');
 
   const campo = (id: string) => form.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(`#np-${id}`)!;
   const valor = (id: string) => campo(id).value.trim();
@@ -250,8 +240,9 @@ document.addEventListener('astro:page-load', () => {
     return n;
   };
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (!botao || botao.disabled) return;
     limparErros();
     ok.hidden = true;
     const erros: [string, string][] = [];
@@ -289,42 +280,8 @@ document.addEventListener('astro:page-load', () => {
     editorLoc?.dispatchEvent(new CustomEvent('localizacao-erros', { detail: errosLoc }));
     for (const e of errosLoc) erros.push(['loc', `Localização: ${e}`]);
 
-    const r = criarProjeto(
-      {
-        nome: valor('nome'),
-        orgao: org.texto,
-        responsavel: valor('responsavel') || null,
-        tipo: valor('tipo') || null,
-        detalhamento: valor('detalhamento') || null,
-        regiao: valor('regiao') || null,
-        bairro: valor('bairro') || null,
-        sei: seiRuim.length ? [] : sei,
-        observacao: valor('observacao') || null,
-        compromisso,
-        origem_valor: ov.texto || null,
-        tem_projeto: tem === 'Sim' ? true : tem === 'Não' ? false : null,
-        prioridade: valor('prioridade') || null,
-        tipo_contratacao: valor('tipo_contratacao') || null,
-        orgao_contratacao: valor('orgao_contratacao') || null,
-        valores: { projeto: proj, obra, executado: null, em_captacao: null, captado: null, contrapartida: null, custeio_municipio: null, total: null, com_solicitacao_financeira: null },
-        recurso: {
-          origem: valor('recurso_origem') || null,
-          tipo: null,
-          situacao: null,
-          fonte_programa: valor('fonte_programa') || null,
-          unidade_financiadora: valor('unidade_financiadora') || null,
-          sugestao_financiar: null,
-          termo_compromisso: termo === 'Sim' ? true : termo === 'Não' ? false : null,
-          numero_termo: valor('numero_termo') || null,
-        },
-        datas: { inicio: null, pecas_tecnicas: d('d_pecas'), planejamento: d('d_planejamento'), preparatorio: d('d_preparatorio'), contratacao: d('d_contratacao'), mobilizacao: d('d_mobilizacao'), execucao_dias: execDias, encerramento: d('d_entrega') },
-      },
-      { autor: AUTOR_SIMULACAO, em: new Date().toISOString(), proximoCodigo: proximo, origem: 'cadastro' },
-    );
-    if (!r.ok) {
-      if (r.faltando.includes('Nome do projeto')) erros.unshift(['nome', 'Informe o nome do projeto.']);
-      if (r.faltando.includes('Órgão')) erros.splice(r.faltando.includes('Nome do projeto') ? 1 : 0, 0, [org.alvo, 'Escolha o órgão ou digite a sigla.']);
-    }
+    if (!valor('nome')) erros.unshift(['nome', 'Informe o nome do projeto.']);
+    if (!org.texto) erros.splice(valor('nome') ? 0 : 1, 0, [org.alvo, 'Escolha o órgão ou digite a sigla.']);
     if (erros.length > 0) {
       const ul = document.createElement('ul');
       const t = document.createElement('p');
@@ -354,36 +311,82 @@ document.addEventListener('astro:page-load', () => {
       resumo.scrollIntoView({ behavior: reduzMovimento() ? 'auto' : 'smooth', block: 'start' });
       return;
     }
-    if (!r.ok) return;
-
-    const avisos: string[] = [];
-    let anterior: [string, string] | null = null;
-    for (const [id, rotulo] of ROTULO_DATAS) {
-      const v = valor(id);
-      if (!v) continue;
-      if (anterior && v < anterior[0]) avisos.push(`Datas fora de ordem: ${rotulo} (${dataBr(v)}) é anterior a ${anterior[1]} (${dataBr(anterior[0])}).`);
-      else anterior = [v, rotulo];
+    const corpo = {
+      nome: valor('nome'),
+      orgao: org.texto,
+      responsavel: valor('responsavel') || null,
+      tipo: valor('tipo') || null,
+      detalhamento: valor('detalhamento') || null,
+      regiao: valor('regiao') || null,
+      bairro: valor('bairro') || null,
+      sei,
+      observacao: valor('observacao') || null,
+      compromisso,
+      origem_valor: ov.texto || null,
+      tem_projeto: tem === 'Sim' ? true : tem === 'Não' ? false : null,
+      prioridade: valor('prioridade') || null,
+      tipo_contratacao: valor('tipo_contratacao') || null,
+      orgao_contratacao: valor('orgao_contratacao') || null,
+      valor_obra: obra,
+      valor_projeto: proj,
+      recurso_origem: valor('recurso_origem') || null,
+      fonte_programa: valor('fonte_programa') || null,
+      unidade_financiadora: valor('unidade_financiadora') || null,
+      termo: termo === 'Sim' ? true : termo === 'Não' ? false : null,
+      numero_termo: valor('numero_termo') || null,
+      datas: { pecas_tecnicas: d('d_pecas'), planejamento: d('d_planejamento'), preparatorio: d('d_preparatorio'), contratacao: d('d_contratacao'), mobilizacao: d('d_mobilizacao'), execucao_dias: execDias, encerramento: d('d_entrega') },
+      localizacao,
+    };
+    const mostrarErroGeral = (msgs: string[]) => {
+      const t = document.createElement('p');
+      t.textContent = msgs.length === 1 ? 'Não foi possível cadastrar:' : 'Não foi possível cadastrar. Corrija:';
+      const ul = document.createElement('ul');
+      for (const m of msgs) {
+        const li = document.createElement('li');
+        li.textContent = m;
+        ul.append(li);
+      }
+      resumo.replaceChildren(t, ul);
+      resumo.hidden = false;
+      resumo.focus();
+    };
+    botao.disabled = true;
+    botao.textContent = 'Cadastrando…';
+    try {
+      const resp = await fetch('/plataforma/projeto/criar/', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(corpo), credentials: 'same-origin', redirect: 'manual' });
+      if (resp.type === 'opaqueredirect' || resp.status === 401) {
+        mostrarErroGeral(['Sua sessão terminou. Entre de novo e repita o cadastro.']);
+        return;
+      }
+      const r = await resp.json().catch(() => null) as { ok?: boolean; erro?: string; erros?: string[]; projeto?: { id: string; nome: string; macroetapa: Projeto['macroetapa'] }; pendencias?: string[]; avisos?: string[] } | null;
+      if (!r?.ok || !r.projeto) {
+        mostrarErroGeral(r?.erros?.length ? r.erros : [r?.erro ?? 'Não foi possível cadastrar. Confira a conexão e tente de novo.']);
+        return;
+      }
+      ok.querySelector('[data-np-ok-texto]')!.textContent = `O projeto ${r.projeto.id} · ${r.projeto.nome} foi cadastrado em ${r.projeto.macroetapa} – ${nomeEtapa(r.projeto.macroetapa)} e registrado no Histórico.`;
+      const lista = ok.querySelector<HTMLElement>('[data-np-ok-lista]')!;
+      lista.replaceChildren();
+      for (const x of [...(r.pendencias ?? []), ...(r.avisos ?? [])]) {
+        const li = document.createElement('li');
+        li.textContent = x;
+        lista.append(li);
+      }
+      ok.querySelector<HTMLElement>('[data-np-ok-pendencias]')!.hidden = lista.children.length === 0;
+      ok.querySelector<HTMLAnchorElement>('[data-np-ok-pagina]')!.href = `/plataforma/projeto/${encodeURIComponent(r.projeto.id)}/`;
+      ok.querySelector<HTMLAnchorElement>('[data-np-ok-log]')!.href = `/plataforma/projetos-log/?projeto=${encodeURIComponent(r.projeto.id)}`;
+      form.reset();
+      raiz.querySelector('#np-loc')?.dispatchEvent(new CustomEvent('localizacao-definir', { detail: null }));
+      atualizarOutros();
+      ok.hidden = false;
+      ok.focus();
+      ok.scrollIntoView({ behavior: reduzMovimento() ? 'auto' : 'smooth', block: 'start' });
+      avisar(`Projeto ${r.projeto.id} · ${r.projeto.nome} cadastrado.`);
+    } catch {
+      mostrarErroGeral(['Não foi possível cadastrar. Confira a conexão e tente de novo.']);
+    } finally {
+      botao.disabled = false;
+      botao.textContent = 'Cadastrar projeto';
     }
-    guardarLogSimulacao(r.historico, r.projeto.nome);
-    if (localizacao) {
-      r.projeto.localizacao = localizacao;
-      guardarLocalizacaoSimulada(r.projeto.id, r.projeto.nome, localizacao);
-    }
-    ok.querySelector('[data-np-ok-texto]')!.textContent = `Simulação: o projeto ${r.projeto.id} · ${r.projeto.nome} seria incluído em ${r.projeto.macroetapa} – ${nomeEtapa(r.projeto.macroetapa)}. Nada foi gravado.`;
-    const lista = ok.querySelector<HTMLElement>('[data-np-ok-lista]')!;
-    lista.replaceChildren();
-    for (const x of [...r.projeto.pendencias, ...avisos]) {
-      const li = document.createElement('li');
-      li.textContent = x;
-      lista.append(li);
-    }
-    ok.querySelector<HTMLElement>('[data-np-ok-pendencias]')!.hidden = lista.children.length === 0;
-    ok.querySelector<HTMLAnchorElement>('[data-np-ok-log]')!.href = `/plataforma/projetos-log/?projeto=${encodeURIComponent(r.projeto.id)}`;
-    ok.hidden = false;
-    ok.focus();
-    ok.scrollIntoView({ behavior: reduzMovimento() ? 'auto' : 'smooth', block: 'start' });
-    avisar(`Simulação: ${r.projeto.id} · ${r.projeto.nome}. Nada foi gravado.`);
-    proximo += 1;
   });
 
   raiz.querySelector('[data-np-limpar]')!.addEventListener('click', () => {

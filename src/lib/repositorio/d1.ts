@@ -78,6 +78,38 @@ export function criarRepositorioD1(db: BancoD1, prefeituraId: number): Repositor
     return resultado;
   }
 
+  async function criarUmProjeto(dados: Parameters<RepositorioProjetos['criarProjeto']>[0], autor: string): Promise<ResultadoCriacaoProjeto> {
+    return transacao(async (cliente): Promise<ResultadoCriacaoProjeto> => {
+        const m = await cliente.query('SELECT coalesce(max(codigo_legado), 0) + 1 AS proximo FROM projeto WHERE prefeitura_id = ?', [prefeituraId]);
+        const proximoCodigo = Number(m.rows[0]?.proximo ?? 1);
+        const res = criarProjeto(dados, { autor, em: new Date().toISOString(), proximoCodigo, origem: 'cadastro' });
+        if (!res.ok) return res;
+        const p: any = res.projeto;
+        // Nomes de coluna vêm de listas fixas no código; valores só por parâmetro.
+        const cols: string[] = ['prefeitura_id', 'id', 'codigo_legado'];
+        const marcas: string[] = ['?', '?', '?'];
+        const params: unknown[] = [prefeituraId, p.id, p.codigo_legado];
+        const add = (col: string, valor: unknown) => {
+          params.push(valor);
+          cols.push(col);
+          marcas.push('?');
+        };
+        for (const c of COLUNAS_TEXTO) add(c, p[c] ?? null);
+        for (const c of COLUNAS_JSON) add(c, p[c] == null ? null : JSON.stringify(p[c]));
+        for (const c of COLUNAS_ARRAY) add(c, JSON.stringify(p[c] ?? []));
+        await cliente.gravar(`INSERT INTO projeto (${cols.join(', ')}, atualizado_em) VALUES (${marcas.join(', ')}, (strftime('%Y-%m-%dT%H:%M:%fZ','now')))`, params);
+        for (const h of res.historico) {
+          await cliente.gravar(
+            `INSERT INTO evento_projeto (id, prefeitura_id, projeto_id, tipo, origem, autor, em, de, para, campos, motivo, forcado, descricao)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [h.id, prefeituraId, h.projeto_id, h.tipo, h.origem, h.autor, h.em, h.de ?? null, h.para ?? null,
+              h.campos ? JSON.stringify(h.campos) : null, h.motivo ?? null, h.forcado ?? false, h.descricao ?? null],
+          );
+        }
+        return { ok: true, projeto: res.projeto, historico: res.historico };
+      });
+  }
+
   return {
     podeGravar: true,
     documentos: criarRepositorioDocumentos(db, prefeituraId),
@@ -164,35 +196,16 @@ export function criarRepositorioD1(db: BancoD1, prefeituraId: number): Repositor
         });
       }),
     async criarProjeto(dados, autor): Promise<ResultadoCriacaoProjeto> {
-      return transacao(async (cliente): Promise<ResultadoCriacaoProjeto> => {
-        const m = await cliente.query('SELECT coalesce(max(codigo_legado), 0) + 1 AS proximo FROM projeto WHERE prefeitura_id = ?', [prefeituraId]);
-        const proximoCodigo = Number(m.rows[0]?.proximo ?? 1);
-        const res = criarProjeto(dados, { autor, em: new Date().toISOString(), proximoCodigo, origem: 'cadastro' });
-        if (!res.ok) return res;
-        const p: any = res.projeto;
-        // Nomes de coluna vêm de listas fixas no código; valores só por parâmetro.
-        const cols: string[] = ['prefeitura_id', 'id', 'codigo_legado'];
-        const marcas: string[] = ['?', '?', '?'];
-        const params: unknown[] = [prefeituraId, p.id, p.codigo_legado];
-        const add = (col: string, valor: unknown) => {
-          params.push(valor);
-          cols.push(col);
-          marcas.push('?');
-        };
-        for (const c of COLUNAS_TEXTO) add(c, p[c] ?? null);
-        for (const c of COLUNAS_JSON) add(c, p[c] == null ? null : JSON.stringify(p[c]));
-        for (const c of COLUNAS_ARRAY) add(c, JSON.stringify(p[c] ?? []));
-        await cliente.gravar(`INSERT INTO projeto (${cols.join(', ')}, atualizado_em) VALUES (${marcas.join(', ')}, (strftime('%Y-%m-%dT%H:%M:%fZ','now')))`, params);
-        for (const h of res.historico) {
-          await cliente.gravar(
-            `INSERT INTO evento_projeto (id, prefeitura_id, projeto_id, tipo, origem, autor, em, de, para, campos, motivo, forcado, descricao)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [h.id, prefeituraId, h.projeto_id, h.tipo, h.origem, h.autor, h.em, h.de ?? null, h.para ?? null,
-              h.campos ? JSON.stringify(h.campos) : null, h.motivo ?? null, h.forcado ?? false, h.descricao ?? null],
-          );
+      // O próximo código é lido e gravado em passos separados: duas pessoas cadastrando juntas podem calcular o mesmo número.
+      // O índice único projeto_codigo_unico (migração 0005) faz o banco recusar o segundo lote inteiro (nada fica gravado pela
+      // metade); aqui o número é recalculado e a gravação repetida, algumas vezes, antes de desistir.
+      for (let tentativa = 1; ; tentativa++) {
+        try { return await criarUmProjeto(dados, autor); } catch (erro) {
+          const repetido = /UNIQUE constraint failed: projeto\./i.test(String(erro));
+          if (!repetido) throw erro;
+          if (tentativa >= 4) return { ok: false, erro: 'Muitos cadastros ao mesmo tempo. Tente de novo em instantes.' };
         }
-        return { ok: true, projeto: res.projeto, historico: res.historico };
-      });
+      }
     },
     async aplicar(e: Evento): Promise<ResultadoAplicacao> {
       e = { ...e, em: iso(e.em) };

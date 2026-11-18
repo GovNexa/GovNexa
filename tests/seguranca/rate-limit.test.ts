@@ -75,6 +75,12 @@ test('rota da localização: origem, perfil e limite antes do tamanho e de qualq
   const limite = t.indexOf('dentroDoLimite('), descarte = t.indexOf('await descartar(request)'), corpo = t.indexOf('request.text()');
   assert.ok(origem > 0 && perfil > origem && limite > perfil && tamanho > limite && descarte > limite && corpo > tamanho);
 });
+test('rota do cadastro de projeto: origem, perfil e limite antes do tamanho e de qualquer leitura do corpo', () => {
+  const t = readFileSync('src/pages/plataforma/projeto/criar.ts', 'utf8');
+  const origem = t.indexOf('mesmaOrigem(request)'), perfil = t.indexOf('podeCadastrar(contexto)'), tamanho = t.indexOf("get('content-length')");
+  const limite = t.indexOf('dentroDoLimite('), descarte = t.indexOf('await descartar(request)'), corpo = t.indexOf('request.text()');
+  assert.ok(origem > 0 && perfil > origem && limite > perfil && tamanho > limite && descarte > limite && corpo > tamanho);
+});
 test('rotas de documentos: limite conferido depois do perfil e antes de ler o corpo', () => {
   const rotas = ['src/pages/plataforma/documentos-projeto/enviar.ts', 'src/pages/plataforma/documentos-projeto/remover/[id].ts', 'src/pages/plataforma/documentos-projeto/classificar/[id].ts'];
   for (const arq of rotas) {

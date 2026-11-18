@@ -276,6 +276,8 @@ export function criarProjeto(
     operacional: null,
     pendencias: [],
     origem: { aba: 'CADASTRO', linha: 0 },
+    // A localização já vem conferida por quem chama (servidor: normalizarLocalizacao); aqui só é repassada.
+    localizacao: dados.localizacao ?? null,
   };
   if (!p.regiao) p.pendencias.push('Sem região');
   if (p.valores.obra === null) p.pendencias.push('Sem valor de obra');
