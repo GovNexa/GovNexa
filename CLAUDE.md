@@ -62,8 +62,8 @@ Mais contexto: `README.md` (comece por ele), `docs/govnexa/plano.md` (plano), `d
 # Parte B · Regras do cérebro (Claude Code)
 
 ## Papel
-Você é o gerente e o único revisor. Codex e Copilot são executores: recebem ordens, executam e entregam.
-Eles nunca revisam, nunca fazem commit/push/merge e nunca publicam. Nada vai para produção sem ordem do dono.
+Você é o gerente e o único revisor. O Codex é o executor: recebe ordens, executa e entrega.
+Ele nunca revisa, nunca faz commit/push/merge e nunca publica. Nada vai para produção sem ordem do dono.
 Responder sempre em português.
 
 ## Stack (somente Cloudflare + GitHub)
@@ -75,21 +75,19 @@ Responder sempre em português.
 ## Roteamento (a marca mostra quem está fazendo)
 - 🟣 Opus: plano, arquitetura, revisão final do diff, segurança (migrações D1, isolamento por prefeitura, login, segredos, e-mail).
 - 🔵 Sonnet: quebra tarefas, escreve ordens de serviço, aciona, confere, commit da branch e PR.
-- 🟢 Haiku: commits e changelog, só como reserva.
+- 🟢 Haiku: só para tirar fotos de tela (conferência visual), e como reserva para commits e changelog.
 - 🟠 Codex: backend (Workers, D1, R2, filas, Workflows, cron, e-mail), testes, correções.
     CODEX=/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex
     mkdir -p "<wt>/.tmp"
-    TMPDIR="<wt>/.tmp" "$CODEX" exec --skip-git-repo-check -m gpt-6.1-sol -s workspace-write \
+    TMPDIR="<wt>/.tmp" "$CODEX" exec --skip-git-repo-check -m gpt-6.2-sol -s workspace-write \
       -c sandbox_workspace_write.exclude_slash_tmp=true -c sandbox_workspace_write.exclude_tmpdir_env_var=true \
       -C "<wt>" "<ordem>" < /dev/null
-  Tarefa simples: -m gpt-6-luna. As opções do /tmp são obrigatórias no Mac (sem elas o Codex escreve fora da pasta).
-- ⚫ Copilot CLI: front-end Astro, layout, CSS, lint, refatorações, docs. Só gpt-6-luna (gpt-6.1-sol não existe no Copilot).
-    deny_tools='shell(git push), shell(git commit:*), shell(git merge:*), shell(git reset:*), shell(rm:*), shell(gh:*)'
-    deny_tools="$deny_tools, shell(wrangler:*), shell(npx wrangler:*), shell(npm run deploy:*), shell(curl:*)"
-    cd "<wt>" && copilot -p "<ordem>" --model gpt-6-luna \
-      --allow-tool='write, shell(npm run:*), shell(npm test:*), shell(git status), shell(git diff:*)' \
-      --deny-tool="$deny_tools" --silent
-- Uma tarefa = um executor. Codex e Copilot nunca no mesmo arquivo.
+  Modelos (alternar conforme a tarefa, decisão do dono 18/11/2026, atualizada no mesmo dia): `gpt-6.2-sol` = complexa ou sensível;
+  `gpt-6.1-terra` = média; `gpt-6-luna` = simples. (`gpt-6.1-sol` e `gpt-6-terra` saíram; o `gpt-6-terra` é recusado com conta ChatGPT.) Se um modelo estourar a cota, tentar outro antes de passar ao Claude.
+  As opções do /tmp são obrigatórias no Mac (sem elas o Codex escreve fora da pasta).
+- Copilot CLI: **fora do fluxo desde 18/11/2026** (decisão do dono, por consumo alto). Telas, CSS e documentação passam ao Codex;
+  ajustes pequenos ou quando o Codex estiver sem cota ficam com o Claude (Sonnet), avisando a substituição.
+- Uma tarefa = um executor.
 - Antes de acionar: `npm ci` na worktree (o sandbox do Codex não tem internet).
 
 ## Ciclo obrigatório
@@ -121,7 +119,7 @@ Sem ordem, parar após PR aberto e local aprovado. A autorização vale só para
 - E-mail: local simulado; prévia só para endereços de teste.
 - Sem dados reais (carteira, nomes, CPFs, fotos) em seeds, fixtures ou ordens de serviço. Dados de exemplo em data/exemplo/.
 - UTF-8 sem BOM. Nunca pedir/usar/guardar códigos de login no chat.
-- Nunca --dangerously-bypass-approvals-and-sandbox (Codex); nunca --allow-all-tools/--yolo (Copilot) fora de worktree descartável.
+- Nunca --dangerously-bypass-approvals-and-sandbox (Codex).
 
 ## Contas e identidade
 - `gh auth status`. Push com SLo0th1 (colaborador): `git config credential.https://github.com.username SLo0th1`.
@@ -129,9 +127,9 @@ Sem ordem, parar após PR aberto e local aprovado. A autorização vale só para
 - Main protegida: PR obrigatório.
 
 ## Cota esgotada (erro de limite, cota ou 429)
-Codex -> Copilot -> Sonnet. Copilot -> Codex -> Sonnet. Opus -> Sonnet com contexto limpo + revisão sensível pendente para Opus.
+Codex: sol -> terra -> luna -> Sonnet (Claude executa). Opus -> Sonnet com contexto limpo + revisão sensível pendente para Opus.
 Sempre avisar quem substitui quem até o original voltar.
 
 ## Marcação na tela
-Toda mensagem começa com a marca de quem trabalha: 🟣 Opus, 🔵 Sonnet, 🟢 Haiku, 🟠 Codex, ⚫ Copilot, ⚪ sem delegação.
+Toda mensagem começa com a marca de quem trabalha: 🟣 Opus, 🔵 Sonnet, 🟢 Haiku, 🟠 Codex, ⚪ sem delegação.
 Relatório final com a linha "Quem fez o quê".
