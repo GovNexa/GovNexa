@@ -180,10 +180,10 @@ test.describe('alvos de toque', () => {
     }
 
     await page.goto('/plataforma/gestao/');
-    const chips = page.locator('#mapa .mp-chip');
-    await expect(chips.first()).toBeVisible();
-    for (const chip of await chips.all()) {
-      const caixa = await chip.boundingBox();
+    const filtros = page.locator('#mapa [data-mp-abrir]');
+    await expect(filtros.first()).toBeVisible();
+    for (const filtro of await filtros.all()) {
+      const caixa = await filtro.boundingBox();
       expect(caixa).not.toBeNull();
       expect(caixa!.width).toBeGreaterThanOrEqual(44);
       expect(caixa!.height).toBeGreaterThanOrEqual(44);

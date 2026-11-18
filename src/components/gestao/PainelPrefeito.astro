@@ -43,7 +43,6 @@ const mapaSemLocal = obrasSemLocal(carteira, geo, hoje);
 ---
 <div class="pn" data-painel>
   <p class="pn-linha">Dados de {br(carteira.fonte.importado_em)} · <a href={URL.log}>Histórico de alterações →</a></p>
-  <p class="pn-nao-imprimir"><button class="primary" type="button" data-pn-imprimir>Exportar em PDF</button></p>
 
   <ul class="pn-cartoes" aria-label="Números principais">
     {cartoes.map((c) => (
@@ -60,6 +59,8 @@ const mapaSemLocal = obrasSemLocal(carteira, geo, hoje);
   <section id="mapa" data-cart class="mp-bloco" aria-label="Mapa das obras">
     <MapaObras obras={mapaObras.obras} semLocal={mapaObras.semLocal} semLocalLista={mapaSemLocal} />
   </section>
+
+  <p class="pn-nao-imprimir"><button class="secondary" type="button" data-pn-imprimir>Exportar em PDF</button></p>
 
   <section class="pn-bloco" aria-labelledby="pn-fase">
     <h2 id="pn-fase">Por fase</h2>

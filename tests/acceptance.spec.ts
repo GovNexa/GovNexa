@@ -634,8 +634,12 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  await expect(page.locator('#mapa [data-mp-contagem]')).toContainText('ocultas pelos filtros');
  const antes=await page.locator('#mapa [data-mp-lista-corpo] tr').count();
  expect(antes).toBeGreaterThanOrEqual(2);
- await expect(page.locator('#mapa .mp-chip-etapa[aria-pressed="true"]')).toHaveCount(6);
- await expect(page.locator('#mapa .mp-chip-categoria[aria-pressed="true"]')).toHaveCount(9);
+ await page.locator('#mapa [data-mp-filtro="situacoes"] [data-mp-abrir]').click();
+ await expect(page.locator('#mapa [data-mp-filtro="situacoes"] input:checked')).toHaveCount(6);
+ await page.locator('#mapa [data-mp-filtro="situacoes"] [data-mp-pronto]').click();
+ await page.locator('#mapa [data-mp-filtro="categorias"] [data-mp-abrir]').click();
+ await expect(page.locator('#mapa [data-mp-filtro="categorias"] input:checked')).toHaveCount(9);
+ await page.locator('#mapa [data-mp-filtro="categorias"] [data-mp-pronto]').click();
  await page.screenshot({path:'test-results/mapa-1280.png',fullPage:false});
  await page.locator('#mapa .leaflet-container').scrollIntoViewIfNeeded();
  await page.locator('#mapa .mp-bolha-caixa').first().click();
@@ -653,10 +657,12 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  await expect(page.locator('#mapa .leaflet-marker-icon .mp-marcador').first()).toBeVisible();
  await expect(page.locator('#mapa path.leaflet-interactive').first()).toBeAttached();
  await page.goto('/plataforma/gestao/');
- await page.locator('#mapa').getByRole('button',{name:'Atrasadas',exact:true}).click();
+ await page.locator('#mapa [data-mp-filtro="farol"] [data-mp-abrir]').click();
+ await page.locator('#mapa [data-mp-filtro="farol"] input[value="vermelho"]').check();
  expect(await page.locator('#mapa [data-mp-lista-corpo] tr').count()).toBeLessThan(antes);
+ await page.locator('#mapa [data-mp-filtro="farol"] [data-mp-pronto]').click();
  await page.locator('#mapa').getByRole('button',{name:'Limpar filtros'}).click();
- await expect(page.locator('#mapa .mp-chip-etapa[aria-pressed="true"]')).toHaveCount(6);
+ await expect(page.locator('#mapa [data-mp-filtro="situacoes"] [data-mp-abrir]')).toContainText('Etapas: Todas');
  // lista alternativa
  await page.locator('#mapa summary').click();
  await expect(page.locator('#mapa [data-mp-lista-corpo] tr')).toHaveCount(antes);
@@ -732,7 +738,7 @@ test('govnexa: arquivos do build com nome só hexadecimal',async({page})=>{
  await page.route('https://tile.openstreetmap.org/**',r=>r.abort());
  await page.goto('/plataforma/gestao/');
  await expect(page.locator('#mapa .leaflet-container')).toBeVisible();
- await expect(page.locator('#mapa .mp-filtros [data-mp-situacoes] button').first()).toBeVisible();
+ await expect(page.locator('#mapa .mp-filtros [data-mp-filtro="situacoes"] [data-mp-abrir]')).toBeVisible();
  expect(falhas).toEqual([]);
 });
 

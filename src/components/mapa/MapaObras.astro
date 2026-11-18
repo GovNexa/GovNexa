@@ -20,16 +20,19 @@ const dados = JSON.stringify({ obras, semLocalLista, semLocal }).replaceAll('<',
   <p class="mp-contagem" role="status" aria-live="polite" data-mp-contagem></p>
 
   <div class="mp-filtros">
-    <fieldset class="mp-grupo mp-prazo" data-mp-farol>
-      <legend>Situação do prazo</legend>
-    </fieldset>
-    <div class="mp-filtros-linha" role="group" aria-label="Filtros por etapa e tipo de obra">
-      <fieldset class="mp-grupo" data-mp-situacoes>
-        <legend>Etapas</legend>
-      </fieldset>
-      <fieldset class="mp-grupo" data-mp-categorias>
-        <legend>Tipos de obra</legend>
-      </fieldset>
+    <div class="mp-filtros-linha" role="group" aria-label="Filtros do mapa">
+      <div class="mp-filtro" data-mp-filtro="farol">
+        <button type="button" class="mp-btn mp-filtro-abrir" data-mp-abrir aria-expanded="false" aria-controls={`${id}-filtro-farol`}>Situação: Todas ▾</button>
+        <div class="mp-popover" id={`${id}-filtro-farol`} data-mp-popover hidden></div>
+      </div>
+      <div class="mp-filtro" data-mp-filtro="situacoes">
+        <button type="button" class="mp-btn mp-filtro-abrir" data-mp-abrir aria-expanded="false" aria-controls={`${id}-filtro-situacoes`}>Etapas: Todas ▾</button>
+        <div class="mp-popover" id={`${id}-filtro-situacoes`} data-mp-popover hidden></div>
+      </div>
+      <div class="mp-filtro" data-mp-filtro="categorias">
+        <button type="button" class="mp-btn mp-filtro-abrir" data-mp-abrir aria-expanded="false" aria-controls={`${id}-filtro-categorias`}>Tipos: Todos ▾</button>
+        <div class="mp-popover" id={`${id}-filtro-categorias`} data-mp-popover hidden></div>
+      </div>
     </div>
     <div class="mp-acoes">
       <button type="button" class="mp-btn" data-mp-limpar>Limpar filtros</button>
@@ -65,6 +68,16 @@ const dados = JSON.stringify({ obras, semLocalLista, semLocal }).replaceAll('<',
       </table>
     </div>
   </details>
+  <dialog class="mp-dialogo-ficha" data-mp-ficha aria-labelledby={`${id}-ficha-titulo`}>
+    <div class="mp-dialogo-cab">
+      <button type="button" class="mp-btn" data-mp-ficha-voltar>← Voltar ao mapa</button>
+      <a data-mp-ficha-pagina>Abrir em página inteira</a>
+    </div>
+    <div class="mp-dialogo-conteudo" data-mp-ficha-conteudo>
+      <h2 id={`${id}-ficha-titulo`} data-mp-ficha-titulo>Ficha do projeto</h2>
+      <p role="status" data-mp-ficha-status>Carregando…</p>
+    </div>
+  </dialog>
   <script is:inline type="application/json" data-mp-dados set:html={dados}></script>
 </div>
 
@@ -167,9 +180,20 @@ document.addEventListener('astro:page-load', () => {
   }
   semLocal = Math.max(0, semLocal);
 
-  const situacoes = new Set<SituacaoMapa>(SITUACOES);
-  const categorias = new Set<CategoriaObra>(CATEGORIAS);
-  let farolFiltro: FarolFiltro = 'todas';
+  const parametrosIniciais = new URLSearchParams(location.search);
+  const lerConjunto = <T extends string>(chave: string, valores: T[]): Set<T> => {
+    const valor = parametrosIniciais.get(chave);
+    return valor === null ? new Set(valores) : new Set(valor.split(',').filter((item): item is T => valores.includes(item as T)));
+  };
+  const situacoes = lerConjunto('etapas', SITUACOES);
+  const categorias = lerConjunto('tipos', CATEGORIAS);
+  const farolInicial: Record<string, FarolFiltro> = { todas: 'todas', noprazo: 'verde', atencao: 'amarelo', atrasadas: 'vermelho' };
+  let farolFiltro = farolInicial[parametrosIniciais.get('sit') ?? 'todas'] ?? 'todas';
+  const centroInicial = parametrosIniciais.get('c')?.split(',').map(Number);
+  const zoomInicial = Number(parametrosIniciais.get('z'));
+  const centroValido = centroInicial?.length === 2 && centroInicial.every(Number.isFinite)
+    && Math.abs(centroInicial[0]!) <= 90 && Math.abs(centroInicial[1]!) <= 180;
+  const zoomValido = Number.isFinite(zoomInicial) && zoomInicial >= 10 && zoomInicial <= 18;
   let selecao: Selecao = { tipo: 'cidade' };
   const historico: Selecao[] = [];
   const mapa = L.map(q('[data-mp-mapa]'), {
@@ -180,7 +204,10 @@ document.addEventListener('astro:page-load', () => {
     zoomAnimation: !matchMedia('(prefers-reduced-motion: reduce)').matches,
     fadeAnimation: !matchMedia('(prefers-reduced-motion: reduce)').matches,
     markerZoomAnimation: !matchMedia('(prefers-reduced-motion: reduce)').matches,
-  }).setView([GOIANIA.centro.lat, GOIANIA.centro.lng], 12);
+  }).setView(
+    centroValido ? [centroInicial[0]!, centroInicial[1]!] : [GOIANIA.centro.lat, GOIANIA.centro.lng],
+    zoomValido ? zoomInicial : 12,
+  );
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© colaboradores do OpenStreetMap',
     maxZoom: 18,
@@ -209,45 +236,167 @@ document.addEventListener('astro:page-load', () => {
     }
   }
 
-  function chip(pai: HTMLElement, texto: string, ativo: boolean, classe: string, aoAlternar: (ligado: boolean) => void): HTMLButtonElement {
-    const botao = el('button', texto, `mp-chip ${classe}`);
-    botao.type = 'button';
-    botao.setAttribute('aria-pressed', String(ativo));
-    botao.addEventListener('click', () => {
-      const ligado = botao.getAttribute('aria-pressed') !== 'true';
-      botao.setAttribute('aria-pressed', String(ligado));
-      aoAlternar(ligado);
-      desenhar();
+  type TipoFiltro = 'farol' | 'situacoes' | 'categorias';
+  const filtros = new Map<TipoFiltro, { trigger: HTMLButtonElement; popover: HTMLDivElement }>();
+  const fecharFiltro = (restaurarFoco = false): void => {
+    for (const { trigger, popover } of filtros.values()) {
+      if (popover.hidden) continue;
+      popover.hidden = true;
+      trigger.setAttribute('aria-expanded', 'false');
+      if (restaurarFoco) trigger.focus();
+    }
+  };
+  const salvarURL = (): void => {
+    const url = new URL(location.href);
+    if (farolFiltro === 'todas') url.searchParams.delete('sit');
+    else url.searchParams.set('sit', farolFiltro === 'verde' ? 'noprazo' : farolFiltro === 'amarelo' ? 'atencao' : 'atrasadas');
+    if (situacoes.size === SITUACOES.length) url.searchParams.delete('etapas');
+    else url.searchParams.set('etapas', SITUACOES.filter((item) => situacoes.has(item)).join(','));
+    if (categorias.size === CATEGORIAS.length) url.searchParams.delete('tipos');
+    else url.searchParams.set('tipos', CATEGORIAS.filter((item) => categorias.has(item)).join(','));
+    url.searchParams.set('z', String(mapa.getZoom()));
+    const centro = mapa.getCenter();
+    url.searchParams.set('c', `${centro.lat.toFixed(5)},${centro.lng.toFixed(5)}`);
+    const selecionado = selecao.tipo === 'obra' ? `obra:${selecao.obra.id}` : selecao.tipo === 'grupo' ? selecao.grupo.id : null;
+    if (selecionado) url.searchParams.set('sel', selecionado);
+    else url.searchParams.delete('sel');
+    history.replaceState(history.state, '', `${url.pathname}${url.search}${url.hash}`);
+  };
+  const tituloFarol = (valor: FarolFiltro): string => FAROIS.find((item) => item.valor === valor)!.texto;
+  const atualizarResumo = (): void => {
+    const atualizar = (tipo: TipoFiltro, texto: string): void => {
+      const entrada = filtros.get(tipo);
+      if (entrada) entrada.trigger.textContent = `${texto} ▾`;
+    };
+    atualizar('farol', `Situação: ${farolFiltro === 'todas' ? 'Todas' : tituloFarol(farolFiltro)}`);
+    atualizar('situacoes', `Etapas: ${situacoes.size === SITUACOES.length ? 'Todas' : `${situacoes.size} de ${SITUACOES.length}`}`);
+    atualizar('categorias', `Tipos: ${categorias.size === CATEGORIAS.length ? 'Todos' : `${categorias.size} de ${CATEGORIAS.length}`}`);
+  };
+  const criarOpcao = (
+    popover: HTMLElement,
+    nomeGrupo: string,
+    valor: string,
+    rotulo: string,
+    tipo: 'checkbox' | 'radio',
+    marcado: boolean,
+    aoMudar: (marcado: boolean) => void,
+  ): HTMLInputElement => {
+    const rotuloEl = el('label', undefined, 'mp-opcao-filtro');
+    const input = el('input');
+    input.type = tipo;
+    input.name = nomeGrupo;
+    input.value = valor;
+    input.checked = marcado;
+    input.addEventListener('change', () => aoMudar(input.checked));
+    rotuloEl.append(input, el('span', rotulo));
+    popover.append(rotuloEl);
+    return input;
+  };
+  const adicionarFiltro = (tipo: TipoFiltro, titulo: string): { trigger: HTMLButtonElement; popover: HTMLDivElement; opcoes: HTMLDivElement } => {
+    const raizFiltro = q<HTMLElement>(`[data-mp-filtro="${tipo}"]`);
+    const trigger = raizFiltro.querySelector<HTMLButtonElement>('[data-mp-abrir]')!;
+    const popover = raizFiltro.querySelector<HTMLDivElement>('[data-mp-popover]')!;
+    const opcoes = el('div', undefined, 'mp-opcoes');
+    opcoes.setAttribute('role', 'group');
+    opcoes.setAttribute('aria-label', titulo);
+    popover.append(opcoes);
+    filtros.set(tipo, { trigger, popover });
+    trigger.addEventListener('click', () => {
+      const estavaAberto = !popover.hidden;
+      fecharFiltro();
+      if (!estavaAberto) {
+        popover.hidden = false;
+        trigger.setAttribute('aria-expanded', 'true');
+        popover.querySelector<HTMLElement>('input,button')?.focus();
+      }
     });
-    pai.append(botao);
-    return botao;
-  }
-
+    popover.addEventListener('keydown', (evento) => {
+      if (evento.key !== 'Tab') return;
+      const focaveis = [...popover.querySelectorAll<HTMLElement>('input:not(:disabled),button:not(:disabled)')];
+      const primeiro = focaveis[0];
+      const ultimo = focaveis.at(-1);
+      if (evento.shiftKey && document.activeElement === primeiro) {
+        evento.preventDefault();
+        ultimo?.focus();
+      } else if (!evento.shiftKey && document.activeElement === ultimo) {
+        evento.preventDefault();
+        primeiro?.focus();
+      }
+    });
+    const rodape = el('div', undefined, 'mp-popover-acoes');
+    if (tipo !== 'farol') {
+      const marcar = el('button', 'Marcar todos', 'mp-btn');
+      const desmarcar = el('button', 'Desmarcar todos', 'mp-btn');
+      marcar.type = desmarcar.type = 'button';
+      marcar.dataset.mpMarcar = 'todos';
+      desmarcar.dataset.mpMarcar = 'nenhum';
+      rodape.append(marcar, desmarcar);
+    }
+    const pronto = el('button', 'Pronto', 'mp-btn');
+    pronto.type = 'button';
+    pronto.dataset.mpPronto = '';
+    pronto.addEventListener('click', () => fecharFiltro(true));
+    rodape.append(pronto);
+    popover.append(rodape);
+    return { trigger, popover, opcoes };
+  };
+  const filtroFarol = adicionarFiltro('farol', 'Situação do prazo');
   for (const filtro of FAROIS) {
-    const botao = el('button', filtro.texto, `mp-chip mp-chip-farol mp-farol-${filtro.valor}`);
-    botao.type = 'button';
-    botao.setAttribute('aria-pressed', String(filtro.valor === farolFiltro));
-    botao.addEventListener('click', () => {
+    criarOpcao(filtroFarol.opcoes, `${raiz.id}-farol`, filtro.valor, filtro.texto, 'radio', filtro.valor === farolFiltro, () => {
       farolFiltro = filtro.valor;
-      q('[data-mp-farol]').querySelectorAll('button').forEach((item) => {
-        item.setAttribute('aria-pressed', String(item === botao));
-      });
+      filtroFarol.opcoes.querySelectorAll<HTMLInputElement>('input').forEach((input) => { input.checked = input.value === farolFiltro; });
+      atualizarResumo();
+      salvarURL();
       desenhar();
     });
-    q('[data-mp-farol]').append(botao);
   }
+  const filtroSituacao = adicionarFiltro('situacoes', 'Etapas');
   for (const situacao of SITUACOES) {
-    chip(q('[data-mp-situacoes]'), ROTULO_SITUACAO_MAPA[situacao], true, 'mp-chip-etapa', (ligado) => {
+    criarOpcao(filtroSituacao.opcoes, `${raiz.id}-etapas`, situacao, ROTULO_SITUACAO_MAPA[situacao], 'checkbox', situacoes.has(situacao), (ligado) => {
       if (ligado) situacoes.add(situacao);
       else situacoes.delete(situacao);
+      atualizarResumo();
+      salvarURL();
+      desenhar();
     });
   }
+  const filtroCategoria = adicionarFiltro('categorias', 'Tipos de obra');
   for (const categoria of CATEGORIAS) {
-    chip(q('[data-mp-categorias]'), ROTULO_CATEGORIA[categoria], true, 'mp-chip-categoria', (ligado) => {
+    criarOpcao(filtroCategoria.opcoes, `${raiz.id}-tipos`, categoria, ROTULO_CATEGORIA[categoria], 'checkbox', categorias.has(categoria), (ligado) => {
       if (ligado) categorias.add(categoria);
       else categorias.delete(categoria);
+      atualizarResumo();
+      salvarURL();
+      desenhar();
     });
   }
+  const configurarAcoesMultiplas = <T extends SituacaoMapa | CategoriaObra>(
+    conjunto: Set<T>,
+    valores: T[],
+    filtro: { popover: HTMLDivElement; opcoes: HTMLDivElement },
+  ): void => {
+    filtro.popover.querySelector('[data-mp-marcar="todos"]')?.addEventListener('click', () => {
+      conjunto.clear();
+      valores.forEach((valor) => conjunto.add(valor));
+      filtro.opcoes.querySelectorAll<HTMLInputElement>('input').forEach((input) => { input.checked = true; });
+      atualizarResumo();
+      salvarURL();
+      desenhar();
+    });
+    filtro.popover.querySelector('[data-mp-marcar="nenhum"]')?.addEventListener('click', () => {
+      conjunto.clear();
+      filtro.opcoes.querySelectorAll<HTMLInputElement>('input').forEach((input) => { input.checked = false; });
+      atualizarResumo();
+      salvarURL();
+      desenhar();
+    });
+  };
+  configurarAcoesMultiplas(situacoes, SITUACOES, filtroSituacao);
+  configurarAcoesMultiplas(categorias, CATEGORIAS, filtroCategoria);
+  atualizarResumo();
+  document.addEventListener('pointerdown', (evento) => {
+    if (!(evento.target instanceof Element) || !raiz.contains(evento.target) || !evento.target.closest('[data-mp-filtro]')) fecharFiltro();
+  });
 
   function obrasFiltradas(): ObraVista[] {
     return todas.filter((obra) =>
@@ -272,6 +421,7 @@ document.addEventListener('astro:page-load', () => {
     selecao = nova;
     atualizarMarcadoresSelecionados();
     renderPainel(obrasFiltradas());
+    salvarURL();
   }
 
   function selecionarGrupo(grupo: AgrupamentoMapa, zoom: number): void {
@@ -300,6 +450,46 @@ document.addEventListener('astro:page-load', () => {
     return botao;
   }
 
+  const dialogoFicha = q<HTMLDialogElement>('[data-mp-ficha]');
+  const conteudoFicha = q<HTMLElement>('[data-mp-ficha-conteudo]');
+  const tituloFicha = q<HTMLElement>('[data-mp-ficha-titulo]');
+  const statusFicha = q<HTMLElement>('[data-mp-ficha-status]');
+  const linkFichaPagina = q<HTMLAnchorElement>('[data-mp-ficha-pagina]');
+  let linkFichaAtivo: HTMLAnchorElement | null = null;
+  const voltarFicha = q<HTMLButtonElement>('[data-mp-ficha-voltar]');
+  voltarFicha.addEventListener('click', () => dialogoFicha.close());
+  dialogoFicha.addEventListener('close', () => {
+    linkFichaAtivo?.focus();
+    linkFichaAtivo = null;
+  });
+  async function abrirFicha(obra: ObraVista, link: HTMLAnchorElement): Promise<void> {
+    linkFichaAtivo = link;
+    tituloFicha.textContent = obra.nome;
+    statusFicha.hidden = false;
+    statusFicha.textContent = 'Carregando…';
+    const urlCompleta = new URL(link.href);
+    urlCompleta.searchParams.set('volta', `${location.pathname}${location.search}${location.hash}`);
+    linkFichaPagina.href = urlCompleta.href;
+    conteudoFicha.querySelectorAll(':scope > :not([data-mp-ficha-titulo]):not([data-mp-ficha-status])').forEach((item) => item.remove());
+    if (!dialogoFicha.open) dialogoFicha.showModal();
+    try {
+      const resposta = await fetch(link.href, { headers: { Accept: 'text/html' } });
+      if (!resposta.ok) throw new Error(`Resposta ${resposta.status}`);
+      const documento = new DOMParser().parseFromString(await resposta.text(), 'text/html');
+      const workspace = documento.querySelector<HTMLElement>('.workspace');
+      if (!workspace) throw new Error('Conteúdo da ficha não encontrado.');
+      workspace.querySelectorAll('script').forEach((script) => script.remove());
+      const fragmento = document.createDocumentFragment();
+      workspace.childNodes.forEach((no) => fragmento.append(document.importNode(no, true)));
+      conteudoFicha.append(fragmento);
+      statusFicha.hidden = true;
+      voltarFicha.focus();
+    } catch (erro) {
+      statusFicha.textContent = 'Não foi possível carregar a ficha agora. Tente novamente ou abra em página inteira.';
+      console.error('Falha ao carregar a ficha do projeto pelo mapa.', erro);
+    }
+  }
+
   function renderPainel(obras: ObraVista[]): void {
     painel.replaceChildren();
     const cabecalho = el('div', undefined, 'mp-painel-cab');
@@ -320,6 +510,7 @@ document.addEventListener('astro:page-load', () => {
           );
         }
         renderPainel(obrasFiltradas());
+        salvarURL();
       });
       acoes.append(voltar);
     }
@@ -348,6 +539,10 @@ document.addEventListener('astro:page-load', () => {
       const links = el('div', undefined, 'mp-painel-links');
       const ficha = el('a', 'Abrir ficha completa');
       ficha.href = `/plataforma/projeto/${encodeURIComponent(obra.id)}/`;
+      ficha.addEventListener('click', (evento) => {
+        evento.preventDefault();
+        void abrirFicha(obra, ficha);
+      });
       const editar = el('a', 'Editar localização');
       editar.href = `/plataforma/projetos-localizacao/?id=${encodeURIComponent(obra.id)}`;
       links.append(ficha, editar);
@@ -540,20 +735,24 @@ document.addEventListener('astro:page-load', () => {
     categorias.clear();
     CATEGORIAS.forEach((categoria) => categorias.add(categoria));
     farolFiltro = 'todas';
-    q('[data-mp-situacoes]').querySelectorAll('button').forEach((botao) => botao.setAttribute('aria-pressed', 'true'));
-    q('[data-mp-categorias]').querySelectorAll('button').forEach((botao) => botao.setAttribute('aria-pressed', 'true'));
-    q('[data-mp-farol]').querySelectorAll('button').forEach((botao, indice) => botao.setAttribute('aria-pressed', String(indice === 0)));
+    filtroSituacao.opcoes.querySelectorAll<HTMLInputElement>('input').forEach((input) => { input.checked = true; });
+    filtroCategoria.opcoes.querySelectorAll<HTMLInputElement>('input').forEach((input) => { input.checked = true; });
+    filtroFarol.opcoes.querySelectorAll<HTMLInputElement>('input').forEach((input) => { input.checked = input.value === 'todas'; });
+    atualizarResumo();
     desenhar();
+    salvarURL();
   });
   q('[data-mp-centralizar]').addEventListener('click', () => {
     historico.length = 0;
     selecao = { tipo: 'cidade' };
     mapa.setView([GOIANIA.centro.lat, GOIANIA.centro.lng], 12);
     renderPainel(obrasFiltradas());
+    salvarURL();
   });
   q('[data-mp-zoom-in]').addEventListener('click', () => mapa.zoomIn());
   q('[data-mp-zoom-out]').addEventListener('click', () => mapa.zoomOut());
   mapa.on('zoomend', desenhar);
+  mapa.on('moveend', salvarURL);
 
   const apresentar = q<HTMLButtonElement>('[data-mp-apresentar]');
   if (!document.fullscreenEnabled) apresentar.hidden = true;
@@ -562,7 +761,18 @@ document.addEventListener('astro:page-load', () => {
     void acao.catch(() => mostrarAviso('Não foi possível abrir o modo de apresentação neste dispositivo.'));
   });
   document.addEventListener('keydown', (evento) => {
-    if (evento.key === 'Escape' && document.fullscreenElement === raiz) {
+    if (evento.key !== 'Escape') return;
+    if (dialogoFicha.open) {
+      evento.preventDefault();
+      dialogoFicha.close();
+      return;
+    }
+    if ([...filtros.values()].some(({ popover }) => !popover.hidden)) {
+      evento.preventDefault();
+      fecharFiltro(true);
+      return;
+    }
+    if (document.fullscreenElement === raiz) {
       void document.exitFullscreen().catch(() => mostrarAviso('Não foi possível sair do modo de apresentação.'));
     }
   });
@@ -573,6 +783,47 @@ document.addEventListener('astro:page-load', () => {
     requestAnimationFrame(() => mapa.invalidateSize());
   });
 
+  function restaurarEstadoURL(): void {
+    const parametros = new URLSearchParams(location.search);
+    const restaurarConjunto = <T extends string>(alvo: Set<T>, chave: string, valores: T[]): void => {
+      const parametro = parametros.get(chave);
+      alvo.clear();
+      (parametro === null ? valores : parametro.split(',').filter((item): item is T => valores.includes(item as T)))
+        .forEach((valor) => alvo.add(valor));
+    };
+    restaurarConjunto(situacoes, 'etapas', SITUACOES);
+    restaurarConjunto(categorias, 'tipos', CATEGORIAS);
+    const codigosFarol: Record<string, FarolFiltro> = { todas: 'todas', noprazo: 'verde', atencao: 'amarelo', atrasadas: 'vermelho' };
+    farolFiltro = codigosFarol[parametros.get('sit') ?? 'todas'] ?? 'todas';
+    filtroSituacao.opcoes.querySelectorAll<HTMLInputElement>('input').forEach((input) => { input.checked = situacoes.has(input.value as SituacaoMapa); });
+    filtroCategoria.opcoes.querySelectorAll<HTMLInputElement>('input').forEach((input) => { input.checked = categorias.has(input.value as CategoriaObra); });
+    filtroFarol.opcoes.querySelectorAll<HTMLInputElement>('input').forEach((input) => { input.checked = input.value === farolFiltro; });
+    atualizarResumo();
+    const centro = parametros.get('c')?.split(',').map(Number);
+    const zoom = Number(parametros.get('z'));
+    if (centro?.length === 2 && centro.every(Number.isFinite) && Math.abs(centro[0]!) <= 90 && Math.abs(centro[1]!) <= 180) {
+      mapa.setView([centro[0]!, centro[1]!], Number.isFinite(zoom) && zoom >= 10 && zoom <= 18 ? zoom : mapa.getZoom(), { animate: false });
+    } else if (Number.isFinite(zoom) && zoom >= 10 && zoom <= 18) {
+      mapa.setZoom(zoom, { animate: false });
+    }
+    historico.length = 0;
+    selecao = { tipo: 'cidade' };
+    desenhar();
+    const sel = parametros.get('sel');
+    if (sel?.startsWith('obra:')) {
+      const obra = todas.find((item) => item.id === sel.slice(5));
+      if (obra) selecionar({ tipo: 'obra', obra }, false);
+    } else if (sel?.startsWith('regiao:') || sel?.startsWith('bairro:')) {
+      const nivel = sel.startsWith('regiao:') ? 'regiao' : 'bairro';
+      const grupos = nivel === 'regiao'
+        ? agruparPorRegiao(obrasAgrupaveis(obrasFiltradas()))
+        : agruparPorBairro(obrasAgrupaveis(obrasFiltradas()));
+      const grupo = grupos.find((item) => item.id === sel);
+      if (grupo) selecionar({ tipo: 'grupo', grupo }, false);
+    }
+  }
+  document.addEventListener('popstate', restaurarEstadoURL);
   desenhar();
+  restaurarEstadoURL();
 });
 </script>
