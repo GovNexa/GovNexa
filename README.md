@@ -448,7 +448,7 @@ As regras completas estão em [CLAUDE.md](CLAUDE.md). Resumo:
 3. Antes do PR, rode `npx astro check`, `npm run test:dados`, `npx playwright test --project=chromium` e `npm run impacto`.
 4. Se a mudança afeta etapa, tela ou situação do Fluxo, atualize junto `src/lib/govnexa/fluxo.ts`, `subfluxos.ts` e `impacto.ts`.
 5. Interface sem rolagem horizontal em 1280 e 390 px, textos simples, contraste adequado nos temas claro e escuro e situação escrita, não só indicada por cor.
-6. Claude Code planeja e revisa; Codex e Copilot executam por ordem de serviço. Publicação só com ordem do dono.
+6. Claude Code planeja e revisa; o Codex executa por ordem de serviço (Copilot fora do fluxo desde 18/11/2026). Publicação só com ordem do dono.
 7. O repositório antigo está congelado desde 16/11/2026; todo o trabalho segue só neste.
 8. Não coloque dados reais, credenciais ou nomes de pessoas no repositório. Use dados fictícios nos testes; nunca contorne captcha.
 9. Datas no padrão brasileiro: `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` (horário de Brasília), sempre pelas funções de `src/lib/datas.ts`.
