@@ -36,7 +36,13 @@ const dados = JSON.stringify({ inicial, geo }).replaceAll('<', '\\u003c');
     </label>
   </div>
 
-  <div class="mp-ed-mapa" data-ed-mapa role="region" aria-label="Mapa para marcar a localização"></div>
+  <div class="mp-ed-mapa" data-ed-mapa role="region" aria-label="Mapa para marcar a localização">
+    <div class="mp-camadas" role="group" aria-label="Camada do mapa">
+      <button type="button" data-ed-camada="mapa" aria-pressed="true">Mapa</button>
+      <button type="button" data-ed-camada="satelite" aria-pressed="false">Satélite</button>
+      <button type="button" data-ed-camada="hibrido" aria-pressed="false">Híbrido</button>
+    </div>
+  </div>
   <p class="mp-nota" data-ed-dica></p>
 
   <div class="mp-ed-linha" data-ed-ponto>
@@ -62,6 +68,7 @@ const dados = JSON.stringify({ inicial, geo }).replaceAll('<', '\\u003c');
 
 <script>
 import * as L from 'leaflet';
+import { criarCamadasFundo, ehCamada, preferenciaCamada, type NomeCamada } from '../../lib/mapa/camadas.ts';
 import 'leaflet/dist/leaflet.css';
 import { GOIANIA, validarLocalizacao } from '../../lib/mapa/geo.ts';
 import { COR_CATEGORIA, elementoGlifo } from '../../lib/mapa/icones.ts';
@@ -112,7 +119,23 @@ function iniciar(raiz: HTMLElement): void {
   let ativo = -1; // trecho que recebe os toques (desenhando)
 
   const mapa = L.map(q('[data-ed-mapa]'), { zoomControl: true, tap: true, minZoom: 10, maxZoom: 18 }).setView([GOIANIA.centro.lat, GOIANIA.centro.lng], 12);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© colaboradores do OpenStreetMap', maxZoom: 18 }).addTo(mapa);
+  const camadasFundo = criarCamadasFundo(L);
+  const botoesCamada = raiz.querySelectorAll<HTMLButtonElement>('[data-ed-camada]');
+  const controlesCamada = q<HTMLElement>('.mp-camadas');
+  L.DomEvent.disableClickPropagation(controlesCamada);
+  L.DomEvent.disableScrollPropagation(controlesCamada);
+  function aplicarCamada(nome: NomeCamada): void {
+    for (const lista of Object.values(camadasFundo)) for (const c of lista) if (mapa.hasLayer(c)) mapa.removeLayer(c);
+    for (const c of camadasFundo[nome]) c.addTo(mapa);
+    q('[data-ed-mapa]').dataset.camada = nome;
+    for (const b of botoesCamada) b.setAttribute('aria-pressed', String(b.dataset.edCamada === nome));
+    preferenciaCamada(nome);
+  }
+  aplicarCamada(preferenciaCamada());
+  for (const b of botoesCamada) b.addEventListener('click', () => {
+    const nome = b.dataset.edCamada;
+    if (ehCamada(nome)) aplicarCamada(nome);
+  });
   const camada = L.layerGroup().addTo(mapa);
   if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => mapa.invalidateSize()).observe(q('[data-ed-mapa]'));
 

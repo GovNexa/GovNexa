@@ -624,6 +624,7 @@ test('govnexa: painel do prefeito',async({page})=>{
 
 test('govnexa: mapa das obras',async({page,browser})=>{
  await page.route('https://tile.openstreetmap.org/**',r=>r.abort());
+ await page.route('https://server.arcgisonline.com/**',r=>r.abort());
  const semRolagem=()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth);
  // painel do prefeito com o mapa
  await page.setViewportSize({width:1280,height:900});
@@ -670,6 +671,7 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  const touch=await browser.newContext({hasTouch:true,viewport:{width:390,height:844}});
  const tp=await touch.newPage();
  await tp.route('https://tile.openstreetmap.org/**',r=>r.abort());
+ await tp.route('https://server.arcgisonline.com/**',r=>r.abort());
  await tp.goto('/plataforma/gestao/');
  await tp.locator('#mapa .leaflet-container').scrollIntoViewIfNeeded();
  await tp.locator('#mapa .mp-bolha-caixa').first().tap();
@@ -683,6 +685,26 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  await expect(page.locator('h1')).toHaveText('Localização e fotos');
  await expect(page.locator('#lp-enviar-fotos')).toBeDisabled();
  await page.screenshot({path:'test-results/localizacao-1280.png'});
+ const editor=page.locator('#lp-loc');
+ await page.getByRole('radio',{name:/Um ponto/}).check();
+ await editor.locator('[data-ed-mapa]').click({position:{x:120,y:150}});
+ await editor.locator('[data-ed-endereco]').fill('Referência de teste');
+ const valorPonto=await editor.getAttribute('data-valor');
+ const urlEditor=page.url();
+ const marcador=editor.locator('.leaflet-marker-icon');
+ await expect(marcador).toHaveCount(1);
+ for(const [nome,quantidade] of [['Satélite',1],['Híbrido',3]] as const){
+  await editor.getByRole('button',{name:nome,exact:true}).click();
+  await expect(editor.getByRole('button',{name:nome,exact:true})).toHaveAttribute('aria-pressed','true');
+  await expect(editor.locator('.leaflet-tile-pane > .leaflet-layer')).toHaveCount(quantidade);
+  await expect(editor).toHaveAttribute('data-valor',valorPonto!);
+  await expect(marcador).toHaveCount(1);
+  await expect(editor.locator('[data-ed-endereco]')).toHaveValue('Referência de teste');
+  expect(page.url()).toBe(urlEditor);
+ }
+ await page.reload();
+ await expect(editor.getByRole('button',{name:'Híbrido',exact:true})).toHaveAttribute('aria-pressed','true');
+
  await page.getByRole('radio',{name:/Ruas e trechos/}).check();
  for(const trecho of await page.locator('#lp-loc [data-ed-lista] .mp-trecho').all())await trecho.getByRole('button',{name:/Limpar linha/}).click();
  await page.getByLabel('Rua (obrigatório)').fill('Avenida Exemplo');
@@ -691,6 +713,12 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  await areaMapa.click({position:{x:120,y:120}});
  await areaMapa.click({position:{x:260,y:180}});
  await expect(page.locator('#lp-loc .mp-pontos')).toHaveText('2 pontos');
+ const valorTrechos=await editor.getAttribute('data-valor');
+ await editor.getByRole('button',{name:'Mapa',exact:true}).click();
+ await expect(editor).toHaveAttribute('data-valor',valorTrechos!);
+ await expect(editor.locator('path.leaflet-interactive')).toHaveCount(3);
+ await expect(page.getByLabel('Rua (obrigatório)')).toHaveValue('Avenida Exemplo');
+
  await page.getByRole('button',{name:'Salvar localização',exact:true}).click();
  await expect(page.locator('[data-lp-ok]')).toBeVisible();
  await expect(page.locator('[data-lp-ok]')).toContainText('registrada no Histórico');
