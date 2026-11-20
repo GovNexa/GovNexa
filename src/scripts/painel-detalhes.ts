@@ -407,7 +407,9 @@ export function iniciarPainelDetalhes() {
       focoOriginal = botaoDetalhes;
       mostrarRegistro(indice);
       dialogo.showModal();
-      dialogo.querySelector<HTMLElement>('#record-title')!.focus({ preventScroll: true });
+      // Contorno de foco só quando aberto pelo teclado (no Safari o foco por script após um clique também ganhava contorno).
+      const peloTeclado = evento instanceof MouseEvent && evento.detail === 0;
+      dialogo.querySelector<HTMLElement>('#record-title')!.focus({ preventScroll: true, focusVisible: peloTeclado } as FocusOptions);
     });
 
     anterior.addEventListener('click', () => {

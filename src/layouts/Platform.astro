@@ -319,13 +319,15 @@ const positionFlyout=()=>{
   activeFlyout.style.left=`${Math.min(trigger.right+8,innerWidth-panel.width-8)}px`;
   activeFlyout.style.top=`${Math.max(8,Math.min(trigger.top,innerHeight-panel.height-8))}px`;
 };
+let restoringFocus=false;
 const closeFlyout=(restoreFocus=false)=>{
   if(flyoutTimer)clearTimeout(flyoutTimer);flyoutTimer=undefined;
   if(activeFlyout)activeFlyout.hidden=true;
   if(activeFlyoutButton)activeFlyoutButton.setAttribute('aria-expanded','false');
   const button=activeFlyoutButton;
   activeFlyout=null;activeFlyoutButton=null;
-  if(restoreFocus)button?.focus();
+  // Devolver o foco sem reabrir: no Safari o clique não foca o botão, então o focus() abaixo dispararia showFlyout.
+  if(restoreFocus&&button){restoringFocus=true;button.focus();restoringFocus=false}
 };
 lifecycle.signal.addEventListener('abort',()=>closeFlyout(),{once:true});
 const showFlyout=(button:HTMLButtonElement)=>{
@@ -341,7 +343,7 @@ const scheduleFlyoutClose=(preserveFocus=false)=>{if(flyoutTimer)clearTimeout(fl
 rail.querySelectorAll<HTMLButtonElement>('.side-module-icon').forEach(button=>{
   const item=button.parentElement!;
   button.addEventListener('pointerenter',()=>showFlyout(button),{signal:lifecycle.signal});
-  button.addEventListener('focus',()=>showFlyout(button),{signal:lifecycle.signal});
+  button.addEventListener('focus',()=>{if(!restoringFocus)showFlyout(button)},{signal:lifecycle.signal});
   button.addEventListener('click',()=>showFlyout(button),{signal:lifecycle.signal});
   item.addEventListener('pointerenter',()=>{if(flyoutTimer)clearTimeout(flyoutTimer);flyoutTimer=undefined},{signal:lifecycle.signal});
   item.addEventListener('pointerleave',()=>scheduleFlyoutClose(),{signal:lifecycle.signal});

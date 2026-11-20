@@ -27,11 +27,11 @@
  .mp-acoes{flex:0 0 auto;flex-wrap:nowrap}
  .mp-acoes .mp-btn{white-space:nowrap}
 }
-.mp-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,380px);gap:.8rem;min-height:70vh;min-width:0}
+.mp-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,380px);gap:.8rem;min-height:0;min-width:0}
 .mp-bloco{padding:0;margin:0;max-width:none;min-width:0}
 .mp-mapa{width:100%;height:min(70vh,640px);min-height:420px;border:1px solid var(--line);border-radius:8px;position:relative;z-index:0;background:#e8e4dc;overflow:hidden}
 .mp-mapa[data-camada="mapa"] .leaflet-tile-pane,.mp-ed-mapa[data-camada="mapa"] .leaflet-tile-pane{opacity:.6;filter:grayscale(1) contrast(.8) brightness(1.15)}
-.mp-mapa .leaflet-control-attribution a{color:#064b70;text-decoration:underline}
+.mp-mapa .leaflet-control-attribution a,.mp-ed-mapa .leaflet-control-attribution a{color:#064b70;text-decoration:underline}
 .mp-painel{display:flex;flex-direction:column;gap:.65rem;min-width:0;max-height:min(70vh,640px);overflow-y:auto;padding:.9rem;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text)}
 .mp-painel h3{margin:0;font-size:1.25rem;line-height:1.25;overflow-wrap:anywhere}
 .mp-painel h4{margin:.25rem 0 0;font-size:1rem}
@@ -81,7 +81,7 @@ html[data-theme="dark"] .mp-mapa{background:#17202a}
 html[data-theme="dark"] .mp-mapa[data-camada="mapa"] .leaflet-tile-pane,html[data-theme="dark"] .mp-ed-mapa[data-camada="mapa"] .leaflet-tile-pane{opacity:.6;filter:grayscale(1) contrast(.85) brightness(.72)}
 html[data-theme="dark"] .mp-bolha-miolo{background:#1b2633;color:#fff;border-color:#c3ccd5}
 html[data-theme="dark"] .mp-zoom button{background:#1b2633;color:#fff;border-color:#c3ccd5}
-html[data-theme="dark"] .mp-mapa .leaflet-control-attribution a{color:#064b70}
+html[data-theme="dark"] .mp-mapa .leaflet-control-attribution a,html[data-theme="dark"] .mp-ed-mapa .leaflet-control-attribution a{color:#064b70}
 html[data-theme="dark"] .mp-marcador-caixa:focus-visible,html[data-theme="dark"] .mp-bolha-caixa:focus-visible{outline-color:#fff}
 html[data-theme="dark"] .mp-texto-verde{color:#69d585!important}
 html[data-theme="dark"] .mp-texto-amarelo{color:#ffd166!important}
@@ -202,3 +202,16 @@ html[data-theme="dark"] .mp-camadas button[aria-pressed="true"]{background:#FF9A
  .mp-secao:fullscreen .mp-acoes .mp-btn{width:100%;white-space:normal}
  .mp-secao:fullscreen .mp-popover{top:0;left:calc(100% + .6rem);width:min(26rem,40vw);max-height:80vh}
 }
+
+/* Versão compacta (dashboard): só o mapa e a legenda; tocar no mapa amplia para a apresentação em tela cheia. */
+.mp-secao[data-mp-compacto]:not(:fullscreen) :is(.mp-filtros,.mp-painel,.mp-lista,.mp-camadas,.mp-zoom,.mp-aviso){display:none!important}
+.mp-secao[data-mp-compacto]:not(:fullscreen) .mp-layout{grid-template-columns:minmax(0,1fr);min-height:0}
+.mp-secao[data-mp-compacto]:not(:fullscreen) .mp-mapa{min-height:0}
+.mp-expandir{position:absolute;inset:0;z-index:1000;display:flex;align-items:flex-start;justify-content:flex-end;padding:.75rem;margin:0;background:transparent;border:0;border-radius:8px;cursor:zoom-in;box-shadow:none;transform:none}
+.mp-expandir:hover,.mp-expandir:active{background:#00000008;box-shadow:none;transform:none;filter:none}
+.mp-expandir span{display:inline-flex;align-items:center;gap:.45rem;min-height:44px;padding:.5rem 1rem;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--text);font-weight:600;box-shadow:0 2px 8px #0003}
+.mp-expandir:focus-visible{outline:3px solid var(--orange);outline-offset:-3px}
+.mp-secao:fullscreen .mp-expandir{display:none}
+/* Apresentação: itens do painel acompanham a letra do painel (em rem ficavam com 13,6 px até numa TV 4K). */
+.mp-secao:fullscreen .mp-item strong{font-size:1em}
+.mp-secao:fullscreen .mp-item span{font-size:.85em}

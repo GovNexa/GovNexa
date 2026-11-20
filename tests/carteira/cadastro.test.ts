@@ -150,7 +150,7 @@ test('códigos: se o banco recusar sempre, o repositório desiste com mensagem e
   const { banco } = montar('editor');
   const teimoso = {
     prepare: (sql: string) => banco.db.prepare(sql),
-    async batch(s: any[]) { throw new Error('D1_ERROR: UNIQUE constraint failed: projeto.prefeitura_id, projeto.codigo_legado: SQLITE_CONSTRAINT'); },
+    async batch(_s: any[]) { throw new Error('D1_ERROR: UNIQUE constraint failed: projeto.prefeitura_id, projeto.codigo_legado: SQLITE_CONSTRAINT'); },
   };
   const repo = criarRepositorioD1(teimoso as any, 5208707);
   const r = await repo.criarProjeto({ nome: 'A', orgao: 'B' }, 'x@x');

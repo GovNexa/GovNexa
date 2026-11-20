@@ -1,5 +1,6 @@
 ---
 import '../../styles/mapa.css';
+import Icon from '../Icon.astro';
 import type { ObraBasica, ObraMapa } from '../../lib/mapa/obras.ts';
 
 interface Props {
@@ -8,14 +9,18 @@ interface Props {
   semLocalLista?: ObraBasica[];
   altura?: string;
   id?: string;
+  /** Versão de resumo (dashboard): só o mapa, sem filtros nem painel; tocar amplia para a apresentação em tela cheia. */
+  compacto?: boolean;
 }
-const { obras, semLocal, semLocalLista = [], altura = 'min(70vh, 640px)', id = 'mapa-obras' } = Astro.props;
+const { obras, semLocal, semLocalLista = [], altura = 'min(70vh, 640px)', id = 'mapa-obras', compacto = false } = Astro.props;
 const dados = JSON.stringify({ obras, semLocalLista, semLocal }).replaceAll('<', '\\u003c');
 ---
-<div class="mp-secao" data-mapa-obras={id} id={id}>
+<div class="mp-secao" data-mapa-obras={id} id={id} data-mp-compacto={compacto ? '' : undefined}>
   <div class="mp-cab">
     <h2 id={`${id}-titulo`}>Mapa das obras</h2>
-    <a class="mp-link" href="/plataforma/projetos-localizacao/">Cadastrar localização</a>
+    {compacto
+      ? <a class="mp-link" href="/plataforma/gestao/#mapa">Abrir na Gestão →</a>
+      : <a class="mp-link" href="/plataforma/projetos-localizacao/">Cadastrar localização</a>}
   </div>
   <p class="mp-contagem" role="status" aria-live="polite" data-mp-contagem></p>
 
@@ -52,6 +57,11 @@ const dados = JSON.stringify({ obras, semLocalLista, semLocal }).replaceAll('<',
         <button type="button" data-mp-camada="satelite" aria-pressed="false">Satélite</button>
         <button type="button" data-mp-camada="hibrido" aria-pressed="false">Híbrido</button>
       </div>
+      {compacto && (
+        <button type="button" class="mp-expandir" data-mp-expandir aria-label="Ampliar o mapa das obras em tela cheia">
+          <span aria-hidden="true"><Icon name="expandir" size={18} />Ampliar mapa</span>
+        </button>
+      )}
     </div>
     <aside class="mp-painel" aria-label="Resumo do mapa" aria-live="polite" data-mp-painel></aside>
   </div>
@@ -173,20 +183,29 @@ document.addEventListener('astro:page-load', () => {
   }
   const q = <T extends HTMLElement>(seletor: string) => raiz.querySelector<T>(seletor)!;
 
+  const compacto = raiz.hasAttribute('data-mp-compacto');
   const simuladas = lerLocalizacoesSimuladas();
-  const todas: ObraVista[] = dados.obras.map((obra) => (
-    simuladas[obra.id] ? { ...obra, localizacao: simuladas[obra.id], precisao: 'cadastrada', simulada: true } : obra
-  ));
-  let semLocal = dados.semLocal;
-  for (const obra of dados.semLocalLista) {
-    if (simuladas[obra.id]) {
-      todas.push({ ...obra, localizacao: simuladas[obra.id], precisao: 'cadastrada', simulada: true });
-      semLocal--;
+  const todas: ObraVista[] = [];
+  let semLocal = 0;
+  // Monta a lista de obras (também usada quando o dashboard troca os filtros e envia dados novos).
+  const montarObras = (d: Dados): void => {
+    todas.length = 0;
+    for (const obra of d.obras) {
+      todas.push(simuladas[obra.id] ? { ...obra, localizacao: simuladas[obra.id], precisao: 'cadastrada', simulada: true } : obra);
     }
-  }
-  semLocal = Math.max(0, semLocal);
+    semLocal = d.semLocal;
+    for (const obra of d.semLocalLista) {
+      if (simuladas[obra.id]) {
+        todas.push({ ...obra, localizacao: simuladas[obra.id], precisao: 'cadastrada', simulada: true });
+        semLocal--;
+      }
+    }
+    semLocal = Math.max(0, semLocal);
+  };
+  montarObras(dados);
 
-  const parametrosIniciais = new URLSearchParams(location.search);
+  // Na versão compacta (dashboard) o estado do mapa não vai para o endereço, que pertence aos filtros do dashboard.
+  const parametrosIniciais = new URLSearchParams(compacto ? '' : location.search);
   const lerConjunto = <T extends string>(chave: string, valores: T[]): Set<T> => {
     const valor = parametrosIniciais.get(chave);
     return valor === null ? new Set(valores) : new Set(valor.split(',').filter((item): item is T => valores.includes(item as T)));
@@ -265,6 +284,7 @@ document.addEventListener('astro:page-load', () => {
     }
   };
   const salvarURL = (): void => {
+    if (compacto) return;
     const url = new URL(location.href);
     if (farolFiltro === 'todas') url.searchParams.delete('sit');
     else url.searchParams.set('sit', farolFiltro === 'verde' ? 'noprazo' : farolFiltro === 'amarelo' ? 'atencao' : 'atrasadas');
@@ -731,7 +751,9 @@ document.addEventListener('astro:page-load', () => {
 
   function desenhar(): void {
     const visiveis = obrasFiltradas();
-    contagem.textContent = `${todas.length} ${todas.length === 1 ? 'obra' : 'obras'} no mapa · ${todas.length - visiveis.length} ocultas pelos filtros · ${semLocal} sem localização`;
+    const ocultas = todas.length - visiveis.length;
+    // Na miniatura do dashboard não há filtros do mapa: "0 ocultas" só confundiria.
+    contagem.textContent = `${todas.length} ${todas.length === 1 ? 'obra' : 'obras'} no mapa${compacto && ocultas === 0 ? '' : ` · ${ocultas} ocultas pelos filtros`} · ${semLocal} sem localização`;
     corpo.replaceChildren();
     for (const obra of visiveis) {
       const linha = el('tr');
@@ -817,11 +839,49 @@ document.addEventListener('astro:page-load', () => {
     const ativo = document.fullscreenElement === raiz;
     apresentar.textContent = ativo ? 'Sair da apresentação' : 'Apresentar mapa';
     apresentar.setAttribute('aria-pressed', String(ativo));
+    // No Safari, o Esc em tela cheia é consumido pelo navegador (sai da tela cheia sem chegar à página): fecha a lista de filtro aberta.
+    if (!ativo) fecharFiltro(raiz.contains(document.activeElement));
+    if (!ativo && compacto) {
+      // De volta ao dashboard: a miniatura mostra de novo a cidade inteira.
+      if (dialogoFicha.open) dialogoFicha.close();
+      historico.length = 0;
+      selecao = { tipo: 'cidade' };
+      mapa.setView([GOIANIA.centro.lat, GOIANIA.centro.lng], 12, { animate: false });
+      desenhar();
+    }
     requestAnimationFrame(() => mapa.invalidateSize());
   });
+  if (compacto) {
+    // Miniatura estática: sem arrastar/zoom e marcadores fora da ordem do teclado; tudo volta na tela cheia.
+    const interacao = (ativa: boolean): void => {
+      for (const controle of [mapa.dragging, mapa.scrollWheelZoom, mapa.doubleClickZoom, mapa.touchZoom, mapa.boxZoom, mapa.keyboard]) {
+        if (ativa) controle.enable(); else controle.disable();
+      }
+      mapa.getPane('mapPane')!.inert = !ativa;
+    };
+    interacao(false);
+    document.addEventListener('fullscreenchange', () => interacao(document.fullscreenElement === raiz));
+    const expandir = raiz.querySelector<HTMLElement>('[data-mp-expandir]');
+    if (expandir) { L.DomEvent.disableClickPropagation(expandir); L.DomEvent.disableScrollPropagation(expandir); }
+    expandir?.addEventListener('click', () => {
+      const gestao = () => location.assign('/plataforma/gestao/#mapa');
+      if (!document.fullscreenEnabled) { gestao(); return; }
+      raiz.requestFullscreen().catch(gestao);
+    });
+    // O dashboard envia os dados novos (filtros ou atualização automática) sem recriar o mapa.
+    raiz.addEventListener('mp:dados', (evento) => {
+      const novo = (evento as CustomEvent<Partial<Dados>>).detail;
+      if (!novo || !Array.isArray(novo.obras) || !Array.isArray(novo.semLocalLista) || typeof novo.semLocal !== 'number') return;
+      montarObras({ obras: novo.obras, semLocalLista: novo.semLocalLista, semLocal: novo.semLocal });
+      historico.length = 0;
+      const atual = selecao.tipo === 'obra' ? todas.find((obra) => obra.id === (selecao as { obra: ObraVista }).obra.id) : undefined;
+      selecao = atual ? { tipo: 'obra', obra: atual } : { tipo: 'cidade' };
+      desenhar();
+    });
+  }
 
   function restaurarEstadoURL(): void {
-    const parametros = new URLSearchParams(location.search);
+    const parametros = new URLSearchParams(compacto ? '' : location.search);
     const restaurarConjunto = <T extends string>(alvo: Set<T>, chave: string, valores: T[]): void => {
       const parametro = parametros.get(chave);
       alvo.clear();
@@ -859,7 +919,7 @@ document.addEventListener('astro:page-load', () => {
       if (grupo) selecionar({ tipo: 'grupo', grupo }, false);
     }
   }
-  document.addEventListener('popstate', restaurarEstadoURL);
+  if (!compacto) document.addEventListener('popstate', restaurarEstadoURL);
   desenhar();
   restaurarEstadoURL();
 });

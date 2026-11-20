@@ -36,6 +36,11 @@ test('mapa em modo TV ocupa a tela e oferece alvos de 56 px', async ({ page }) =
   }
   await page.keyboard.press('Escape');
   await expect(filtroEtapas.locator('[data-mp-abrir]')).toHaveAttribute('aria-expanded', 'false');
+  // No Safari o Esc em tela cheia é do navegador: sai da tela cheia (a lista fecha junto). Volta ao modo apresentação para seguir.
+  if (!(await mapa.evaluate((element) => element.matches(':fullscreen')))) {
+    await mapa.getByRole('button', { name: 'Apresentar mapa' }).click();
+    await expect.poll(() => mapa.evaluate((element) => element.matches(':fullscreen'))).toBe(true);
+  }
   const altura = await mapa.evaluate((element) => ({
     conteudo: element.scrollHeight,
     tela: element.clientHeight,

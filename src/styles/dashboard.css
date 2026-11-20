@@ -236,3 +236,21 @@ body.dashboard-presenting .workspace>.notice{display:none!important}
  .pd-alertas li{flex:1 1 100%}
  .pd-alertas a{white-space:normal;overflow-wrap:anywhere}
 }
+/* Mapa das obras (versão compacta; amplia para a apresentação do mapa). Escondido na apresentação do dashboard, que já ocupa a tela. */
+.pd-mapa{min-width:0}
+.pd-mapa .mp-cab h2{margin:0}
+.prefeito-dashboard:fullscreen .pd-mapa{display:none}
+/* Celular: a lista "Ver fontes" abre alinhada à esquerda e dentro da tela (antes saía pela esquerda). */
+@media(max-width:650px){.pd-fontes-linha details[open] .pd-fontes{left:0;right:auto;width:calc(100vw - 2.5rem);grid-template-columns:minmax(0,1fr)}}
+/* Apresentação em telas baixas (projetor 1280×720, notebook 1366×768): o funil cabia só até "Execução"; compacta as linhas e os números. */
+@media(min-width:1000px) and (max-height:820px){
+ .prefeito-dashboard:fullscreen .pd-barras{gap:.2rem}
+ .prefeito-dashboard:fullscreen{padding-bottom:4px}
+ .prefeito-dashboard:fullscreen .pd-barras a{min-height:0}
+ .prefeito-dashboard:fullscreen .pd-numero,.prefeito-dashboard:fullscreen .pd-contagem-visual{font-size:clamp(2.4rem,7vh,4rem)}
+}
+@media(min-width:1000px) and (max-height:760px){
+ .prefeito-dashboard:fullscreen .pd-numero,.prefeito-dashboard:fullscreen .pd-contagem-visual{font-size:clamp(2.2rem,6vh,4rem)}
+ .prefeito-dashboard:fullscreen .pd-barras{font-size:.92em;gap:0}
+ .prefeito-dashboard:fullscreen .pd-secao h2{margin-bottom:.2vh}
+}

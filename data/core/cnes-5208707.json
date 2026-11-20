@@ -2,7 +2,7 @@
  "proveniencia": {
   "fonte": "Ministério da Saúde — API de Dados Abertos (CNES: estabelecimentos, tipos de unidade e leitos)",
   "url_origem": "https://apidadosabertos.saude.gov.br/cnes/estabelecimentos?codigo_municipio=520870",
-  "data_referencia": "CNES, registros com data_atualizacao até 2026-11-06",
+  "data_referencia": "CNES, registros atualizados até 06/11/2026",
   "data_coleta": "2026-11-10T03:34:31.076Z",
   "id_carga": "cnes-2026-11-10",
   "paginas_estabelecimentos": 261,

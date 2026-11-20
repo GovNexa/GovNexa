@@ -7,7 +7,9 @@ import { carregarCronogramas } from '../../lib/cronograma/carga.ts';
 import { dados } from '../../lib/dados/index.ts';
 import { municipioAtivo } from '../../lib/municipio-ativo.ts';
 import { hojeEmBrasilia } from '../../lib/whatsapp/farol.ts';
-import { montarDashboard, opcoesFiltros, parametrosDaUrl, urlCom } from '../../lib/gestao/dashboard.ts';
+import { filtrarCarteira, montarDashboard, opcoesFiltros, parametrosDaUrl, urlCom } from '../../lib/gestao/dashboard.ts';
+import MapaObras from '../mapa/MapaObras.astro';
+import { carregarGeoBairros, obrasDoMapa, obrasSemLocal } from '../../lib/mapa/obras.ts';
 import type { Cartao, Filtros, Quebra, Situacao } from '../../lib/gestao/dashboard.ts';
 
 const carteira = carregarCarteira();
@@ -26,6 +28,12 @@ const validos = { ...opcoesFiltros(carteira), projetos: carteira.projetos.map((p
 const { filtros, cartao: cartaoId } = parametrosDaUrl(Astro.url, validos);
 const hoje = hojeEmBrasilia();
 const dashboard = montarDashboard(entrada, hoje, filtros);
+// Mapa das obras com os mesmos filtros do dashboard (região, órgão, prioridade, compromisso).
+const carteiraMapa = filtrarCarteira(carteira, filtros);
+const geoBairros = carregarGeoBairros();
+const mapaObras = obrasDoMapa(carteiraMapa, geoBairros, hoje);
+const mapaSemLocal = obrasSemLocal(carteiraMapa, geoBairros, hoje);
+const mapaDados = JSON.stringify({ obras: mapaObras.obras, semLocalLista: mapaSemLocal, semLocal: mapaObras.semLocal }).replaceAll('<', '\\u003c');
 const cartaoSelecionado = dashboard.cartoes.find((cartao) => cartao.id === cartaoId);
 const limparPainel = urlCom(filtros);
 const valorFicha = (id: string) => `/plataforma/projetos-carteira/?q=${encodeURIComponent(id)}`;
@@ -194,7 +202,15 @@ const linkEtapa = '/plataforma/projetos-kanban/';
       ))}
     </div>
   </section>
+  <script is:inline type="application/json" data-pd-mapa-dados set:html={mapaDados}></script>
+  </div>
 
+  <!-- Fora das áreas trocadas pela atualização: o mapa não é recriado (nem sai da tela cheia) a cada 5 minutos. -->
+  <div class="pd-mapa" data-pd-mapa>
+    <MapaObras obras={mapaObras.obras} semLocal={mapaObras.semLocal} semLocalLista={mapaSemLocal} id="mapa-dashboard" altura="clamp(260px, 42vh, 460px)" compacto />
+  </div>
+
+  <div data-pd-conteudo data-pd-conteudo-fim>
   <section class="pd-secao" aria-labelledby="pd-funil">
     <h2 id="pd-funil">Carteira por macroetapa</h2><p class="pd-legenda">Barras proporcionais à quantidade de projetos.</p>
     <ul class="pd-barras" aria-label="Funil por macroetapa">
@@ -412,6 +428,7 @@ document.addEventListener('astro:page-load', () => {
   let ultima = Date.now(), falhou = false, buscando = false;
   const relogio = () => { indicador.textContent = falhou ? 'Sem conexão, tentando de novo' : `Atualizado há ${Math.floor((Date.now() - ultima) / 60000)} min`; };
   let controladorBusca: AbortController | null = null;
+  let ultimoMapa = root.querySelector('[data-pd-mapa-dados]')?.textContent ?? '';
   let pedido = 0;
   const substituirConteudo = async (url: URL, opcoes: { fecharPainel?: boolean; focoNome?: string; focoLimpar?: boolean; filtros?: boolean } = {}) => {
     controladorBusca?.abort();
@@ -425,7 +442,7 @@ document.addEventListener('astro:page-load', () => {
       const resposta = await fetch(url, { cache: 'no-store', signal: controller.signal });
       if (!resposta.ok || resposta.redirected) throw new Error('Resposta inválida');
       const novo = new DOMParser().parseFromString(await resposta.text(), 'text/html');
-      const seletores = ['[data-pd-faixa]', '[data-pd-conteudo]'];
+      const seletores = ['[data-pd-faixa]', '[data-pd-conteudo]:not([data-pd-conteudo-fim])', '[data-pd-conteudo-fim]'];
       if (seletores.some((seletor) => !novo.querySelector(seletor))) throw new Error('Dashboard ausente');
       if (controller.signal.aborted || idPedido !== pedido) return false;
 
@@ -439,6 +456,12 @@ document.addEventListener('astro:page-load', () => {
         root.querySelector(seletor)!.replaceChildren(...Array.from(novo.querySelector(seletor)!.childNodes));
       }
       if (opcoes.fecharPainel) root.querySelectorAll('.pd-painel, .pd-overlay').forEach((el) => el.remove());
+      // Dados novos do mapa: só são enviados quando mudaram, para não desfazer a navegação de quem apresenta.
+      const dadosMapa = root.querySelector('[data-pd-mapa-dados]')?.textContent ?? '';
+      if (dadosMapa && dadosMapa !== ultimoMapa) {
+        ultimoMapa = dadosMapa;
+        try { root.querySelector('[data-mapa-obras]')?.dispatchEvent(new CustomEvent('mp:dados', { detail: JSON.parse(dadosMapa) })); } catch { /* dados inválidos: mantém o mapa atual */ }
+      }
       for (const cartao of root.querySelectorAll<HTMLElement>('[data-cartao]')) {
         const numero = cartao.querySelector<HTMLElement>('.pd-numero');
         const antes = anteriores.get(cartao.dataset.cartao);

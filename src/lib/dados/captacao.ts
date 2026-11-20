@@ -3,7 +3,7 @@
 // Se a carga de um conjunto não existir, a guia cai no conteúdo de exemplo do modules.json.
 // As regras de alerta seguem docs/regras-alertas.md; os limites abaixo são PARÂMETROS A DEFINIR com o dono do produto.
 import { dados, type Documento } from './index.ts';
-import { br, curto, diasAte, hoje, nomeTema, reais } from './formato.ts';
+import { br, curto, diasAte, nomeTema, reais } from './formato.ts';
 import { detalheOportunidade } from './detalhes.ts';
 import { detalheConvenio } from './detalhes-convenio.ts';
 import { DIAS_PRAZO_PROGRAMA, DIAS_SEM_DESEMBOLSO, IBGE, gerarAlertas } from './alertas.ts';

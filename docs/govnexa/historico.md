@@ -179,6 +179,7 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 | Pastas de trabalho | Uma pasta por entrega, cada uma com o seu `npm ci`. Servidores de prévia esquecidos travam o `npm ci` (EPERM). |
 | Verificação no site | O site exige login; a conferência visual depois da publicação é feita pelo dono. |
 | Data com `slice` de ISO | O banco grava em UTC; cortar `AAAA-MM-DD` do texto mostra o dia seguinte para registros feitos depois das 21h de Brasília. Converter sempre pelo fuso (`src/lib/datas.ts`). |
+| Safari e o teclado (19/11/2026) | No Safari o clique não põe foco no botão, e o Esc em tela cheia é do navegador (sai da tela cheia sem chegar à página). Devolver o foco não pode reabrir listas; fechar listas também no `fullscreenchange`. |
 
 ## 7. Todos os PRs (descrição completa)
 

@@ -328,7 +328,7 @@ test('govnexa: tema escolhido se mantém ao trocar de guia',async({page})=>{
   const toggle=page.locator('#sidebar-toggle');if(await toggle.getAttribute('aria-expanded')==='false')await toggle.click();
   await page.evaluate(t=>{localStorage.setItem('govnexa-theme',t);document.documentElement.dataset.theme=t},escolhido);
   for(const nome of ['Carteira de projetos','Kanban por macroetapa','Fluxo do sistema','Histórico de alterações','Projetos · Início']){
-   await page.locator('.sidebar').getByRole('link',{name:nome,exact:true}).click();await page.waitForLoadState('domcontentloaded');
+   const link=page.locator('.sidebar').getByRole('link',{name:nome,exact:true});const destino=new URL((await link.getAttribute('href'))!,page.url()).pathname;await link.click();await page.waitForURL(u=>u.pathname===destino);await page.waitForLoadState('load');
    await expect(page.locator('html'),nome).toHaveAttribute('data-theme',escolhido);
   }
  }
