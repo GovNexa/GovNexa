@@ -109,7 +109,6 @@ async function lerCenso(ano: number) {
 }
 
 // ---------- IDEB (planilha XLSX lida em fluxo; sem biblioteca) ----------
-const colNum = (s: string) => [...s].reduce((n, ch) => n * 26 + ch.charCodeAt(0) - 64, 0);
 const decXml = (s: string) => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
 
 async function lerIdeb(etapa: 'iniciais' | 'finais') {

@@ -225,7 +225,6 @@ export function montarPrincipal(alertas: Alerta[]): Modulo | null {
     const iniciais = idebMun.find((e) => e.etapa.startsWith('anos_iniciais'));
     const finais = idebMun.find((e) => e.etapa.startsWith('anos_finais'));
     const uI = iniciais ? ultimo(iniciais.serie) : null;
-    const uF = finais ? ultimo(finais.serie) : null;
     const totalEscolas = Object.values(dep).reduce((s, d) => s + (d.escolas_em_atividade ?? 0), 0);
     const totalMat = Object.values(dep).reduce((s, d) => s + (d.matriculas?.total_educacao_basica ?? 0), 0);
     const fmt = (n: number) => n.toLocaleString('pt-BR');

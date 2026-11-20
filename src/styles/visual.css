@@ -289,3 +289,8 @@ body:has(.platform)>.app-footer{flex:none;margin-top:auto}
   .workspace>.section-head p.muted small{display:block;margin-top:.2rem;font-size:.72rem;opacity:.85}
   .workspace>.section-head>.primary,.workspace>.section-head>button,.workspace>.section-head>.actions{align-self:start;margin-top:.1rem}
 }
+/* Tablet (701–1100 px): só as iniciais no topo, para a busca ter espaço. */
+@media(min-width:701px) and (max-width:1100px){.appbar .user-name{display:none}}
+/* Alvos de toque: trilha "Início" com pelo menos 24 px e botões do topo do site com 44 px em telas de toque. */
+.breadcrumb a{display:inline-block;padding:.3rem 0}
+@media(pointer:coarse){.header #menu-toggle,.header #theme{min-height:44px;min-width:44px}}

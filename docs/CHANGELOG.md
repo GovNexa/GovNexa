@@ -1,5 +1,18 @@
 # Changelog
 
+## Mapa das obras no dashboard (20/11/2026)
+- Versão compacta do mapa da Gestão no Início, abaixo dos indicadores, com os filtros do dashboard (região, órgão, prioridade, compromisso). Miniatura estática; "Ampliar mapa" abre a mesma apresentação em tela cheia (filtros, painel, ficha) e, ao sair, volta à cidade inteira.
+- O mapa fica fora das áreas renovadas pela atualização automática: não é recriado nem sai da tela cheia; recebe os dados novos por evento só quando mudam. Estado do mapa fora do endereço do dashboard. Sem suporte a tela cheia, abre o mapa na Gestão.
+- `MapaObras` ganha a opção `compacto`; a Gestão não muda.
+
+## Verificação completa e correções (19/11/2026)
+- Safari: Esc fecha a lista flutuante do menu recolhido (o foco devolvido ao botão reabria a lista) e, no mapa em tela cheia, a lista de filtro fecha junto quando o navegador sai da tela cheia.
+- Painel de detalhes: contorno de foco no título só quando aberto pelo teclado.
+- Editor de localização: link de atribuição do mapa sublinhado (acessibilidade, igual ao mapa da Gestão).
+- Qualidade dos dados: referência do CNES como "registros atualizados até DD/MM/AAAA" (coletor e arquivo atual).
+- Limpeza de 4 variáveis sem uso; testes do Safari (tema, mapa TV) sem dependência de tempo.
+- Não mudou: dados, banco, login, cabeçalhos de segurança. Falso alarme descartado: contraste de "Recuperar acesso" (a varredura mediu durante a animação de entrada).
+
 ## Editor de localização — camadas (18/11/2026)
 - Mapa, Satélite e Híbrido no editor, com preferência compartilhada com a Gestão e controles isolados; troca preserva campos e desenhos sem alterar o endereço. Definições reunidas em `src/lib/mapa/camadas.ts`.
 

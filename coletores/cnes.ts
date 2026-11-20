@@ -150,7 +150,7 @@ const saida = {
   proveniencia: {
     fonte: 'Ministério da Saúde — API de Dados Abertos (CNES: estabelecimentos, tipos de unidade e leitos)',
     url_origem: `${BASE}/cnes/estabelecimentos?codigo_municipio=${IBGE6}`,
-    data_referencia: `CNES, registros com data_atualizacao até ${lista.map((e) => e.data_atualizacao).filter(Boolean).sort().at(-1) ?? 'n/d'}`,
+    data_referencia: `CNES, registros atualizados até ${(lista.map((e) => e.data_atualizacao).filter(Boolean).sort().at(-1) ?? '').split('-').reverse().join('/') || 'n/d'}`,
     data_coleta: coleta,
     id_carga: `cnes-${coleta.slice(0, 10)}`,
     paginas_estabelecimentos: est.paginas,

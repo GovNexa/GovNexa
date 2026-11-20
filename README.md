@@ -108,7 +108,7 @@ São módulos independentes que conversam entre si:
 | 4 · Contratação, convênios e Gestão | Lei 14.133 ponta a ponta, cláusula suspensiva, painel do prefeito e medições | PNCP e datas reais por licitação |
 | 5 · Integrações e inteligência | PNCP, SIMEC, SISMOB, SINAPI e GOINFRA, WhatsApp real, IA com revisão humana | Conta do WhatsApp Business; IA aprovada |
 
-## 2. Situação atual (17/11/2026)
+## 2. Situação atual (19/11/2026)
 
 | Fase | O que entrega | Situação | % |
 | --- | --- | --- | --- |
@@ -117,7 +117,7 @@ São módulos independentes que conversam entre si:
 | 1 · Carteira de Projetos | Carteira, ficha, Kanban, Gantt, Visão por órgão, celular | Entregue; carga inicial no D1 | 100% |
 | 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, Kanban e Pendências, Histórico, Sala de guerra | Telas prontas; algumas gravações ainda são simulação | 95% |
 | 2 · Cronograma e equipe | Cronogramas, quadro de tarefas, Onde está parado, Reunião semanal, dependências, SEI | Telas entregues; leitura automática do SEI a fazer | 90% |
-| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis e isolamento por prefeitura | Tabelas em produção, carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas no ar e gravada em 16/11 (3.5). Documentos (3.4) publicados em 17/11. Usuários: lista no ar; cadastro, convites e login próprio com 2FA implementados nesta worktree, aguardando revisão e publicação | 92% |
+| 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis e isolamento por prefeitura | Tabelas em produção, carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas no ar e gravada em 16/11 (3.5). Documentos (3.4) publicados em 17/11. Usuários: lista, cadastro, convites e login próprio com 2FA no ar desde 17/11 | 95% |
 | 4 · Contratação, convênios e Gestão | Lei 14.133, alertas, dashboard do prefeito, licitação em detalhe | Prazos da lei, dashboard em três níveis, filtros e modo apresentação; mapa, Central de alertas e Licitação em detalhe; parte ainda em simulação | 75% |
 | 5 · Integrações e inteligência | PNCP, SIMEC, SISMOB, preços, WhatsApp, IA | WhatsApp em simulação | 10% |
 
@@ -127,7 +127,9 @@ São módulos independentes que conversam entre si:
 
 | Data | O que | Referência |
 | --- | --- | --- |
-| 18/11 | Entrega B2: Novo projeto grava no banco (macroetapa 00, código único P-N, cadastro no Histórico); migração 0006 (índice único do código; ainda não aplicada em produção) | novo PR |
+| 20/11 | Mapa das obras no dashboard: versão compacta com os filtros do dashboard; tocar amplia para a apresentação em tela cheia da Gestão. Verificação de layout em 10 tamanhos de tela e dos modos de apresentação | novo PR |
+| 19/11 | Verificação completa e correções: Esc fecha o menu e a lista de filtro do mapa também no Safari; contorno de foco do painel de detalhes só pelo teclado; link do mapa sublinhado no editor de localização; frase da Qualidade dos dados com data DD/MM/AAAA; testes do Safari estabilizados | novo PR |
+| 18/11 | Entrega B2: Novo projeto grava no banco (macroetapa 00, código único P-N, cadastro no Histórico); migração 0006 (índice único do código) aplicada e publicada em 18/11 | PR #34 |
 | 17/11 | Entrega B1: página do projeto (todas as informações num só endereço) e localização gravando no banco; migração 0004 | PR #29 (no ar desde 18/11/2026) |
 | 17/11 | Projeto do banco de dados aprovado: princípios e roteiro B1 a B8, na ordem do Fluxo (`docs/govnexa/projeto-banco.md`) | PR #28 |
 | 17/11 | Entrega 1.1: tipo do documento (DFD, ETP, TR) no envio e na lista, com registro no Histórico; migração 0003 aplicada | PR #27, publicada em 17/11 |
@@ -168,6 +170,8 @@ Guia Usuários: cadastro, convite por e-mail, reenvio, perfil, ativação e rede
 Os dez cartões entram em sequência e contam até o valor calculado em cerca de 800 ms quando visíveis. Sem JavaScript, com movimento reduzido ou na impressão, os valores finais permanecem disponíveis. Campos ausentes continuam “—”. Críticos têm indicador com ícone e texto e faixa de até três links; atenção usa indicador estático. Hover e foco explicam o cálculo, também disponível no painel, cujo esqueleto dura 240 ms.
 
 “Atualizar agora” e a consulta automática a cada cinco minutos renovam faixa, cartões e listas sem recarregar; números alterados recebem seta e realce por quatro segundos. O painel aberto é preservado. Aba oculta pausa consultas; falhas mantêm os dados e informam nova tentativa. A apresentação limita a altura dos cartões, amplia a tipografia e mostra funil e decisões abaixo. O botão do cabeçalho alterna para Sair da apresentação; Esc também sai. Dicas ficam dentro dos cartões e o cálculo aparece compacto abaixo do resumo no painel.
+
+Mapa das obras no dashboard (20/11/2026): versão compacta logo abaixo dos indicadores, com os mesmos filtros do dashboard (região, órgão, prioridade e compromisso). Tocar no mapa ("Ampliar mapa") abre a mesma apresentação em tela cheia do mapa da Gestão (filtros, painel e ficha); ao sair, volta à cidade inteira. O mapa fica fora da área renovada a cada cinco minutos: não é recriado nem sai da tela cheia, e só recebe dados novos quando eles mudam. O estado do mapa não vai para o endereço do dashboard. Sem tela cheia no aparelho (iPhone), o toque abre o mapa na Gestão. Na apresentação do próprio dashboard o mapa fica escondido.
 
 ### Tema claro/escuro
 
@@ -226,7 +230,7 @@ Código: `src/lib/dados/`, `src/lib/projetos/`, `coletores/`. Detalhes em [docs/
 
 | Guia | O que faz | Situação |
 | --- | --- | --- |
-| Início / Gestão · Dashboard do prefeito | Visão geral com 10 indicadores calculados, filtros por URL, painel de detalhamento em três níveis, funil, decisões pendentes, valores regionais e modo apresentação | Disponível |
+| Início / Gestão · Dashboard do prefeito | Visão geral com 10 indicadores calculados, filtros por URL, painel de detalhamento em três níveis, mapa das obras (amplia para a apresentação do mapa), funil, decisões pendentes, valores regionais e modo apresentação | Disponível |
 | Gestão · Painel | Foto atual da carteira e dos recursos e mapa das obras | Disponível |
 | Alertas | Central de alertas de convênios, contratação, obras, saldo sem fonte, etapas paradas e dados desatualizados | Disponível |
 | WhatsApp | Permissões por cargo, relatórios, perguntas e modelos para aprovação da Meta | Simulação; envio real depende do banco e da conta do WhatsApp Business |
@@ -402,7 +406,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 
 ## 8. Pendências e próximos passos
 
-Centros dos bairros: código e migração 0005 preparados; consulta real e carga ficam com o revisor, fora desta execução. Não houve consulta externa nem alteração de produção. Conferir o relatório de bairros não encontrados antes da carga; nenhuma coordenada real é inventada.
+Centros dos bairros: migração 0005 e carga publicadas em 18/11/2026. Parte dos bairros não foi encontrada no OpenStreetMap e as obras deles aparecem como "sem localização"; a correção é o cadastro manual (centro do bairro ou localização da obra), nunca uma coordenada inventada.
 
 ### Dependem do dono
 
@@ -414,14 +418,16 @@ Centros dos bairros: código e migração 0005 preparados; consulta real e carga
 
 ### Próximos passos
 
-1. **3.3 — usuários e login:** revisar as correções de segurança da ordem 3, executar `npx playwright test --project=login`, homologar os dois temas e configurar e-mail/segredos. Publicação, migração central e troca de modo ficam com o responsável; Access continua padrão.
+1. **3.3 — usuários e login:** publicada e ligada em produção em 17/11/2026 (`LOGIN_MODO=senha`).
 2. **3.4 — documentos:** publicada em 17/11/2026.
    Entregas 1.0 (limite de requisições) e 1.1 (tipo do documento, migração 0003) publicadas em 17/11/2026.
-   Entregas B1 (página do projeto e localização, no ar desde 18/11/2026) e B2a (Novo projeto gravando; a migração 0006 e a publicação dependem de ordem do dono). Em seguida: B2b (edição dos campos na página do projeto) e B3 (Kanban e Pendências de etapa). Pendência de decisão: Importação e cadastro pela tela: a carga de planilhas (`scripts/gerar-sql-carga.ts`) agora NUNCA sobrescreve um projeto de origem CADASTRO. Fica a decisão do dono: se a planilha trouxer o mesmo código de um projeto cadastrado pela tela, o projeto da planilha é ignorado em silêncio. Definir uma faixa de códigos separada para a tela, ou um aviso no relatório da importação, antes da próxima planilha.
+   Entregas B1 (página do projeto e localização, no ar desde 18/11/2026) e B2a (Novo projeto gravando; migração 0006 aplicada e publicada em 18/11/2026). Em seguida: B2b (edição dos campos na página do projeto) e B3 (Kanban e Pendências de etapa). Pendência de decisão: Importação e cadastro pela tela: a carga de planilhas (`scripts/gerar-sql-carga.ts`) agora NUNCA sobrescreve um projeto de origem CADASTRO. Fica a decisão do dono: se a planilha trouxer o mesmo código de um projeto cadastrado pela tela, o projeto da planilha é ignorado em silêncio. Definir uma faixa de códigos separada para a tela, ou um aviso no relatório da importação, antes da próxima planilha.
 3. **3.5 — importação:** feita e gravada em 16/11.
 4. Automatizar a leitura do SEI com Cron Trigger.
 5. Desligar a hospedagem antiga.
 6. Logo definitiva do GovNexa: trocar a versão provisória de `src/components/LogoGovNexa.astro`.
+7. Teste "mapa das obras" no Safari (WebKit): falha também na main (marcadores não aparecem após "Cidade inteira" + zoom); investigar à parte. No Chrome passa.
+8. Melhorias de segurança sem falha conhecida: retirar `'unsafe-inline'` da política de scripts (CSP) e redirecionar `www.govnexa.com.br` para o endereço sem www.
 
 ## 9. Como rodar no computador
 
