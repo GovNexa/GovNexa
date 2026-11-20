@@ -1,0 +1,61 @@
+{
+ "atualizado_em": "2026-11-20T13:53:50.238Z",
+ "coletores": {
+  "ibge": {
+   "script": "coletores/ibge-municipios.ts",
+   "ultima_tentativa": "2026-11-20T13:43:41.503Z",
+   "resultado": "ok",
+   "tentativas": 1,
+   "erro": null,
+   "ultimo_sucesso": "2026-11-20T13:43:41.503Z"
+  },
+  "cauc": {
+   "script": "coletores/cauc.ts",
+   "ultima_tentativa": "2026-11-20T13:43:47.730Z",
+   "resultado": "ok",
+   "tentativas": 1,
+   "erro": null,
+   "ultimo_sucesso": "2026-11-20T13:43:47.730Z"
+  },
+  "siconfi": {
+   "script": "coletores/siconfi.ts",
+   "ultima_tentativa": "2026-11-20T13:43:50.594Z",
+   "resultado": "ok",
+   "tentativas": 1,
+   "erro": null,
+   "ultimo_sucesso": "2026-11-20T13:43:50.594Z"
+  },
+  "fns": {
+   "script": "coletores/fns.ts",
+   "ultima_tentativa": "2026-11-20T13:50:02.419Z",
+   "resultado": "ok",
+   "tentativas": 1,
+   "erro": null,
+   "ultimo_sucesso": "2026-11-20T13:50:02.419Z"
+  },
+  "programas-abertos": {
+   "script": "coletores/programas-abertos.ts",
+   "ultima_tentativa": "2026-11-20T13:53:14.724Z",
+   "resultado": "ok",
+   "tentativas": 1,
+   "erro": null,
+   "ultimo_sucesso": "2026-11-20T13:53:14.724Z"
+  },
+  "transferegov": {
+   "script": "coletores/transferegov-convenios.ts",
+   "ultima_tentativa": "2026-11-20T13:53:50.042Z",
+   "resultado": "ok",
+   "tentativas": 1,
+   "erro": null,
+   "ultimo_sucesso": "2026-11-20T13:53:50.042Z"
+  },
+  "acompanhamento": {
+   "script": "coletores/derivar-acompanhamento.ts",
+   "ultima_tentativa": "2026-11-20T13:53:50.238Z",
+   "resultado": "ok",
+   "tentativas": 1,
+   "erro": null,
+   "ultimo_sucesso": "2026-11-20T13:53:50.238Z"
+  }
+ }
+}
