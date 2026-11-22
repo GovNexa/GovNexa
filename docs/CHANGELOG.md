@@ -1,5 +1,11 @@
 # Changelog
 
+## E2: padrão visual e filtros (22/11/2026)
+- Telas de Projetos com fundo claro e neutro nos temas claro e escuro; cor só na informação. Menu lateral e login sem mudança.
+- Novo componente de filtros (`FiltrosProjetos.astro`): nome, órgão, área (aparece quando a carteira tiver área), macroetapa e período de entrega (mês e ano de início e de fim). O filtro fica no endereço: dá para compartilhar o link e voltar pelo navegador.
+- Nova função pura `src/lib/carteira/filtros.ts`: filtragem e ordem da entrega mais próxima para a mais distante (sem data por último), com testes.
+- Gantt geral usa o componente e a nova ordem; mostra a data de entrega de cada projeto. Carteira, Kanban e Visão por órgão não mudaram (ficam para E5 e E7).
+
 ## Mapa das obras no dashboard (20/11/2026)
 - Versão compacta do mapa da Gestão no Início, abaixo dos indicadores, com os filtros do dashboard (região, órgão, prioridade, compromisso). Miniatura estática; "Ampliar mapa" abre a mesma apresentação em tela cheia (filtros, painel, ficha) e, ao sair, volta à cidade inteira.
 - O mapa fica fora das áreas renovadas pela atualização automática: não é recriado nem sai da tela cheia; recebe os dados novos por evento só quando mudam. Estado do mapa fora do endereço do dashboard. Sem suporte a tela cheia, abre o mapa na Gestão.
