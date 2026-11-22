@@ -92,7 +92,9 @@ test('prioritários: valor estranho no endereço é ignorado com aviso e nada é
   await expect(avisos).toContainText('o filtro de área foi ignorado');
   expect(await page.evaluate(() => (window as Window & { __xss?: number }).__xss)).toBeUndefined();
   const html = await page.locator(TELA).innerHTML();
-  for (const trecho of ['<script>window', '<img src=x', '<svg onload', 'onerror=', 'onload=']) expect(html).not.toContain(trecho);
+  // Texto escapado (ex.: nome de projeto "&lt;img ... onerror=...&gt;" criado por outro teste) é seguro; o que não pode existir é marcação ou atributo real.
+  for (const trecho of ['<script>window', '<img src=x', '<svg onload']) expect(html).not.toContain(trecho);
+  await expect(page.locator(`${TELA} [onerror], ${TELA} [onload], ${TELA} script`)).toHaveCount(0);
   await expect(page.getByRole('list', { name: 'Filtros ativos' })).toHaveCount(0);
 });
 
