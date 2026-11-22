@@ -1,0 +1,260 @@
+---
+// Tela inicial do prefeito: "Projetos prioritários" (E3). Só leitura.
+// Sem farol, prazos, "onde está parado", decisões pendentes nem convênios: essa visão continua em
+// src/components/dashboard/DashboardPrefeito.astro + src/lib/gestao/dashboard.ts e vai para o painel da equipe na E10.
+import '../../styles/prioritarios.css';
+import { carregarCarteira } from '../../lib/carteira/carga.ts';
+import { AREAS_PADRAO, areasDaPrefeitura, type Area } from '../../lib/carteira/area.ts';
+import { dataBr, dataHoraBr } from '../../lib/datas.ts';
+import { municipioAtivo } from '../../lib/municipio-ativo.ts';
+import { hojeEmBrasilia } from '../../lib/whatsapp/farol.ts';
+import {
+  ETAPAS, FILTROS_PRIORITARIOS_VAZIOS, FIM_LINHA_TEMPO, OUTRAS, SEM_AREA, alternar, alternarMes, montarPrioritarios, nomeEtapa,
+  reaisCurtos, rotuloMes, rotulosDoEixo, urlPrioritarios,
+} from '../../lib/gestao/prioritarios.ts';
+
+const carteira = carregarCarteira();
+let areas: Area[] = [...AREAS_PADRAO];
+try {
+  if (Astro.locals.repositorio) areas = await areasDaPrefeitura(Astro.locals.repositorio);
+} catch {
+  areas = [...AREAS_PADRAO];
+}
+const hoje = hojeEmBrasilia();
+const municipio = municipioAtivo();
+const tela = montarPrioritarios(carteira.projetos, Astro.url.searchParams, hoje, areas);
+const { filtros, opcoes, resumo, porArea, linha, proximas, principais } = tela;
+
+const inteiro = (n: number) => n.toLocaleString('pt-BR');
+const plural = (n: number, um: string, varios: string) => `${inteiro(n)} ${n === 1 ? um : varios}`;
+const maxQtd = Math.max(0, ...resumo.porEtapa.map((p) => p.qtd));
+const maxValor = Math.max(0, ...resumo.porEtapa.map((p) => p.centavos));
+const maxArea = Math.max(0, ...porArea.map((a) => a.qtd));
+const largura = (v: number, max: number) => (max > 0 && v > 0 ? Math.max(2, (v / max) * 100) : 0);
+const valorParte = (c: number, qtd: number, semValor: number) => (qtd > 0 && semValor === qtd ? '—' : reaisCurtos(c));
+const nomeArea = (codigo: string) => opcoes.areas.find((a) => a.codigo === codigo)?.nome ?? codigo;
+const periodo = filtros.de && filtros.ate
+  ? (filtros.de === filtros.ate ? rotuloMes(filtros.de) : `${rotuloMes(filtros.de)} a ${rotuloMes(filtros.ate)}`)
+  : filtros.de ? `a partir de ${rotuloMes(filtros.de)}` : filtros.ate ? `até ${rotuloMes(filtros.ate)}` : '';
+const chips = [
+  filtros.prioritarios && { rotulo: 'Só prioritários', url: urlPrioritarios({ ...filtros, prioritarios: false }) },
+  filtros.etapa && { rotulo: `Etapa: ${nomeEtapa(filtros.etapa)}`, url: urlPrioritarios({ ...filtros, etapa: '' }) },
+  filtros.area && { rotulo: `Área: ${nomeArea(filtros.area)}`, url: urlPrioritarios({ ...filtros, area: '' }) },
+  filtros.orgao && { rotulo: `Órgão: ${filtros.orgao}`, url: urlPrioritarios({ ...filtros, orgao: '' }) },
+  filtros.regiao && { rotulo: `Região: ${filtros.regiao}`, url: urlPrioritarios({ ...filtros, regiao: '' }) },
+  periodo && { rotulo: `Entrega: ${periodo}`, url: urlPrioritarios({ ...filtros, de: '', ate: '' }) },
+].filter((c): c is { rotulo: string; url: string } => !!c);
+const temFiltro = urlPrioritarios(filtros) !== urlPrioritarios(FILTROS_PRIORITARIOS_VAZIOS);
+const eixo = rotulosDoEixo(linha.meses.map((m) => m.mes));
+const W = 10; // largura de cada mês no viewBox da linha do tempo
+const segmentos = (porSerie: number[]) => {
+  let base = 100;
+  return porSerie.map((n, serie) => {
+    const h = linha.maximo > 0 ? (n / linha.maximo) * 96 : 0;
+    base -= h;
+    return { serie, y: base, h };
+  }).filter((s) => s.h > 0);
+};
+const corSerie = (cor: number | null, id: string) => (cor ? `pp-cor-${cor}` : id === SEM_AREA ? 'pp-cor-sem' : 'pp-cor-outros');
+const linkProjeto = (id: string) => `/plataforma/projeto/${encodeURIComponent(id)}/`;
+const primeiroMes = linha.meses[0]?.rotulo ?? rotuloMes(hoje.slice(0, 7));
+const descricaoLinha = linha.total
+  ? `Linha do tempo: ${plural(linha.total, 'entrega prevista', 'entregas previstas')} de ${primeiroMes} a ${rotuloMes(FIM_LINHA_TEMPO)}`
+  : 'Linha do tempo sem entregas previstas no período';
+const fora = [
+  linha.fora.semData > 0 && `${inteiro(linha.fora.semData)} sem data prevista`,
+  linha.fora.antes > 0 && `${inteiro(linha.fora.antes)} com data anterior a ${primeiroMes}`,
+  linha.fora.depois > 0 && `${inteiro(linha.fora.depois)} depois de ${rotuloMes(FIM_LINHA_TEMPO)}`,
+].filter(Boolean).join('; ');
+---
+
+<div class="pp" data-prioritarios>
+  <header class="pp-cabecalho">
+    <p class="pp-sobretitulo">{municipio.nomeExibicao}</p>
+    <h1>Projetos prioritários</h1>
+    <p class="pp-atualizado">Atualizado em {dataHoraBr(new Date())}</p>
+  </header>
+
+  <form class="pp-filtros" method="get" action="/plataforma/" aria-label="Filtros da tela" autocomplete="off" data-pp-filtros data-astro-reload>
+    <label class="pp-marca"><input type="checkbox" name="prioritarios" value="1" checked={filtros.prioritarios} /> Só prioritários</label>
+    <label>Etapa
+      <select name="etapa"><option value="">Todas</option>{ETAPAS.map((e) => <option value={e.id} selected={e.id === filtros.etapa}>{e.nome}</option>)}</select>
+    </label>
+    <label>Área
+      <select name="area"><option value="">Todas</option>{opcoes.areas.map((a) => <option value={a.codigo} selected={a.codigo === filtros.area}>{a.nome}</option>)}</select>
+    </label>
+    <label>Órgão
+      <select name="orgao"><option value="">Todos</option>{opcoes.orgaos.map((o) => <option value={o} selected={o === filtros.orgao}>{o}</option>)}</select>
+    </label>
+    {opcoes.regioes.length > 0 && (
+      <label>Região (opcional)
+        <select name="regiao"><option value="">Todas</option>{opcoes.regioes.map((r) => <option value={r} selected={r === filtros.regiao}>{r}</option>)}</select>
+      </label>
+    )}
+    {filtros.de && <><input type="hidden" name="de_mes" value={filtros.de.slice(5, 7)} /><input type="hidden" name="de_ano" value={filtros.de.slice(0, 4)} /></>}
+    {filtros.ate && <><input type="hidden" name="ate_mes" value={filtros.ate.slice(5, 7)} /><input type="hidden" name="ate_ano" value={filtros.ate.slice(0, 4)} /></>}
+    <button type="submit" class="primary">Aplicar</button>
+  </form>
+
+  {(temFiltro || tela.avisos.length > 0) && (
+    <div class="pp-ativos">
+      {chips.length > 0 && (
+        <ul class="pp-chips" aria-label="Filtros ativos">
+          {chips.map((c) => <li><a href={c.url}>{c.rotulo} <span aria-hidden="true">×</span><span class="sr-only"> (tirar este filtro)</span></a></li>)}
+          <li><a href="/plataforma/" data-pp-limpar>Limpar filtros</a></li>
+        </ul>
+      )}
+      {tela.avisos.length > 0 && <ul class="pp-avisos" role="status" data-pp-avisos>{tela.avisos.map((a) => <li>{a}</li>)}</ul>}
+    </div>
+  )}
+
+  {tela.vazia ? (
+    <section class="pp-vazio-geral" aria-labelledby="pp-t-vazio">
+      <h2 id="pp-t-vazio">Nenhum projeto na carteira ainda</h2>
+      <p>Cadastre o primeiro projeto pelo Novo projeto ou importe a planilha da carteira.</p>
+      <a class="button" href="/plataforma/projetos-novo/">Novo projeto</a>
+    </section>
+  ) : (
+    <>
+      {resumo.qtd === 0 && <p class="pp-aviso-zero" role="status">Nenhuma obra com estes filtros. <a href="/plataforma/">Limpar filtros</a></p>}
+      <div class="pp-grade">
+        <section class="pp-quadro pp-areas" aria-labelledby="pp-t-areas">
+          <h2 id="pp-t-areas">Obras por área</h2>
+          {porArea.length > 0 ? (
+            <ul class="pp-linhas">
+              {porArea.map((a) => (
+                <li><a href={urlPrioritarios(alternar(filtros, 'area', a.codigo))} data-pp-area={a.codigo} aria-current={filtros.area === a.codigo ? 'true' : undefined}>
+                  <span class="pp-nome">{a.nome}</span>
+                  <svg class="pp-barra" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true" focusable="false"><rect class={corSerie(a.cor, a.codigo)} x="0" y="0" width={largura(a.qtd, maxArea)} height="10" rx="2" /></svg>
+                  <span class="pp-num" data-qtd={a.qtd}>{inteiro(a.qtd)}</span>
+                </a></li>
+              ))}
+            </ul>
+          ) : <p class="pp-vazio">Nenhuma obra com estes filtros.</p>}
+        </section>
+
+        <section class="pp-quadro" aria-labelledby="pp-t-qtd">
+          <h2 id="pp-t-qtd">Obras por etapa</h2>
+          <p class="pp-grande"><strong data-pp-total-qtd={resumo.qtd}>{inteiro(resumo.qtd)}</strong> {resumo.qtd === 1 ? 'obra' : 'obras'}</p>
+          <ul class="pp-linhas">
+            {resumo.porEtapa.map((p) => (
+              <li><a href={urlPrioritarios(alternar(filtros, 'etapa', p.id))} data-pp-etapa={p.id} aria-current={filtros.etapa === p.id ? 'true' : undefined}>
+                <span class="pp-nome">{p.nome}</span>
+                <svg class="pp-barra" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true" focusable="false"><rect class="pp-cor-etapa" x="0" y="0" width={largura(p.qtd, maxQtd)} height="10" rx="2" /></svg>
+                <span class="pp-num" data-qtd={p.qtd}>{inteiro(p.qtd)}</span>
+              </a></li>
+            ))}
+          </ul>
+        </section>
+
+        <section class="pp-quadro" aria-labelledby="pp-t-valor">
+          <h2 id="pp-t-valor">Valor por etapa</h2>
+          <p class="pp-grande"><strong data-pp-total-valor={resumo.centavos}>{reaisCurtos(resumo.centavos)}</strong></p>
+          {resumo.semValor > 0 && <p class="pp-nota">{plural(resumo.semValor, 'obra sem valor informado', 'obras sem valor informado')}</p>}
+          <ul class="pp-linhas">
+            {resumo.porEtapa.map((p) => (
+              <li><a href={urlPrioritarios(alternar(filtros, 'etapa', p.id))} data-pp-etapa-valor={p.id} aria-current={filtros.etapa === p.id ? 'true' : undefined}>
+                <span class="pp-nome">{p.nome}</span>
+                <svg class="pp-barra" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true" focusable="false"><rect class="pp-cor-etapa" x="0" y="0" width={largura(p.centavos, maxValor)} height="10" rx="2" /></svg>
+                <span class="pp-num" data-centavos={p.centavos}>{valorParte(p.centavos, p.qtd, p.semValor)}</span>
+              </a></li>
+            ))}
+          </ul>
+        </section>
+      </div>
+
+      <section class="pp-quadro pp-linha" aria-labelledby="pp-t-linha">
+        <h2 id="pp-t-linha">Linha do tempo de entregas</h2>
+        <p class="pp-nota">Obras não concluídas, pelo mês da entrega prevista, até {rotuloMes(FIM_LINHA_TEMPO)}.</p>
+        {linha.total > 0 ? (
+          <>
+            <ul class="pp-legenda" aria-label="Áreas da linha do tempo">
+              {linha.series.map((s) => (
+                <li>{s.id === OUTRAS
+                  ? <span><i class={`pp-amostra ${corSerie(s.cor, s.id)}`} aria-hidden="true"></i>{s.nome}</span>
+                  : <a href={urlPrioritarios(alternar(filtros, 'area', s.id))} data-pp-legenda={s.id}><i class={`pp-amostra ${corSerie(s.cor, s.id)}`} aria-hidden="true"></i>{s.nome}</a>}</li>
+              ))}
+            </ul>
+            <figure class="pp-grafico">
+              <svg class="pp-colunas" viewBox={`0 0 ${linha.meses.length * W} 100`} preserveAspectRatio="none" role="img" aria-label={descricaoLinha}>
+                {linha.meses.map((m, i) => segmentos(m.porSerie).map((s) => (
+                  <rect class={corSerie(linha.series[s.serie].cor, linha.series[s.serie].id)} x={i * W + 1.5} y={s.y} width={W - 3} height={s.h}><title>{`${m.rotulo}: ${linha.series[s.serie].nome}, ${m.porSerie[s.serie]}`}</title></rect>
+                )))}
+              </svg>
+              <div class="pp-eixo" style={`--pp-meses:${linha.meses.length}`} aria-hidden="true">{eixo.map((r) => <span>{r}</span>)}</div>
+            </figure>
+            <details class="pp-numeros">
+              <summary>Ver os números por mês</summary>
+              <ul>
+                {linha.meses.filter((m) => m.total > 0).map((m) => (
+                  <li>
+                    <a href={urlPrioritarios(alternarMes(filtros, m.mes))} data-pp-mes={m.mes}>{m.rotulo}: {plural(m.total, 'entrega', 'entregas')}</a>
+                    <span>{linha.series.map((s, i) => (m.porSerie[i] ? `${s.nome} ${m.porSerie[i]}` : '')).filter(Boolean).join(' · ')}</span>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          </>
+        ) : <p class="pp-vazio">Nenhuma entrega prevista no período para estes filtros.</p>}
+        {fora && <p class="pp-nota" data-pp-fora>Fora da linha do tempo: {fora}.</p>}
+      </section>
+
+      <div class="pp-listas">
+        <section class="pp-quadro" aria-labelledby="pp-t-proximas">
+          <h2 id="pp-t-proximas">Próximas entregas</h2>
+          {proximas.itens.length > 0 ? (
+            <>
+              <ol class="pp-itens" data-pp-proximas>
+                {proximas.itens.map((i) => (
+                  <li data-entrega={i.entrega}>
+                    <a href={linkProjeto(i.id)}>{i.nome}</a>
+                    <span class="pp-sub">{i.orgao} · {i.area} · {i.etapa}{i.prioritario && ' · Prioritário'}</span>
+                    <span class="pp-data">{dataBr(i.entrega!)}</span>
+                  </li>
+                ))}
+              </ol>
+              {proximas.total > proximas.itens.length && <p class="pp-nota">Mostrando {inteiro(proximas.itens.length)} de {inteiro(proximas.total)}. <a href="/plataforma/projetos-carteira/">Ver todas na Carteira</a></p>}
+            </>
+          ) : <p class="pp-vazio">Nenhuma entrega prevista a partir de hoje para estes filtros.</p>}
+        </section>
+
+        <section class="pp-quadro" aria-labelledby="pp-t-principais">
+          <h2 id="pp-t-principais">Principais obras</h2>
+          {principais.length > 0 ? (
+            <ol class="pp-itens" data-pp-principais>
+              {principais.map((i) => (
+                <li>
+                  <a href={linkProjeto(i.id)}>{i.nome}</a>
+                  <span class="pp-sub">{i.orgao} · {i.area} · {i.etapa}{i.prioritario && ' · Prioritário'}{i.entrega && ` · entrega ${dataBr(i.entrega)}`}</span>
+                  <span class="pp-data">{i.centavos === null ? '—' : reaisCurtos(i.centavos)}</span>
+                </li>
+              ))}
+            </ol>
+          ) : <p class="pp-vazio">Nenhuma obra em andamento com estes filtros.</p>}
+        </section>
+      </div>
+    </>
+  )}
+</div>
+
+<script>
+// Formulário GET com endereço limpo: campo vazio não vai para o endereço (mesma regra do FiltrosProjetos da E2).
+function prepararFiltrosPrioritarios() {
+  document.querySelectorAll<HTMLFormElement>('form[data-pp-filtros]').forEach((form) => {
+    if (form.dataset.ppPronto === '1') return;
+    form.dataset.ppPronto = '1';
+    window.addEventListener('pageshow', () => {
+      form.querySelectorAll<HTMLInputElement | HTMLSelectElement>('[name]').forEach((c) => { c.disabled = false; });
+      form.reset();
+    });
+    form.addEventListener('submit', () => {
+      form.querySelectorAll<HTMLInputElement | HTMLSelectElement>('input[name], select[name]').forEach((c) => {
+        if (c instanceof HTMLInputElement && c.type === 'checkbox') return;
+        if (!c.value.trim()) c.disabled = true;
+      });
+    });
+  });
+}
+document.addEventListener('astro:page-load', prepararFiltrosPrioritarios);
+prepararFiltrosPrioritarios();
+</script>

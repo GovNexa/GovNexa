@@ -95,15 +95,6 @@ export const NOVOS_MODULOS = [
     source: 'govnexa-carteira',
   },
   {
-    slug: 'projetos-orgaos',
-    title: 'Visão por órgão',
-    group: 'Projetos',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-carteira',
-  },
-  {
     slug: 'projetos-cronogramas',
     title: 'Cronogramas',
     group: 'Projetos',

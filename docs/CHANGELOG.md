@@ -8,6 +8,20 @@
 - Sem rota de gravação nova; edição (E1) e localização continuam pelas mesmas rotas.
 - Corrigido: `test:dados` tinha a chave duplicada e deixava de rodar os testes de edição e de área.
 
+## E5 · Carteira de projetos (22/11/2026)
+- Grandes números no topo (total de projetos e de valor), que seguem os filtros. A soma é feita em centavos; projeto sem valor conta na quantidade e aparece avisado.
+- Colunas: ID (só o número, discreto), Órgão, Projeto (em destaque), Valor, Macroetapa, Peças técnicas, Fim da contratação, Dias de obra e Entrega. Sem farol na lista.
+- Filtros padrão da E2 mais "Só prioritários" (D1). A busca também aceita o código (P-901, 901), para os links antigos.
+- Agrupada por macroetapa e, em cada uma, da entrega mais próxima para a mais distante (sem data por último). No celular, cada projeto vira um cartão.
+- Impressão no formato do relatório por órgão: cabeçalho com totais e filtros, grupos por macroetapa, preto no branco.
+- A guia "Visão por órgão" saiu do menu; o endereço antigo leva à Carteira com o filtro de órgão. A ficha (Ver detalhes) não mudou.
+
+## E3 · Tela do prefeito "Projetos prioritários" (22/11/2026)
+- A tela inicial (`/plataforma/`) passa a ser "Projetos prioritários": obras por área (barras por quantidade), quantidade e valor por etapa (Execução, Contratação, Preparatório, Planejamento, Estruturação; Concluídas e Sem macroetapa quando houver), linha do tempo de entregas empilhada por área até dez/2028, próximas entregas e principais obras.
+- Todo número é clicável e vira filtro (etapa, área, mês da entrega); o filtro fica no endereço e o "voltar" do navegador restaura. Filtros "Só prioritários", órgão e região (opcional).
+- Saem da tela do prefeito: farol, prazos, "onde está parado", decisões pendentes, convênios, valores por região e o mapa. O painel antigo continua no código para o painel da equipe (E10); os testes de tela dele ficam pulados até lá.
+- Novo `src/lib/gestao/prioritarios.ts` (funções puras, valores em centavos para as partes somarem o total) com 16 testes; gráficos em SVG próprio, sem dependência nova.
+
 ## E1 · Base para operar do zero (22/11/2026)
 - Publicação: aplicar a migração 0007 ANTES de publicar o código (o código novo lê area e prioritario; o código antigo funciona sobre o esquema novo).
 - Revisão independente: aprovada com ressalvas. Corrigido: nome da área cai na lista padrão quando o catálogo não é passado; mensagem da faixa reservada diz "Nada foi gravado no banco". Pendentes de baixa gravidade: carregar o catálogo no contexto da Carteira e do WhatsApp; Histórico traduzir área pelo catálogo; edição que reenvia área já gravada e desativada recebe 400 (a tela não reenvia).

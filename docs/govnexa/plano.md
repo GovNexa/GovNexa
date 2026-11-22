@@ -400,6 +400,7 @@ A guia Gestão mostra a foto atual de tudo o que está ativo em todos os módulo
 - **Todo número é clicável** e leva à lista que o compõe.
 - **Conciliação visível:** total geral = soma dos projetos ativos = soma por região = soma por ano; divergência aparece como alerta, nunca é escondida.
 - **Visão por órgão para impressão:** reproduz o conteúdo dos relatórios atuais (capa com totais, uma seção por órgão, obras por macroetapa da entrega mais próxima à mais distante, com fim das peças técnicas, fim da contratação, dias de obra e entrega) e o do painel de licitações, gerado pelo sistema em PDF.
+- **Carteira com impressão por órgão (E5, 22/11/2026):** a Visão por órgão deixou de existir. A Carteira filtrada pelo órgão imprime o mesmo relatório (cabeçalho com totais, grupos por macroetapa, da entrega mais próxima à mais distante), e o endereço antigo leva a ela.
 
 ### 8.3 Notificações (fase posterior)
 

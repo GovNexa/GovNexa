@@ -124,7 +124,9 @@ São módulos independentes que conversam entre si:
 ### Entregas recentes
 
 - 22/11/2026: E6, ficha única do projeto (página inteira aberta pela Carteira, abas, Governança no fim; guia Localização e fotos fora do menu) (branch agente/codex/e6-ficha; aguardando portão, prévia do dono e revisão).
+- 22/11/2026: E5, Carteira de projetos com grandes números, colunas do relatório, filtros com "Só prioritários", grupos por macroetapa e impressão; a Visão por órgão foi incorporada (branch agente/codex/e5-carteira; aguardando revisão).
 - 22/11/2026: E2, padrão visual das telas de Projetos (fundo claro e neutro nos dois temas) e filtros padrão, aplicados no Gantt geral (branch agente/codex/e2-filtros; aguardando revisão).
+- 22/11/2026: E3, tela inicial do prefeito "Projetos prioritários": obras por área, quantidade e valor por etapa, linha do tempo de entregas até dez/2028, próximas entregas e principais obras; todo número vira filtro no endereço; sem farol, prazos, decisões e convênios (branch agente/codex/e3-prefeito; aguardando prévia do dono e revisão).
 
 17/11: login próprio com senha e 2FA publicado e ligado em produção (`LOGIN_MODO=senha`); convites enviados aos administradores; Cloudflare Access retirado da plataforma.
 
@@ -170,6 +172,8 @@ Guia Usuários: cadastro, convite por e-mail, reenvio, perfil, ativação e rede
 
 ### Dashboard: efeitos, alertas e atualização automática
 
+Desde a E3 (22/11/2026) este painel não é mais a tela inicial; o que está descrito abaixo volta no painel da equipe (E10).
+
 Os dez cartões entram em sequência e contam até o valor calculado em cerca de 800 ms quando visíveis. Sem JavaScript, com movimento reduzido ou na impressão, os valores finais permanecem disponíveis. Campos ausentes continuam “—”. Críticos têm indicador com ícone e texto e faixa de até três links; atenção usa indicador estático. Hover e foco explicam o cálculo, também disponível no painel, cujo esqueleto dura 240 ms.
 
 “Atualizar agora” e a consulta automática a cada cinco minutos renovam faixa, cartões e listas sem recarregar; números alterados recebem seta e realce por quatro segundos. O painel aberto é preservado. Aba oculta pausa consultas; falhas mantêm os dados e informam nova tentativa. A apresentação limita a altura dos cartões, amplia a tipografia e mostra funil e decisões abaixo. O botão do cabeçalho alterna para Sair da apresentação; Esc também sai. Dicas ficam dentro dos cartões e o cálculo aparece compacto abaixo do resumo no painel.
@@ -193,12 +197,12 @@ O tema claro usa menu lateral branco, texto e ícones azul-escuros, destaques az
 | Projetos · Início | Resumo da carteira por macroetapa: quantidade, valor e farol de prazo | Disponível | `src/lib/carteira/` |
 | Fluxo do sistema | Diagrama em raias com etapas, validações, responsáveis e links para as telas; inclui fluxos detalhados e zoom | Disponível | `src/lib/govnexa/fluxo.ts`, `subfluxos.ts`, `src/components/fluxo/` |
 | Novo projeto | Cadastro com área e marca de prioritário. Grava na macroetapa 00, usa códigos a partir de P-9000 e registra no Histórico | Disponível no código (B2 e E1) | `src/components/carteira/NovoProjeto.astro` |
-| Carteira de projetos | Projetos, busca e ficha completa com valores, recursos, datas e histórico | Disponível | `src/lib/carteira/` |
+| Carteira de projetos | Grandes números que seguem os filtros, colunas do relatório por órgão, filtros padrão com "Só prioritários", grupos por macroetapa da entrega mais próxima à mais distante, impressão e ficha completa | Disponível (E5) | `src/components/carteira/CarteiraProjetos.astro`, `src/lib/carteira/lista.ts` |
 | Ficha do projeto | Uma só ficha, aberta pela Carteira ou pelo endereço: topo do prefeito (órgão, área, valor total, macroetapa, entrega prevista, localização, observação) e abas Cadastro, Recurso, Entrega, Localização, Fotos, Documentos, Processos SEI, Cronograma, Histórico e Governança. Edição (E1) por quem tem permissão | Disponível no código (E6); fotos em breve (E9) | `src/pages/plataforma/projeto/[id].astro`, `src/lib/carteira/ficha*.ts` |
 | Obras sem localização | Lista das obras que não aparecem no mapa (fora do menu); a localização é gravada na aba Localização da ficha | Disponível (E6) | `src/pages/plataforma/projetos-localizacao/`, `src/components/carteira/ficha/` |
 | Kanban por macroetapa | Colunas com quantidade e valor; mover com portões e motivo | Simulação | `src/components/carteira/Kanban.astro`, `src/lib/carteira/movimentacao.ts` |
 | Gantt geral | Linha do tempo prevista por macroetapa, da entrega mais próxima à mais distante; filtros por nome, órgão, macroetapa e período de entrega (mês e ano), guardados no endereço | Disponível | `src/components/carteira/Gantt.astro`, `src/components/carteira/FiltrosProjetos.astro`, `src/lib/carteira/filtros.ts` |
-| Visão por órgão | Obras por órgão e macroetapa; pronta para imprimir | Disponível | `src/components/carteira/VisaoOrgaos.astro` |
+| Visão por órgão | Incorporada à Carteira (E5): o endereço antigo abre a Carteira filtrada pelo órgão | Substituída | `src/lib/carteira/lista.ts` |
 | Cronogramas | Fase atual, realizado × previsto, linha do tempo, tarefas, dependências e pendências de dado | Disponível | `src/lib/cronograma/`, `src/pages/plataforma/cronograma/[id].astro` |
 | Onde está parado | Etapas vencidas por unidade e responsável | Disponível | `src/components/cronograma/Parado.astro` |
 | Pendências de etapa | Aprovar avança; reprovar volta pela mesma regra do Kanban | Simulação | `src/components/carteira/PendenciasEtapa.astro` |
@@ -233,7 +237,8 @@ Código: `src/lib/dados/`, `src/lib/projetos/`, `coletores/`. Detalhes em [docs/
 
 | Guia | O que faz | Situação |
 | --- | --- | --- |
-| Início / Gestão · Dashboard do prefeito | Visão geral com 10 indicadores calculados, filtros por URL, painel de detalhamento em três níveis, mapa das obras (amplia para a apresentação do mapa), funil, decisões pendentes, valores regionais e modo apresentação | Disponível |
+| Início · Projetos prioritários | Tela do prefeito: obras por área, quantidade e valor por etapa (as partes somam o total), linha do tempo de entregas por área até dez/2028, próximas entregas e principais obras; todo número vira filtro guardado no endereço; "Só prioritários"; região só como filtro opcional. Sem farol, prazos, "onde está parado", decisões pendentes e convênios | Disponível no código (E3) |
+| Painel antigo (10 indicadores, farol, decisões, convênios, mapa compacto) | Saiu da tela inicial na E3; o código continua (`DashboardPrefeito.astro`, `src/lib/gestao/dashboard.ts`) e volta no painel da equipe (E10) | Fora da tela até a E10 |
 | Gestão · Painel | Foto atual da carteira e dos recursos e mapa das obras | Disponível |
 | Alertas | Central de alertas de convênios, contratação, obras, saldo sem fonte, etapas paradas e dados desatualizados | Disponível |
 | WhatsApp | Permissões por cargo, relatórios, perguntas e modelos para aprovação da Meta | Simulação; envio real depende do banco e da conta do WhatsApp Business |
@@ -293,6 +298,7 @@ Os pedidos vêm dos áudios do dono, da reunião com a equipe e das planilhas.
 | Medir tempo e volume por colaborador | Fase 2 e Fase 5 | A fazer |
 | IA para proposta, ETP e minutas | Fase 5 | A fazer, sem IA no MVP |
 | Orçamento por SINAPI e GOINFRA | Fase 5 | A fazer |
+| Tela inicial "Projetos prioritários" no layout do croqui, números que viram filtro, próximas entregas e principais obras (áudios A01, A03, A09, A11, A12, A13, A14) | Início (/plataforma/) | Feito no código (E3), aguardando aprovação do dono |
 
 ## 6. O que funciona de verdade e o que é simulação
 
@@ -407,6 +413,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Limite da localização (18/11/2026):** a localização de um projeto aceita pontos em Goiânia e no entorno, até cerca de 10 km além do retângulo da cidade, porque a prefeitura pode ter obra na divisa ou em acordo com cidade vizinha. O limite ainda é fixo no código (`src/lib/mapa/geo.ts`); para uma segunda prefeitura, passa a vir do cadastro da prefeitura.
 - **Animações do site (17/11/2026):** biblioteca `gsap` 3.13.0, empacotada no próprio site. A licença é a padrão da GSAP, gratuita para uso comercial, mas não é de código aberto.
 - **Ficha única do projeto (22/11/2026, E6):** a Carteira abre a ficha em página inteira (a política de segurança proíbe janela embutida) e o X volta à lista com os filtros; a localização e as fotos ficam dentro do projeto; o endereço antigo de localização virou a lista de obras sem localização.
+- **Tela do prefeito (22/11/2026, E3):** saem farol, prazos, "onde está parado", decisões pendentes, convênios, valores por região e o mapa compacto (volta por área na E4); Mobilização conta em Execução; Concluídas e Sem macroetapa aparecem como linha própria só quando existem; a área mostrada usa a sugestão pelo órgão quando o projeto não tem área gravada; Principais obras = prioritárias primeiro, depois as de maior valor; linha do tempo do mês atual até dez/2028, com 6 áreas em cor, "Outros" e "Sem área" em cinza.
 
 ## 8. Pendências e próximos passos
 
@@ -435,6 +442,7 @@ Centros dos bairros: migração 0005 e carga publicadas em 18/11/2026. Parte dos
 7. Teste "mapa das obras" no Safari (WebKit): falha também na main (marcadores não aparecem após "Cidade inteira" + zoom); investigar à parte. No Chrome passa.
 8. Melhorias de segurança sem falha conhecida: retirar `'unsafe-inline'` da política de scripts (CSP) e redirecionar `www.govnexa.com.br` para o endereço sem www.
 9. E6: retirar o componente antigo `LocalizacaoProjeto.astro` e o link "Localização e fotos" de `detalheProjeto` depois da junção com a E5; fotos na aba Fotos (E9).
+10. **Depois da E3:** a E10 reativa os testes de tela do painel antigo (`tests/dashboard.spec.ts`, `dashboard-efeitos.spec.ts`, `dashboard-mapa.spec.ts`, pulados na E3) na rota do painel da equipe; a E4 traz o mapa por área para a tela inicial.
 
 ## 9. Como rodar no computador
 

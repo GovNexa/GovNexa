@@ -18,7 +18,7 @@ const MAPA = ['src/lib/mapa/**', 'src/components/mapa/**', 'src/styles/mapa.css'
 /** Etapa do mapa geral (id de fluxo.ts) → partes do código. */
 export const COMPONENTES: Record<string, string[]> = {
   acesso: ['src/lib/login/**', 'src/pages/entrar**'],
-  inicio: ['src/lib/carteira/modulos.ts', 'src/lib/carteira/visoes.ts'],
+  inicio: ['src/lib/carteira/modulos.ts', 'src/lib/carteira/visoes.ts', 'src/lib/carteira/lista.ts', 'src/components/carteira/CarteiraProjetos.astro', 'src/styles/carteira-lista.css'],
   planilha: ['src/lib/carteira/area.ts', 'scripts/importar-carteira.ts', 'scripts/importar-cronogramas.ts', 'scripts/importar-planilhas.ts', 'scripts/gerar-sql-carga.ts', 'scripts/lib/**', 'src/lib/carteira/carga.ts', 'src/lib/cronograma/carga.ts'],
   cadastro: ['src/lib/carteira/area.ts', 'src/lib/carteira/edicao.ts', 'src/lib/carteira/formulario.ts', 'src/components/carteira/CamposProjeto.astro', 'src/components/carteira/EditarProjeto.astro', 'src/components/carteira/NovoProjeto.astro', 'src/lib/carteira/movimentacao.ts', 'src/lib/carteira/cadastro.ts', 'src/lib/carteira/tipos.ts', 'src/lib/repositorio/**', 'db/migracoes/**', 'db/d1/**', 'src/lib/documentos/**', 'src/pages/plataforma/documentos-projeto/**', 'src/pages/plataforma/projeto/**', 'src/pages/plataforma/projetos-localizacao/**', 'src/lib/carteira/ficha.ts', 'src/lib/carteira/ficha-dados.ts', 'src/components/carteira/ficha/**', 'src/lib/seguranca/**', ...MAPA],
   estruturacao: ['src/lib/carteira/macroetapas.ts', 'src/scripts/painel-detalhes.ts', 'src/components/carteira/Kanban.astro', 'src/lib/carteira/modulos.ts'],
@@ -47,7 +47,7 @@ export const COMPONENTES: Record<string, string[]> = {
   alertas: ['src/lib/alertas/**', 'src/components/alertas/**', 'src/lib/dados/alertas.ts', 'src/lib/carteira/visoes.ts', 'src/lib/cronograma/visoes.ts', 'src/lib/dados/qualidade.ts', 'src/lib/prazos/**', 'src/components/prazos/**', 'data/config/feriados.json', 'data/config/prazos-internos.json'],
   parado: ['src/lib/cronograma/visoes.ts', 'src/lib/cronograma/dependencias.ts', 'src/components/cronograma/Parado.astro'],
   sala: ['src/lib/sala/**', 'src/components/sala/**', 'src/pages/plataforma/sala-de-guerra/**'],
-  painel: ['src/components/carteira/VisaoOrgaos.astro', 'src/lib/govnexa/catalogo.ts', 'src/lib/gestao/**', 'src/components/gestao/**', ...MAPA],
+  painel: ['src/components/carteira/VisaoOrgaos.astro', 'src/lib/govnexa/catalogo.ts', 'src/lib/gestao/**', 'src/components/gestao/**', 'src/pages/plataforma/index.astro', 'src/styles/prioritarios.css', ...MAPA],
   log: ['src/lib/log/**', 'src/components/log/**', 'db/migracoes/002_*'],
   whatsapp: ['src/lib/whatsapp/**', 'src/components/whatsapp/**', 'src/lib/gestao/painel.ts', 'src/lib/carteira/visoes.ts'],
 };

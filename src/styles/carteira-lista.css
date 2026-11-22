@@ -1,0 +1,76 @@
+/* Carteira de projetos (E5). Prefixo cp-. Rolagem só vertical; com menos de 52rem de largura útil cada projeto vira um cartão. */
+.cp{container-type:inline-size;display:grid;gap:1rem;color:var(--text)}
+.cp>*{min-width:0}
+.cp .fp{margin:0}
+.fp .fp-marca{display:flex;align-items:center;gap:.5rem;min-height:44px;font-size:.9rem;cursor:pointer}
+.fp .fp-marca input{width:1.25rem;height:1.25rem;min-height:0;margin:0;flex:0 0 auto}
+.cp-numeros{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:.75rem}
+.cp-numero{padding:1rem 1.25rem;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.cp-numero p{margin:0}
+.cp-numero-rotulo{font-size:.85rem;font-weight:600;color:var(--muted)}
+.cp-numero-valor strong{display:block;font-size:clamp(1.6rem,5vw,2.4rem);line-height:1.15;font-weight:800;color:var(--text);overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.cp-numero-extra{font-size:.85rem;color:var(--muted)}
+.cp-barra{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:center;justify-content:space-between}
+.cp-barra .cart-resumo{margin:0}
+.cp-barra button{min-height:44px}
+.cp-vazio{margin:0;padding:1rem;border:1px dashed var(--line);border-radius:10px;color:var(--text)}
+.cp-impressao{display:none}
+.cp-quadro{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.cp-tabela{width:100%;table-layout:fixed;border-collapse:collapse;font-size:.85rem;color:var(--text);background:var(--surface)}
+.cp-tabela th,.cp-tabela td{padding:.45rem .35rem;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;color:var(--text);white-space:normal;overflow-wrap:anywhere}
+.cp-tabela thead th{white-space:normal;overflow-wrap:normal;hyphens:auto;font-size:.78rem;font-weight:700;background:var(--soft);vertical-align:bottom}
+/* Larguras fixas: a tabela nunca passa do contêiner; o texto quebra dentro da coluna. */
+.cp-tabela thead th:nth-child(1){width:5%}.cp-tabela thead th:nth-child(2){width:9%}.cp-tabela thead th:nth-child(3){width:20%}.cp-tabela thead th:nth-child(4){width:11%}.cp-tabela thead th:nth-child(5){width:13%}.cp-tabela thead th:nth-child(6){width:9%}.cp-tabela thead th:nth-child(7){width:9%}.cp-tabela thead th:nth-child(8){width:6%}.cp-tabela thead th:nth-child(9){width:9%}.cp-tabela thead th:nth-child(10){width:9%}
+.cp-tabela td.cp-num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.cp-tabela td.cp-data{white-space:nowrap;font-variant-numeric:tabular-nums}
+.cp-tabela td.cp-id{color:var(--muted);font-size:.8rem;white-space:nowrap;font-variant-numeric:tabular-nums}
+.cp-tabela td.cp-nome{min-width:0}
+.cp-tabela td.cp-nome strong{font-weight:700;font-size:.95rem}
+.cp-tabela .cp-acao{width:1%;white-space:nowrap;text-align:right}
+.cp-tabela .cp-acao button{display:inline-flex;align-items:center;justify-content:center;gap:.35rem;min-width:44px;min-height:44px;padding:.4rem .6rem}
+.cp-acao-texto{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.cp-grupo th{background:var(--soft);font-size:.95rem;font-weight:700;padding:.65rem .5rem;border-top:2px solid var(--line)}
+.cp-grupo-info{font-weight:400}
+@media screen{
+ @container (max-width: 68rem){
+  .cp-quadro{border:0;background:transparent;overflow:visible}
+  .cp-tabela,.cp-tabela tbody,.cp-tabela tr,.cp-tabela th,.cp-tabela td{display:block;width:100%}
+  .cp-tabela{background:transparent}
+  .cp-tabela thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .cp-grupo th{box-sizing:border-box;max-width:100%;white-space:normal;overflow-wrap:anywhere;border:0;border-radius:8px;margin:1rem 0 .25rem}
+  .cp-tabela tr[data-cp-linha]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.4rem .75rem;margin:0 0 .6rem;padding:.75rem;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+  .cp-tabela tr[data-cp-linha] td{padding:0;border:0;white-space:normal;text-align:left;min-width:0}
+  .cp-tabela tr[data-cp-linha] td::before{content:attr(data-label);display:block;font-size:.75rem;font-weight:600;color:var(--muted)}
+  .cp-tabela td.cp-id{grid-column:1/-1;order:-3}
+  .cp-tabela td.cp-id::before{content:'ID ';display:inline;font-size:inherit;font-weight:400}
+  .cp-tabela td.cp-nome{grid-column:1/-1;order:-2;min-width:0}
+  .cp-tabela td.cp-nome::before{content:none}
+  .cp-tabela td.cp-entrega{order:-1}
+  .cp-tabela td.cp-acao{grid-column:1/-1;order:1;width:100%}
+  .cp-tabela td.cp-acao::before{content:none}
+  .cp-tabela td.cp-acao button{width:100%}
+  .cp-tabela td.cp-acao .cp-acao-texto{position:static;width:auto;height:auto;overflow:visible;clip:auto}
+ }
+}
+/* Impressão da Carteira em A4 paisagem: o documento inteiro usa a página nomeada (título incluído); outras telas seguem em retrato.
+   A página nomeada já vence o @page sem nome de carteira.css; o !important é só reforço. */
+@page carteira{size:A4 landscape !important;margin:10mm !important}
+@media print{html:has(.cp){page:carteira}}
+@media print{
+  .cp-tabela thead th:nth-child(3){width:29%}
+
+ body:has(.cp) .section-head .button,body:has(.cp) .section-head .muted{display:none!important}
+ .cp,.cp *{color:#000!important;box-shadow:none!important}
+ .cp-numero,.cp-quadro,.cp-tabela,.cp-tabela th,.cp-tabela td,.cp-grupo th{background:#fff!important;border-color:#888!important}
+ .cp-impressao{display:block;margin:0;font-size:9pt}
+ .cp-numeros{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .cp-numero{padding:.4rem .6rem}
+ .cp-numero-valor strong{font-size:16pt}
+ .cp-quadro{overflow:visible;border:0}
+ .cp-tabela{font-size:9pt}
+ .cp-tabela .cp-acao{display:none!important}
+ .cp-grupo th{font-size:10.5pt;border-top:1.5pt solid #000!important}
+ .cp-tabela tr{break-inside:avoid}
+ .cp-grupo{break-after:avoid}
+ .cp-tabela thead{display:table-header-group}
+}
