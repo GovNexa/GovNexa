@@ -86,9 +86,14 @@ test('paraQuery: ida e volta e vazio', () => {
   assert.deepEqual(lerFiltros(new URLSearchParams(paraQuery(f).slice(1)), op).filtros, f);
 });
 test('opcoesFiltros: órgãos ordenados, sem área sem campo, anos contínuos', () => {
-  const o = opcoesFiltros(carteira.projetos, '2026-11-22');
+  // A carteira de exemplo passou a ter área (E1); aqui a área é retirada para provar que, sem área, o campo some.
+  const o = opcoesFiltros(carteira.projetos.map((p) => ({ ...p, area: null })), '2026-11-22');
   assert.deepEqual(o.orgaos, ['SEINFRA', 'SMS', 'SME', 'SEMASDH', 'SECULT'].sort((a, b) => a.localeCompare(b, 'pt-BR')));
   assert.equal('areas' in o, false); assert.ok(o.anos.includes(2026)); assert.deepEqual(o.anos, Array.from({ length: o.anos.at(-1)! - o.anos[0] + 1 }, (_, i) => o.anos[0] + i));
   assert.deepEqual(opcoesFiltros([], '2026-11-22'), { orgaos: [], anos: [2026] });
+});
+test('opcoesFiltros: com área na carteira o campo aparece, sem repetição', () => {
+  const o = opcoesFiltros(carteira.projetos, '2026-11-22');
+  assert.ok(o.areas && o.areas.length > 0); assert.equal(new Set(o.areas).size, o.areas.length);
 });
 test('filtragem e ordem com carteira vazia', () => assert.deepEqual(aplicarFiltros([], FILTROS_VAZIOS), []));
