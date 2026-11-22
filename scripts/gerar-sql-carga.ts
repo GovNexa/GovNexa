@@ -91,6 +91,15 @@ for (const p of carteira.projetos) {
       ...(sqlite ? { compromisso: txt(p.compromisso), localizacao: json(p.localizacao) } : {}),
     }, sqlite ? ['compromisso', 'localizacao'] : []),
   );
+  if (sqlite && (p.area != null || p.prioritario != null)) {
+    // A planilha só preenche. Célula vazia ou coluna ausente mantém o que está no banco. Projeto CADASTRO nunca muda.
+    const area = txt(p.area);
+    const prioritario = p.prioritario == null ? 'NULL' : p.prioritario ? '1' : '0';
+    linhas.push(`UPDATE projeto SET area = CASE WHEN EXISTS (
+      SELECT 1 FROM catalogo WHERE prefeitura_id = ${ibge} AND tipo = 'area' AND codigo = ${area} AND ativo = 1
+    ) THEN ${area} ELSE area END, prioritario = coalesce(${prioritario}, prioritario), revisao = revisao + 1
+    WHERE prefeitura_id = ${ibge} AND id = ${txt(p.id)} AND json_extract(origem, '$.aba') IS NOT 'CADASTRO';`);
+  }
 }
 
 for (const c of cronogramas?.cronogramas ?? []) {

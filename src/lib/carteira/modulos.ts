@@ -6,6 +6,7 @@ import { carregarCronogramas } from '../cronograma/carga.ts';
 import { carregarHistorico } from '../log/carga.ts';
 import { dataHoraBr, maisRecentes, resumoRegistro, rotuloAcao } from '../log/visoes.ts';
 import { resumoCronograma } from '../cronograma/visoes.ts';
+import { AREAS_PADRAO, areaDoProjeto, type Area } from './area.ts';
 import { carregarCarteira } from './carga.ts';
 import { MACROETAPAS, nomeMacroetapa } from './macroetapas.ts';
 import type { Projeto } from './tipos.ts';
@@ -31,7 +32,12 @@ function ordenar(l: Projeto[]): Projeto[] {
 }
 
 /** Ficha do projeto em seções de texto. Usada na lista da Carteira (resumo) e na página do projeto. */
-export function detalheProjeto(p: Projeto, ficticio: boolean, arquivo: string, importadoEm: string): Detalhe {
+export function detalheProjeto(
+  p: Projeto, ficticio: boolean, arquivo: string, importadoEm: string,
+  areas: readonly Area[] = ficticio ? AREAS_PADRAO : [], areasAtivas: readonly Area[] = areas,
+): Detalhe {
+  const area = areaDoProjeto(p, areas, areasAtivas);
+  const areaResumo = area?.sugerida ? 'Não informada (sugestão pelo órgão: ' + area.nome + ')' : area?.nome ?? 'Não informada';
   const v = p.valores;
   const r = p.recurso;
   const secoes: Detalhe['secoes'] = [
@@ -39,6 +45,7 @@ export function detalheProjeto(p: Projeto, ficticio: boolean, arquivo: string, i
       titulo: 'Resumo',
       itens: [
         `Órgão: ${txt(p.orgao)}`,
+        `Área: ${areaResumo}`,
         `Responsável: ${txt(p.responsavel)}`,
         `Tipo: ${txt(p.tipo)}`,
         `Detalhamento: ${txt(p.detalhamento)}`,
@@ -46,6 +53,7 @@ export function detalheProjeto(p: Projeto, ficticio: boolean, arquivo: string, i
         `Bairro: ${txt(p.bairro)}`,
         `Processos SEI: ${p.sei.length ? p.sei.join(', ') : dash}`,
         `Prioridade: ${txt(p.prioridade)}`,
+        `Prioritário: ${p.prioritario === true ? 'Sim' : 'Não'}`,
         `Tem projeto: ${sim(p.tem_projeto)}`,
         `Status: ${txt(p.status_projeto)}`,
         `Macroetapa: ${nomeMacroetapa(p.macroetapa)}`,

@@ -4,6 +4,7 @@
 import { normalizarLocalizacao } from '../mapa/servico.ts';
 import type { RepositorioProjetos } from '../repositorio/tipos.ts';
 import { usuarioPode, type Usuario } from '../usuarios/index.ts';
+import { areasDaPrefeitura, CODIGO_AREA } from './area.ts';
 import type { Projeto } from './tipos.ts';
 
 export interface ContextoCadastro { usuario: Usuario; repositorio: RepositorioProjetos }
@@ -43,7 +44,7 @@ export function podeCadastrar(c: ContextoCadastro): ResultadoCadastro | { ok: tr
 }
 
 /** Texto curto: sem caracteres de controle (a observação mantém quebras de linha); vazio vira null. */
-function texto(v: unknown, max: number, quebras = false): string | null {
+export function texto(v: unknown, max: number, quebras = false): string | null {
   if (typeof v !== 'string') return null;
   const limpo = v.replace(quebras ? CONTROLE_COM_QUEBRA : CONTROLE, ' ').trim();
   return limpo ? Array.from(limpo).slice(0, max).join('').trim() || null : null;
@@ -91,6 +92,9 @@ export function normalizarCadastro(bruto: unknown): { ok: true; dados: Partial<P
   const compromisso = bruto.compromisso === undefined || bruto.compromisso === null || bruto.compromisso === '' ? 'ideia' : dentro(bruto.compromisso, COMPROMISSOS, 'Compromisso') ?? 'ideia';
   const tipo = dentro(bruto.tipo, TIPOS, 'Tipo');
   const prioridade = dentro(bruto.prioridade, PRIORIDADES, 'Prioridade');
+  const area = typeof bruto.area === 'string' && CODIGO_AREA.test(bruto.area) ? bruto.area : null;
+  if (bruto.area != null && bruto.area !== '' && area === null) erros.push('Área: valor não permitido.');
+  const prioritario = booleano(bruto.prioritario, 'Prioritário') ?? false;
   const tipoContratacao = dentro(bruto.tipo_contratacao, TIPOS_CONTRATACAO, 'Tipo de contratação');
   const origemRecurso = dentro(bruto.recurso_origem, ORIGENS_RECURSO, 'Origem do recurso');
   const temProjeto = booleano(bruto.tem_projeto, 'Tem projeto?');
@@ -142,7 +146,7 @@ export function normalizarCadastro(bruto: unknown): { ok: true; dados: Partial<P
         unidade_financiadora: texto(bruto.unidade_financiadora, 120), sugestao_financiar: null, termo_compromisso: termo, numero_termo: texto(bruto.numero_termo, 60),
       },
       datas: { inicio: null, pecas_tecnicas: datas.pecas_tecnicas, planejamento: datas.planejamento, preparatorio: datas.preparatorio, contratacao: datas.contratacao, mobilizacao: datas.mobilizacao, execucao_dias: dias, encerramento: datas.encerramento },
-      localizacao,
+      localizacao, area, prioritario,
     },
   };
 }
@@ -152,10 +156,14 @@ export async function cadastrarProjeto(c: ContextoCadastro, bruto: unknown): Pro
   if (!pode.ok) return pode;
   const n = normalizarCadastro(bruto);
   if (!n.ok) return falha(400, 'Cadastro inválido.', n.erros);
+  if (n.dados.area && !(await areasDaPrefeitura(c.repositorio)).some((a) => a.codigo === n.dados.area)) {
+    return falha(400, 'Cadastro inválido.', ['Área: valor não permitido.']);
+  }
   // Regras de negócio (macroetapa 00, pendências, histórico "criado") são as da função única do sistema, aplicadas no repositório.
   const r = await c.repositorio.criarProjeto(n.dados as Parameters<RepositorioProjetos['criarProjeto']>[0], c.usuario.email);
   if (!r.ok) {
     if (r.codigo === 'concorrencia') return falha(409, r.erro);
+    if (r.erro === 'Área: valor não permitido.') return falha(400, 'Cadastro inválido.', [r.erro]);
     return falha(400, r.erro, r.faltando);
   }
   const p = r.projeto;

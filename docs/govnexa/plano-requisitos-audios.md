@@ -79,7 +79,7 @@ A % de cada entrega começa em 0 e é atualizada no README (seção 2) a cada PR
 
 | # | Entrega | Áudios | Depende de | Banco | Executor | % |
 | --- | --- | --- | --- | --- | --- | --- |
-| E1 | **Base para "do zero"**: edição dos campos na página do projeto (B2b), campo **área** com catálogo da prefeitura (B4 parcial), marca de **prioritário** (D1), códigos da tela a partir de 9000 (D3), importação da área e da marca pela planilha, os dois no Novo projeto | A04, A21, D1, D3, base de tudo | — | Migração 0007: `projeto.area`, `projeto.prioritario` e tabela `catalogo` (área, órgão, região) | Codex sol + revisão Opus | 0% |
+| E1 | **Base para "do zero"**: edição dos campos na página do projeto (B2b), campo **área** com catálogo da prefeitura (B4 parcial), marca de **prioritário** (D1), códigos da tela a partir de 9000 (D3), importação da área e da marca pela planilha, os dois no Novo projeto | A04, A21, D1, D3, base de tudo | — | Migração 0007: `projeto.area`, `projeto.prioritario` e tabela `catalogo` (área, órgão, região) | Codex sol + revisão Opus | 70% (código e testes prontos, aguardando revisão, migração e publicação) |
 | E2 | **Padrão visual e filtros**: fundo claro nos dois temas; componente único de filtros (nome, órgão, área, macroetapa, período de entrega mês/ano) com estado no endereço; ordem por entrega; checagem de rolagem | A03, A16, A18, A24, A29 | — | — | Codex terra | 0% |
 | E3 | **Tela do prefeito "Projetos prioritários"**: layout do croqui; grandes números de quantidade e valor por macroetapa, clicáveis; obras por área (barras por quantidade); linha do tempo empilhada por área (mês e ano até 2028); próximas entregas filtradas; principais obras. Saem farol, prazo, parado, decisões pendentes, convênios e valores regionais | A01, A03, A09, A11, A12, A13, A14 | E1, E2, D1 | — (leitura) | Codex terra | 0% |
 | E4 | **Mapa por área**: legenda e filtro por área e macroetapa; região como filtro opcional; total de obras e valor por região; sem situação nem farol | A04, A05, A06, A14 | E1, E2 | — | Codex terra | 0% |
@@ -107,7 +107,7 @@ A % de cada entrega começa em 0 e é atualizada no README (seção 2) a cada PR
 ### Percentual por fase (para o README)
 | Fase | Entregas | % |
 | --- | --- | --- |
-| Base de dados para operar do zero | E1, E9 | 0% |
+| Base de dados para operar do zero | E1, E9 | 35% |
 | Visão gerencial (prefeito) | E2, E3, E4, E5, E6, E7, E8 | 0% |
 | Governança (equipe) | E10, E11, E13 | 0% |
 | Licitações | E12, E14 | 0% |

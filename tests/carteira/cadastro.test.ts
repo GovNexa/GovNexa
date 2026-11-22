@@ -2,7 +2,10 @@
 // isolamento por prefeitura, código único (migração 0006) e cadastros simultâneos.
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { readFileSync } from 'node:fs';
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { join } from 'node:path';
+import type { Carteira } from '../../src/lib/carteira/tipos.ts';
 import { bancoTeste } from '../helpers/d1.ts';
 import { carregarExemplo } from '../helpers/carga.ts';
 import { repositorioD1ParaTestes } from '../../src/lib/repositorio/index.ts';
@@ -88,7 +91,7 @@ test('cadastrar: editor grava o projeto na macroetapa 00, com o autor da sessão
   const r = await cadastrarProjeto(c, { ...BASE, compromisso: 'decidido', prefeitura_id: 999, autor: 'invasor@x.gov.br', localizacao: { tipo: 'ponto', ponto: { lat: -16.7, lng: -49.3 }, endereco: null } });
   assert.ok(r.ok);
   if (!r.ok) return;
-  assert.equal(r.projeto.id, 'P-1');
+  assert.equal(r.projeto.id, 'P-9000');
   assert.equal(r.projeto.macroetapa, '00');
   assert.ok(r.pendencias.includes('Sem região'));
   const [p] = projetos(banco);
@@ -96,7 +99,7 @@ test('cadastrar: editor grava o projeto na macroetapa 00, com o autor da sessão
   assert.equal(p.nome, 'Nova UBS do teste');
   assert.equal(p.compromisso, 'decidido');
   assert.deepEqual(JSON.parse(p.localizacao), { tipo: 'ponto', ponto: { lat: -16.7, lng: -49.3 }, endereco: null });
-  assert.deepEqual(eventos(banco).map((e) => ({ ...e })), [{ projeto_id: 'P-1', tipo: 'criado', origem: 'cadastro', autor: 'editor@x.gov.br', para: '00', descricao: 'Projeto incluído no cadastro' }]);
+  assert.deepEqual(eventos(banco).map((e) => ({ ...e })), [{ projeto_id: 'P-9000', tipo: 'criado', origem: 'cadastro', autor: 'editor@x.gov.br', para: '00', descricao: 'Projeto incluído no cadastro' }]);
 });
 
 test('cadastrar: dado inválido devolve 400 com a lista e não grava nada', async () => {
@@ -123,11 +126,11 @@ test('cadastrar: texto malicioso fica só como parâmetro (SQL) e como texto pur
 test('códigos: cada cadastro recebe o número seguinte e o código nunca se repete na prefeitura', async () => {
   const { banco, c } = montar('editor');
   for (let i = 0; i < 3; i++) assert.ok((await cadastrarProjeto(c, { ...BASE, nome: `Obra ${i}` })).ok);
-  assert.deepEqual(projetos(banco).map((p) => p.id), ['P-1', 'P-2', 'P-3']);
-  assert.throws(() => banco.sqlite.exec("INSERT INTO projeto (prefeitura_id, id, codigo_legado, nome) VALUES (5208707, 'OUTRO', 2, 'Repetido')"), /UNIQUE constraint failed: projeto\.prefeitura_id, projeto\.codigo_legado/);
+  assert.deepEqual(projetos(banco).map((p) => p.id), ['P-9000', 'P-9001', 'P-9002']);
+  assert.throws(() => banco.sqlite.exec("INSERT INTO projeto (prefeitura_id, id, codigo_legado, nome) VALUES (5208707, 'OUTRO', 9001, 'Repetido')"), /UNIQUE constraint failed: projeto\.prefeitura_id, projeto\.codigo_legado/);
   // Outra prefeitura pode usar o mesmo número; projeto sem número (nulo) continua permitido.
   banco.sqlite.exec("INSERT INTO prefeitura (id, nome, uf) VALUES (1111111, 'Outra', 'GO')");
-  banco.sqlite.exec("INSERT INTO projeto (prefeitura_id, id, codigo_legado, nome) VALUES (1111111, 'P-2', 2, 'Da outra')");
+  banco.sqlite.exec("INSERT INTO projeto (prefeitura_id, id, codigo_legado, nome) VALUES (1111111, 'P-9001', 9001, 'Da outra')");
   banco.sqlite.exec("INSERT INTO projeto (prefeitura_id, id, codigo_legado, nome) VALUES (5208707, 'SEM-1', NULL, 'Sem número 1')");
   banco.sqlite.exec("INSERT INTO projeto (prefeitura_id, id, codigo_legado, nome) VALUES (5208707, 'SEM-2', NULL, 'Sem número 2')");
 });
@@ -141,7 +144,7 @@ test('códigos: dois cadastros ao mesmo tempo não repetem número, não perdem 
   assert.ok(lotes > 5, `houve colisão de verdade e repetição (lotes enviados: ${lotes})`);
   assert.ok(resultados.every((r) => r.ok), JSON.stringify(resultados.filter((r) => !r.ok)));
   const ids = projetos(banco).map((p) => p.id).sort();
-  assert.deepEqual(ids, ['P-1', 'P-2', 'P-3', 'P-4', 'P-5']);
+  assert.deepEqual(ids, ['P-9000', 'P-9001', 'P-9002', 'P-9003', 'P-9004']);
   assert.equal(eventos(banco).length, 5);
   assert.equal(banco.sqlite.prepare('SELECT count(*) AS n FROM evento_projeto e LEFT JOIN projeto p ON p.prefeitura_id = e.prefeitura_id AND p.id = e.projeto_id WHERE p.id IS NULL').get()!.n, 0);
 });
@@ -188,6 +191,74 @@ test('repetição: só código ou id repetido é tentado de novo; outro índice 
   const { banco } = montar('editor');
   const outro = { prepare: (sql: string) => banco.db.prepare(sql), async batch() { throw new Error('D1_ERROR: UNIQUE constraint failed: projeto.prefeitura_id, projeto.sei: SQLITE_CONSTRAINT'); } };
   await assert.rejects(criarRepositorioD1(outro as any, 5208707).criarProjeto({ nome: 'A', orgao: 'B' }, 'x@x'), /projeto\.sei/);
+});
+
+test('faixa 9000: carga 900–913 com ou sem código 8999 precede P-9000; código 12000 precede P-12001', async (t) => {
+  for (const comCodigoManual of [false, true]) {
+    const { banco, c } = montar();
+    t.after(() => banco.sqlite.close());
+    carregarExemplo(banco.sqlite);
+    const inserir = banco.sqlite.prepare("INSERT INTO projeto (prefeitura_id, id, codigo_legado, nome) VALUES (?, ?, ?, 'Manual')");
+    if (comCodigoManual) inserir.run(5208707, 'P-8999', 8999);
+    const primeiro = await cadastrarProjeto(c, BASE);
+    assert.ok(primeiro.ok);
+    assert.equal(primeiro.projeto.id, 'P-9000');
+    inserir.run(5208707, 'P-12000', 12000);
+    const proximo = await cadastrarProjeto(c, BASE);
+    assert.ok(proximo.ok);
+    assert.equal(proximo.projeto.id, 'P-12001');
+  }
+});
+
+test('cadastro: área e prioritário entram no projeto e no histórico; área fora do catálogo é recusada', async (t) => {
+  const { banco, c } = montar();
+  t.after(() => banco.sqlite.close());
+  const invalido = await cadastrarProjeto(c, { ...BASE, area: 'inexistente' });
+  assert.deepEqual(invalido, { ok: false, status: 400, erro: 'Cadastro inválido.', erros: ['Área: valor não permitido.'] });
+  assert.deepEqual(projetos(banco), []);
+  const r = await cadastrarProjeto(c, { ...BASE, area: 'saude', prioritario: true });
+  assert.ok(r.ok);
+  const p = await c.repositorio.obterProjeto(r.projeto.id);
+  assert.equal(p!.area, 'saude');
+  assert.equal(p!.prioritario, true);
+  const [h] = await c.repositorio.historico(r.projeto.id);
+  assert.deepEqual(h.campos?.filter(({ campo }) => campo === 'area' || campo === 'prioritario'), [
+    { campo: 'area', antes: null, depois: 'saude' },
+    { campo: 'prioritario', antes: null, depois: true },
+  ]);
+  const semArea = await cadastrarProjeto(c, BASE);
+  assert.ok(semArea.ok);
+  const padrao = await c.repositorio.obterProjeto(semArea.projeto.id);
+  assert.equal(padrao!.area, null);
+  assert.equal(padrao!.prioritario, false);
+});
+
+test('carga de planilha: área e prioritário entram; ausente mantém; CADASTRO e área fora do catálogo são preservados', (t) => {
+  const { sqlite } = bancoTeste();
+  t.after(() => sqlite.close());
+  carregarExemplo(sqlite);
+  const campos = (id: string) => ({ ...sqlite.prepare('SELECT area, prioritario FROM projeto WHERE prefeitura_id = ? AND id = ?').get(5208707, id) });
+  assert.deepEqual(campos('P-901'), { area: 'saude', prioritario: 1 });
+  assert.deepEqual(campos('P-902'), { area: 'educacao', prioritario: 0 });
+  sqlite.exec("UPDATE projeto SET area = 'esporte', prioritario = 1 WHERE prefeitura_id = 5208707 AND id IN ('P-900', 'P-902')");
+  sqlite.prepare("UPDATE projeto SET area = NULL, prioritario = 0, origem = ? WHERE prefeitura_id = ? AND id = ?").run(JSON.stringify({ aba: 'CADASTRO' }), 5208707, 'P-904');
+
+  const pasta = mkdtempSync('.tmp/carga-e1-');
+  t.after(() => rmSync(pasta, { recursive: true, force: true }));
+  cpSync('data/exemplo', pasta, { recursive: true });
+  const arquivo = join(pasta, 'carteira', 'carteira.json');
+  const dados = JSON.parse(readFileSync(arquivo, 'utf8')) as Carteira;
+  dados.projetos.find((p) => p.id === 'P-902')!.area = 'inexistente';
+  dados.projetos.find((p) => p.id === 'P-906')!.prioritario = false;
+  sqlite.exec("UPDATE projeto SET prioritario = 1 WHERE prefeitura_id = 5208707 AND id = 'P-906'");
+  writeFileSync(arquivo, JSON.stringify(dados), 'utf8');
+  const saida = join(pasta, 'carga.sql');
+  execFileSync(process.execPath, ['scripts/gerar-sql-carga.ts', '--dados', pasta, '--saida', saida, '--dialeto', 'sqlite']);
+  sqlite.exec(readFileSync(saida, 'utf8'));
+  assert.deepEqual(campos('P-900'), { area: 'esporte', prioritario: 1 });
+  assert.deepEqual(campos('P-902'), { area: 'esporte', prioritario: 1 });
+  assert.deepEqual(campos('P-904'), { area: null, prioritario: 0 });
+  assert.deepEqual(campos('P-906'), { area: 'saude', prioritario: 0 });
 });
 
 test('carga de planilha: nunca sobrescreve projeto cadastrado pela tela, mesmo com o mesmo código', () => {

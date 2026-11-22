@@ -19,8 +19,9 @@ import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync,
 import { basename, join, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { municipioAtivo } from '../src/lib/municipio-ativo.ts';
-import type { Carteira } from '../src/lib/carteira/tipos.ts';
+import type { Carteira, Projeto } from '../src/lib/carteira/tipos.ts';
 import { importarCarteira, lerCorrecoes } from './importar-carteira.ts';
+import { FAIXA_CADASTRO } from '../src/lib/carteira/movimentacao.ts';
 import { importarCronogramas } from './importar-cronogramas.ts';
 
 export type Destino = 'nenhum' | 'local' | 'remoto';
@@ -131,6 +132,10 @@ function recusarPastaPerigosa(pasta: string): void {
 
 // ---------- rotina ----------
 
+export function codigosNaFaixaDoCadastro(projetos: Pick<Projeto, 'codigo_legado'>[]): number[] {
+  return projetos.map((p) => p.codigo_legado).filter((codigo) => codigo >= FAIXA_CADASTRO).sort((a, b) => a - b);
+}
+
 export async function importarPlanilhas(op: OpcoesImportacao): Promise<ResumoImportacao> {
   const ibge = municipioAtivo().codigo_ibge;
   const pastaPlanilhas = resolve(op.planilhas);
@@ -147,6 +152,10 @@ export async function importarPlanilhas(op: OpcoesImportacao): Promise<ResumoImp
   mkdirSync(pastaDados, { recursive: true });
 
   const { carteira, relatorio: relCarteira } = await importarCarteira({ planilha: planilhaCarteira, saida: pastaDados, autor: op.autor, agora: op.agora, correcoes });
+  const codigosReservados = codigosNaFaixaDoCadastro(carteira.projetos);
+  if (codigosReservados.length) {
+    throw new Error(`A planilha usa código(s) da faixa reservada ao cadastro pela tela (${FAIXA_CADASTRO} ou mais): ${codigosReservados.join(', ')}. Nada foi gravado no banco. Renumere esses projetos na planilha.`);
+  }
   const rc = relCarteira as { codigos_repetidos?: ResumoImportacao['codigosRepetidos']; correcoes_nao_usadas?: unknown[] };
   const { relatorio: relCrono } = await importarCronogramas({ planilha: planilhaCronogramas, saida: pastaDados, carteira: join(pastaDados, 'carteira.json'), agora: op.agora });
 
@@ -180,6 +189,9 @@ export async function importarPlanilhas(op: OpcoesImportacao): Promise<ResumoImp
   let editados = new Set<string>();
   if (op.destino !== 'nenhum') {
     banco = `DB_PREFEITURA_${ibge}`;
+    const areasAtivas = new Set(consultar(banco, op.destino, `SELECT codigo FROM catalogo WHERE prefeitura_id = ${ibge} AND tipo = 'area' AND ativo = 1`).map((l) => String(l.codigo)));
+    const areasInvalidas = carteira.projetos.filter((p) => p.area != null && !areasAtivas.has(p.area)).map((p) => p.codigo_legado);
+    if (areasInvalidas.length) avisos.push(`${areasInvalidas.length} projeto(s) com área fora da lista da prefeitura (mantida a área anterior): códigos ${areasInvalidas.join(', ')}.`);
     const doBanco = new Map(consultar(banco, op.destino, `SELECT id, orgao FROM projeto WHERE prefeitura_id = ${ibge}`).map((l) => [String(l.id), { orgao: (l.orgao as string | null) ?? null }]));
     editados = new Set(consultar(banco, op.destino, `SELECT DISTINCT projeto_id FROM evento_projeto WHERE prefeitura_id = ${ibge} AND origem <> 'importacao'`).map((l) => String(l.projeto_id)));
     const idsCronogramas = new Set(consultar(banco, op.destino, `SELECT id FROM cronograma WHERE prefeitura_id = ${ibge}`).map((l) => String(l.id)));

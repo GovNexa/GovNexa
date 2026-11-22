@@ -94,6 +94,30 @@ before(async () => {
 
 after(() => rmSync(dir, { recursive: true, force: true }));
 
+test('importador: lê Área e Prioritário pelo cabeçalho exato; sem as colunas ficam nulos', async () => {
+  const resumo = (dados: typeof carteira) => dados.projetos.map(({ area, prioritario }) => [area, prioritario]);
+  assert.deepEqual(resumo(carteira), [[null, null], [null, null], [null, null]]);
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.readFile(planilha);
+  const aba = wb.getWorksheet('PIPELINE')!;
+  const inicio = aba.getRow(1).cellCount + 1;
+  for (const [indice, titulo] of ['Área sugerida', 'Prioritário antigo', 'Área', 'Prioritário'].entries()) {
+    aba.getRow(1).getCell(inicio + indice).value = titulo;
+  }
+  aba.getRow(2).getCell(inicio).value = 'Cultura';
+  aba.getRow(2).getCell(inicio + 1).value = 'Não';
+  aba.getRow(2).getCell(inicio + 2).value = 'Parques e Lazer';
+  aba.getRow(2).getCell(inicio + 3).value = 'Sim';
+  aba.getRow(3).getCell(inicio + 2).value = ' SAÚDE ';
+  aba.getRow(3).getCell(inicio + 3).value = 'Não';
+  aba.getRow(4).getCell(inicio).value = 'Cultura';
+  aba.getRow(4).getCell(inicio + 1).value = 'Sim';
+  const arquivo = join(dir, 'areas.xlsx');
+  await wb.xlsx.writeFile(arquivo);
+  const r = await importarCarteira({ planilha: arquivo, saida: join(dir, 'saida-areas') });
+  assert.deepEqual(resumo(r.carteira), [['parques_e_lazer', true], ['saude', false], [null, null]]);
+});
+
 test('projetos, linhas ignoradas e números em formatos diferentes', () => {
   assert.equal(carteira.projetos.length, 3);
   assert.equal(relatorio.abas.PIPELINE.ignoradas.length, 1);

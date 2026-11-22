@@ -78,10 +78,9 @@ test('D1: grava com parâmetros, valida regras e cria projeto com histórico', a
   assert.deepEqual(await repo.aplicar({...base, projeto_id:'ausente',tipo:'registrar_passo',descricao:'',data:''}),
    {ok:false,erro:'Projeto não encontrado.'});
   assert.equal((await repo.criarProjeto({nome:'',orgao:''},'')).ok,false);
-  const max = Math.max(...(await repo.listarProjetos()).map(p=>p.codigo_legado));
   const novo = await repo.criarProjeto({nome:malicioso,orgao: 'TESTE'},'');
   assert.ok(novo.ok);
-  assert.equal(novo.projeto.id, 'P-'+(max+1));
+  assert.equal(novo.projeto.id, 'P-9000');
   assert.equal((await repo.historico(novo.projeto.id))[0].tipo,'criado');
   assert.equal((await repo.obterProjeto(novo.projeto.id))!.compromisso,'ideia');
  } finally { sqlite.close(); }
@@ -154,10 +153,9 @@ test('D1: código legado considera somente a prefeitura corrente', async () => {
  const { sqlite, repo } = preparar();
  try {
   sqlite.exec("INSERT INTO prefeitura(id,nome,uf) VALUES(1,'',''); INSERT INTO projeto(prefeitura_id,id,nome,codigo_legado) VALUES(1,'outro','',999999)");
-  const max = Math.max(...(await repo.listarProjetos()).map(p=>p.codigo_legado));
   const novo = await repo.criarProjeto({nome:'Teste',orgao:'TESTE'},'');
   assert.ok(novo.ok);
-  assert.equal(novo.projeto.codigo_legado,max+1);
+  assert.equal(novo.projeto.codigo_legado,9000);
  } finally { sqlite.close(); }
 });
 test('D1: adaptador recusa escrita fora do batch', async () => {

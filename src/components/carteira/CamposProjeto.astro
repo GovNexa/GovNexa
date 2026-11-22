@@ -1,0 +1,87 @@
+---
+import type { Area } from '../../lib/carteira/area.ts';
+import { COMPROMISSOS_FORM, type blocosProjeto, type CampoFormulario } from '../../lib/carteira/formulario.ts';
+
+interface Props {
+  prefixo: string;
+  blocos: ReturnType<typeof blocosProjeto>;
+  valores?: Record<string, string | boolean | null>;
+  compromisso?: string | null;
+  sugestao?: Area | null;
+}
+
+const { prefixo, blocos, valores, compromisso = 'ideia', sugestao } = Astro.props;
+const descreve = (c: CampoFormulario) => [c.dica ? `${prefixo}-${c.id}-dica` : '', `${prefixo}-${c.id}-erro`].filter(Boolean).join(' ');
+---
+{blocos.map((b, i) => (
+  <>
+    <fieldset class="np-bloco">
+      <legend>{b.titulo}</legend>
+      {b.dica && <p class="np-dica">{b.dica}</p>}
+      <div class="np-grade">
+        {b.campos.map((c) => {
+          const v = valores?.[c.id] ?? '';
+          const opcoes = c.opcoesRotuladas ?? (c.opcoes ?? []).map((o) => ({ valor: o, nome: o }));
+          return (
+            <div class={`np-campo${c.largo ? ' np-largo' : ''}`}>
+              <label for={`${prefixo}-${c.id}`}>{c.rotulo}{c.obrigatorio ? ' (obrigatório)' : ''}</label>
+              {c.tipo === 'select' ? (
+                <select id={`${prefixo}-${c.id}`} name={c.id} aria-required={c.obrigatorio ? 'true' : undefined} aria-describedby={descreve(c)} data-outro-de={c.outro ? c.id : undefined}>
+                  <option value="" selected={v === ''}>{c.vazio ?? 'Escolha'}</option>
+                  {opcoes.map((o) => <option value={o.valor} selected={v === o.valor}>{o.nome}</option>)}
+                    {v !== '' && !opcoes.some((o) => o.valor === v) && <option value={String(v)} selected disabled={c.id === 'area'}>{v} (valor atual)</option>}
+                  {c.outro && <option value="__outro">Outro (digitar)</option>}
+                </select>
+              ) : c.tipo === 'area' ? (
+                <textarea id={`${prefixo}-${c.id}`} name={c.id} rows="3" aria-describedby={descreve(c)}>{String(v)}</textarea>
+              ) : (
+                <input
+                  id={`${prefixo}-${c.id}`}
+                  name={c.id}
+                  type={c.tipo === 'data' ? 'date' : c.tipo === 'numero' ? 'number' : c.tipo === 'marca' ? 'checkbox' : 'text'}
+                    value={c.tipo === 'marca' ? undefined : String(v)}
+                    checked={c.tipo === 'marca' ? v === true : undefined}
+                  min={c.tipo === 'numero' ? '0' : undefined}
+                  inputmode={c.tipo === 'reais' ? 'decimal' : c.tipo === 'numero' ? 'numeric' : undefined}
+                  list={c.lista ? `${prefixo}-${c.id}-lista` : undefined}
+                  autocomplete="off"
+                  aria-required={c.obrigatorio ? 'true' : undefined}
+                  aria-describedby={descreve(c)}
+                />
+              )}
+              {c.lista && <datalist id={`${prefixo}-${c.id}-lista`}>{c.lista.map((o) => <option value={o}></option>)}</datalist>}
+              {c.dica && <small class="np-dica" id={`${prefixo}-${c.id}-dica`}>{c.dica}</small>}
+              <small class="np-erro" id={`${prefixo}-${c.id}-erro`} hidden></small>
+              {c.id === 'area' && (
+                  <p class="np-dica" data-area-sugestao hidden={!sugestao}>
+                    <span>{sugestao ? `Sugestão pelo órgão: ${sugestao.nome}.` : ''}</span>{' '}
+                    <button type="button" class="secondary" data-area-usar>Usar a sugestão</button>
+                  </p>
+                )}
+                {c.outro && (
+                <div class="np-outro" data-outro={c.id} hidden>
+                  <label for={`${prefixo}-${c.id}-outro`}>{c.id === 'orgao' ? 'Qual é o órgão? (sigla)' : 'Qual é a origem do valor?'}</label>
+                  <input id={`${prefixo}-${c.id}-outro`} name={`${c.id}-outro`} type="text" autocomplete="off" aria-describedby={`${prefixo}-${c.id}-outro-erro`} />
+                  <small class="np-erro" id={`${prefixo}-${c.id}-outro-erro`} hidden></small>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </fieldset>
+    {i === 0 && (
+      <fieldset class="np-bloco">
+        <legend>2. Compromisso</legend>
+        <div class="np-radios">
+          {COMPROMISSOS_FORM.map((c) => (
+            <label class="np-radio">
+              <input type="radio" name="compromisso" value={c.valor} checked={c.valor === compromisso} />
+              <span><strong>{c.nome}</strong><br />{c.texto}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+    )}
+  </>
+))}

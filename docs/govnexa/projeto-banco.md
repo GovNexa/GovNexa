@@ -11,7 +11,7 @@ Este documento vale como regra de trabalho: toda entrega que crie ou use dados c
 | Banco | Guarda | Tabelas |
 | --- | --- | --- |
 | Central (`govnexa-central`) | Quem pode entrar e em qual prefeitura | `prefeitura`, `usuario`, `importacao`, `sessao`, `token_email`, `codigo_recuperacao`, `limite_tentativa`, `evento_acesso` |
-| Um por prefeitura (`govnexa-<código IBGE>`) | Os dados de trabalho daquela prefeitura | `prefeitura`, `projeto`, `evento_projeto`, `evento_sistema`, `cronograma`, `etapa_cronograma`, `projeto_foto`, `documento`, `tipo_documento`, visão `log_alteracoes` |
+| Um por prefeitura (`govnexa-<código IBGE>`) | Os dados de trabalho daquela prefeitura | `prefeitura`, `projeto`, `evento_projeto`, `evento_sistema`, `cronograma`, `etapa_cronograma`, `projeto_foto`, `documento`, `tipo_documento`, `catalogo` (E1, migração 0007 a aplicar), visão `log_alteracoes` |
 
 **O que já grava de verdade:** documentos do projeto (envio, tipo, remoção lógica), importação das planilhas, usuários e login.
 
@@ -78,7 +78,7 @@ Este documento vale como regra de trabalho: toda entrega que crie ou use dados c
 Tabelas novas e mudanças, agrupadas pela etapa do Fluxo que destravam. Tudo no banco da prefeitura; toda tabela começa por `prefeitura_id`.
 
 ### 4.1 Projeto (Fluxo: Cadastro, Movimentar, Portão)
-Sem tabela nova.
+- A migração 0007 acrescenta `projeto.area` (código opcional) e `projeto.prioritario` (0 ou 1, padrão 0). Os códigos dos projetos criados pela tela começam em 9000 (D3). A importação recusa uma planilha com códigos dessa faixa.
 - `projeto`: índice único em (`prefeitura_id`, `codigo_legado`), para dois cadastros simultâneos nunca receberem o mesmo código.
 - `evento_projeto`: índice em (`prefeitura_id`, `projeto_id`, `em`), para o histórico da página do projeto (feito na migração 0004).
 - `evento_sistema`: coluna calculada `projeto_id` (tirada de `detalhes`) com índice, pelo mesmo motivo (feito na migração 0004).
@@ -87,11 +87,9 @@ Sem tabela nova.
 ### 4.2 Catálogos (Fluxo: Cadastro)
 | Tabela | Chave | Campos |
 | --- | --- | --- |
-| `orgao` | `prefeitura_id`, `sigla` | nome, tipo (interno, externo), ativo |
-| `regiao` | `prefeitura_id`, `nome` | ativo |
-| `tipo_projeto` | `prefeitura_id`, `nome` | ativo |
+| `catalogo` | `prefeitura_id`, `tipo`, `codigo` | nome, ordem, ativo, criado_em |
 
-Carregadas com os valores que já existem na carteira. `projeto.orgao`, `regiao` e `tipo` continuam nas mesmas colunas, e um gatilho passa a recusar valor fora do catálogo. A importação da planilha acrescenta ao catálogo o valor novo antes de gravar o projeto e avisa no relatório.
+A migração 0007 usa uma tabela única para os tipos `area`, `orgao` e `regiao`. A E1 preenche o catálogo de áreas com a lista provisória. O projeto aceita apenas uma área ativa da própria prefeitura ao gravar ou trocar o código. O Resumo mostra o nome de uma área gravada mesmo após sua desativação. A sugestão pelo órgão precisa de confirmação na tela. Órgão e região ficam para B4.
 
 ### 4.3 Governança (Fluxo: Reunião semanal, Sala de guerra)
 | Tabela | Para quê | Vínculos |
@@ -138,7 +136,7 @@ Cada linha é um PR pequeno, com migração (se houver), rota, tela, testes, atu
 | --- | --- | --- |
 | B1 (feita; no ar desde 18/11/2026) | Página do projeto (leitura) e Localização gravando | Migração 0004: índices do histórico por projeto |
 | B2a (feita no código em 18/11/2026) | Novo projeto gravando (código único, histórico junto, repetição quando dois cadastros calculam o mesmo número) | Migração 0006: índice único do código |
-| B2b | Edição dos campos na página do projeto | — |
+| B2b (feita no código na E1) | Edição dos campos por revisão, com antes e depois no Histórico. Área e marca de prioritário também no Novo projeto e na importação | Migração 0007 a aplicar |
 | B3 | Kanban e Pendências de etapa gravando (movimentar, portão, motivo) | — |
 | B4 | Catálogos de órgão, região e tipo | 4.2 |
 | B5 | Reunião semanal e ações | `reuniao`, `reuniao_item`, `acao` |
@@ -150,7 +148,7 @@ A cada entrega: a etapa correspondente do Fluxo deixa de ser "simulação", o av
 
 ### Pendências registradas
 
-- Importação e cadastro pela tela: a carga de planilhas (`scripts/gerar-sql-carga.ts`) agora NUNCA sobrescreve um projeto de origem CADASTRO. Fica a decisão do dono: se a planilha trouxer o mesmo código de um projeto cadastrado pela tela, o projeto da planilha é ignorado em silêncio. Definir uma faixa de códigos separada para a tela, ou um aviso no relatório da importação, antes da próxima planilha.
+- Importação e cadastro pela tela: a D3 reserva os códigos a partir de 9000 ao cadastro pela tela. A importação recusa planilhas com código nessa faixa e a carga preserva projetos de origem CADASTRO.
 
 - A validação da localização aceita pontos em Goiânia e no entorno, até cerca de 10 km além do retângulo da cidade (`src/lib/mapa/geo.ts`; regra do dono, 18/11/2026: obra na divisa ou em acordo com cidade vizinha). O limite ainda é fixo no código: antes de uma segunda prefeitura usar o sistema, o retângulo e a margem precisam vir do cadastro da prefeitura.
 - Cópia de segurança por exportação do banco: conferir, antes de depender dela, se a exportação e a importação lidam com a coluna calculada da migração 0004.

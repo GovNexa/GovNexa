@@ -2,12 +2,14 @@
 // Página do projeto (entrega B1): tudo o que o sistema sabe de UM projeto, lido direto do banco.
 // Leituras: o projeto, o histórico dele (por índice) e os documentos. Cronograma e origem vêm do contexto já carregado.
 import Platform from '../../../layouts/Platform.astro';
+import EditarProjeto from '../../../components/carteira/EditarProjeto.astro';
+import { areasDaPrefeitura } from '../../../lib/carteira/area.ts';
 import { carregarCarteira } from '../../../lib/carteira/carga.ts';
 import { detalheProjeto } from '../../../lib/carteira/modulos.ts';
 import { nomeMacroetapa } from '../../../lib/carteira/macroetapas.ts';
 import { ID_PROJETO } from '../../../lib/documentos/regras.ts';
 import { dataHoraBr } from '../../../lib/datas.ts';
-import { maisRecentes, resumoRegistro, rotuloAcao, rotuloOrigem } from '../../../lib/log/visoes.ts';
+import { resumoRegistro, rotuloAcao, rotuloOrigem } from '../../../lib/log/visoes.ts';
 import type { RegistroLog } from '../../../lib/log/tipos.ts';
 import { validarLocalizacao } from '../../../lib/mapa/geo.ts';
 import { carregarGeoBairros } from '../../../lib/mapa/obras.ts';
@@ -17,11 +19,18 @@ export const prerender = false;
 
 const id = String(Astro.params.id ?? '');
 const repo = Astro.locals.repositorio;
-const projeto = ID_PROJETO.test(id) ? await repo.obterProjeto(id) : null;
-if (!projeto) return new Response('Página não encontrada', { status: 404 });
+const dados = ID_PROJETO.test(id)
+  ? repo.obterProjetoComRevisao ? await repo.obterProjetoComRevisao(id) : { projeto: await repo.obterProjeto(id), revisao: null }
+  : null;
+if (!dados?.projeto) return new Response('Página não encontrada', { status: 404 });
+const { projeto, revisao } = dados;
 
-const fonte = carregarCarteira().fonte;
-const ficha = detalheProjeto(projeto, fonte.ficticio, fonte.arquivo, fonte.importado_em);
+const { fonte, projetos } = carregarCarteira();
+const areas = repo.listarAreas || fonte.ficticio ? await areasDaPrefeitura(repo) : [];
+const todasAreas = repo.listarAreas ? await repo.listarAreas(true) : areas;
+const ficha = detalheProjeto(projeto, fonte.ficticio, fonte.arquivo, fonte.importado_em, todasAreas, areas);
+const unicos = (valores: (string | null | undefined)[]) =>
+  [...new Set(valores.map((v) => (v ?? '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
 const voltaCandidato = Astro.url.searchParams.get('volta');
 let voltaMapa: string | null = null;
 if (voltaCandidato?.startsWith('/plataforma/gestao/')) {
@@ -43,6 +52,7 @@ const local = projeto.localizacao && validarLocalizacao(projeto.localizacao).len
 const bairroNoMapa = !!(projeto.bairro && carregarGeoBairros().bairros[projeto.bairro.trim()]?.encontrado);
 const situacaoLocal = local ? `Cadastrada: ${resumoLocalizacao(local)}` : bairroNoMapa ? `Aproximada pelo centro do bairro ${projeto.bairro}` : 'Sem localização no mapa';
 const podeEditar = usuarioPode(Astro.locals.usuario, 'editar_projeto');
+const podeEditarCampos = podeEditar && repo.podeGravar && !!repo.editarProjeto && revisao !== null;
 
 const documentos = repo.documentos ? await repo.documentos.listar(projeto.id) : [];
 const contagem: Record<string, number> = repo.documentos ? await repo.documentos.contarPorTipo(projeto.id) : {};
@@ -50,7 +60,7 @@ const nomesTipos: Record<string, string> = repo.documentos ? await repo.document
 const porTipo = Object.entries(contagem).map(([c, n]) => `${c ? nomesTipos[c] ?? c : 'Sem tipo'}: ${n}`);
 
 const LIMITE_HISTORICO = 50;
-const historico = maisRecentes((await repo.historico(projeto.id)) as RegistroLog[]);
+const historico = (await repo.historico(projeto.id) as RegistroLog[]).slice().reverse();
 const visiveis = historico.slice(0, LIMITE_HISTORICO);
 ---
 <Platform title="Projeto" slug="projetos-carteira">
@@ -59,6 +69,8 @@ const visiveis = historico.slice(0, LIMITE_HISTORICO);
     <h1 class="pj-titulo">{projeto.id} · {projeto.nome}</h1>
     <p class="muted">{nomeMacroetapa(projeto.macroetapa)} · {projeto.orgao ?? 'Órgão não informado'}</p>
   </div></div>
+
+  {Astro.url.searchParams.get('salvo') === '1' && <p class="cart-aviso" role="status" data-pj-salvo>Alterações salvas e registradas no Histórico.</p>}
 
   <div class="pj-grade">
     {secoes.map((s, n) => (
@@ -95,6 +107,12 @@ const visiveis = historico.slice(0, LIMITE_HISTORICO);
     )}
   </div>
 
+  {podeEditarCampos && revisao !== null && <EditarProjeto
+    projeto={projeto} revisao={revisao} areas={areas}
+    orgaos={unicos(projetos.map((p) => p.orgao))} regioes={unicos(projetos.map((p) => p.regiao))}
+    origensValor={unicos(projetos.map((p) => p.origem_valor))} detalhamentos={unicos(projetos.map((p) => p.detalhamento))}
+  />}
+
   <section class="card pj-bloco pj-historico" aria-labelledby="pj-hist">
     <h2 id="pj-hist">Histórico</h2>
     {visiveis.length === 0 ? <p>Nenhuma alteração registrada ainda.</p> : (
@@ -117,6 +135,8 @@ const visiveis = historico.slice(0, LIMITE_HISTORICO);
   .pj-grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr));gap:1rem;align-items:start;margin-bottom:1rem}
   .pj-bloco{margin:0;min-width:0}
   .pj-bloco h2{margin-top:0;font-size:1.05rem}
+  :global(.pj-editar){margin:0 0 1rem;min-width:0}
+  :global(.pj-editar summary h2){display:inline;margin:0;font-size:1.05rem}
   .pj-lista{margin:0;display:grid;gap:.35rem}
   .pj-lista div{display:flex;flex-wrap:wrap;gap:.15rem .6rem;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:.3rem}
   .pj-lista div:last-child{border-bottom:0}

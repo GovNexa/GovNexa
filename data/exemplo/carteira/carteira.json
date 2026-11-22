@@ -92,6 +92,8 @@
   },
   {
    "id": "P-901",
+   "area": "saude",
+   "prioritario": true,
    "codigo_legado": 901,
    "nome": "Ponte Exemplo B",
    "orgao": "SMS",
@@ -177,6 +179,7 @@
   },
   {
    "id": "P-902",
+   "area": "educacao",
    "codigo_legado": 902,
    "nome": "Corredor Exemplo C",
    "orgao": "SME",
@@ -345,6 +348,8 @@
   },
   {
    "id": "P-904",
+   "area": "cultura",
+   "prioritario": true,
    "codigo_legado": 904,
    "nome": "Drenagem Exemplo E",
    "orgao": "SECULT",
@@ -523,6 +528,7 @@
   },
   {
    "id": "P-906",
+   "area": "saude",
    "codigo_legado": 906,
    "nome": "Centro Comunitário Exemplo G",
    "orgao": "SMS",
@@ -861,6 +867,7 @@
   },
   {
    "id": "P-910",
+   "area": "drenagem",
    "codigo_legado": 910,
    "nome": "Corredor Exemplo K",
    "orgao": "SEINFRA",
