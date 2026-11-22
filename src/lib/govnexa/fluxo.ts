@@ -35,6 +35,7 @@ export const RAIAS: { id: Raia; nome: string; descricao: string }[] = [
 
 const T = {
   inicio: { rotulo: 'Projetos · Início', url: '/plataforma/projetos/' },
+  prioritarios: { rotulo: 'Projetos prioritários (tela inicial)', url: '/plataforma/' },
   carteira: { rotulo: 'Carteira de projetos', url: '/plataforma/projetos-carteira/' },
   kanban: { rotulo: 'Kanban por macroetapa', url: '/plataforma/projetos-kanban/' },
   gantt: { rotulo: 'Gantt geral', url: '/plataforma/projetos-gantt/' },
@@ -191,7 +192,7 @@ export const NOS: NoFluxo[] = [
   { id: 'painel', raia: 'gestao', linha: 12, tipo: 'tarefa', titulo: 'Painel do prefeito',
     oQue: 'Foto atual de todos os módulos: etapa de cada projeto, licitações (empresa, colocação, valor, 2ª colocada), medições e previsões; histórico a um clique; depois, WhatsApp.',
     valida: ['Somente leitura', 'Totais conciliados', 'Mapa das obras: ícone por tipo, trechos de rua, resumo ao tocar'], quem: 'Prefeito; gabinete',
-    situacao: 'disponivel', fase: 'Fase 4 (foto atual com os dados de hoje; licitações em detalhe na Fase 4)', telas: [T.gestao, T.orgaos, T.inicio, T.localizacao] },
+    situacao: 'disponivel', fase: 'Fase 4 (foto atual com os dados de hoje; licitações em detalhe na Fase 4)', telas: [T.prioritarios, T.gestao, T.orgaos, T.inicio, T.localizacao] },
   { id: 'whatsapp', raia: 'gestao', linha: 13, tipo: 'tarefa', titulo: 'Relatórios e perguntas pelo WhatsApp',
     oQue: 'Números autorizados recebem o relatório dos projetos prioritários (semanal ou diário) e perguntam sobre projetos, SEI, prazos e convênios; cada número vê só o que a sua permissão libera.',
     valida: ['Permissão por número: órgãos, prioridade, valores e captação', 'Filtro aplicado antes de montar a resposta (e antes da IA, na versão real)', 'Modelos de mensagem aprovados pela Meta; o número precisa aceitar receber'], quem: 'Prefeito; gabinete; secretários; equipe',
