@@ -125,6 +125,7 @@ São módulos independentes que conversam entre si:
 
 - 22/11/2026: E5, Carteira de projetos com grandes números, colunas do relatório, filtros com "Só prioritários", grupos por macroetapa e impressão; a Visão por órgão foi incorporada (branch agente/codex/e5-carteira; aguardando revisão).
 - 22/11/2026: E2, padrão visual das telas de Projetos (fundo claro e neutro nos dois temas) e filtros padrão, aplicados no Gantt geral (branch agente/codex/e2-filtros; aguardando revisão).
+- 22/11/2026: E3, tela inicial do prefeito "Projetos prioritários": obras por área, quantidade e valor por etapa, linha do tempo de entregas até dez/2028, próximas entregas e principais obras; todo número vira filtro no endereço; sem farol, prazos, decisões e convênios (branch agente/codex/e3-prefeito; aguardando prévia do dono e revisão).
 
 17/11: login próprio com senha e 2FA publicado e ligado em produção (`LOGIN_MODO=senha`); convites enviados aos administradores; Cloudflare Access retirado da plataforma.
 
@@ -169,6 +170,8 @@ Legenda: **Disponível** = leitura ou operação disponível. **Simulação** = 
 Guia Usuários: cadastro, convite por e-mail, reenvio, perfil, ativação e redefinição do aplicativo, só para administradores da mesma prefeitura. Login próprio: senha, aplicativo autenticador obrigatório e recuperação de senha. Disponíveis no código, aguardando publicação e validação da interface; envio local simulado.
 
 ### Dashboard: efeitos, alertas e atualização automática
+
+Desde a E3 (22/11/2026) este painel não é mais a tela inicial; o que está descrito abaixo volta no painel da equipe (E10).
 
 Os dez cartões entram em sequência e contam até o valor calculado em cerca de 800 ms quando visíveis. Sem JavaScript, com movimento reduzido ou na impressão, os valores finais permanecem disponíveis. Campos ausentes continuam “—”. Críticos têm indicador com ícone e texto e faixa de até três links; atenção usa indicador estático. Hover e foco explicam o cálculo, também disponível no painel, cujo esqueleto dura 240 ms.
 
@@ -233,7 +236,8 @@ Código: `src/lib/dados/`, `src/lib/projetos/`, `coletores/`. Detalhes em [docs/
 
 | Guia | O que faz | Situação |
 | --- | --- | --- |
-| Início / Gestão · Dashboard do prefeito | Visão geral com 10 indicadores calculados, filtros por URL, painel de detalhamento em três níveis, mapa das obras (amplia para a apresentação do mapa), funil, decisões pendentes, valores regionais e modo apresentação | Disponível |
+| Início · Projetos prioritários | Tela do prefeito: obras por área, quantidade e valor por etapa (as partes somam o total), linha do tempo de entregas por área até dez/2028, próximas entregas e principais obras; todo número vira filtro guardado no endereço; "Só prioritários"; região só como filtro opcional. Sem farol, prazos, "onde está parado", decisões pendentes e convênios | Disponível no código (E3) |
+| Painel antigo (10 indicadores, farol, decisões, convênios, mapa compacto) | Saiu da tela inicial na E3; o código continua (`DashboardPrefeito.astro`, `src/lib/gestao/dashboard.ts`) e volta no painel da equipe (E10) | Fora da tela até a E10 |
 | Gestão · Painel | Foto atual da carteira e dos recursos e mapa das obras | Disponível |
 | Alertas | Central de alertas de convênios, contratação, obras, saldo sem fonte, etapas paradas e dados desatualizados | Disponível |
 | WhatsApp | Permissões por cargo, relatórios, perguntas e modelos para aprovação da Meta | Simulação; envio real depende do banco e da conta do WhatsApp Business |
@@ -293,6 +297,7 @@ Os pedidos vêm dos áudios do dono, da reunião com a equipe e das planilhas.
 | Medir tempo e volume por colaborador | Fase 2 e Fase 5 | A fazer |
 | IA para proposta, ETP e minutas | Fase 5 | A fazer, sem IA no MVP |
 | Orçamento por SINAPI e GOINFRA | Fase 5 | A fazer |
+| Tela inicial "Projetos prioritários" no layout do croqui, números que viram filtro, próximas entregas e principais obras (áudios A01, A03, A09, A11, A12, A13, A14) | Início (/plataforma/) | Feito no código (E3), aguardando aprovação do dono |
 
 ## 6. O que funciona de verdade e o que é simulação
 
@@ -406,6 +411,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Banco de dados (17/11/2026):** toda entrega que crie ou use dados segue `docs/govnexa/projeto-banco.md`: estudar e projetar antes de criar; um só caminho de gravação (tela, rota, serviço, repositório, banco); integridade garantida pelo banco; histórico junto com a gravação; e a ordem das entregas segue o Fluxo (B1 a B8).
 - **Limite da localização (18/11/2026):** a localização de um projeto aceita pontos em Goiânia e no entorno, até cerca de 10 km além do retângulo da cidade, porque a prefeitura pode ter obra na divisa ou em acordo com cidade vizinha. O limite ainda é fixo no código (`src/lib/mapa/geo.ts`); para uma segunda prefeitura, passa a vir do cadastro da prefeitura.
 - **Animações do site (17/11/2026):** biblioteca `gsap` 3.13.0, empacotada no próprio site. A licença é a padrão da GSAP, gratuita para uso comercial, mas não é de código aberto.
+- **Tela do prefeito (22/11/2026, E3):** saem farol, prazos, "onde está parado", decisões pendentes, convênios, valores por região e o mapa compacto (volta por área na E4); Mobilização conta em Execução; Concluídas e Sem macroetapa aparecem como linha própria só quando existem; a área mostrada usa a sugestão pelo órgão quando o projeto não tem área gravada; Principais obras = prioritárias primeiro, depois as de maior valor; linha do tempo do mês atual até dez/2028, com 6 áreas em cor, "Outros" e "Sem área" em cinza.
 
 ## 8. Pendências e próximos passos
 
@@ -433,6 +439,7 @@ Centros dos bairros: migração 0005 e carga publicadas em 18/11/2026. Parte dos
 6. Logo definitiva do GovNexa: trocar a versão provisória de `src/components/LogoGovNexa.astro`.
 7. Teste "mapa das obras" no Safari (WebKit): falha também na main (marcadores não aparecem após "Cidade inteira" + zoom); investigar à parte. No Chrome passa.
 8. Melhorias de segurança sem falha conhecida: retirar `'unsafe-inline'` da política de scripts (CSP) e redirecionar `www.govnexa.com.br` para o endereço sem www.
+9. **Depois da E3:** a E10 reativa os testes de tela do painel antigo (`tests/dashboard.spec.ts`, `dashboard-efeitos.spec.ts`, `dashboard-mapa.spec.ts`, pulados na E3) na rota do painel da equipe; a E4 traz o mapa por área para a tela inicial.
 
 ## 9. Como rodar no computador
 

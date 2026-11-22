@@ -1,0 +1,63 @@
+/* E3: tela do prefeito "Projetos prioritários". Fundo claro e neutro nos dois temas, cor só na informação, sem rolagem horizontal. */
+/* Cores das áreas: paleta categórica validada (6 cores, ordem fixa; a cor segue a área, não a posição). Cinza = Outros e Sem área. */
+:root{--pp-fundo:#F7F9FA;--pp-superficie:#FFFFFF;--pp-suave:#F1F4F6;--pp-borda:#D5DDE0;--pp-texto:#1E3438;--pp-texto-suave:#4A5C5A;--pp-etapa:#2a78d6;--pp-cor-1:#2a78d6;--pp-cor-2:#eb6834;--pp-cor-3:#1baf7a;--pp-cor-4:#eda100;--pp-cor-5:#e87ba4;--pp-cor-6:#6250d6;--pp-cor-outros:#8a9599;--pp-cor-sem:#c3cacd}
+:root[data-theme=dark]{--pp-fundo:#0B1F2A;--pp-superficie:#102A37;--pp-suave:#143240;--pp-borda:#2A4A59;--pp-texto:#E6EFF2;--pp-texto-suave:#B4C5CA;--pp-etapa:#3987e5;--pp-cor-1:#3987e5;--pp-cor-2:#d95926;--pp-cor-3:#199e70;--pp-cor-4:#c98500;--pp-cor-5:#d55181;--pp-cor-6:#9085e9;--pp-cor-outros:#7d8b91;--pp-cor-sem:#4f646d}
+.workspace:has(.pp){background:var(--pp-fundo)}
+.workspace:has(.pp)::before{display:none}
+.pp{--surface:var(--pp-superficie);--soft:var(--pp-suave);--line:var(--pp-borda);--text:var(--pp-texto);--muted:var(--pp-texto-suave);color:var(--text);display:grid;gap:1rem;min-width:0;width:100%;max-width:1600px;margin:0 auto}
+.pp h1{font-size:clamp(1.5rem,2.4vw,2rem);margin:.1rem 0}
+.pp h2{font-size:1.05rem;margin:0 0 .5rem}
+.pp-sobretitulo,.pp-atualizado,.pp-nota{margin:0;color:var(--muted);font-size:.85rem;max-width:none}
+.pp-filtros{display:flex;flex-wrap:wrap;gap:.5rem .75rem;align-items:end;padding:.75rem;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.pp-filtros label{flex:1 1 10rem;min-width:0;font-size:.85rem}
+.pp-filtros select{min-height:44px;max-width:100%}
+.pp-filtros .pp-marca{flex:0 0 auto;display:flex;align-items:center;gap:.5rem;min-height:44px}
+.pp-marca input{width:24px;height:24px;margin:0;padding:0}
+.pp-filtros button{min-height:44px}
+.pp-chips{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:.5rem}
+.pp-chips a{display:inline-flex;align-items:center;gap:.35rem;min-height:36px;padding:.25rem .75rem;border:1px solid var(--line);border-radius:999px;background:var(--surface);text-decoration:none;font-size:.85rem}
+.pp-avisos{list-style:none;margin:.5rem 0 0;padding:.5rem .75rem;border-left:3px solid var(--pp-cor-4);background:var(--soft);font-size:.85rem}
+.pp-grade{display:grid;gap:1rem;grid-template-columns:repeat(3,minmax(0,1fr))}
+.pp-quadro{min-width:0;padding:1rem;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.pp-grande{margin:0 0 .5rem;color:var(--muted)}
+.pp-grande strong{font-size:clamp(1.8rem,3vw,2.6rem);line-height:1.1;color:var(--text);font-variant-numeric:tabular-nums}
+.pp-linhas{list-style:none;margin:0;padding:0;display:grid;gap:.25rem}
+.pp-linhas a{display:grid;grid-template-columns:minmax(0,9rem) minmax(0,1fr) auto;gap:.5rem;align-items:center;min-height:36px;padding:.2rem .4rem;border-radius:8px;text-decoration:none;color:var(--text)}
+.pp-linhas a:hover{background:var(--soft)}
+.pp-linhas a[aria-current=true]{background:var(--soft);outline:2px solid var(--text);outline-offset:-2px;font-weight:600}
+.pp-nome{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.9rem}
+.pp-num{font-variant-numeric:tabular-nums;font-size:.9rem;text-align:right;white-space:nowrap}
+.pp-barra{display:block;width:100%;height:10px;background:var(--soft);border-radius:2px}
+.pp-cor-etapa{fill:var(--pp-etapa)}
+.pp-cor-1{fill:var(--pp-cor-1);background:var(--pp-cor-1)}
+.pp-cor-2{fill:var(--pp-cor-2);background:var(--pp-cor-2)}
+.pp-cor-3{fill:var(--pp-cor-3);background:var(--pp-cor-3)}
+.pp-cor-4{fill:var(--pp-cor-4);background:var(--pp-cor-4)}
+.pp-cor-5{fill:var(--pp-cor-5);background:var(--pp-cor-5)}
+.pp-cor-6{fill:var(--pp-cor-6);background:var(--pp-cor-6)}
+.pp-cor-outros{fill:var(--pp-cor-outros);background:var(--pp-cor-outros)}
+.pp-cor-sem{fill:var(--pp-cor-sem);background:var(--pp-cor-sem)}
+.pp-amostra{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:.4rem;flex:0 0 auto}
+.pp-legenda{list-style:none;margin:0 0 .5rem;padding:0;display:flex;flex-wrap:wrap;gap:.25rem 1rem;font-size:.85rem}
+.pp-legenda a,.pp-legenda span{display:inline-flex;align-items:center;min-height:32px;color:var(--text)}
+.pp-grafico{margin:0;min-width:0}
+.pp-colunas{display:block;width:100%;height:clamp(120px,22vh,200px);border-bottom:1px solid var(--line)}
+.pp-colunas rect{stroke:var(--pp-superficie);stroke-width:2px;vector-effect:non-scaling-stroke}
+.pp-eixo{display:grid;grid-template-columns:repeat(var(--pp-meses),minmax(0,1fr));overflow:hidden;min-height:1.3rem;font-size:.75rem;color:var(--muted)}
+.pp-eixo span{white-space:nowrap;overflow:visible}
+.pp-numeros summary{min-height:44px;display:flex;align-items:center}
+.pp-numeros ul{list-style:none;margin:.25rem 0 0;padding:0;display:grid;gap:.25rem;font-size:.85rem}
+.pp-numeros li{display:flex;flex-wrap:wrap;gap:.25rem .75rem}
+.pp-numeros a{min-height:24px;color:var(--text)}
+.pp-numeros li span{color:var(--muted)}
+.pp-listas{display:grid;gap:1rem;grid-template-columns:repeat(2,minmax(0,1fr))}
+.pp-itens{list-style:none;margin:0;padding:0;display:grid;gap:.25rem}
+.pp-itens li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 .75rem;padding:.35rem 0;border-bottom:1px solid var(--line)}
+.pp-itens li>a{grid-column:1;font-weight:600;overflow-wrap:anywhere;color:var(--text)}
+.pp-sub{grid-column:1;color:var(--muted);font-size:.8rem;overflow-wrap:anywhere}
+.pp-data{grid-column:2;grid-row:1/span 2;align-self:center;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-size:.9rem}
+.pp-vazio,.pp-aviso-zero{margin:0;color:var(--muted);max-width:none}
+.pp-vazio-geral{padding:1.5rem;border:1px dashed var(--line);border-radius:12px;background:var(--surface)}
+@media(max-width:1099px){.pp-grade{grid-template-columns:repeat(2,minmax(0,1fr))}.pp-areas{grid-column:1/-1}}
+@media(max-width:699px){.pp-grade,.pp-listas{grid-template-columns:minmax(0,1fr)}.pp-linhas a{grid-template-columns:minmax(0,7rem) minmax(0,1fr) auto}.pp-filtros label{flex-basis:100%}}
+@media print{.pp-filtros,.pp-chips{display:none}.workspace:has(.pp){background:#fff}}

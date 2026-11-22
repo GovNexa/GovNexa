@@ -1,6 +1,11 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
+// E3 (22/11/2026): a tela inicial virou "Projetos prioritários". O painel antigo (farol, prazos, convênios) continua no código
+// (src/components/dashboard/DashboardPrefeito.astro e src/lib/gestao/dashboard.ts) e volta no painel da equipe na E10,
+// que reativa estes testes apontando para a nova rota. Os testes unitários de dashboard.ts continuam no test:dados.
+test.skip(() => true, 'Painel antigo fora da tela inicial desde a E3; reativar na E10 (painel da equipe).');
+
 for (const reducedMotion of ['reduce', 'no-preference'] as const) {
   test(`valores finais com movimento ${reducedMotion}`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion });
