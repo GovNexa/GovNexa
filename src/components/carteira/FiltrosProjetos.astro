@@ -1,0 +1,92 @@
+---
+// Filtros padrão das telas de Projetos (E2). Formulário GET: o endereço guarda o estado. Reutilizar em E3, E5 e E7.
+import { MACROETAPAS } from '../../lib/carteira/macroetapas.ts';
+import { filtrosAtivos, type FiltrosProjetos, type OpcoesFiltros } from '../../lib/carteira/filtros.ts';
+
+interface Props {
+  filtros: FiltrosProjetos;
+  opcoes: OpcoesFiltros;
+  avisos?: string[];
+  rotulo?: string;
+}
+const { filtros, opcoes, avisos = [], rotulo = 'Filtros dos projetos' } = Astro.props;
+const acao = Astro.url.pathname;
+const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+const [deAno = '', deMes = ''] = filtros.de ? filtros.de.split('-') : [];
+const [ateAno = '', ateMes = ''] = filtros.ate ? filtros.ate.split('-') : [];
+const anos = [...new Set([...opcoes.anos, ...[deAno, ateAno].filter(Boolean).map(Number)])].sort((a, b) => a - b);
+const temArea = (opcoes.areas?.length ?? 0) > 0;
+const ativos = filtrosAtivos(filtros);
+const mesValor = (i: number) => String(i + 1).padStart(2, '0');
+---
+<form class="fp" method="get" action={acao} role="search" aria-label={rotulo} autocomplete="off" data-filtros-projetos data-astro-reload>
+  <div class="fp-campos">
+    <label class="fp-busca">Buscar pelo nome
+      <input type="search" name="q" value={filtros.busca} maxlength="80" placeholder="Parte do nome do projeto" />
+    </label>
+    <label>Órgão
+      <select name="orgao">
+        <option value="">Todos</option>
+        {opcoes.orgaos.map((o) => <option value={o} selected={o === filtros.orgao}>{o}</option>)}
+      </select>
+    </label>
+    {temArea && (
+      <label>Área
+        <select name="area">
+          <option value="">Todas</option>
+          {opcoes.areas!.map((a) => <option value={a} selected={a === filtros.area}>{a}</option>)}
+        </select>
+      </label>
+    )}
+    <label>Macroetapa
+      <select name="macro">
+        <option value="">Todas</option>
+        {MACROETAPAS.map((m) => <option value={m.codigo} selected={m.codigo === filtros.macro}>{m.rotulo}</option>)}
+        <option value="sem" selected={filtros.macro === 'sem'}>Sem macroetapa</option>
+      </select>
+    </label>
+    <fieldset class="fp-periodo">
+      <legend>Entrega a partir de</legend>
+      <label>Mês inicial
+        <select name="de_mes"><option value="">Qualquer</option>{MESES.map((n, i) => <option value={mesValor(i)} selected={mesValor(i) === deMes}>{n}</option>)}</select>
+      </label>
+      <label>Ano inicial
+        <select name="de_ano"><option value="">Qualquer</option>{anos.map((a) => <option value={String(a)} selected={String(a) === deAno}>{a}</option>)}</select>
+      </label>
+    </fieldset>
+    <fieldset class="fp-periodo">
+      <legend>Entrega até</legend>
+      <label>Mês final
+        <select name="ate_mes"><option value="">Qualquer</option>{MESES.map((n, i) => <option value={mesValor(i)} selected={mesValor(i) === ateMes}>{n}</option>)}</select>
+      </label>
+      <label>Ano final
+        <select name="ate_ano"><option value="">Qualquer</option>{anos.map((a) => <option value={String(a)} selected={String(a) === ateAno}>{a}</option>)}</select>
+      </label>
+    </fieldset>
+  </div>
+  <div class="fp-acoes">
+    <button type="submit" class="primary">Aplicar filtros</button>
+    {ativos && <a class="button secondary" href={acao} data-astro-reload>Limpar filtros</a>}
+  </div>
+  {avisos.length > 0 && <ul class="fp-avisos" role="status" data-fp-avisos>{avisos.map((a) => <li>{a}</li>)}</ul>}
+</form>
+<script>
+// Ao voltar pelo navegador (página restaurada do cache), os campos voltam a mostrar o filtro do endereço.
+function prepararFiltros() {
+  document.querySelectorAll<HTMLFormElement>('form[data-filtros-projetos]').forEach((form) => {
+    if (form.dataset.fpPronto === '1') return;
+    form.dataset.fpPronto = '1';
+    window.addEventListener('pageshow', () => {
+      form.querySelectorAll<HTMLInputElement | HTMLSelectElement>('[name]').forEach((c) => { c.disabled = false; });
+      form.reset();
+    });
+    form.addEventListener('submit', () => {
+      form.querySelectorAll<HTMLInputElement | HTMLSelectElement>('input[name], select[name]').forEach((campo) => {
+        if (!campo.value.trim()) campo.disabled = true;
+      });
+    });
+  });
+}
+document.addEventListener('astro:page-load', prepararFiltros);
+prepararFiltros();
+</script>

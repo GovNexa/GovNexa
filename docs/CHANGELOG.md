@@ -1,5 +1,11 @@
 # Changelog
 
+## E2: padrão visual e filtros (22/11/2026)
+- Telas de Projetos com fundo claro e neutro nos temas claro e escuro; cor só na informação. Menu lateral e login sem mudança.
+- Novo componente de filtros (`FiltrosProjetos.astro`): nome, órgão, área (aparece quando a carteira tiver área), macroetapa e período de entrega (mês e ano de início e de fim). O filtro fica no endereço: dá para compartilhar o link e voltar pelo navegador.
+- Nova função pura `src/lib/carteira/filtros.ts`: filtragem e ordem da entrega mais próxima para a mais distante (sem data por último), com testes.
+- Gantt geral usa o componente e a nova ordem; mostra a data de entrega de cada projeto. Carteira, Kanban e Visão por órgão não mudaram (ficam para E5 e E7).
+
 ## Plano dos requisitos dos áudios (22/11/2026)
 - Novo `docs/govnexa/plano-requisitos-audios.md`: 34 pedidos rastreados por áudio, situação de hoje, entregas E1 a E14 com dependências, banco, executor e %, decisões D1 a D6 e critérios de aceite (funcionar com base carregada e do zero). Só documentação; nenhum código mudou.
 

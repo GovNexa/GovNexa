@@ -68,6 +68,7 @@
 .vo-macro td.num,.vo-macro th.num{text-align:right;white-space:nowrap}
 @media print{
  :root,:root[data-theme=dark]{--bg:#fff;--surface:#fff;--soft:#eee;--text:#000;--muted:#222;--line:#888}
+ .fp{display:none!important}
  .sidebar,.appbar,.app-footer,.notice,.skip,#toast,button,.cart-filtros,.cart-nao-imprimir{display:none!important}
  .platform{display:block!important}
  .workspace{padding:0!important}
@@ -473,3 +474,20 @@
  .ru-impressao table{width:100%;border-collapse:collapse;margin-top:2mm}
  .ru-impressao th,.ru-impressao td{border:1px solid #888;padding:1mm 2mm;text-align:left;color:#000}
 }
+/* E2: padrão visual das telas de Projetos (fundo claro e neutro, cor só na informação) e filtros padrão */
+:root{--prj-fundo:#F7F9FA;--prj-superficie:#FFFFFF;--prj-suave:#F1F4F6;--prj-borda:#D5DDE0;--prj-texto:#1E3438;--prj-texto-suave:#4A5C5A}
+:root[data-theme=dark]{--prj-fundo:#0B1F2A;--prj-superficie:#102A37;--prj-suave:#143240;--prj-borda:#2A4A59;--prj-texto:#E6EFF2;--prj-texto-suave:#B4C5CA}
+.workspace[data-current-module=projetos]{background:var(--prj-fundo);--surface:var(--prj-superficie);--soft:var(--prj-suave);--line:var(--prj-borda);--text:var(--prj-texto);--muted:var(--prj-texto-suave);color:var(--text)}
+.workspace[data-current-module=projetos]::before{display:none}
+.fp{display:grid;gap:.75rem;margin:0 0 1rem;padding:1rem;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.fp-campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));gap:.75rem;align-items:end}
+.fp-busca{grid-column:1/-1}
+.fp label{font-size:.85rem;min-width:0}
+.fp fieldset{border:0;margin:0;padding:0;min-width:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}
+.fp legend{font-size:.85rem;font-weight:600;padding:0;margin:0 0 .25rem}
+.fp input,.fp select{min-height:44px;min-width:0;max-width:100%}
+.fp-acoes{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.fp-acoes>button,.fp-acoes>a{min-height:44px;width:auto}
+.fp-avisos{margin:0;padding:.5rem .75rem;list-style:none;border-left:3px solid var(--cart-amarelo);background:var(--soft);color:var(--text);font-size:.85rem}
+.gt-vazio{margin:0 0 1rem}
+@media print{:root,:root[data-theme=dark]{--prj-fundo:#fff;--prj-superficie:#fff;--prj-suave:#eee;--prj-borda:#888;--prj-texto:#000;--prj-texto-suave:#222}}
