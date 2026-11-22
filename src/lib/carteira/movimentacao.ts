@@ -77,9 +77,14 @@ export function portaoPara(p: Projeto, para: CodigoMacroetapa): string[] {
   return f;
 }
 
+// D3: a tela usa códigos a partir de 9000; a planilha usa a faixa abaixo.
+export const FAIXA_CADASTRO = 9000;
+export const SEM_ALTERACAO = 'Nenhuma alteração.';
+
 const CAMPOS_SIMPLES = new Set([
   'nome', 'orgao', 'responsavel', 'tipo', 'detalhamento', 'sei', 'observacao', 'regiao', 'bairro', 'corredor',
   'origem_valor', 'tem_projeto', 'prioridade', 'tipo_contratacao', 'orgao_contratacao', 'solicitacoes_financeiras',
+  'compromisso', 'area', 'prioritario',
 ]);
 const GRUPOS = new Set(['valores', 'recurso', 'datas']);
 const PERIGOSOS = new Set(['__proto__', 'constructor', 'prototype']);
@@ -183,7 +188,7 @@ export function aplicarEvento(entrada: Projeto, e: Evento): ResultadoMovimentaca
         mudancas.push({ campo: c, antes, depois });
         gravar(p, c, depois);
       }
-      if (mudancas.length === 0) return { ok: false, erro: 'Nenhuma alteração.' };
+      if (mudancas.length === 0) return { ok: false, erro: SEM_ALTERACAO };
       if (mudancas.some((m) => m.campo === 'prioridade' || m.campo.startsWith('valores.')) && !temMotivo(e)) {
         return { ok: false, erro: 'Mudança de valor ou prioridade exige motivo.' };
       }
@@ -265,6 +270,8 @@ export function criarProjeto(
     tem_projeto: typeof dados.tem_projeto === 'boolean' ? dados.tem_projeto : null,
     prioridade: texto(dados.prioridade),
     compromisso: COMPROMISSOS.includes(dados.compromisso as string) ? dados.compromisso : 'ideia',
+    area: texto(dados.area),
+    prioritario: dados.prioritario === true,
     tipo_contratacao: texto(dados.tipo_contratacao),
     orgao_contratacao: texto(dados.orgao_contratacao),
     solicitacoes_financeiras: null,
@@ -289,6 +296,8 @@ export function criarProjeto(
   };
   for (const c of ['nome', 'orgao', 'responsavel', 'tipo', 'detalhamento', 'sei', 'observacao', 'regiao', 'bairro', 'origem_valor', 'tem_projeto', 'prioridade', 'compromisso', 'tipo_contratacao', 'orgao_contratacao'] as const) add(c, p[c]);
   add('localizacao', p.localizacao);
+  add('area', p.area);
+  if (p.prioritario) add('prioritario', true);
   for (const k of CHAVES_VALORES) add(`valores.${k}`, p.valores[k]);
   for (const k of [...CHAVES_RECURSO, 'termo_compromisso'] as const) add(`recurso.${k}`, (p.recurso as any)[k]);
   for (const k of [...CHAVES_DATAS, 'execucao_dias'] as const) add(`datas.${k}`, (p.datas as any)[k]);

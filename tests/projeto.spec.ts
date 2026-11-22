@@ -126,12 +126,65 @@ test('cadastro: o projeto criado abre na própria página, com histórico e loca
   expect(corpo.ok).toBe(true);
   expect(corpo.projeto.macroetapa).toBe('00');
   expect(corpo.projeto.id).toMatch(/^P-\d+$/);
-  expect(corpo.projeto.id).not.toBe('P-1');
+  expect(Number(corpo.projeto.id.slice(2))).toBeGreaterThanOrEqual(9000);
   expect(corpo.avisos[0]).toContain('Datas fora de ordem');
   await page.goto(`/plataforma/projeto/${corpo.projeto.id}/`);
   await expect(page.locator('h1')).toContainText(CADASTRO.nome);
   await expect(page.locator('[data-pj-local]')).toContainText('Cadastrada: ponto em latitude -16.7, longitude -49.3 (Praça do teste)');
   await expect(page.locator('[data-pj-historico] li').filter({ hasText: 'Projeto incluído no cadastro' })).toHaveCount(1);
+});
+
+test('edição: recusa origem de fora, formato errado, corpo grande, JSON quebrado e revisão antiga', async ({ page, request }) => {
+  await page.goto(PAGINA);
+  const origin = new URL(page.url()).origin;
+  const headers = { 'content-type': 'application/json', origin };
+  const criado = await request.post(CRIAR, { headers, data: CADASTRO });
+  expect(criado.status()).toBe(201);
+  const { projeto: { id } } = await criado.json();
+  await page.goto('/plataforma/projeto/' + id + '/');
+  const revisao = Number(await page.locator('[data-editar-projeto]').getAttribute('data-revisao'));
+  const url = '/plataforma/projeto/editar/' + id + '/';
+  const data = { revisao, campos: { observacao: 'Alteração válida' } };
+  expect((await request.post(url, { headers: { ...headers, origin: 'https://fora.exemplo.invalid' }, data })).status()).toBe(403);
+  expect((await request.post(url, { headers: { 'content-type': 'text/plain', origin }, data: JSON.stringify(data) })).status()).toBe(415);
+  expect((await request.post(url, { headers, data: { revisao, campos: { observacao: 'á'.repeat(40_000) } } })).status()).toBe(413);
+  expect((await request.post(url, { headers, data: '{json quebrado' })).status()).toBe(400);
+  expect((await request.get(url)).status()).not.toBe(200);
+  expect((await request.post(url, { headers, data })).status()).toBe(200);
+  expect((await request.post(url, { headers, data: { revisao, campos: { observacao: 'Edição concorrente' } } })).status()).toBe(409);
+});
+
+test('edição: o formulário grava pelo navegador, mostra o aviso e o Histórico só com o que mudou', async ({ page, request }) => {
+  const nome = '<img src=x onerror=alert(1)>';
+  await page.goto(PAGINA);
+  const origin = new URL(page.url()).origin;
+  const criado = await request.post(CRIAR, {
+    headers: { 'content-type': 'application/json', origin },
+    data: { nome, orgao: 'SMS' },
+  });
+  expect(criado.status()).toBe(201);
+  const { projeto: { id } } = await criado.json();
+  await page.goto('/plataforma/projeto/' + id + '/');
+  await page.locator('[data-editar-projeto] summary').click();
+  await expect(page.locator('#ep-area')).toHaveValue('');
+  await expect(page.locator('[data-area-sugestao]')).toContainText('Sugestão pelo órgão: Saúde.');
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 820 });
+    expect(await semRolagem(page)).toBe(true);
+  }
+  await page.locator('#ep-observacao').fill('Observação pela ficha');
+  await page.locator('#ep-prioritario').check();
+  await page.getByRole('button', { name: 'Salvar alterações' }).click();
+  await expect(page.locator('[data-pj-salvo]')).toContainText('Alterações salvas e registradas no Histórico.');
+  await expect(page.locator('.pj-lista div').filter({ has: page.getByText('Prioritário', { exact: true }) })).toContainText('Sim');
+  const mudanca = page.locator('[data-pj-historico] li').filter({ hasText: 'Observação pela ficha' });
+  await expect(mudanca).toHaveCount(1);
+  await expect(mudanca).toContainText('Observação');
+  await expect(mudanca).toContainText('(e mais 1 campo)');
+  await expect(mudanca).not.toContainText('Nome');
+  await expect(page.locator('h1')).toContainText(nome);
+  await expect(page.locator('main img[src="x"]')).toHaveCount(0);
+  await expect(page.locator('#ep-area')).toHaveValue('');
 });
 
 test('cadastro: o formulário grava de verdade e leva à página do projeto', async ({ page }) => {

@@ -1,4 +1,5 @@
 // Visões puras do histórico de alterações: filtro, resumo de uma linha e exportação em CSV. Sem acesso a arquivo ou página.
+import { nomeDaArea } from '../carteira/area.ts';
 import { nomeMacroetapa } from '../carteira/macroetapas.ts';
 import type { CodigoMacroetapa } from '../carteira/tipos.ts';
 import { ROTULO_ACAO, ROTULO_ORIGEM, type RegistroLog, type TipoAcaoLog } from './tipos.ts';
@@ -49,6 +50,7 @@ const ROTULO_CAMPO: Record<string, string> = {
   observacao: 'Observação', regiao: 'Região', bairro: 'Bairro', corredor: 'Corredor', origem_valor: 'Origem do valor',
   tem_projeto: 'Tem projeto', prioridade: 'Prioridade', tipo_contratacao: 'Tipo de contratação', orgao_contratacao: 'Órgão da contratação',
   solicitacoes_financeiras: 'Solicitações financeiras', macroetapa: 'Macroetapa',
+  compromisso: 'Compromisso', area: 'Área', prioritario: 'Prioritário',
   'valores.projeto': 'Valor do projeto', 'valores.obra': 'Valor da obra', 'valores.executado': 'Valor executado',
   'valores.em_captacao': 'Valor em captação', 'valores.captado': 'Valor captado', 'valores.contrapartida': 'Contrapartida',
   'valores.custeio_municipio': 'Custeio do município', 'valores.total': 'Valor total', 'valores.com_solicitacao_financeira': 'Valor com solicitação financeira',
@@ -70,6 +72,7 @@ export function rotuloCampo(campo: string): string {
 /** Valor legível de um campo (antes ou depois). */
 export function valorLegivel(campo: string, v: unknown): string {
   if (v === null || v === undefined || v === '') return 'vazio';
+  if (campo === 'area') return nomeDaArea(String(v)) ?? String(v);
   if (typeof v === 'boolean') return v ? 'Sim' : 'Não';
   if (campo === 'macroetapa') return nomeMacroetapa(v as CodigoMacroetapa);
   if (Array.isArray(v)) return v.length ? v.join(', ') : 'vazio';

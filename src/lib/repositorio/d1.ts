@@ -1,11 +1,11 @@
 // D1: consultas parametrizadas e gravações atômicas por batch.
-import { aplicarEvento, criarProjeto } from '../carteira/movimentacao.ts';
+import { aplicarEvento, criarProjeto, FAIXA_CADASTRO, SEM_ALTERACAO } from '../carteira/movimentacao.ts';
 import type { Evento, RegistroHistorico } from '../carteira/movimentacao.ts';
 import type { Projeto } from '../carteira/tipos.ts';
 import type { Cronograma, EtapaCronograma, FaseCronograma } from '../cronograma/tipos.ts';
 import type { RegistroLog } from '../log/tipos.ts';
 import { criarRepositorioDocumentos } from '../documentos/repositorio.ts';
-import type { RepositorioProjetos, ResultadoAplicacao, ResultadoCriacaoProjeto } from './tipos.ts';
+import type { RepositorioProjetos, ResultadoAplicacao, ResultadoCriacaoProjeto, ResultadoEdicao } from './tipos.ts';
 
 export interface ResultadoD1 { results: any[]; success: boolean; meta?: { changes?: number }; }
 export interface StatementD1 {
@@ -22,19 +22,34 @@ interface ClienteSql { query(sql: string, params: unknown[]): Promise<{ rows: an
 
 const COLUNAS_TEXTO = [
   'nome', 'orgao', 'responsavel', 'tipo', 'detalhamento', 'observacao', 'macroetapa', 'status_projeto', 'regiao', 'bairro',
-  'corredor', 'origem_valor', 'tem_projeto', 'prioridade', 'compromisso', 'tipo_contratacao', 'orgao_contratacao', 'solicitacoes_financeiras',
+  'corredor', 'origem_valor', 'tem_projeto', 'prioridade', 'compromisso', 'tipo_contratacao', 'orgao_contratacao', 'solicitacoes_financeiras', 'area',
 ] as const;
+const COLUNAS_MARCA = ['prioritario'] as const;
 const COLUNAS_JSON = ['valores', 'recurso', 'datas', 'por_ano', 'atualizacao', 'operacional', 'origem', 'localizacao'] as const;
 const COLUNAS_ARRAY = ['sei', 'pendencias'] as const;
-const TODAS = ['id', 'codigo_legado', ...COLUNAS_TEXTO, ...COLUNAS_JSON, ...COLUNAS_ARRAY] as const;
+const TODAS = ['id', 'codigo_legado', ...COLUNAS_TEXTO, ...COLUNAS_MARCA, ...COLUNAS_JSON, ...COLUNAS_ARRAY] as const;
 const LISTA_COLUNAS = TODAS.join(', ');
 
 function linhaParaProjeto(r: any): Projeto {
   const p: any = {};
   for (const c of TODAS) p[c] = decodificar(c, r[c]) ?? (c === 'sei' || c === 'pendencias' ? [] : null);
   if (p.tem_projeto != null) p.tem_projeto = Boolean(p.tem_projeto);
+  p.prioritario = Boolean(p.prioritario);
   return p as Projeto;
 }
+// Nomes de coluna vêm de listas fixas no código; valores são parâmetros das gravações.
+function colunasGravaveis(p: Projeto): { cols: string[]; valores: unknown[] } {
+  return {
+    cols: [...COLUNAS_TEXTO, ...COLUNAS_MARCA, ...COLUNAS_JSON, ...COLUNAS_ARRAY],
+    valores: [
+      ...COLUNAS_TEXTO.map((c) => p[c] ?? null),
+      ...COLUNAS_MARCA.map((c) => p[c] === true ? 1 : 0),
+      ...COLUNAS_JSON.map((c) => p[c] == null ? null : JSON.stringify(p[c])),
+      ...COLUNAS_ARRAY.map((c) => JSON.stringify(p[c] ?? [])),
+    ],
+  };
+}
+
 function decodificar(c: string, v: any): any {
  try { return [...COLUNAS_JSON, ...COLUNAS_ARRAY, 'campos'].includes(c as any) && typeof v === 'string' ? JSON.parse(v) : v; } catch { return v; }
 }
@@ -78,36 +93,30 @@ export function criarRepositorioD1(db: BancoD1, prefeituraId: number): Repositor
     return resultado;
   }
 
+  async function gravarEventos(cliente: ClienteSql, historico: RegistroHistorico[]): Promise<void> {
+    for (const h of historico) {
+      await cliente.gravar(
+        `INSERT INTO evento_projeto (id, prefeitura_id, projeto_id, tipo, origem, autor, em, de, para, campos, motivo, forcado, descricao)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [h.id, prefeituraId, h.projeto_id, h.tipo, h.origem, h.autor, h.em, h.de ?? null, h.para ?? null,
+          h.campos ? JSON.stringify(h.campos) : null, h.motivo ?? null, h.forcado ?? false, h.descricao ?? null],
+      );
+    }
+  }
+
   async function criarUmProjeto(dados: Parameters<RepositorioProjetos['criarProjeto']>[0], autor: string): Promise<ResultadoCriacaoProjeto> {
     return transacao(async (cliente): Promise<ResultadoCriacaoProjeto> => {
-        const m = await cliente.query('SELECT coalesce(max(codigo_legado), 0) + 1 AS proximo FROM projeto WHERE prefeitura_id = ?', [prefeituraId]);
-        const proximoCodigo = Number(m.rows[0]?.proximo ?? 1);
-        const res = criarProjeto(dados, { autor, em: new Date().toISOString(), proximoCodigo, origem: 'cadastro' });
-        if (!res.ok) return res;
-        const p: any = res.projeto;
-        // Nomes de coluna vêm de listas fixas no código; valores só por parâmetro.
-        const cols: string[] = ['prefeitura_id', 'id', 'codigo_legado'];
-        const marcas: string[] = ['?', '?', '?'];
-        const params: unknown[] = [prefeituraId, p.id, p.codigo_legado];
-        const add = (col: string, valor: unknown) => {
-          params.push(valor);
-          cols.push(col);
-          marcas.push('?');
-        };
-        for (const c of COLUNAS_TEXTO) add(c, p[c] ?? null);
-        for (const c of COLUNAS_JSON) add(c, p[c] == null ? null : JSON.stringify(p[c]));
-        for (const c of COLUNAS_ARRAY) add(c, JSON.stringify(p[c] ?? []));
-        await cliente.gravar(`INSERT INTO projeto (${cols.join(', ')}, atualizado_em) VALUES (${marcas.join(', ')}, (strftime('%Y-%m-%dT%H:%M:%fZ','now')))`, params);
-        for (const h of res.historico) {
-          await cliente.gravar(
-            `INSERT INTO evento_projeto (id, prefeitura_id, projeto_id, tipo, origem, autor, em, de, para, campos, motivo, forcado, descricao)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [h.id, prefeituraId, h.projeto_id, h.tipo, h.origem, h.autor, h.em, h.de ?? null, h.para ?? null,
-              h.campos ? JSON.stringify(h.campos) : null, h.motivo ?? null, h.forcado ?? false, h.descricao ?? null],
-          );
-        }
-        return { ok: true, projeto: res.projeto, historico: res.historico };
-      });
+      const m = await cliente.query(`SELECT coalesce(max(codigo_legado), ${FAIXA_CADASTRO - 1}) + 1 AS proximo FROM projeto WHERE prefeitura_id = ? AND codigo_legado >= ${FAIXA_CADASTRO}`, [prefeituraId]);
+      const proximoCodigo = Number(m.rows[0]?.proximo ?? FAIXA_CADASTRO);
+      const res = criarProjeto(dados, { autor, em: new Date().toISOString(), proximoCodigo, origem: 'cadastro' });
+      if (!res.ok) return res;
+      const { cols, valores } = colunasGravaveis(res.projeto);
+      const nomes = ['prefeitura_id', 'id', 'codigo_legado', ...cols];
+      await cliente.gravar(`INSERT INTO projeto (${nomes.join(', ')}, atualizado_em) VALUES (${nomes.map(() => '?').join(', ')}, (strftime('%Y-%m-%dT%H:%M:%fZ','now')))`,
+        [prefeituraId, res.projeto.id, res.projeto.codigo_legado, ...valores]);
+      await gravarEventos(cliente, res.historico);
+      return { ok: true, projeto: res.projeto, historico: res.historico };
+    });
   }
 
   return {
@@ -134,18 +143,53 @@ export function criarRepositorioD1(db: BancoD1, prefeituraId: number): Repositor
         const r = await cliente.query(`SELECT ${LISTA_COLUNAS} FROM projeto WHERE prefeitura_id = ? AND id = ?`, [prefeituraId, id]);
         return r.rows[0] ? linhaParaProjeto(r.rows[0]) : null;
       }),
+    async obterProjetoComRevisao(id) {
+      const r = await db.prepare(`SELECT ${LISTA_COLUNAS}, revisao FROM projeto WHERE prefeitura_id = ? AND id = ?`).bind(prefeituraId, id).first();
+      return r ? { projeto: linhaParaProjeto(r), revisao: Number(r.revisao) } : null;
+    },
+    async listarAreas(incluirInativas = false) {
+      const ativas = incluirInativas ? '' : ' AND ativo = 1';
+      const { results } = await db.prepare(`SELECT codigo, nome FROM catalogo WHERE prefeitura_id = ? AND tipo = 'area'${ativas} ORDER BY ordem, nome`).bind(prefeituraId).all();
+      return results.map((r) => ({ codigo: String(r.codigo), nome: String(r.nome) }));
+    },
+    async editarProjeto(projetoId, revisao, campos, motivo, autor) {
+      const CONFLITO = 'O projeto foi alterado por outra pessoa enquanto você editava.';
+      const e: Evento = { tipo: 'atualizar_campos', projeto_id: projetoId, origem: 'ficha', autor, em: new Date().toISOString(), campos, ...(motivo ? { motivo } : {}) };
+      try {
+        return await transacao(async (cliente): Promise<ResultadoEdicao> => {
+          const r = await cliente.query(`SELECT ${LISTA_COLUNAS}, revisao FROM projeto WHERE prefeitura_id = ? AND id = ?`, [prefeituraId, projetoId]);
+          const linha = r.rows[0];
+          if (!linha) return { ok: false, codigo: 'inexistente', erro: 'Projeto não encontrado.' };
+          if (Number(linha.revisao) !== revisao) return { ok: false, codigo: 'conflito', erro: CONFLITO };
+          const res = aplicarEvento(linhaParaProjeto(linha), e);
+          if (!res.ok) return res.erro === SEM_ALTERACAO ? { ok: true, mudou: false, historico: [] } : { ok: false, codigo: 'invalido', erro: res.erro };
+          const { cols, valores } = colunasGravaveis(res.projeto);
+          await cliente.gravar(`UPDATE projeto SET ${cols.map((c) => `${c} = ?`).join(', ')}, revisao = CASE WHEN revisao = ? THEN revisao + 1 ELSE NULL END, atualizado_em = (strftime('%Y-%m-%dT%H:%M:%fZ','now')) WHERE prefeitura_id = ? AND id = ?`, [...valores, revisao, prefeituraId, projetoId]);
+          const historico = res.historico.map((h) => ({ ...h, id: crypto.randomUUID() }));
+          await gravarEventos(cliente, historico);
+          return { ok: true, mudou: true, historico };
+        });
+      } catch (erro) {
+        if (/NOT NULL constraint failed: projeto\.revisao/.test(String(erro))) return { ok: false, codigo: 'conflito', erro: CONFLITO };
+        if (/Área inválida/.test(String(erro))) return { ok: false, codigo: 'invalido', erro: 'Área: valor não permitido.' };
+        throw erro;
+      }
+    },
     historico: (projetoId) =>
       transacao(async (cliente) => {
         // Direto nas duas tabelas, pelos índices (prefeitura_id, projeto_id, em) da migração 0004. Mesmo resultado da visão
         // log_alteracoes para um projeto, sem ler os eventos de sistema dos outros projetos.
+        // O rowid preserva a ordem de gravação das edições com o mesmo horário.
         const r = await cliente.query(
-          `SELECT id, projeto_id, tipo, origem, autor, em, de, para, campos, motivo, forcado, descricao
+          `SELECT id, projeto_id, tipo, origem, autor, em, de, para, campos, motivo, forcado, descricao,
+                  CASE WHEN tipo = 'atualizar_campos' AND origem = 'ficha' THEN rowid END AS ordem_edicao
              FROM evento_projeto WHERE prefeitura_id = ? AND projeto_id = ?
            UNION ALL
            SELECT id, projeto_id, tipo, origem, autor, em, json_extract(detalhes, '$.de'), json_extract(detalhes, '$.para'),
-                  json_extract(detalhes, '$.campos'), json_extract(detalhes, '$.motivo'), json_extract(detalhes, '$.forcado'), descricao
+                  json_extract(detalhes, '$.campos'), json_extract(detalhes, '$.motivo'), json_extract(detalhes, '$.forcado'), descricao,
+                  NULL
              FROM evento_sistema WHERE prefeitura_id = ? AND projeto_id = ?
-           ORDER BY em, id`,
+           ORDER BY em, ordem_edicao, id`,
           [prefeituraId, projetoId, prefeituraId, projetoId],
         );
         return r.rows.map(linhaParaHistorico);
@@ -212,6 +256,7 @@ export function criarRepositorioD1(db: BancoD1, prefeituraId: number): Repositor
       // metade); aqui o número é recalculado e a gravação repetida, algumas vezes, antes de desistir.
       for (let tentativa = 1; ; tentativa++) {
         try { return await criarUmProjeto(dados, autor); } catch (erro) {
+          if (/Área inválida/.test(String(erro))) return { ok: false, erro: 'Área: valor não permitido.' };
           // Só a recusa do código (ou do id) repetido é tentada de novo; qualquer outro índice único futuro é erro de verdade.
           const repetido = /UNIQUE constraint failed: projeto\.prefeitura_id, projeto\.(codigo_legado|id)\b/i.test(String(erro));
           if (!repetido) throw erro;
@@ -227,27 +272,9 @@ export function criarRepositorioD1(db: BancoD1, prefeituraId: number): Repositor
         if (!r.rows[0]) return { ok: false, erro: 'Projeto não encontrado.' };
         const res = aplicarEvento(linhaParaProjeto(r.rows[0]), e);
         if (!res.ok) return res.faltando ? { ok: false, erro: res.erro, faltando: res.faltando } : { ok: false, erro: res.erro };
-        const p: any = res.projeto;
-        // Nomes de coluna vêm de listas fixas no código; valores só por parâmetro.
-        const sets: string[] = [];
-        const params: unknown[] = [];
-        const add = (col: string, valor: unknown) => {
-          params.push(valor);
-          sets.push(`${col} = ?`);
-        };
-        for (const c of COLUNAS_TEXTO) add(c, p[c] ?? null);
-        for (const c of COLUNAS_JSON) add(c, p[c] == null ? null : JSON.stringify(p[c]));
-        for (const c of COLUNAS_ARRAY) add(c, JSON.stringify(p[c] ?? []));
-        params.push(r.rows[0].revisao, prefeituraId, p.id);
-        await cliente.gravar(`UPDATE projeto SET ${sets.join(', ')}, revisao = CASE WHEN revisao = ? THEN revisao + 1 ELSE NULL END, atualizado_em = (strftime('%Y-%m-%dT%H:%M:%fZ','now')) WHERE prefeitura_id = ? AND id = ?`, params);
-        for (const h of res.historico) {
-          await cliente.gravar(
-            `INSERT INTO evento_projeto (id, prefeitura_id, projeto_id, tipo, origem, autor, em, de, para, campos, motivo, forcado, descricao)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [h.id, prefeituraId, h.projeto_id, h.tipo, h.origem, h.autor, h.em, h.de ?? null, h.para ?? null,
-              h.campos ? JSON.stringify(h.campos) : null, h.motivo ?? null, h.forcado ?? false, h.descricao ?? null],
-          );
-        }
+        const { cols, valores } = colunasGravaveis(res.projeto);
+        await cliente.gravar(`UPDATE projeto SET ${cols.map((c) => `${c} = ?`).join(', ')}, revisao = CASE WHEN revisao = ? THEN revisao + 1 ELSE NULL END, atualizado_em = (strftime('%Y-%m-%dT%H:%M:%fZ','now')) WHERE prefeitura_id = ? AND id = ?`, [...valores, r.rows[0].revisao, prefeituraId, res.projeto.id]);
+        await gravarEventos(cliente, res.historico);
         return { ok: true, historico: res.historico };
       }); } catch (erro) {
         if (/NOT NULL constraint failed: projeto.revisao/.test(String(erro))) return { ok: false, erro: 'Projeto alterado por outra pessoa; recarregue a página.' };

@@ -12,6 +12,11 @@ export type ResultadoCriacaoProjeto =
   | { ok: true; projeto: Projeto; historico: RegistroHistorico[] }
   | { ok: false; erro: string; faltando?: string[]; codigo?: 'concorrencia' };
 
+export interface AreaCatalogo { codigo: string; nome: string }
+export type ResultadoEdicao =
+  | { ok: true; mudou: boolean; historico: RegistroHistorico[] }
+  | { ok: false; codigo: 'inexistente' | 'conflito' | 'invalido'; erro: string };
+
 export interface RepositorioProjetos {
   podeGravar: boolean;
   /** Prefeitura de que este repositório lê e grava (chave do cache; preenchida por `repositorioDoUsuario`). */
@@ -20,6 +25,10 @@ export interface RepositorioProjetos {
   listarGeoBairros?(): Promise<import('../mapa/geo.ts').GeoBairros>;
   listarProjetos(): Promise<Projeto[]>;
   obterProjeto(id: string): Promise<Projeto | null>;
+  /** Revisão, catálogo da prefeitura e edição de projeto (só no D1). */
+  obterProjetoComRevisao?(id: string): Promise<{ projeto: Projeto; revisao: number } | null>;
+  listarAreas?(incluirInativas?: boolean): Promise<AreaCatalogo[]>;
+  editarProjeto?(projetoId: string, revisao: number, campos: Record<string, unknown>, motivo: string | null, autor: string): Promise<ResultadoEdicao>;
   historico(projetoId: string): Promise<RegistroHistorico[]>;
   /** Todos os registros do histórico de alterações (inclui importações), mais recentes primeiro. */
   listarHistorico(): Promise<RegistroLog[]>;

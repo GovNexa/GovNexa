@@ -115,7 +115,7 @@ São módulos independentes que conversam entre si:
 | Planejamento | Plano, decisões, rastreabilidade, Fluxo do sistema, fluxos detalhados, mapa de impacto | Publicado; Fluxo com zoom e legenda recolhida | 97% |
 | 0 · Base e identidade | Marca GovNexa, menu por módulos, tema estável, paginação | Publicada; blocos do menu começam fechados | 100% |
 | 1 · Carteira de Projetos | Carteira, ficha, Kanban, Gantt, Visão por órgão, celular | Entregue; carga inicial no D1 | 100% |
-| 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, Kanban e Pendências, Histórico, Sala de guerra | Telas prontas; algumas gravações ainda são simulação | 95% |
+| 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, Kanban e Pendências, Histórico, Sala de guerra | E1 em 70%, com edição pela ficha, área e marca de prioritário disponíveis no código. Aguardando revisão, migração 0007 e publicação | 95% |
 | 2 · Cronograma e equipe | Cronogramas, quadro de tarefas, Onde está parado, Reunião semanal, dependências, SEI | Telas entregues; leitura automática do SEI a fazer | 90% |
 | 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis e isolamento por prefeitura | Tabelas em produção, carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas no ar e gravada em 16/11 (3.5). Documentos (3.4) publicados em 17/11. Usuários: lista, cadastro, convites e login próprio com 2FA no ar desde 17/11 | 95% |
 | 4 · Contratação, convênios e Gestão | Lei 14.133, alertas, dashboard do prefeito, licitação em detalhe | Prazos da lei, dashboard em três níveis, filtros e modo apresentação; mapa, Central de alertas e Licitação em detalhe; parte ainda em simulação | 75% |
@@ -191,9 +191,9 @@ O tema claro usa menu lateral branco, texto e ícones azul-escuros, destaques az
 | --- | --- | --- | --- |
 | Projetos · Início | Resumo da carteira por macroetapa: quantidade, valor e farol de prazo | Disponível | `src/lib/carteira/` |
 | Fluxo do sistema | Diagrama em raias com etapas, validações, responsáveis e links para as telas; inclui fluxos detalhados e zoom | Disponível | `src/lib/govnexa/fluxo.ts`, `subfluxos.ts`, `src/components/fluxo/` |
-| Novo projeto | Cadastro com os campos da planilha; grava no banco na macroetapa 00 e registra no Histórico | Disponível no código (entrega B2; publicação depende de ordem do dono) | `src/components/carteira/NovoProjeto.astro` |
+| Novo projeto | Cadastro com área e marca de prioritário. Grava na macroetapa 00, usa códigos a partir de P-9000 e registra no Histórico | Disponível no código (B2 e E1) | `src/components/carteira/NovoProjeto.astro` |
 | Carteira de projetos | Projetos, busca e ficha completa com valores, recursos, datas e histórico | Disponível | `src/lib/carteira/` |
-| Página do projeto | Tudo de um projeto num só endereço: resumo, valores e recursos, datas, localização, documentos, cronograma e histórico | Disponível (entrega B1, no ar desde 18/11/2026) | `src/pages/plataforma/projeto/[id].astro` |
+| Página do projeto | Resumo com área e marca de prioritário, valores, recursos, datas, localização, documentos, cronograma e Histórico. Edição de campos por quem tem permissão, com controle de revisão | Leitura disponível (B1). Edição disponível no código (E1) | `src/pages/plataforma/projeto/[id].astro` |
 | Localização e fotos | Ponto ou trecho da obra no mapa e lista de obras sem localização | Localização grava no banco e entra no Histórico; aceita a cidade e o entorno (cerca de 10 km) (entrega B1, no ar desde 18/11/2026); fotos numa próxima entrega | `src/lib/mapa/`, `src/components/mapa/`, `src/pages/plataforma/projeto/localizacao/` |
 | Kanban por macroetapa | Colunas com quantidade e valor; mover com portões e motivo | Simulação | `src/components/carteira/Kanban.astro`, `src/lib/carteira/movimentacao.ts` |
 | Gantt geral | Linha do tempo prevista por macroetapa, da entrega mais próxima à mais distante; filtros por nome, órgão, macroetapa e período de entrega (mês e ano), guardados no endereço | Disponível | `src/components/carteira/Gantt.astro`, `src/components/carteira/FiltrosProjetos.astro`, `src/lib/carteira/filtros.ts` |
@@ -425,7 +425,7 @@ Centros dos bairros: migração 0005 e carga publicadas em 18/11/2026. Parte dos
 1. **3.3 — usuários e login:** publicada e ligada em produção em 17/11/2026 (`LOGIN_MODO=senha`).
 2. **3.4 — documentos:** publicada em 17/11/2026.
    Entregas 1.0 (limite de requisições) e 1.1 (tipo do documento, migração 0003) publicadas em 17/11/2026.
-   Entregas B1 (página do projeto e localização, no ar desde 18/11/2026) e B2a (Novo projeto gravando; migração 0006 aplicada e publicada em 18/11/2026). Em seguida: B2b (edição dos campos na página do projeto) e B3 (Kanban e Pendências de etapa). Pendência de decisão: Importação e cadastro pela tela: a carga de planilhas (`scripts/gerar-sql-carga.ts`) agora NUNCA sobrescreve um projeto de origem CADASTRO. Fica a decisão do dono: se a planilha trouxer o mesmo código de um projeto cadastrado pela tela, o projeto da planilha é ignorado em silêncio. Definir uma faixa de códigos separada para a tela, ou um aviso no relatório da importação, antes da próxima planilha.
+   Entregas B1 (página do projeto e localização, no ar desde 18/11/2026) e B2a (Novo projeto gravando, migração 0006 publicada em 18/11/2026). E1 (B2b) concluída no código, aguardando revisão e publicação. Migração 0007 a aplicar. A decisão D3 reserva à tela os códigos a partir de 9000. A planilha usa a faixa abaixo de 9000. Em seguida vem B3 (Kanban e Pendências de etapa).
 3. **3.5 — importação:** feita e gravada em 16/11.
 4. Automatizar a leitura do SEI com Cron Trigger.
 5. Desligar a hospedagem antiga.

@@ -59,6 +59,15 @@ export function comInvalidacao(repo: RepositorioProjetos, prefeituraId: number):
         }
       },
     } : {}),
+    ...(repo.editarProjeto ? {
+      editarProjeto: async (projetoId, revisao, campos, motivo, autor) => {
+        try {
+          return await repo.editarProjeto!(projetoId, revisao, campos, motivo, autor);
+        } finally {
+          invalidarCache(prefeituraId);
+        }
+      },
+    } : {}),
     aplicar: async (evento) => {
       try {
         return await repo.aplicar(evento);

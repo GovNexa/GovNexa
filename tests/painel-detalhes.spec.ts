@@ -6,7 +6,7 @@ test('painel de detalhes apresenta a carteira e permite navegar acessivelmente',
   await page.goto('/plataforma/projetos-carteira/');
 
   // Abre o P-900 pelo código: outros testes podem cadastrar projetos (P-9xx) que entram antes na lista.
-  const abrir = page.locator('tbody [data-row]').filter({ hasText: 'P-900' }).getByRole('button', { name: 'Ver detalhes' }).first();
+  const abrir = page.locator('tbody [data-row]').filter({ hasText: /\bP-900(?!\d)/ }).getByRole('button', { name: 'Ver detalhes' }).first();
   await abrir.click();
   const painel = page.getByRole('dialog');
   await expect(painel).toBeVisible();
@@ -64,7 +64,7 @@ test('painel de detalhes apresenta a carteira e permite navegar acessivelmente',
   expect(Math.abs(alinhamento[0].width - alinhamento[1].width)).toBeLessThan(1);
   // "Registro anterior" só fica desativado quando o P-900 é a primeira linha visível.
   const primeiraLinha = await page.evaluate(() => [...document.querySelectorAll<HTMLElement>('tbody [data-row]')].find((linha) => !linha.hidden && linha.getClientRects().length > 0)?.textContent ?? '');
-  if (primeiraLinha.includes('P-900')) await expect(painel.getByRole('button', { name: 'Registro anterior' })).toBeDisabled();
+  if (/\bP-900(?!\d)/.test(primeiraLinha)) await expect(painel.getByRole('button', { name: 'Registro anterior' })).toBeDisabled();
   else await expect(painel.getByRole('button', { name: 'Registro anterior' })).toBeEnabled();
   await painel.getByRole('button', { name: 'Próximo registro' }).click();
   await expect(painel.locator('#record-code')).not.toHaveText('P-900');

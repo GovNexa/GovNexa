@@ -5,7 +5,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { lerCorrecoes, resolverCodigosRepetidos } from '../../scripts/importar-carteira.ts';
-import { importarPlanilhas, relatorioMd } from '../../scripts/importar-planilhas.ts';
+import { codigosNaFaixaDoCadastro, importarPlanilhas, relatorioMd } from '../../scripts/importar-planilhas.ts';
 import type { Projeto } from '../../src/lib/carteira/tipos.ts';
 
 const proj = (codigo: number, orgao: string | null, linha: number): Projeto =>
@@ -175,6 +175,11 @@ test('avaliação: planilha incompleta, projetos demais de uma vez e projetos qu
   assert.match(muitos.erros.join(' '), /projetos novos de uma vez/);
   // banco pequeno: a guarda de "novos" não se aplica (carga inicial de teste)
   assert.deepEqual(avaliarImportacao(mapa([['P-1', 'A'], ['P-2', 'A'], ['P-3', 'A']]), mapa([['P-1', 'A']]), new Set()).erros, []);
+});
+
+test('faixa 9000: códigos da planilha na faixa da tela são listados', () => {
+  const projetos = [12000, 8999, 9000, 42, 9002].map((codigo_legado) => ({ codigo_legado }));
+  assert.deepEqual(codigosNaFaixaDoCadastro(projetos), [9000, 9002, 12000]);
 });
 
 // ---------- gravação em banco de teste (SQLite em memória, mesmo esquema do D1) ----------

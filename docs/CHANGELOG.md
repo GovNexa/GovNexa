@@ -1,5 +1,13 @@
 # Changelog
 
+## E1 · Base para operar do zero (22/11/2026)
+- Publicação: aplicar a migração 0007 ANTES de publicar o código (o código novo lê area e prioritario; o código antigo funciona sobre o esquema novo).
+- Revisão independente: aprovada com ressalvas. Corrigido: nome da área cai na lista padrão quando o catálogo não é passado; mensagem da faixa reservada diz "Nada foi gravado no banco". Pendentes de baixa gravidade: carregar o catálogo no contexto da Carteira e do WhatsApp; Histórico traduzir área pelo catálogo; edição que reenvia área já gravada e desativada recebe 400 (a tela não reenvia).
+
+- Edição dos campos na página do projeto por quem tem permissão. O D1 confere a revisão e grava as mudanças com antes e depois no Histórico no mesmo lote.
+- Migração 0007 prepara o catálogo de áreas por prefeitura e a marca de prioritário. A sugestão por órgão depende de um clique. Edição, Novo projeto e importação usam os dois campos.
+- O cadastro pela tela começa em P-9000. A importação recusa códigos dessa faixa e preserva os valores de área e prioritário ausentes na planilha.
+- A E1 grava pelo D1. Kanban, localização, login e adaptadores Postgres e JSON seguem seus fluxos existentes.
 ## E2: padrão visual e filtros (22/11/2026)
 - Telas de Projetos com fundo claro e neutro nos temas claro e escuro; cor só na informação. Menu lateral e login sem mudança.
 - Novo componente de filtros (`FiltrosProjetos.astro`): nome, órgão, área (aparece quando a carteira tiver área), macroetapa e período de entrega (mês e ano de início e de fim). O filtro fica no endereço: dá para compartilhar o link e voltar pelo navegador.

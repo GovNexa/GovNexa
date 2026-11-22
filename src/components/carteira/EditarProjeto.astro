@@ -1,0 +1,237 @@
+---
+import '../../styles/carteira.css';
+import { areaDoProjeto, type Area } from '../../lib/carteira/area.ts';
+import { blocosProjeto, formatarReais } from '../../lib/carteira/formulario.ts';
+import type { Projeto } from '../../lib/carteira/tipos.ts';
+import CamposProjeto from './CamposProjeto.astro';
+
+interface Props {
+  projeto: Projeto;
+  revisao: number;
+  areas: Area[];
+  orgaos: string[];
+  regioes: string[];
+  origensValor: string[];
+  detalhamentos: string[];
+}
+
+const { projeto, revisao, areas, ...listas } = Astro.props;
+const blocos = blocosProjeto({ areas, ...listas });
+const simNao = (v: boolean | null | undefined) => v == null ? null : v ? 'Sim' : 'Não';
+const valores = {
+  nome: projeto.nome, orgao: projeto.orgao, area: projeto.area ?? null, responsavel: projeto.responsavel,
+  tipo: projeto.tipo, detalhamento: projeto.detalhamento, regiao: projeto.regiao, bairro: projeto.bairro,
+  sei: projeto.sei.join(', '), observacao: projeto.observacao, origem_valor: projeto.origem_valor,
+  valor_obra: formatarReais(projeto.valores?.obra), valor_projeto: formatarReais(projeto.valores?.projeto),
+  tem_projeto: simNao(projeto.tem_projeto), recurso_origem: projeto.recurso?.origem ?? null,
+  fonte_programa: projeto.recurso?.fonte_programa ?? null, unidade_financiadora: projeto.recurso?.unidade_financiadora ?? null,
+  termo: simNao(projeto.recurso?.termo_compromisso), numero_termo: projeto.recurso?.numero_termo ?? null,
+  prioridade: projeto.prioridade, prioritario: projeto.prioritario === true,
+  tipo_contratacao: projeto.tipo_contratacao, orgao_contratacao: projeto.orgao_contratacao,
+  d_pecas: projeto.datas?.pecas_tecnicas ?? null, d_planejamento: projeto.datas?.planejamento ?? null,
+  d_preparatorio: projeto.datas?.preparatorio ?? null, d_contratacao: projeto.datas?.contratacao ?? null,
+  d_mobilizacao: projeto.datas?.mobilizacao ?? null, d_entrega: projeto.datas?.encerramento ?? null,
+  d_dias: projeto.datas?.execucao_dias == null ? null : String(projeto.datas.execucao_dias),
+};
+const area = areaDoProjeto(projeto, areas);
+---
+<details class="card pj-bloco pj-editar" data-editar-projeto data-revisao={revisao} data-id={projeto.id}>
+  <summary><h2>Editar dados do projeto</h2></summary>
+  <p>Altere só o que precisa. Macroetapa (pelo Kanban), localização (no bloco Localização) e código não mudam aqui. Toda alteração fica no Histórico.</p>
+  <div class="cart-erro" role="alert" tabindex="-1" data-ep-resumo hidden></div>
+  <form class="np-form" data-ep-form novalidate>
+    <CamposProjeto prefixo="ep" blocos={blocos} valores={valores} compromisso={projeto.compromisso ?? null} sugestao={area?.sugerida ? area : null} />
+    <div class="np-campo">
+      <label for="ep-motivo">Motivo da alteração</label>
+      <textarea id="ep-motivo" rows="3" aria-describedby="ep-motivo-dica" maxlength="500"></textarea>
+      <small class="np-dica" id="ep-motivo-dica">Obrigatório quando mudar valor ou prioridade.</small>
+    </div>
+    <div class="actions np-acoes">
+      <button type="submit" class="primary" data-ep-salvar>Salvar alterações</button>
+      <button type="reset" class="secondary">Desfazer alterações</button>
+    </div>
+  </form>
+</details>
+
+<script>
+import { sugerirArea } from '../../lib/carteira/area.ts';
+import { lerReais } from '../../lib/carteira/formulario.ts';
+
+const camposData: Readonly<Record<string, string>> = {
+  d_pecas: 'pecas_tecnicas', d_planejamento: 'planejamento', d_preparatorio: 'preparatorio',
+  d_contratacao: 'contratacao', d_mobilizacao: 'mobilizacao', d_dias: 'execucao_dias', d_entrega: 'encerramento',
+};
+const erroRede = 'Não foi possível salvar. Confira a conexão e tente de novo.';
+type Controle = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
+function valorInicial(c: Controle): string {
+  if (c instanceof HTMLSelectElement) return Array.from(c.options).find((o) => o.defaultSelected)?.value ?? c.options[0]?.value ?? '';
+  return c.defaultValue;
+}
+
+document.addEventListener('astro:page-load', () => {
+  const raiz = document.querySelector<HTMLDetailsElement>('[data-editar-projeto]');
+  if (!raiz || raiz.dataset.pronto) return;
+  raiz.dataset.pronto = 'sim';
+  const form = raiz.querySelector<HTMLFormElement>('[data-ep-form]')!;
+  const resumo = raiz.querySelector<HTMLElement>('[data-ep-resumo]')!;
+  const salvar = raiz.querySelector<HTMLButtonElement>('[data-ep-salvar]')!;
+  const motivo = form.querySelector<HTMLTextAreaElement>('#ep-motivo')!;
+  const area = form.querySelector<HTMLSelectElement>('#ep-area')!;
+  const orgao = form.querySelector<HTMLSelectElement>('#ep-orgao')!;
+  const dicaArea = form.querySelector<HTMLElement>('[data-area-sugestao]')!;
+  const outros = Array.from(form.querySelectorAll<HTMLSelectElement>('select[data-outro-de]'));
+  const controles = Array.from(form.elements).filter((c): c is Controle =>
+    (c instanceof HTMLInputElement || c instanceof HTMLSelectElement || c instanceof HTMLTextAreaElement) &&
+    c.id.startsWith('ep-') && c !== motivo && !c.id.endsWith('-outro'));
+  const radios = Array.from(form.querySelectorAll<HTMLInputElement>('input[name="compromisso"]'));
+
+  function escolhido(c: Controle): string {
+    if (c instanceof HTMLSelectElement && c.hasAttribute('data-outro-de') && c.value === '__outro') {
+      return form.querySelector<HTMLInputElement>('#' + c.id + '-outro')!.value.trim();
+    }
+    return c.value.trim();
+  }
+
+  function opcaoSugerida() {
+    const codigo = sugerirArea(escolhido(orgao));
+    return Array.from(area.options).find((o) => !o.disabled && o.value === codigo);
+  }
+
+  function atualizarSugestao() {
+    const opcao = opcaoSugerida();
+    dicaArea.hidden = !!area.value || !opcao;
+    if (opcao) dicaArea.querySelector('span')!.textContent = 'Sugestão pelo órgão: ' + opcao.label + '.';
+  }
+
+  function atualizarOutros() {
+    for (const select of outros) {
+      form.querySelector<HTMLElement>('[data-outro="' + select.dataset.outroDe + '"]')!.hidden = select.value !== '__outro';
+    }
+  }
+
+  function limparErros() {
+    resumo.hidden = true;
+    resumo.replaceChildren();
+    form.querySelectorAll<HTMLElement>('.np-erro').forEach((e) => { e.textContent = ''; e.hidden = true; });
+    form.querySelectorAll('[aria-invalid]').forEach((c) => c.removeAttribute('aria-invalid'));
+  }
+
+  function mostrar(erro: string, detalhes: string[] = [], recarregar = false) {
+    const p = document.createElement('p');
+    p.textContent = erro;
+    resumo.replaceChildren(p);
+    if (detalhes.length) {
+      const lista = document.createElement('ul');
+      for (const detalhe of detalhes) {
+        const item = document.createElement('li');
+        item.textContent = detalhe;
+        lista.append(item);
+      }
+      resumo.append(lista);
+    }
+    if (recarregar) {
+      const botao = document.createElement('button');
+      botao.type = 'button';
+      botao.className = 'secondary';
+      botao.textContent = 'Recarregar';
+      botao.addEventListener('click', () => location.reload());
+      resumo.append(botao);
+    }
+    resumo.hidden = false;
+    resumo.focus();
+  }
+
+  function erroCampo(c: Controle, erro: string, erros: string[]) {
+    const aviso = form.querySelector<HTMLElement>('#' + c.id + '-erro')!;
+    aviso.textContent = erro;
+    aviso.hidden = false;
+    c.setAttribute('aria-invalid', 'true');
+    erros.push(erro);
+  }
+
+  dicaArea.querySelector('[data-area-usar]')!.addEventListener('click', () => {
+    const opcao = opcaoSugerida();
+    if (!area.value && opcao) area.value = opcao.value;
+    atualizarSugestao();
+  });
+  form.addEventListener('input', (e) => {
+    if ((e.target as HTMLElement).matches('#ep-orgao, #ep-orgao-outro, #ep-area')) atualizarSugestao();
+  });
+  form.addEventListener('change', () => { atualizarOutros(); atualizarSugestao(); });
+  form.addEventListener('reset', () => {
+    limparErros();
+    queueMicrotask(() => { atualizarOutros(); atualizarSugestao(); });
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (salvar.disabled) return;
+    limparErros();
+    const campos: Record<string, unknown> = {};
+    const datas: Record<string, number | string | null> = {};
+    const erros: string[] = [];
+    for (const c of controles) {
+      const nome = c.name;
+      if (c instanceof HTMLInputElement && c.type === 'checkbox') {
+        if (c.checked !== c.defaultChecked) campos[nome] = c.checked;
+        continue;
+      }
+      const bruto = escolhido(c);
+      if (bruto === valorInicial(c).trim()) continue;
+      const valor = bruto || null;
+      if (nome === 'valor_obra' || nome === 'valor_projeto') {
+        const reais = lerReais(bruto);
+        if (reais === 'invalido') {
+          const rotulo = nome === 'valor_obra' ? 'Valor estimado da obra' : 'Valor do projeto';
+          erroCampo(c, rotulo + ': digite um valor em reais, como 1.500.000,00.', erros);
+        } else campos[nome] = reais;
+      } else if (nome === 'd_dias') {
+        const dias = valor === null ? null : Number(valor);
+        if (dias !== null && (!Number.isInteger(dias) || dias < 0)) erroCampo(c, 'Dias de execução: digite um número inteiro, como 180.', erros);
+        else datas.execucao_dias = dias;
+      } else if (Object.hasOwn(camposData, nome)) {
+        datas[camposData[nome]] = valor;
+      } else if (nome === 'tem_projeto' || nome === 'termo') {
+        campos[nome] = valor === 'Sim' ? true : valor === 'Não' ? false : null;
+      } else if (nome === 'sei') {
+        campos.sei = bruto.split(',').map((x) => x.trim()).filter(Boolean);
+      } else {
+        campos[nome] = valor;
+      }
+    }
+    const compromisso = radios.find((r) => r.checked)?.value;
+    if (compromisso && compromisso !== radios.find((r) => r.defaultChecked)?.value) campos.compromisso = compromisso;
+    if (Object.keys(datas).length) campos.datas = datas;
+    if (erros.length) return mostrar('Não foi possível salvar. Corrija:', erros);
+    if (!Object.keys(campos).length) return mostrar('Nenhuma alteração para salvar.');
+
+    salvar.disabled = true;
+    salvar.textContent = 'Salvando…';
+    try {
+      const id = encodeURIComponent(raiz.dataset.id ?? '');
+      const revisao = Number(raiz.dataset.revisao);
+      const resposta = await fetch('/plataforma/projeto/editar/' + id + '/', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ revisao, motivo: motivo.value.trim() || null, campos }),
+        credentials: 'same-origin', redirect: 'manual',
+      });
+      if (resposta.type === 'opaqueredirect' || resposta.status === 401) {
+        return mostrar('Sua sessão terminou. Entre de novo e repita a alteração.');
+      }
+      if (resposta.status === 409) {
+        return mostrar('O projeto foi alterado por outra pessoa enquanto você editava. Recarregue a página para ver a versão atual; o que você digitou não foi salvo.', [], true);
+      }
+      const r = await resposta.json().catch(() => null) as { ok?: boolean; erro?: string; erros?: string[] } | null;
+      if (resposta.status === 400) return mostrar('Não foi possível salvar. Corrija:', r?.erros?.length ? r.erros : [r?.erro ?? 'Edição inválida.']);
+      if (!resposta.ok || !r?.ok) return mostrar(r?.erro ?? erroRede);
+      location.assign('/plataforma/projeto/' + id + '/?salvo=1');
+    } catch {
+      mostrar(erroRede);
+    } finally {
+      salvar.disabled = false;
+      salvar.textContent = 'Salvar alterações';
+    }
+  });
+});
+</script>

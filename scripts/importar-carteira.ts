@@ -6,6 +6,7 @@ import { basename, dirname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import ExcelJS from 'exceljs';
 import { municipioAtivo } from '../src/lib/municipio-ativo.ts';
+import { codigoDeArea } from '../src/lib/carteira/area.ts';
 import { codigoMacroetapa, MACROETAPAS } from '../src/lib/carteira/macroetapas.ts';
 import { bruto, dataIso, extrairSei, jaccard, normCab, numero, palavras, simNao, texto } from './lib/normalizar.ts';
 import type { Carteira, DadosOperacionais, Projeto, ValoresAno } from '../src/lib/carteira/tipos.ts';
@@ -16,7 +17,7 @@ import type { RegistroLog } from '../src/lib/log/tipos.ts';
 /** Campos comparados entre duas cargas: os mesmos editáveis do motor de movimentação, mais a macroetapa. */
 const CAMPOS_SIMPLES = [
   'nome', 'orgao', 'responsavel', 'tipo', 'detalhamento', 'sei', 'observacao', 'regiao', 'bairro', 'corredor',
-  'origem_valor', 'tem_projeto', 'prioridade', 'tipo_contratacao', 'orgao_contratacao', 'solicitacoes_financeiras',
+  'origem_valor', 'tem_projeto', 'prioridade', 'tipo_contratacao', 'orgao_contratacao', 'solicitacoes_financeiras', 'area', 'prioritario',
 ];
 const GRUPOS_COMPARADOS = ['valores', 'recurso', 'datas'] as const;
 const lerCampo = (p: Projeto, campo: string): unknown => {
@@ -100,6 +101,13 @@ class Aba {
       const k = normCab(bruto(c.value));
       if (k && !this.cab.has(k)) this.cab.set(k, i);
     });
+  }
+  colExata(nome: string): number | null {
+    return this.cab.get(normCab(nome)) ?? null;
+  }
+  valorExato(linha: ExcelJS.Row, nome: string): unknown {
+    const i = this.colExata(nome);
+    return i === null ? null : linha.getCell(i).value;
   }
   /** Índice da coluna pelo cabeçalho (exato; senão pelo início, tolerando a falta do texto entre parênteses). */
   col(nome: string): number | null {
@@ -206,6 +214,8 @@ function lerPipeline(aba: Aba) {
       origem_valor: t('Origem do Valor'),
       tem_projeto: simNao(aba.valor(row, 'Tem projeto')),
       prioridade: t('Prioridade'),
+      area: codigoDeArea(texto(aba.valorExato(row, 'Área'))),
+      prioritario: simNao(aba.valorExato(row, 'Prioritário')),
       tipo_contratacao: t('TIPO DE CONTRATAÇÃO'),
       orgao_contratacao: t('ÓRGÃO DA CONTRATAÇÃO'),
       solicitacoes_financeiras: t('SOLICITAÇÕES FINANCEIRAS'),
