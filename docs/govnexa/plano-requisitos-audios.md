@@ -79,7 +79,7 @@ A % de cada entrega começa em 0 e é atualizada no README (seção 2) a cada PR
 
 | # | Entrega | Áudios | Depende de | Banco | Executor | % |
 | --- | --- | --- | --- | --- | --- | --- |
-| E1 | **Base para "do zero"**: edição dos campos na página do projeto (B2b), campo **área** com catálogo da prefeitura (B4 parcial), importação da área pela planilha, área no Novo projeto | A04, A21, base de tudo | decisões D2 e D3 | Migração 0007: `projeto.area` e tabela `catalogo` (área, órgão, região) | Codex sol + revisão Opus | 0% |
+| E1 | **Base para "do zero"**: edição dos campos na página do projeto (B2b), campo **área** com catálogo da prefeitura (B4 parcial), marca de **prioritário** (D1), códigos da tela a partir de 9000 (D3), importação da área e da marca pela planilha, os dois no Novo projeto | A04, A21, D1, D3, base de tudo | — | Migração 0007: `projeto.area`, `projeto.prioritario` e tabela `catalogo` (área, órgão, região) | Codex sol + revisão Opus | 0% |
 | E2 | **Padrão visual e filtros**: fundo claro nos dois temas; componente único de filtros (nome, órgão, área, macroetapa, período de entrega mês/ano) com estado no endereço; ordem por entrega; checagem de rolagem | A03, A16, A18, A24, A29 | — | — | Codex terra | 0% |
 | E3 | **Tela do prefeito "Projetos prioritários"**: layout do croqui; grandes números de quantidade e valor por macroetapa, clicáveis; obras por área (barras por quantidade); linha do tempo empilhada por área (mês e ano até 2028); próximas entregas filtradas; principais obras. Saem farol, prazo, parado, decisões pendentes, convênios e valores regionais | A01, A03, A09, A11, A12, A13, A14 | E1, E2, D1 | — (leitura) | Codex terra | 0% |
 | E4 | **Mapa por área**: legenda e filtro por área e macroetapa; região como filtro opcional; total de obras e valor por região; sem situação nem farol | A04, A05, A06, A14 | E1, E2 | — | Codex terra | 0% |
@@ -116,7 +116,7 @@ A % de cada entrega começa em 0 e é atualizada no README (seção 2) a cada PR
 
 Segue o roteiro do `projeto-banco.md`; cada migração passa por revisão independente.
 
-- **0007 (E1):** coluna `area` em `projeto`; tabela `catalogo` (`prefeitura_id`, `tipo` em área/órgão/região, `codigo`, `nome`, `ordem`, `ativo`), única por prefeitura e tipo. A área de cada projeto é editável na tela e vem da planilha. Enquanto a lista oficial de áreas não chega, uma sugestão inicial é proposta a partir do órgão e vai ao dono para conferência (D2).
+- **0007 (E1):** colunas `area` e `prioritario` (0/1, padrão 0) em `projeto`; tabela `catalogo` (`prefeitura_id`, `tipo` em área/órgão/região, `codigo`, `nome`, `ordem`, `ativo`), única por prefeitura e tipo. A área de cada projeto é editável na tela e vem da planilha. Enquanto a lista oficial de áreas não chega, uma sugestão inicial é proposta a partir do órgão e vai ao dono para conferência (D2).
 - **Fotos (E9):** `foto_projeto` (`prefeitura_id`, `projeto_id`, chave no R2, legenda, data, autor, remoção lógica), no mesmo padrão dos documentos.
 - **Licitações (E12):**
   - `contratacao` (`prefeitura_id`, `id`, `projeto_id` opcional, nome, situação nas 6 etapas, valores estimado, de proposta e contratado, pago, empresa, colocação, onde está, aguardando, datas de abertura, publicação prevista e marco, observação, `revisao`).
@@ -125,14 +125,14 @@ Segue o roteiro do `projeto-banco.md`; cada migração passa por revisão indepe
 - **Governança (E13):** histórico de responsável por tarefa, para calcular o tempo na mão de cada um.
 - **Sem dado real no repositório.** Exemplos novos (áreas, licitações, fotos) entram em `data/exemplo`.
 
-## 5. Decisões do dono (todas juntas, antes da 1ª rodada)
+## 5. Decisões do dono (respondidas em 22/11/2026)
 
-- **D1:** O universo da tela "Projetos prioritários" é a carteira inteira ou só as obras marcadas como prioritárias? Por qual campo se marca?
-- **D2:** A lista oficial de áreas. O áudio diz que ela será enviada. Até lá, usar uma sugestão a partir do órgão?
-- **D3:** O "ID só número" mostra o código da planilha sem o "P-". Isso se junta à decisão já aberta sobre a faixa dos códigos criados pela tela.
-- **D4:** O serviço de busca de endereço (gratuito com limite de uso ou pago).
-- **D5:** O modelo da planilha ou documento de acompanhamento das licitações, para a importação inicial.
-- **D6:** Confirmar que "próximo marco aguardando" não aparece na tela principal das licitações; ele entra só no detalhe, como no relatório de referência.
+- **D1:** a tela "Projetos prioritários" mostra a **carteira inteira**, com um **campo para marcar o projeto como prioritário** (filtro "só prioritários"). O campo entra na E1 (importação e tela).
+- **D2:** a lista oficial de áreas será enviada mais adiante. Até lá, a área sugerida vem do órgão e pode ser editada na tela; a lista oficial substitui a sugestão quando chegar.
+- **D3:** **faixa separada.** Projetos cadastrados pela tela recebem código a partir de 9000; a planilha segue a própria numeração. Não há mais colisão entre os dois. Entra na E1.
+- **D4:** busca de endereço por serviço **gratuito** (OpenStreetMap/Nominatim), respeitando o limite de uso, com cache e confirmação do usuário.
+- **D5:** o modelo de acompanhamento das licitações será enviado. A E12 espera esse arquivo para a importação; a tela e o banco podem ser preparados antes.
+- **D6:** confirmado. O "próximo marco aguardando" fica fora da tela principal e aparece só no detalhe.
 
 ## 6. Critérios de aceite (de cada entrega e do conjunto)
 
