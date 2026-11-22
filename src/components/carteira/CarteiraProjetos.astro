@@ -1,0 +1,100 @@
+---
+// Carteira de projetos (E5): grandes números, filtros padrão (E2) + "Só prioritários", grupos por macroetapa e impressão no formato do relatório por órgão.
+import '../../styles/carteira-lista.css';
+import Icon from '../Icon.astro';
+import FiltrosProjetos from './FiltrosProjetos.astro';
+import { carregarCarteira } from '../../lib/carteira/carga.ts';
+import { detalheProjeto } from '../../lib/carteira/modulos.ts';
+import { nomeMacroetapa } from '../../lib/carteira/macroetapas.ts';
+import { dataEntrega, filtrosAtivos, isoValido, lerFiltros, opcoesFiltros, orgaoDe } from '../../lib/carteira/filtros.ts';
+import { PARAM_PRIORITARIOS, TRACO, agruparPorMacroetapa, centavosDe, descreverFiltros, filtrarCarteira, formatarReais, lerSoPrioritarios, numeroDoId, totaisCarteira, valorValido } from '../../lib/carteira/lista.ts';
+import { dataBr, dataHoraBr } from '../../lib/datas.ts';
+
+const carteira = carregarCarteira();
+const fonte = carteira.fonte;
+const hojeIso = new Date().toISOString().slice(0, 10); // só o ano entra nas opções do período
+const opcoes = opcoesFiltros(carteira.projetos, hojeIso);
+const { filtros, avisos } = lerFiltros(Astro.url.searchParams, opcoes);
+const soPrioritarios = lerSoPrioritarios(Astro.url.searchParams);
+const visiveis = filtrarCarteira(carteira.projetos, filtros, soPrioritarios);
+const grupos = agruparPorMacroetapa(visiveis);
+const total = totaisCarteira(visiveis);
+const totalCarteira = carteira.projetos.length;
+const filtrado = filtrosAtivos(filtros) || soPrioritarios;
+const data = (iso: string | null | undefined): string => (isoValido(iso) ? dataBr(iso) : TRACO);
+const dias = (n: number | null): string => (typeof n === 'number' && Number.isInteger(n) && n >= 0 && n <= 36500 ? String(n) : TRACO);
+const plural = (n: number, um: string, varios: string): string => `${n} ${n === 1 ? um : varios}`;
+const emitidoEm = dataHoraBr(new Date());
+const COLUNAS = 10;
+---
+<div class="cp" data-cart data-carteira>
+  <FiltrosProjetos filtros={filtros} opcoes={opcoes} avisos={avisos} rotulo="Filtros da carteira" ativosExtra={soPrioritarios}>
+    <label slot="extra" class="fp-marca"><input type="checkbox" name={PARAM_PRIORITARIOS} value="1" checked={soPrioritarios} /> Só prioritários</label>
+  </FiltrosProjetos>
+  <section class="cp-numeros" aria-label="Grandes números da carteira">
+    <div class="cp-numero">
+      <p class="cp-numero-rotulo">Projetos</p>
+      <p class="cp-numero-valor"><strong data-cp-total-qtd>{total.qtd}</strong></p>
+      {filtrado && <p class="cp-numero-extra">de {totalCarteira} na carteira</p>}
+    </div>
+    <div class="cp-numero">
+      <p class="cp-numero-rotulo">Valor total</p>
+      <p class="cp-numero-valor"><strong data-cp-total-valor data-centavos={String(total.centavos)}>{formatarReais(total.valor)}</strong></p>
+      {total.semValor > 0 && <p class="cp-numero-extra" data-cp-sem-valor>{plural(total.semValor, 'projeto', 'projetos')} sem valor informado (fora da soma)</p>}
+    </div>
+  </section>
+  <p class="cp-impressao" data-cp-impressao>Emitido em {emitidoEm} · {descreverFiltros(filtros, soPrioritarios).join(' · ')}{fonte.ficticio ? ' · Dados fictícios de exemplo' : ''}</p>
+  <div class="cp-barra cart-nao-imprimir">
+    <p class="cart-resumo" role="status" data-cp-resumo>Mostrando {total.qtd} de {totalCarteira} projetos{total.qtd > 0 ? ', por macroetapa e da entrega mais próxima para a mais distante.' : '.'}</p>
+    <button type="button" class="secondary" data-cp-imprimir>Imprimir ou salvar em PDF</button>
+  </div>
+  {totalCarteira === 0 && <p class="cp-vazio" data-cp-vazio>Nenhum projeto na carteira ainda. Use o botão Novo projeto, no alto da página, para cadastrar o primeiro.</p>}
+  {totalCarteira > 0 && total.qtd === 0 && <p class="cp-vazio" data-cp-vazio-filtro>Nenhum projeto encontrado com esses filtros. Use Limpar filtros para ver a carteira inteira.</p>}
+  {grupos.length > 0 && (
+    <div class="cp-quadro">
+      <table class="cp-tabela">
+        <caption class="sr-only">Projetos da carteira por macroetapa, da entrega mais próxima para a mais distante</caption>
+        <thead>
+          <tr>
+            <th scope="col">ID</th><th scope="col">Órgão</th><th scope="col">Projeto</th><th scope="col" class="cp-num">Valor</th><th scope="col">Macroetapa</th><th scope="col">Peças técnicas</th><th scope="col">Fim da contratação</th><th scope="col" class="cp-num">Dias de obra</th><th scope="col">Entrega</th><th scope="col" class="cp-acao"><span class="sr-only">Detalhes</span></th>
+          </tr>
+        </thead>
+        {grupos.map((g) => (
+          <tbody data-cp-grupo={g.codigo}>
+            <tr class="cp-grupo"><th scope="colgroup" colspan={COLUNAS}>{g.rotulo}<span class="cp-grupo-info"> · {plural(g.qtd, 'projeto', 'projetos')} · {formatarReais(g.valor)}</span></th></tr>
+            {g.projetos.map((p) => {
+              const v = valorValido(p);
+              const entrega = dataEntrega(p);
+              const id = numeroDoId(p);
+              return (
+                <tr data-row data-cp-linha data-id={p.id} data-entrega={entrega ?? ''} data-centavos={v === null ? '' : String(centavosDe(v))} data-prioritario={p.prioritario === true ? '1' : '0'} data-values={JSON.stringify([id, p.nome])} data-detalhe={JSON.stringify(detalheProjeto(p, fonte.ficticio, fonte.arquivo, fonte.importado_em))}>
+                  <td class="cp-id" data-label="ID">{id}</td>
+                  <td class="cp-orgao" data-label="Órgão">{orgaoDe(p)}</td>
+                  <td class="cp-nome" data-label="Projeto"><strong>{p.nome || 'Projeto sem nome'}</strong></td>
+                  <td class="cp-num cp-valor" data-label="Valor">{formatarReais(v)}</td>
+                  <td class="cp-macro" data-label="Macroetapa">{nomeMacroetapa(p.macroetapa)}</td>
+                  <td class="cp-data" data-label="Peças técnicas">{data(p.datas.pecas_tecnicas)}</td>
+                  <td class="cp-data" data-label="Fim da contratação">{data(p.datas.contratacao)}</td>
+                  <td class="cp-num" data-label="Dias de obra">{dias(p.datas.execucao_dias)}</td>
+                  <td class="cp-data cp-entrega" data-label="Entrega">{entrega ? dataBr(entrega) : TRACO}</td>
+                  <td class="cp-acao td-acao"><button type="button" class="secondary" data-detail aria-label="Ver detalhes"><Icon name="eye" size={16} /><span class="cp-acao-texto">Detalhes</span></button></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        ))}
+      </table>
+    </div>
+  )}
+</div>
+<script>
+function prepararCarteira() {
+  document.querySelectorAll<HTMLButtonElement>('[data-cp-imprimir]').forEach((botao) => {
+    if (botao.dataset.cpPronto === '1') return;
+    botao.dataset.cpPronto = '1';
+    botao.addEventListener('click', () => window.print());
+  });
+}
+document.addEventListener('astro:page-load', prepararCarteira);
+prepararCarteira();
+</script>

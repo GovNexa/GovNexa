@@ -38,7 +38,7 @@ const T = {
   carteira: { rotulo: 'Carteira de projetos', url: '/plataforma/projetos-carteira/' },
   kanban: { rotulo: 'Kanban por macroetapa', url: '/plataforma/projetos-kanban/' },
   gantt: { rotulo: 'Gantt geral', url: '/plataforma/projetos-gantt/' },
-  orgaos: { rotulo: 'Visão por órgão', url: '/plataforma/projetos-orgaos/' },
+  orgaos: { rotulo: 'Carteira de projetos (filtro por órgão e impressão)', url: '/plataforma/projetos-carteira/' },
   cronogramas: { rotulo: 'Cronogramas', url: '/plataforma/projetos-cronogramas/' },
   parado: { rotulo: 'Onde está parado', url: '/plataforma/projetos-parado/' },
   pendencias: { rotulo: 'Pendências de etapa', url: '/plataforma/projetos-pendencias/' },

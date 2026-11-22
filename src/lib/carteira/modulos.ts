@@ -18,6 +18,7 @@ const rs = (v: number | null): string => (v === null ? dash : reais(v));
 const sim = (v: boolean | null): string => (v === null ? dash : v ? 'Sim' : 'Não');
 const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 
+// Sem uso desde a E5; remover depois da junção da E6 (evita conflito com a ficha).
 function ordenar(l: Projeto[]): Projeto[] {
   const ordem = (p: Projeto) => (p.macroetapa === null ? 99 : Number(p.macroetapa));
   return [...l].sort((a, b) => {
@@ -140,19 +141,14 @@ export function detalheProjeto(
 
 function montarCarteira(): Modulo {
   const c = carregarCarteira();
-  const lista = ordenar(c.projetos);
   const f = c.fonte;
   return {
     slug: 'projetos-carteira',
     title: 'Carteira de projetos',
     group: 'Projetos',
-    columns: ['ID', 'Projeto', 'Órgão', 'Macroetapa', 'Valor', 'Entrega', 'Situação'],
-    rows: lista.map((p) => {
-      const fa = farol(p);
-      return [p.id, p.nome, txt(p.orgao), nomeMacroetapa(p.macroetapa), valorProjeto(p) ?? dash, br(p.datas.encerramento), cap(fa.cor)];
-    }),
-    detalhes: lista.map((p) => detalheProjeto(p, f.ficticio, f.arquivo, f.importado_em)),
-    busca: lista.map((p) => [p.nome, p.orgao, p.sei.join(' '), p.regiao, p.bairro, p.detalhamento, nomeMacroetapa(p.macroetapa)].filter(Boolean).join(' ')),
+    // E5: a lista (filtros, totais, grupos e ficha) é montada por CarteiraProjetos.astro; aqui ficam só o título e a fonte.
+    columns: [],
+    rows: [],
     fields: [],
     source: 'govnexa-carteira',
     ficticio: f.ficticio,

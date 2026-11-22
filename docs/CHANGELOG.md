@@ -1,5 +1,13 @@
 # Changelog
 
+## E5 · Carteira de projetos (22/11/2026)
+- Grandes números no topo (total de projetos e de valor), que seguem os filtros. A soma é feita em centavos; projeto sem valor conta na quantidade e aparece avisado.
+- Colunas: ID (só o número, discreto), Órgão, Projeto (em destaque), Valor, Macroetapa, Peças técnicas, Fim da contratação, Dias de obra e Entrega. Sem farol na lista.
+- Filtros padrão da E2 mais "Só prioritários" (D1). A busca também aceita o código (P-901, 901), para os links antigos.
+- Agrupada por macroetapa e, em cada uma, da entrega mais próxima para a mais distante (sem data por último). No celular, cada projeto vira um cartão.
+- Impressão no formato do relatório por órgão: cabeçalho com totais e filtros, grupos por macroetapa, preto no branco.
+- A guia "Visão por órgão" saiu do menu; o endereço antigo leva à Carteira com o filtro de órgão. A ficha (Ver detalhes) não mudou.
+
 ## E1 · Base para operar do zero (22/11/2026)
 - Publicação: aplicar a migração 0007 ANTES de publicar o código (o código novo lê area e prioritario; o código antigo funciona sobre o esquema novo).
 - Revisão independente: aprovada com ressalvas. Corrigido: nome da área cai na lista padrão quando o catálogo não é passado; mensagem da faixa reservada diz "Nada foi gravado no banco". Pendentes de baixa gravidade: carregar o catálogo no contexto da Carteira e do WhatsApp; Histórico traduzir área pelo catálogo; edição que reenvia área já gravada e desativada recebe 400 (a tela não reenvia).
