@@ -1,0 +1,74 @@
+---
+// Localização dentro da ficha (E6). Mesmo editor e mesma rota de gravação (POST /plataforma/projeto/localizacao/<id>/); só muda o lugar.
+import '../../../styles/carteira.css';
+import '../../../styles/mapa.css';
+import EditorLocalizacao from '../../mapa/EditorLocalizacao.astro';
+import { carregarGeoBairros } from '../../../lib/mapa/obras.ts';
+import type { Localizacao, PontoGeo } from '../../../lib/mapa/tipos.ts';
+interface Props { id: string; bairro: string | null; inicial: Localizacao | null; podeSalvar: boolean }
+const { id, bairro, inicial, podeSalvar } = Astro.props;
+const geo: Record<string, PontoGeo> = {};
+for (const [nome, g] of Object.entries(carregarGeoBairros().bairros)) if (g.encontrado && typeof g.lat === 'number' && typeof g.lng === 'number') geo[nome] = { lat: g.lat, lng: g.lng };
+const nomesBairros = Object.keys(geo).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+const bairroOk = !!(bairro && geo[bairro.trim()]);
+const dados = JSON.stringify({ id, bairro: bairroOk && bairro ? bairro.trim() : null, cadastrada: inicial !== null }).replaceAll('<', '\\u003c');
+---
+<div class="fp-local" data-localizacao-ficha>
+  {!podeSalvar && <p class="cart-aviso" role="note">Seu perfil permite ver a localização, mas não alterar.</p>}
+  <p data-lp-precisao>Localização atual: {inicial ? 'Cadastrada' : bairroOk ? 'Aproximada pelo bairro' : 'Sem localização'}</p>
+  <EditorLocalizacao idPrefixo="lp-loc" inicial={inicial} bairros={nomesBairros} geo={geo} />
+  {podeSalvar && <div class="actions"><button type="button" class="primary" data-lp-salvar>Salvar localização</button></div>}
+  <div class="mp-ok" role="status" data-lp-ok hidden><p data-lp-ok-texto></p><p><a href="/plataforma/gestao/#mapa">Ver no mapa do painel</a></p></div>
+  <script is:inline type="application/json" data-lf-dados set:html={dados}></script>
+</div>
+<script>
+import { avisar } from '../../../lib/carteira/simulacao.ts';
+import { validarLocalizacao } from '../../../lib/mapa/geo.ts';
+import { descricaoLocalizacao } from '../../../lib/mapa/simulacao.ts';
+import type { Localizacao } from '../../../lib/mapa/tipos.ts';
+function iniciarLocalizacaoFicha(): void {
+  const raiz = document.querySelector<HTMLElement>('[data-localizacao-ficha]');
+  if (!raiz || raiz.dataset.pronto) return;
+  raiz.dataset.pronto = 'sim';
+  let dados: { id: string; bairro: string | null; cadastrada: boolean } = { id: '', bairro: null, cadastrada: false };
+  try { dados = JSON.parse(raiz.querySelector('[data-lf-dados]')?.textContent || '{}'); } catch { /* fica o padrão */ }
+  const editor = raiz.querySelector<HTMLElement>('#lp-loc');
+  const ok = raiz.querySelector<HTMLElement>('[data-lp-ok]');
+  const precisao = raiz.querySelector<HTMLElement>('[data-lp-precisao]');
+  if (!editor || !ok || !precisao || !dados.id) return;
+  const quandoPronto = (fn: () => void, n = 0): void => { if (editor.dataset.pronto) fn(); else if (n < 100) setTimeout(() => quandoPronto(fn, n + 1), 30); };
+  const bairro = dados.bairro;
+  if (!dados.cadastrada && bairro) quandoPronto(() => {
+    const seletor = editor.querySelector<HTMLSelectElement>('[data-ed-bairro]');
+    if (seletor) { seletor.value = bairro ?? ''; seletor.dispatchEvent(new Event('change')); }
+  });
+  const botao = raiz.querySelector<HTMLButtonElement>('[data-lp-salvar]');
+  botao?.addEventListener('click', async () => {
+    if (botao.disabled) return;
+    let valor: Localizacao | null = null;
+    try { valor = JSON.parse(editor.dataset.valor || 'null'); } catch { valor = null; }
+    const erros = valor ? validarLocalizacao(valor) : ['Marque a localização no mapa antes de salvar.'];
+    editor.dispatchEvent(new CustomEvent('localizacao-erros', { detail: erros }));
+    if (erros.length > 0 || !valor) { ok.hidden = true; return; }
+    botao.disabled = true;
+    let resposta: { ok?: boolean; erro?: string; erros?: string[]; localizacao?: Localizacao } = {};
+    try {
+      const r = await fetch(`/plataforma/projeto/localizacao/${encodeURIComponent(dados.id)}/`, {
+        method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(valor),
+      });
+      if (r.redirected || !(r.headers.get('content-type') ?? '').includes('json')) resposta = { ok: false, erro: 'Sua sessão terminou. Entre de novo e repita a gravação.' };
+      else resposta = await r.json();
+    } catch { resposta = { ok: false, erro: 'Não foi possível salvar agora. Confira a conexão e tente de novo.' }; } finally { botao.disabled = false; }
+    if (!resposta.ok || !resposta.localizacao) {
+      ok.hidden = true;
+      editor.dispatchEvent(new CustomEvent('localizacao-erros', { detail: resposta.erros?.length ? resposta.erros : [resposta.erro ?? 'Não foi possível salvar.'] }));
+      return;
+    }
+    raiz.querySelector<HTMLElement>('[data-lp-ok-texto]')!.textContent = `${descricaoLocalizacao(resposta.localizacao)} em ${dados.id}. Salva e registrada no Histórico.`;
+    precisao.textContent = 'Localização atual: Cadastrada';
+    ok.hidden = false;
+    avisar('Localização salva.');
+  });
+}
+document.addEventListener('astro:page-load', iniciarLocalizacaoFicha);
+</script>

@@ -21,7 +21,7 @@ test('mapa: obras sem localização abrem e levam ao cadastro com ?id=',async({p
  await det.locator('summary').click();
  const link=det.getByRole('link',{name:/Cadastrar localização de/}).first();
  await expect(link).toBeVisible();
- await expect(link).toHaveAttribute('href',/\/plataforma\/projetos-localizacao\/\?id=P-/);
+ await expect(link).toHaveAttribute('href',/\/plataforma\/projeto\/P-[A-Za-z0-9_-]+\/\?aba=localizacao$/);
 });
 
 test('whatsapp e mapa: sem rolagem horizontal e axe nos temas claro e escuro',async({page})=>{

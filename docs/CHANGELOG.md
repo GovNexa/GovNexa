@@ -1,5 +1,13 @@
 # Changelog
 
+## E6 · Ficha única do projeto (22/11/2026)
+- A Carteira abre a ficha do projeto em página inteira; o X volta à lista com os mesmos filtros.
+- Topo com órgão, área, valor total, macroetapa, entrega prevista, localização e observação em destaque; abas Cadastro, Recurso, Entrega, Localização, Fotos (em breve), Documentos, Processos SEI, Cronograma, Histórico e Governança.
+- Saem da ficha: farol, valores por ano, tipo e órgão de contratação, situação e tipo do recurso.
+- A guia Localização e fotos saiu do menu: o endereço com projeto abre a aba Localização; sem projeto, lista as obras sem localização.
+- Sem rota de gravação nova; edição (E1) e localização continuam pelas mesmas rotas.
+- Corrigido: `test:dados` tinha a chave duplicada e deixava de rodar os testes de edição e de área.
+
 ## E1 · Base para operar do zero (22/11/2026)
 - Publicação: aplicar a migração 0007 ANTES de publicar o código (o código novo lê area e prioritario; o código antigo funciona sobre o esquema novo).
 - Revisão independente: aprovada com ressalvas. Corrigido: nome da área cai na lista padrão quando o catálogo não é passado; mensagem da faixa reservada diz "Nada foi gravado no banco". Pendentes de baixa gravidade: carregar o catálogo no contexto da Carteira e do WhatsApp; Histórico traduzir área pelo catálogo; edição que reenvia área já gravada e desativada recebe 400 (a tela não reenvia).

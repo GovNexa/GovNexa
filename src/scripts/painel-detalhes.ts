@@ -1,3 +1,5 @@
+import { hrefFicha, ID_FICHA } from '../lib/carteira/ficha.ts';
+
 type ItemDetalhe = string | number;
 
 interface LinkDetalhe {
@@ -334,7 +336,7 @@ function construirPainel(
     const ancora = criar('a', ordem === 0 ? 'rd-action rd-action-primary' : 'rd-action', rotulo);
     ancora.href = link.url;
     // Nome acessível começa pelo texto visível e completa o sentido do rótulo curto.
-    ancora.setAttribute('aria-label', ordem === 0 ? 'Ficha completa do projeto' : ordem === 3 ? 'Localização e fotos' : ordem === 1 || ordem === 4 ? `${rotulo}: ${link.rotulo}` : rotulo);
+    ancora.setAttribute('aria-label', ordem === 0 ? 'Ficha completa do projeto' : ordem === 3 ? 'Localização do projeto' : ordem === 1 || ordem === 4 ? `${rotulo}: ${link.rotulo}` : rotulo);
     if (link.url.startsWith('https://')) {
       ancora.target = '_blank';
       ancora.rel = 'noopener noreferrer';
@@ -346,6 +348,21 @@ function construirPainel(
   referencia.elemento = registro.querySelector<HTMLElement>('[data-detail]');
 }
 
+/** Telas cujas linhas de projeto abrem a ficha única (E6) em vez do painel. */
+const PAGINAS_COM_FICHA = ['/plataforma/projetos-carteira/'];
+function fichaDoRegistro(registro: HTMLElement): string | null {
+  if (!PAGINAS_COM_FICHA.includes(location.pathname)) return null;
+  let codigo = registro.dataset.ficha ?? '';
+  if (!ID_FICHA.test(codigo)) {
+    try {
+      const detalhe = registro.dataset.detalhe ? JSON.parse(registro.dataset.detalhe) as DetalheRegistro : null;
+      codigo = (detalhe?.titulo ?? '').split(' · ')[0].trim();
+    } catch {
+      return null;
+    }
+  }
+  return ID_FICHA.test(codigo) ? hrefFicha(codigo, `${location.pathname}${location.search}`) : null;
+}
 export function iniciarPainelDetalhes() {
   const inicializar = () => {
     const dialogo = document.querySelector<HTMLDialogElement>('#record-dialog');
@@ -400,6 +417,11 @@ export function iniciarPainelDetalhes() {
       const registro = botaoDetalhes.closest<HTMLTableRowElement>('[data-row]');
       const tabela = registro?.closest('table');
       if (!registro || !tabela) return;
+      const ficha = fichaDoRegistro(registro);
+      if (ficha) {
+        location.assign(ficha);
+        return;
+      }
       linhas = [...tabela.querySelectorAll<HTMLTableRowElement>('tbody [data-row]')]
         .filter((linha) => !linha.hidden && linha.getClientRects().length > 0);
       indice = linhas.indexOf(registro);

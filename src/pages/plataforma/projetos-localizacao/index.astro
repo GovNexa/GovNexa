@@ -1,0 +1,48 @@
+---
+// Endereço antigo da guia "Localização e fotos" (saiu do menu na E6). Com ?id= leva à aba Localização da ficha; sem id, lista as obras que ainda não aparecem no mapa.
+import Platform from '../../../layouts/Platform.astro';
+import '../../../styles/carteira.css';
+import '../../../styles/mapa.css';
+import { carregarCarteira } from '../../../lib/carteira/carga.ts';
+import { hrefFicha, ID_FICHA } from '../../../lib/carteira/ficha.ts';
+import { carregarGeoBairros } from '../../../lib/mapa/obras.ts';
+import { obrasSemLocalizacao } from '../../../lib/mapa/pendentes.ts';
+export const prerender = false;
+const id = (Astro.url.searchParams.get('id') ?? '').trim();
+if (ID_FICHA.test(id)) return Astro.redirect(hrefFicha(id, null, 'localizacao'), 302);
+const pendentes = obrasSemLocalizacao(carregarCarteira(), carregarGeoBairros());
+const total = pendentes.semBairro.length + pendentes.bairroNaoEncontrado.reduce((s, g) => s + g.projetos.length, 0);
+const link = (pid: string) => hrefFicha(pid, null, 'localizacao');
+---
+<Platform title="Obras sem localização" slug="projetos-carteira">
+  <div class="section-head"><div>
+    <h1>Obras sem localização</h1>
+    <p class="muted">A localização e as fotos ficam dentro da ficha de cada projeto, nas abas Localização e Fotos. Esta lista mostra as obras que ainda não aparecem no mapa.</p>
+  </div></div>
+  {id && <p class="cart-aviso" role="status">Projeto não encontrado. Escolha uma obra da lista ou abra o projeto pela Carteira.</p>}
+  <details class="mp-pendentes" data-lp-pendentes>
+    <summary>Obras que ainda não aparecem no mapa ({total})</summary>
+    {total === 0 ? <p>Todas as obras já têm localização no mapa.</p> : (
+      <div class="mp-pendentes-lista" tabindex="0" role="region" aria-label="Lista de obras sem localização no mapa">
+        {pendentes.bairroNaoEncontrado.length > 0 && (
+          <section aria-labelledby="lp-pend-bairro">
+            <h3 id="lp-pend-bairro">Bairro não encontrado no mapa</h3>
+            {pendentes.bairroNaoEncontrado.map((g) => (
+              <div>
+                <h4>{g.bairro}</h4>
+                <ul>{g.projetos.map((p) => <li><a href={link(p.id)}>Cadastrar localização de {p.nome}</a></li>)}</ul>
+              </div>
+            ))}
+          </section>
+        )}
+        {pendentes.semBairro.length > 0 && (
+          <section aria-labelledby="lp-pend-sem">
+            <h3 id="lp-pend-sem">Sem bairro na planilha</h3>
+            <ul>{pendentes.semBairro.map((p) => <li><a href={link(p.id)}>Cadastrar localização de {p.nome}</a></li>)}</ul>
+          </section>
+        )}
+      </div>
+    )}
+  </details>
+  <p><a href="/plataforma/projetos-carteira/">Abrir a Carteira de projetos</a></p>
+</Platform>
