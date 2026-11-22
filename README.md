@@ -420,6 +420,8 @@ Centros dos bairros: migração 0005 e carga publicadas em 18/11/2026. Parte dos
 
 ### Próximos passos
 
+0. **Requisitos dos áudios de 20/11/2026 (visão do prefeito, gestão e governança):** plano completo em [docs/govnexa/plano-requisitos-audios.md](docs/govnexa/plano-requisitos-audios.md), com 34 pedidos rastreados, entregas E1 a E14, ordem e % por fase. Decisões D1 a D6 respondidas em 22/11/2026 (carteira inteira com marca de prioritário; áreas sugeridas pelo órgão até a lista oficial; códigos da tela a partir de 9000; busca de endereço gratuita; modelo das licitações a enviar).
+
 1. **3.3 — usuários e login:** publicada e ligada em produção em 17/11/2026 (`LOGIN_MODO=senha`).
 2. **3.4 — documentos:** publicada em 17/11/2026.
    Entregas 1.0 (limite de requisições) e 1.1 (tipo do documento, migração 0003) publicadas em 17/11/2026.

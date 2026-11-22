@@ -16,6 +16,8 @@
 
 ## Andamento · última atualização em 17/11/2026
 
+22/11/2026: os requisitos dos áudios de 20/11 (três visões: gerencial, governança da execução e convênios; tela do prefeito; carteira, ficha, Kanban, mapa por área e licitações) estão planejados em [plano-requisitos-audios.md](plano-requisitos-audios.md).
+
 O sistema está no ar com os dados reais da planilha (334 projetos e 13 cronogramas do GEPP); gravação de alterações depende do banco de dados. O que mudou em cada entrega está em `docs/CHANGELOG.md`.
 
 Regra de apresentação (17/11/2026): datas sempre no padrão brasileiro, `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` (horário de Brasília).
