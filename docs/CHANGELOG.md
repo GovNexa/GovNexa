@@ -8,6 +8,11 @@
 - Migração 0007 prepara o catálogo de áreas por prefeitura e a marca de prioritário. A sugestão por órgão depende de um clique. Edição, Novo projeto e importação usam os dois campos.
 - O cadastro pela tela começa em P-9000. A importação recusa códigos dessa faixa e preserva os valores de área e prioritário ausentes na planilha.
 - A E1 grava pelo D1. Kanban, localização, login e adaptadores Postgres e JSON seguem seus fluxos existentes.
+## E2: padrão visual e filtros (22/11/2026)
+- Telas de Projetos com fundo claro e neutro nos temas claro e escuro; cor só na informação. Menu lateral e login sem mudança.
+- Novo componente de filtros (`FiltrosProjetos.astro`): nome, órgão, área (aparece quando a carteira tiver área), macroetapa e período de entrega (mês e ano de início e de fim). O filtro fica no endereço: dá para compartilhar o link e voltar pelo navegador.
+- Nova função pura `src/lib/carteira/filtros.ts`: filtragem e ordem da entrega mais próxima para a mais distante (sem data por último), com testes.
+- Gantt geral usa o componente e a nova ordem; mostra a data de entrega de cada projeto. Carteira, Kanban e Visão por órgão não mudaram (ficam para E5 e E7).
 
 ## Plano dos requisitos dos áudios (22/11/2026)
 - Novo `docs/govnexa/plano-requisitos-audios.md`: 34 pedidos rastreados por áudio, situação de hoje, entregas E1 a E14 com dependências, banco, executor e %, decisões D1 a D6 e critérios de aceite (funcionar com base carregada e do zero). Só documentação; nenhum código mudou.
