@@ -7,7 +7,7 @@ import { criarToken, consultarToken } from '../../src/lib/login/tokens.ts';
 import { base32, codigoTotp, verificarTotp, cifrarSegredo, decifrarSegredo } from '../../src/lib/login/totp.ts';
 import { criarSessao, obterSessao, cookieSessao } from '../../src/lib/login/sessao.ts';
 import { hash } from '../../src/lib/login/base.ts';
-import { servicoLogin, ERRO_LOGIN, RESPOSTA_ESQUECI } from '../../src/lib/login/servico.ts';
+import { servicoLogin, semSegundoFator, ERRO_LOGIN, RESPOSTA_ESQUECI } from '../../src/lib/login/servico.ts';
 import { emailsLocais } from '../../src/lib/login/email.ts';
 const pepper='pepper-ficticio-playwright', chave='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
 const request=new Request('http://localhost/entrar/',{headers:{'CF-Connecting-IP':'192.0.2.1'}});
@@ -18,6 +18,30 @@ async function preparar() {
  const servico=servicoLogin(env,request),u=(await b.db.prepare('SELECT * FROM usuario WHERE id = ?').bind('admin').first<any>())!;
  return {...b,env,servico,u};
 }
+test('temporário: sem 2ª etapa só para a conta listada, com data válida, nunca administrador, auditado e revogável',async()=>{
+ const agora=Date.parse('2026-11-22T12:00:00Z'),ate='2026-11-25T12:00:00Z',l={LOGIN_SEM_2FA_EMAILS:' Equipe@Exemplo.invalid ,outra@exemplo.invalid',LOGIN_SEM_2FA_ATE:ate};
+ const u={email:'equipe@exemplo.invalid',perfil:'editor'};
+ assert.equal(semSegundoFator(l,u,agora),true);
+ assert.equal(semSegundoFator({...l,LOGIN_SEM_2FA_ATE:undefined},u,agora),false);
+ assert.equal(semSegundoFator({...l,LOGIN_SEM_2FA_ATE:'2026-11-22T11:00:00Z'},u,agora),false);
+ assert.equal(semSegundoFator({...l,LOGIN_SEM_2FA_ATE:'2026-12-30T12:00:00Z'},u,agora),false);
+ assert.equal(semSegundoFator({...l,LOGIN_SEM_2FA_ATE:'lixo'},u,agora),false);
+ assert.equal(semSegundoFator({...l,LOGIN_SEM_2FA_ATE:'2026-11-25'},u,agora),false);
+ assert.equal(semSegundoFator({...l,LOGIN_SEM_2FA_ATE:'2026-11-25T23:59:00-03:00'},u,agora),true);
+ assert.equal(semSegundoFator({LOGIN_SEM_2FA_ATE:ate},u,agora),false);
+ assert.equal(semSegundoFator(l,{...u,email:'terceiro@exemplo.invalid'},agora),false);
+ assert.equal(semSegundoFator(l,{email:'equipe@exemplo.invalid',perfil:'admin'},agora),false);
+ const b=await preparar();try{
+ b.sqlite.exec("INSERT INTO usuario(id,email,nome,perfil,prefeitura_id) VALUES('dani','dani@exemplo.invalid','Conta temporária','editor',5208707)");
+ const h=await hashSenha('Montanhas!azuis-7264',pepper);b.sqlite.prepare('UPDATE usuario SET senha_hash = ? WHERE id = ?').run(h,'dani');
+ const ate2=new Date(Date.now()+86400000).toISOString();
+ const sem=servicoLogin({...b.env,LOGIN_SEM_2FA_EMAILS:'dani@exemplo.invalid',LOGIN_SEM_2FA_ATE:ate2},request);
+ const r=await sem.iniciarLogin('dani@exemplo.invalid','Montanhas!azuis-7264');assert.equal(r.etapa,'completa');assert.equal((await obterSessao(b.db,r.valor))?.etapa,'completa');assert.equal((await sem.usuarioDaSessao(r.valor))?.id,'dani');
+ assert.equal(b.sqlite.prepare("SELECT count(*) n FROM evento_acesso WHERE tipo = 'login_sem_2fa' AND usuario_id = 'dani'").get()!.n,1);
+ await assert.rejects(sem.iniciarLogin('dani@exemplo.invalid','senha errada'));
+ const normal=await b.servico.iniciarLogin('dani@exemplo.invalid','Montanhas!azuis-7264');assert.equal(normal.etapa,'configurar_2fa');
+ }finally{b.sqlite.close();}
+});
 test('senha: PBKDF2, pepper, sal e validação simples sem regras de símbolos',async()=>{
  const h=await hashSenha('Horizonte!local-7264',pepper);assert.match(h,/^pbkdf2-sha256\$100000\$[\w-]{22}\$[\w-]{43}$/);
  assert.equal(await verificarSenha('Horizonte!local-7264',h,pepper),true);assert.equal(await verificarSenha('outra',h,pepper),false);assert.equal(await verificarSenha('Horizonte!local-7264',h,'outro'),false);

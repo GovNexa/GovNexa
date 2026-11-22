@@ -8,7 +8,16 @@ import { gerarSegredo, cifrarSegredo, decifrarSegredo, verificarTotp, gerarCodig
 import { contarTentativa } from './limites.ts';
 import { enviarEmail, type EnvEmail, type Email } from './email.ts';
 import { modeloLink, modeloAviso } from './modelos-email.ts';
-export interface EnvLogin extends EnvEmail { DB_CENTRAL:BancoD1; SENHA_PEPPER?:string; TOTP_CHAVE?:string; LOGIN_MODO?:string; ORIGEM_PUBLICA?:string; TURNSTILE_SITE_KEY?:string; TURNSTILE_SECRET?:string; }
+export interface EnvLogin extends EnvEmail { DB_CENTRAL:BancoD1; SENHA_PEPPER?:string; TOTP_CHAVE?:string; LOGIN_MODO?:string; ORIGEM_PUBLICA?:string; TURNSTILE_SITE_KEY?:string; TURNSTILE_SECRET?:string; LOGIN_SEM_2FA_EMAILS?:string; LOGIN_SEM_2FA_ATE?:string; }
+// TEMPORÁRIO (ordem do dono, 22/11/2026): contas listadas entram só com e-mail e senha, até a data limite. Falha fechada: sem data válida,
+// vencida ou a mais de 7 dias, ninguém é dispensado; administrador nunca é dispensado. Os valores ficam só nos segredos do Worker.
+export function semSegundoFator(env:Pick<EnvLogin,'LOGIN_SEM_2FA_EMAILS'|'LOGIN_SEM_2FA_ATE'>,u:{email:string;perfil:string},agora=Date.now()) {
+  // Formato exigido: AAAA-MM-DDTHH:MM:SS (frações aceitas) com fuso (Z ou -03:00); qualquer outro vale como desligado.
+  const texto=(env.LOGIN_SEM_2FA_ATE??'').trim();
+  const ate=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/.test(texto)?Date.parse(texto):NaN;
+  if(!Number.isFinite(ate)||ate<=agora||ate>agora+7*86400000||u.perfil==='admin')return false;
+  return (env.LOGIN_SEM_2FA_EMAILS??'').split(',').map(e=>e.trim().toLowerCase()).filter(Boolean).includes(u.email.toLowerCase());
+}
 export interface UsuarioLogin extends Usuario {senha_hash:string|null;totp_ativo:number;totp_segredo_cifrado:string|null;totp_ultimo_passo:number|null;bloqueado_ate:string|null;falhas_login:number;}
 export class ErroAdmin extends Error {
  readonly codigo:string;
@@ -124,6 +133,7 @@ export function servicoLogin(env:EnvLogin, request:Request, waitUntil?: (tarefa:
     await gravar(db,'UPDATE usuario SET falhas_login = ?, bloqueado_ate = CASE WHEN ? = 1 THEN bloqueado_ate ELSE max(coalesce(bloqueado_ate,\'\'),?) END WHERE id = ? AND (bloqueado_ate IS NULL OR bloqueado_ate <= ?)',falhas,Number(ok||confere),depois(duracao),u?.id??'',iso());
     await evento('login_recusado',u?.id??null);throw new Error(ERRO_LOGIN);
    }
+   if(semSegundoFator(env,u)){const valor=await criarSessao(db,u.id,'completa',request.headers.get('user-agent')??'');await limparFalhas(u);await evento('login_sem_2fa',u.id);return {valor,etapa:'completa' as const};}
    const etapa=u.totp_ativo?'segundo_fator':'configurar_2fa';const valor=await criarSessao(db,u.id,etapa,request.headers.get('user-agent')??'');await evento('senha_verificada',u.id);return {valor,etapa};
   },
   async concluirSegundoFator(valor:string,codigo:string) {const {s,u}=await tentativa(valor,'segundo_fator');if(!u.totp_segredo_cifrado)throw new Error(ERRO_CODIGO);const passo=await verificarTotp(await decifrarSegredo(u.totp_segredo_cifrado,env.TOTP_CHAVE??'',u.id),codigo,u.totp_ultimo_passo);if(passo===null)return falhaCodigo(u);return concluir(s,u,passo);},

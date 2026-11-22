@@ -1,5 +1,8 @@
 # Changelog
 
+## Login: dispensa temporária da 2ª etapa para uma conta (22/11/2026)
+- Ordem do dono, provisória: uma conta que não seja administradora pode entrar só com e-mail e senha. Liga por dois segredos do Worker (`LOGIN_SEM_2FA_EMAILS` e `LOGIN_SEM_2FA_ATE`), sem e-mail no repositório; sem data válida (máximo 7 dias à frente) nada muda. Senha, bloqueio por falhas, limites e Turnstile continuam valendo; cada entrada fica auditada como `login_sem_2fa`. Para desligar: apagar os dois segredos.
+
 ## Mapa das obras no dashboard (20/11/2026)
 - Versão compacta do mapa da Gestão no Início, abaixo dos indicadores, com os filtros do dashboard (região, órgão, prioridade, compromisso). Miniatura estática; "Ampliar mapa" abre a mesma apresentação em tela cheia (filtros, painel, ficha) e, ao sair, volta à cidade inteira.
 - O mapa fica fora das áreas renovadas pela atualização automática: não é recriado nem sai da tela cheia; recebe os dados novos por evento só quando mudam. Estado do mapa fora do endereço do dashboard. Sem suporte a tela cheia, abre o mapa na Gestão.
