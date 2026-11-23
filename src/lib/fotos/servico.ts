@@ -86,7 +86,7 @@ export async function verFoto(c: ContextoFotos, id: string): Promise<Response | 
   if (!prontos(c)) return falha(503, 'indisponivel');
   if (!ID_FOTO.test(id)) return falha(404, 'naoencontrada');
   const f = await c.repositorio.fotos!.obter(id);
-  if (!f || !chaveDaPrefeitura(f.arquivo_chave, c.repositorio.prefeituraId!) || !(TIPOS_FOTO_MIME as readonly string[]).includes(f.tipo_mime)) return falha(404, 'naoencontrada');
+  if (!f || !chaveDaPrefeitura(f.arquivo_chave, c.repositorio.prefeituraId!) || !f.arquivo_chave.startsWith(`fotos/${c.repositorio.prefeituraId}/${f.projeto_id}/`) || !(TIPOS_FOTO_MIME as readonly string[]).includes(f.tipo_mime)) return falha(404, 'naoencontrada');
   const objeto = await c.bucket!.get(f.arquivo_chave);
   if (!objeto) return falha(404, 'naoencontrada');
   return new Response(objeto.body, {
@@ -94,6 +94,7 @@ export async function verFoto(c: ContextoFotos, id: string): Promise<Response | 
       'Content-Type': f.tipo_mime, 'Content-Length': String(objeto.size),
       'Content-Disposition': cabecalhoFoto(f.id, f.tipo_mime),
       'X-Content-Type-Options': 'nosniff', 'Cache-Control': 'private, no-store', 'Cross-Origin-Resource-Policy': 'same-origin',
+      'Content-Security-Policy': "default-src 'none'; sandbox",
     },
   });
 }
