@@ -220,7 +220,7 @@ test('correção 3: links usam origem pública e e-mail sai com waitUntil, com f
  assert.ok(Number(b.sqlite.prepare("SELECT count(*) n FROM evento_acesso WHERE tipo='origem_publica_invalida'").get()!.n)>=1);
  // Sem waitUntil, a promessa da resposta aguarda o envio.
  const outra=servicoLogin(env,request);let respondeu=false;const pendente=outra.pedirRedefinicao(b.u.email).then(()=>{respondeu=true;});
- for(let i=0;i<30&&enviados.length<2;i++)await new Promise(r=>setTimeout(r,1));
+ for(const fim=Date.now()+2000;Date.now()<fim&&enviados.length<2;)await new Promise(r=>setTimeout(r,1));
  assert.equal(enviados.length,2);assert.equal(respondeu,false);liberar();await pendente;assert.equal(respondeu,true);
  }finally{b.sqlite.close();}
 });
@@ -298,7 +298,7 @@ test('correção 5: administrador aguarda e recebe falha de e-mail preservando c
  const svc=servicoLogin(env,request,t=>tarefas.push(t));
  let terminou=false;const resultado=svc.convidar(b.u,{nome:'Equipe de teste',email:'falha@exemplo.invalid',cargo:'Teste',perfil:'editor'}).finally(()=>{terminou=true;});
  const rejeicao=assert.rejects(resultado,(e:unknown)=>e instanceof Error&&'codigo' in e&&e.codigo==='email_falhou');
- for(let i=0;i<100&&!iniciou;i++)await new Promise(r=>setTimeout(r,1));
+ for(const fim=Date.now()+2000;Date.now()<fim&&!iniciou;)await new Promise(r=>setTimeout(r,1));
  assert.equal(iniciou,true);assert.equal(terminou,false);assert.equal(tarefas.length,0);liberar();await rejeicao;
  const id=String(b.sqlite.prepare('SELECT id FROM usuario WHERE email=?').get('falha@exemplo.invalid')!.id);
  const falha=servicoLogin({...env,EMAIL:{send:async()=>{throw new Error('Falha simulada');}}},request,t=>tarefas.push(t));

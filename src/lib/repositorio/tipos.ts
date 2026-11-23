@@ -83,4 +83,6 @@ export interface RepositorioProjetos {
   fotos?: import('../fotos/repositorio.ts').RepositorioFotos;
   /** Contratações (E12; só no D1; ausente nos demais repositórios). */
   contratacoes?: import('../contratacoes/repositorio.ts').RepositorioContratacoes;
+  /** PNCP (E14a; só no D1; ausente nos demais repositórios). */
+  pncp?: import('../pncp/repositorio.ts').RepositorioPncp;
 }

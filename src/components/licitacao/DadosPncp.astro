@@ -1,0 +1,182 @@
+---
+// Quadro "Dados do PNCP" da contratação (E14a): vínculo, retrato da compra, itens, vencedores e Histórico.
+// Todo texto do PNCP entra só por interpolação do Astro (nunca set:html) e passa de novo por mascararCpf (defesa em profundidade, LGPD).
+// O link oficial é montado pelo sistema a partir do trio (nunca vem do PNCP).
+import { dataBr, dataHoraBr } from '../../lib/datas.ts';
+import { comVolta } from '../../lib/navegacao/volta.ts';
+import { reaisCompleto } from '../../lib/contratacoes/regras.ts';
+import {
+  ROTULO_OBRA, ROTULO_STATUS, dataHoraPncp, formatarCnpj, linkPublico, mascararCpf, type ClasseObra,
+} from '../../lib/pncp/regras.ts';
+import type { Contratacao } from '../../lib/contratacoes/repositorio.ts';
+
+interface Props { contratacao: Pick<Contratacao, 'id' | 'nome'>; podeEditar: boolean; aqui: string | null }
+const { contratacao: c, podeEditar, aqui } = Astro.props;
+const repo = Astro.locals.repositorio.pncp;
+const MAX_ITENS_TELA = 50;
+const ROTULO_EVENTO: Record<string, string> = {
+  vinculo: 'Ligada ao PNCP', desvinculo: 'Desligada do PNCP', coleta_ok: 'Dados atualizados', coleta_erro: 'Falha ao atualizar',
+};
+const vinculo = repo ? await repo.obterVinculoAtivo(c.id) : null;
+const retrato = repo && vinculo ? await repo.obterRetrato(vinculo.id) : null;
+const eventos = repo ? await repo.historico(c.id, 20) : [];
+const haSecretaria = repo && podeEditar && !vinculo ? (await repo.listarOrgaos()).some((o) => o.ativo) : false;
+const compra = retrato?.compra ?? null;
+const limpo = (t: string | null | undefined): string | null => mascararCpf(t ?? null);
+const itens = retrato?.itens ?? [];
+const itensTela = itens.slice(0, MAX_ITENS_TELA);
+const itensRestantes = compra ? Math.max(compra.itens_total, itens.length) - itensTela.length : 0;
+const resultadosDo = (n: number) => (retrato?.resultados ?? []).filter((r) => r.numero_item === n);
+const haOrdem = (retrato?.resultados ?? []).some((r) => r.ordem_classificacao !== null);
+const semColocacao = !!compra && compra.existe_resultado && !haOrdem;
+const colocacao = (r: { ordem_classificacao: number | null; situacao_id: number | null; situacao_nome: string | null }): string =>
+  r.ordem_classificacao !== null ? `${r.ordem_classificacao}º` : r.situacao_id === 1 ? 'Vencedor' : (r.situacao_nome ?? 'Sem colocação informada');
+const link = vinculo ? linkPublico(vinculo.cnpj, vinculo.ano, vinculo.sequencial) : null;
+const status = vinculo ? (vinculo.ultimo_status ?? 'erro') : null;
+const objeto = limpo(compra?.objeto);
+const secretarias = comVolta('/plataforma/gestao-licitacoes/secretarias/', aqui);
+---
+{repo && (
+  <section class="ct-bloco pn" aria-labelledby={`pn-t-${c.id}`} data-pn data-id={c.id} data-pode-editar={podeEditar ? '1' : '0'}>
+    <h2 id={`pn-t-${c.id}`}>Dados do PNCP</h2>
+    <p class="ct-msg" role="status" aria-live="polite" data-pn-msg></p>
+
+    {!vinculo && <p class="ct-vazio">Esta contratação ainda não está ligada ao PNCP.</p>}
+
+    {!vinculo && podeEditar && !haSecretaria && (
+      <p>Nenhuma secretaria compradora cadastrada. <a href={secretarias}>Secretarias compradoras (PNCP)</a></p>
+    )}
+    {!vinculo && podeEditar && haSecretaria && (
+      <>
+        <form class="ct-form pn-form" data-pn-previa aria-label="Ligar ao PNCP">
+          <label class="ct-cheio">Número de controle ou link do PNCP
+            <input type="text" name="entrada" maxlength="300" autocomplete="off" required />
+            <span class="ct-sub">Exemplo: 90000001000129-1-000001/2026 ou o link da página da compra no PNCP.</span>
+          </label>
+          <div class="ct-cheio"><button type="submit" class="primary">Conferir no PNCP</button></div>
+        </form>
+        <div class="pn-previa" data-pn-previa-area hidden>
+          <dl class="ct-campos" data-pn-previa-dados></dl>
+          <p class="ct-aviso pn-aviso" role="alert" data-pn-previa-aviso hidden></p>
+          <p class="ct-aviso pn-aviso" role="alert" data-pn-previa-aviso-municipio hidden></p>
+          <label class="pn-confirma" data-pn-previa-confirma hidden>
+            <input type="checkbox" data-pn-confirmo />
+            <span>Confirmo que esta é a compra certa</span>
+          </label>
+          <div class="ct-linha-botoes">
+            <button type="button" class="primary" data-pn-ligar>Ligar esta compra</button>
+            <button type="button" data-pn-cancelar>Cancelar</button>
+          </div>
+        </div>
+      </>
+    )}
+
+    {vinculo && (
+      <>
+        <p class="pn-resumo" data-pn-resumo>
+          <span data-pn-controle>{vinculo.numero_controle}</span>
+          <span>{vinculo.orgao_nome}</span>
+          <a href={link!} target="_blank" rel="noopener noreferrer">Abrir no PNCP</a>
+          {compra && <span>Atualizado em {dataHoraBr(compra.coletado_em)}</span>}
+        </p>
+        {status !== 'ok' && (
+          <p class="ct-aviso pn-aviso" role="status" data-pn-aviso-status={status}>
+            Última tentativa em {vinculo.ultima_tentativa_em ? dataHoraBr(vinculo.ultima_tentativa_em) : '—'}: {ROTULO_STATUS[status!] ?? ROTULO_STATUS.erro}.
+            {vinculo.ultima_coleta_em ? ` Mostrando os dados de ${dataHoraBr(vinculo.ultima_coleta_em)}.` : ' Ainda sem dados do PNCP.'}
+          </p>
+        )}
+
+        {compra && (
+          <>
+            <dl class="ct-campos pn-campos" data-pn-retrato>
+              <div><dt>Situação da compra</dt><dd>{compra.situacao_nome ?? `Situação ${compra.situacao_id}`}</dd></div>
+              <div><dt>Modalidade</dt><dd>{compra.modalidade_nome ?? '—'}</dd></div>
+              <div><dt>Classificação</dt><dd><span class={`ct-selo pn-selo${compra.obra === 'nao_identificado' ? ' pn-selo-aviso' : ''}`} data-pn-obra={compra.obra}>{ROTULO_OBRA[compra.obra as ClasseObra]}</span></dd></div>
+              <div><dt>Registro de preços</dt><dd>{compra.srp ? 'Sim' : 'Não'}</dd></div>
+              <div><dt>Valor estimado</dt><dd>{reaisCompleto(compra.valor_estimado)}</dd></div>
+              <div><dt>Valor homologado</dt><dd>{reaisCompleto(compra.valor_homologado)}</dd></div>
+              <div><dt>Abertura das propostas</dt><dd>{dataHoraPncp(compra.data_abertura)}</dd></div>
+              <div><dt>Encerramento das propostas</dt><dd>{dataHoraPncp(compra.data_encerramento)}</dd></div>
+              <div><dt>Processo</dt><dd>{limpo(compra.processo) ?? '—'}</dd></div>
+              <div><dt>Nº da compra</dt><dd>{limpo(compra.numero_compra) ?? '—'}</dd></div>
+              <div class="pn-objeto">
+                <dt>Objeto</dt>
+                <dd>
+                  {objeto === null ? '—' : Array.from(objeto).length > 200 ? (
+                    <details><summary>{Array.from(objeto).slice(0, 200).join('')}…</summary><span>{objeto}</span></details>
+                  ) : objeto}
+                </dd>
+              </div>
+            </dl>
+
+            {compra.incompleto && <p class="ct-aviso pn-aviso" data-pn-incompleto>Parte dos itens ficou para a próxima atualização.</p>}
+            {semColocacao && (
+              <p class="ct-aviso pn-aviso" data-pn-sem-colocacao>Colocação completa (2º, 3º…) não disponível no PNCP para esta compra. Se precisar, registre a colocação nos dados da contratação.</p>
+            )}
+
+            <h3>Itens</h3>
+            {itensTela.length === 0 ? <p class="ct-vazio">Nenhum item informado pelo PNCP.</p> : (
+              <table class="pn-tabela" data-pn-itens>
+                <caption class="sr-only">Itens da compra no PNCP</caption>
+                <thead><tr><th scope="col">Item</th><th scope="col">Descrição</th><th scope="col">Situação</th><th scope="col">Valor estimado</th><th scope="col">Resultado</th></tr></thead>
+                <tbody>
+                  {itensTela.map((i) => (
+                    <tr data-pn-item={i.numero_item}>
+                      <td data-label="Item">{i.numero_item}</td>
+                      <td data-label="Descrição">{limpo(i.descricao) ?? '—'}</td>
+                      <td data-label="Situação">{i.situacao_nome ?? `Situação ${i.situacao_id}`}</td>
+                      <td data-label="Valor estimado">{reaisCompleto(i.valor_total)}</td>
+                      <td data-label="Resultado">
+                        {resultadosDo(i.numero_item).length === 0 ? '—' : (
+                          <ul class="pn-resultados">
+                            {resultadosDo(i.numero_item).map((r) => (
+                              <li data-pn-resultado>
+                                <strong>{colocacao(r)}</strong> · {limpo(r.fornecedor_nome) ?? 'Fornecedor não informado'}
+                                {r.tipo_pessoa === 'PJ' && r.fornecedor_ni ? ` · CNPJ ${formatarCnpj(r.fornecedor_ni)}` : ''}
+                                {` · ${reaisCompleto(r.valor_homologado)}`}
+                                {r.data_resultado ? ` · ${dataBr(r.data_resultado)}` : ''}
+                                {r.motivo_cancelamento ? ` · Motivo: ${limpo(r.motivo_cancelamento)}` : ''}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            {itensRestantes > 0 && <p class="ct-sub" data-pn-mais-itens>Mais {itensRestantes} {itensRestantes === 1 ? 'item' : 'itens'} no PNCP. <a href={link!} target="_blank" rel="noopener noreferrer">Abrir no PNCP</a></p>}
+          </>
+        )}
+
+        {podeEditar && (
+          <div class="pn-acoes">
+            <button type="button" class="primary" data-pn-atualizar data-vinculo={vinculo.id}>Atualizar agora</button>
+            <details class="ct-detalhes pn-desligar" data-pn-desligar>
+              <summary>Desligar do PNCP</summary>
+              <form class="ct-form" data-pn-desligar-form data-vinculo={vinculo.id}>
+                <label class="ct-cheio">Motivo *<textarea name="motivo" rows="2" maxlength="500" required></textarea></label>
+                <div class="ct-cheio"><button type="submit">Desligar</button></div>
+              </form>
+            </details>
+          </div>
+        )}
+      </>
+    )}
+
+    {eventos.length > 0 && (
+      <>
+        <h3>Histórico do PNCP</h3>
+        <ol class="ct-historico-lista" data-pn-historico>
+          {eventos.map((e) => (
+            <li>
+              <span>{dataHoraBr(e.em)} · <strong>{ROTULO_EVENTO[e.tipo] ?? e.tipo}</strong>{e.descricao ? ` · ${limpo(e.descricao)}` : ''}</span>
+              <span class="muted"> · por {e.autor}</span>
+            </li>
+          ))}
+        </ol>
+      </>
+    )}
+  </section>
+)}

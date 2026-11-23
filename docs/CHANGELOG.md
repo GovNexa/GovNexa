@@ -1,5 +1,13 @@
 # Changelog
 
+## E14a · Integração com o PNCP, por botão (23/11/2026)
+- Migração 0011: secretarias compradoras (`pncp_orgao`), vínculo contratação ↔ compra (`contratacao_pncp`), retrato da compra, itens e resultados, e Histórico do PNCP imutável (`evento_pncp`). O banco recusa CPF de fornecedor e compra de órgão não cadastrado.
+- Telas: quadro "Dados do PNCP" na página da contratação (prévia e confirmação, "Atualizar agora" com trava de 10 minutos, desligar com motivo, itens, vencedores, valores, classificação de obra) e tela "Secretarias compradoras (PNCP)" (cadastro, edição, desativação, Histórico com autor e data, atualização por secretaria).
+- Permissão nova `gerenciar_secretarias_compradoras` (hoje só administrador). CPF dentro de textos do PNCP é mascarado (`***`) antes de gravar e de mostrar. A prévia avisa quando a compra é de outro município (código IBGE), sem bloquear.
+- Remover uma contratação ligada desliga o vínculo e registra no Histórico do PNCP. Limites: 10 pedidos por minuto por pessoa, 60 por minuto por instância e 120 coletas por hora por prefeitura; os limites são conferidos antes da trava de 10 minutos.
+- Riscos aceitos: ver README, seção 7. **Não mudou:** login, `wrangler.jsonc`, agendamentos (nenhum nesta fatia). Fluxo: nó PNCP disponível e subfluxo "Integração com o PNCP".
+- Testes: estabilizados três testes intermitentes (espera por condição em vez de tempo fixo).
+
 ## E18 · Ícone de tema claro/escuro (23/11/2026)
 - Botão-ícone no topo da plataforma, antes do sino: mostra o sol no tema escuro e a lua no claro; alterna, lembra a escolha e funciona por teclado (Tab e Enter), com rótulo e `aria-pressed` atualizados. O botão antigo do menu do avatar foi removido; o site público mantém o botão "Tema" com o mesmo comportamento.
 - Conferência do modo claro (Axe de contraste e fundo claro) em nove telas da plataforma, sem correção de cor necessária.

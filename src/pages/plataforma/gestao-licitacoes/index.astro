@@ -7,6 +7,7 @@ import { carregarCarteira } from '../../../lib/carteira/carga.ts';
 import { dataBr } from '../../../lib/datas.ts';
 import { municipioAtivo } from '../../../lib/municipio-ativo.ts';
 import { hrefContratacao } from '../../../lib/contratacoes/navegacao.ts';
+import { aquiDe, comVolta } from '../../../lib/navegacao/volta.ts';
 import { ROTA_LICITACOES, lerFiltros, montarPainel, subtituloBloco, urlCsvPainel, urlPainel } from '../../../lib/contratacoes/painel.ts';
 import {
   CAMPOS, ID_PROJETO_LIGADO, MODALIDADES, ORDEM_TELA, ROTULO_AGUARDANDO, ROTULO_ETAPA, ROTULO_MODALIDADE,
@@ -53,6 +54,7 @@ const mod = (m: string | null) => (m && m !== 'licitacao' ? ROTULO_MODALIDADE[m 
     <div class="section-head"><div>
       <h1>Gestão das licitações</h1>
       <p class="muted">Situação de cada contratação, da finalização do projeto ao contrato. Clique num número para ver só aquela etapa.</p>
+      <p><a class="ct-botao" href={comVolta('/plataforma/gestao-licitacoes/secretarias/', aquiDe(Astro.url))} data-pn-link-secretarias>Secretarias compradoras (PNCP)</a></p>
     </div></div>
     <p class="ct-impressao" data-ct-impressao>{municipioAtivo().nomeExibicao} · Situação das licitações · {dataBr(hoje)} · {escopo}</p>
 

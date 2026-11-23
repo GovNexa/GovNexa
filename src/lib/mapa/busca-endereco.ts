@@ -4,6 +4,7 @@
 // Privacidade: o texto da busca nunca vai a log; os logs só dizem o tipo da falha. Nada é gravado aqui: gravar continua pela rota da B1.
 import { mesmaOrigem } from '../documentos/http.ts';
 import { modoLocal } from '../login/base.ts';
+import { lerLimitado } from '../seguranca/ler-limitado.ts';
 import { chaveLimite, criarLimitadorMemoria, limitadorDoAmbiente, type Limitador } from '../seguranca/limite.ts';
 import { usuarioPode, type Usuario } from '../usuarios/index.ts';
 import { AGENTE_BUSCA, lerResultados, montarUrlBusca, normalizarConsulta, type ResultadoBusca } from './busca-endereco-regras.ts';
@@ -129,25 +130,6 @@ async function descartar(request: Request, max = 65_536): Promise<void> {
     }
     await leitor.cancel();
   } catch { /* conexão já encerrada */ }
-}
-
-/** Lê a resposta do serviço até o teto; acima disso desiste (null). */
-async function lerLimitado(r: Response, max: number): Promise<string | null> {
-  const leitor = r.body?.getReader();
-  if (!leitor) return '';
-  const partes: Uint8Array[] = [];
-  let total = 0;
-  for (;;) {
-    const { done, value } = await leitor.read();
-    if (done) break;
-    total += value.byteLength;
-    if (total > max) { await leitor.cancel().catch(() => undefined); return null; }
-    partes.push(value);
-  }
-  const tudo = new Uint8Array(total);
-  let pos = 0;
-  for (const p of partes) { tudo.set(p, pos); pos += p.byteLength; }
-  return new TextDecoder().decode(tudo);
 }
 
 function pausaDe(r: Response): number {
