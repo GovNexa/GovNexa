@@ -131,7 +131,7 @@ Situação por fase do produto:
 | Fase | O que entrega | Situação | % |
 | --- | --- | --- | --- |
 | Planejamento | Plano, decisões, rastreabilidade, Fluxo do sistema, fluxos detalhados, mapa de impacto | Publicado; Fluxo com zoom e legenda recolhida; PDF do Fluxo em partes (E17, no código) | 97% |
-| 0 · Base e identidade | Marca GovNexa, menu por módulos, tema estável, paginação | Publicada; blocos do menu começam fechados | 100% |
+| 0 · Base e identidade | Marca GovNexa, menu por módulos, tema estável, paginação | Publicada; blocos do menu começam fechados; ícone de tema claro/escuro no topo da plataforma (E18, no código) | 100% |
 | 1 · Carteira de Projetos | Carteira, ficha, Kanban, Gantt, Visão por órgão, celular | Entregue; carga inicial no D1 | 100% |
 | 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, Kanban e Pendências, Histórico, Sala de guerra | E1 no ar (edição pela ficha, área, marca de prioritário e códigos a partir de 9000; migração 0007), aguardando teste do dono em produção | 100% |
 | 2 · Cronograma e equipe | Cronogramas, quadro de tarefas, Onde está parado, Reunião semanal, dependências, SEI | Telas entregues; leitura automática do SEI a fazer. Cronogramas editáveis no sistema, responsável e tempo na mão prontos, aguardando merge e publicação (E13, ~90%) | 90% |
@@ -162,6 +162,7 @@ Situação por fase do produto:
 
 | Data | O que | Referência |
 | --- | --- | --- |
+| 23/11 | Ícone de tema claro/escuro visível no topo da plataforma (E18): sol/lua ao lado do sino, no teclado e com a escolha lembrada; o botão saiu do menu do avatar | em revisão |
 | 23/11 | PDF do Fluxo do sistema em partes legíveis (E17): uma folha A4 paisagem por faixa de linhas, com mapa geral antes | em revisão |
 | 20/11 | Mapa das obras no dashboard: versão compacta com os filtros do dashboard; tocar amplia para a apresentação em tela cheia da Gestão. Verificação de layout em 10 tamanhos de tela e dos modos de apresentação | novo PR |
 | 19/11 | Verificação completa e correções: Esc fecha o menu e a lista de filtro do mapa também no Safari; contorno de foco do painel de detalhes só pelo teclado; link do mapa sublinhado no editor de localização; frase da Qualidade dos dados com data DD/MM/AAAA; testes do Safari estabilizados | novo PR |
