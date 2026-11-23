@@ -32,9 +32,13 @@ if (!/^[a-z0-9._+-]+@exemplo\.invalid$/.test(email)) throw new Error('Use um e-m
 const { hashSenha } = await import('../src/lib/login/senha.ts');
 const senha = await hashSenha('Horizonte!local-7264', process.env.SENHA_PEPPER || 'exemplo-local-troque-antes-de-usar');
 const sqlEmail = `'${email.replaceAll("'", "''")}'`;
+// E11: perfil leitura fictício (sem senha), usado só pelo servidor local do projeto de testes "leitura" (playwright.config.ts).
 writeFileSync('.tmp/usuario-local.sql', `INSERT INTO usuario(id,email,nome,perfil,prefeitura_id,ativo,senha_hash,senha_definida_em)
  VALUES('dev-local',${sqlEmail},'Administrador local','admin',5208707,1,'${senha}',strftime('%Y-%m-%dT%H:%M:%fZ','now'))
  ON CONFLICT(id) DO UPDATE SET email=excluded.email,perfil='admin',prefeitura_id=5208707,ativo=1,senha_hash=excluded.senha_hash,totp_ativo=0,totp_segredo_cifrado=NULL,totp_ultimo_passo=NULL;
+INSERT INTO usuario(id,email,nome,perfil,prefeitura_id,ativo)
+ VALUES('dev-leitura','leitura@exemplo.invalid','Leitura local','leitura',5208707,1)
+ ON CONFLICT(id) DO UPDATE SET email=excluded.email,nome=excluded.nome,perfil='leitura',prefeitura_id=5208707,ativo=1,senha_hash=NULL,totp_ativo=0,totp_segredo_cifrado=NULL,totp_ultimo_passo=NULL;
 DELETE FROM sessao;
 DELETE FROM codigo_recuperacao;
 DELETE FROM limite_tentativa;\n`, 'utf8');

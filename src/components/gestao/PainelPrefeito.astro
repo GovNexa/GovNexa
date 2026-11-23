@@ -1,5 +1,6 @@
 ---
 import '../../styles/gestao.css';
+import { AREAS_PADRAO, areasDaPrefeitura, type Area } from '../../lib/carteira/area.ts';
 import { carregarCarteira } from '../../lib/carteira/carga.ts';
 import { carregarCronogramas } from '../../lib/cronograma/carga.ts';
 import { carregarSalas } from '../../lib/sala/carga.ts';
@@ -37,9 +38,16 @@ const cartoes = [
   { rotulo: 'Entregas em 90 dias', valor: String(p.entregas.qtd), nota: 'previstas até 3 meses', href: URL.gantt },
 ];
 const r = p.recursos;
+// E11: nomes das áreas pelo catálogo da prefeitura (o mesmo da tela do prefeito); sem banco, as áreas padrão.
+let areas: Area[] = [...AREAS_PADRAO];
+try {
+  if (Astro.locals.repositorio) areas = await areasDaPrefeitura(Astro.locals.repositorio);
+} catch {
+  areas = [...AREAS_PADRAO];
+}
 const geo = carregarGeoBairros();
-const mapaObras = obrasDoMapa(carteira, geo, hoje);
-const mapaSemLocal = obrasSemLocal(carteira, geo, hoje);
+const mapaObras = obrasDoMapa(carteira, geo, hoje, { areas });
+const mapaSemLocal = obrasSemLocal(carteira, geo, hoje, { areas });
 ---
 <div class="pn" data-painel>
   <p class="pn-linha">Dados de {br(carteira.fonte.importado_em)} · <a href={URL.log}>Histórico de alterações →</a></p>

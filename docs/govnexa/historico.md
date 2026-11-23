@@ -36,6 +36,8 @@ A versão integral do histórico é privada e fica fora do repositório público
 | 16/11/2026 | Repositório antigo (`SLo0th1/Atlas_Conecta`) **congelado**: tudo segue só no novo, e nada mais aponta para o antigo. |
 | 17/11/2026 | Login próprio do GovNexa (senha + verificação em 2 etapas obrigatória) substitui o Cloudflare Access na plataforma; cadastro e convites pela guia Usuários; e-mails do sistema saem de nao-responda@govnexa.com.br. |
 | 18/11/2026 | Copilot CLI sai do fluxo (consumo alto): executores passam a ser só o Codex; o Claude assume o que for pequeno ou quando o Codex estiver sem cota. |
+| 22/11/2026 | Três visões no sistema (áudio 31): Gerencial (o que o prefeito vê), Governança da execução (o trabalho da equipe) e Convênios (captação e repasses). A tela do prefeito mostra grandes números, mapa, linha do tempo e principais obras; farol, prazos, "onde está parado", decisões pendentes e convênios vão para a equipe. |
+| 22/11/2026 | Decisões D1 a D6 dos áudios: carteira inteira com marca de prioritário; áreas sugeridas pelo órgão até a lista oficial; códigos da tela a partir de 9000; busca de endereço gratuita (OpenStreetMap) com confirmação; modelo das licitações a enviar; "próximo marco aguardando" só no detalhe. |
 | 18/11/2026 | Modelos do Codex atualizados: `gpt-6.2-sol` (complexa ou sensível), `gpt-6.1-terra` (média) e `gpt-6-luna` (simples). |
 | 17/11/2026 | Datas no padrão brasileiro: `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` (horário de Brasília). Função única em `src/lib/datas.ts`. |
 | 17/11/2026 | Banco de dados: a cada incremento que crie ou use dados, estudar e projetar antes de criar, respeitando relacionamentos, dependências e integridade, com segurança e agilidade. As telas saem da simulação na ordem do Fluxo, que é atualizado a cada entrega. Projeto em `docs/govnexa/projeto-banco.md`. |
@@ -181,6 +183,8 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 | Data com `slice` de ISO | O banco grava em UTC; cortar `AAAA-MM-DD` do texto mostra o dia seguinte para registros feitos depois das 21h de Brasília. Converter sempre pelo fuso (`src/lib/datas.ts`). |
 | Safari e o teclado (19/11/2026) | No Safari o clique não põe foco no botão, e o Esc em tela cheia é do navegador (sai da tela cheia sem chegar à página). Devolver o foco não pode reabrir listas; fechar listas também no `fullscreenchange`. |
 
+- **22/11/2026 · E1 a E10:** no Windows, o executor em sandbox não consegue rodar node nem os testes; a conferência (check, testes e Playwright) roda fora dele. Ordens com código pronto e conferido por sha256 evitaram as paradas por ambiguidade. Ao mexer em largura de tabela, conferir célula por célula (o `global.css` impõe `white-space:nowrap` em tabelas); impressão só se prova gerando o PDF.
+- **22/11/2026 · E11:** guia escondida do menu continua acessível pelo endereço; o menu é só conveniência e a página confere o perfil de novo (403). Para testar o perfil leitura no navegador, o banco local ganhou um usuário fictício de leitura e um servidor de testes próprio.
 - **22/11/2026 · E5:** vários links do sistema abrem a Carteira com `?q=P-...`; ao trocar a tabela genérica por uma tela própria, a busca precisou aceitar o código além do nome. Guia removida do menu mantém o endereço com redirecionamento fixo (sem levar parâmetros estranhos).
 
 ## 7. Todos os PRs (descrição completa)
@@ -207,6 +211,17 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 | novo (a numerar) | 18/11/2026 | Entrega B2: Novo projeto gravando no banco e migração 0006 (código único) |
 | novo (a numerar) | 17/11/2026 | Site público: logo provisória no cabeçalho, menu enxuto e mapa de cidade na página inicial |
 | novo (a numerar) | 17/11/2026 | Página inicial nova do site público, aprovada pelo dono a partir de prévia de design |
+| novo #39 | 22/11/2026 | Plano dos requisitos dos áudios de 20/11 (E1 a E14) |
+| novo #40 | 22/11/2026 | E2: padrão visual e filtros padrão |
+| novo #41 | 22/11/2026 | E1: base para operar do zero (edição na ficha, área, prioritário, códigos a partir de 9000, migração 0007) |
+| novo #42 | 22/11/2026 | Correção do teste dos filtros por área |
+| novo #44 | 22/11/2026 | E3: tela do prefeito "Projetos prioritários" |
+| novo #45 | 22/11/2026 | E5: Carteira de projetos |
+| novo #46 | 22/11/2026 | E6: ficha única do projeto |
+| novo #47 | 22/11/2026 | E4: mapa das obras por área |
+| novo #48 | 22/11/2026 | E7: Kanban e Pendências gravando (B3) |
+| novo #49 | 22/11/2026 | E10: Painel da equipe e relatório de inconsistências |
+| novo (a numerar) | 22/11/2026 | E11: menu nas três visões e Visão Convênios |
 
 #### novo #1 — Etapa 0: regras do fluxo com executores e preparo para a Cloudflare
 

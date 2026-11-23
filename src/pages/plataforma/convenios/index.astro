@@ -1,0 +1,124 @@
+---
+// Visão Convênios (E11, áudios 01 e 31): convênios em execução, em risco e regularidade no CAUC, com os dados públicos
+// que a Captação já coleta (Transferegov e Tesouro Nacional). Só leitura, para todos os perfis; nenhum dado novo.
+import Platform from '../../../layouts/Platform.astro';
+import '../../../styles/convenios.css';
+import { dados } from '../../../lib/dados/index.ts';
+import { dataBr, dataOuDataHoraBr } from '../../../lib/datas.ts';
+import { textoDias } from '../../../lib/alertas/central.ts';
+import { DIAS_RISCO_VIGENCIA, ROTA_ACOMPANHAMENTO, ROTA_ALERTAS_CAPTACAO, ROTA_CAPTACAO, montarVisaoConvenios } from '../../../lib/convenios/visao.ts';
+import { municipioAtivo } from '../../../lib/municipio-ativo.ts';
+import { hojeEmBrasilia } from '../../../lib/whatsapp/farol.ts';
+
+export const prerender = false;
+const municipio = municipioAtivo();
+const hoje = hojeEmBrasilia();
+const visao = montarVisaoConvenios({
+  acompanhamento: dados.acompanhamento(municipio.codigo_ibge) ?? null,
+  cauc: dados.cauc(municipio.codigo_ibge) ?? null,
+}, hoje);
+const { execucao, risco, cauc } = visao;
+const inteiro = (n: number) => n.toLocaleString('pt-BR');
+const plural = (n: number, um: string, varios: string) => `${inteiro(n)} ${n === 1 ? um : varios}`;
+const moeda = (v: number | null) => v === null ? '—' : v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const vigencia = (iso: string | null) => iso ? dataBr(iso) : 'Sem data';
+const estadoCauc = { regular: 'Regular', com_pendencia: 'Com pendência', sem_dado: 'Sem dado' }[cauc.estado];
+---
+<Platform title="Visão Convênios" slug="convenios">
+  <div class="cv" data-cv>
+    <div class="section-head"><div>
+      <h1>Visão Convênios</h1>
+      <p class="muted">Convênios em execução, convênios em risco e a regularidade do município no CAUC, com os dados públicos da Captação (Transferegov e Tesouro Nacional). Clique no número do convênio para ver o detalhe no Acompanhamento.</p>
+    </div></div>
+
+    <ul class="cv-numeros" aria-label="Resumo dos convênios">
+      <li><a class="cv-cartao" href="#cv-execucao" data-cv-cartao="execucao">
+        <span class="cv-rotulo">Em execução</span>
+        <strong class="cv-numero" data-cv-qtd>{execucao.disponivel ? inteiro(execucao.lista.length) : '—'}</strong>
+        <span class="cv-nota">{execucao.disponivel ? `${moeda(execucao.repasse)} pactuados` : 'Sem coleta do Transferegov'}</span>
+      </a></li>
+      <li><a class="cv-cartao" href="#cv-risco" data-cv-cartao="risco" data-cv-situacao={risco.vermelhos ? 'critico' : risco.lista.length ? 'atencao' : 'ok'}>
+        <span class="cv-rotulo">Em risco</span>
+        <strong class="cv-numero" data-cv-qtd>{risco.disponivel ? inteiro(risco.lista.length) : '—'}</strong>
+        <span class="cv-nota">{risco.disponivel ? `${moeda(risco.aLiberar)} a liberar` : 'Sem coleta do Transferegov'}</span>
+      </a></li>
+      <li><a class="cv-cartao" href="#cv-cauc" data-cv-cartao="cauc" data-cv-situacao={cauc.estado === 'regular' ? 'ok' : cauc.estado === 'com_pendencia' ? 'critico' : 'neutro'}>
+        <span class="cv-rotulo">CAUC</span>
+        <strong class="cv-numero cv-numero-texto" data-cv-estado={cauc.estado}>{estadoCauc}</strong>
+        <span class="cv-nota">{cauc.disponivel ? `${plural(cauc.pendencias.length, 'pendência', 'pendências')} · consulta de ${cauc.referencia ? dataBr(cauc.referencia) : 'data não informada'}` : 'Sem coleta do CAUC'}</span>
+      </a></li>
+    </ul>
+
+    <section class="cv-bloco" id="cv-execucao" data-cv-bloco="execucao" aria-labelledby="cv-execucao-titulo">
+      <h2 id="cv-execucao-titulo">Convênios em execução</h2>
+      {!execucao.disponivel
+        ? <p class="cv-vazio" data-cv-vazio>A coleta do Transferegov ainda não foi feita.</p>
+        : execucao.lista.length === 0
+          ? <p class="cv-vazio" data-cv-vazio>Nenhum convênio em execução.</p>
+          : <>
+            <p class="cv-resumo" data-cv-resumo>{plural(execucao.lista.length, 'convênio', 'convênios')}: pactuado {moeda(execucao.repasse)}, liberado {moeda(execucao.liberado)}, a liberar {moeda(execucao.aLiberar)}. Da vigência mais próxima para a mais distante.</p>
+            <table class="cv-tabela" data-cv-tabela="execucao">
+              <caption class="sr-only">Convênios em execução</caption>
+              <thead><tr><th scope="col">Convênio</th><th scope="col">Objeto</th><th scope="col">Concedente</th><th scope="col" class="cv-num">Pactuado</th><th scope="col" class="cv-num">Liberado</th><th scope="col" class="cv-num">A liberar</th><th scope="col">Vigência</th></tr></thead>
+              <tbody>
+                {execucao.lista.map((c) => (
+                  <tr data-cv-linha data-convenio={c.nr}>
+                    <th scope="row" data-rotulo="Convênio"><a href={c.link}>{c.nr}</a></th>
+                    <td data-rotulo="Objeto">{c.objeto}</td>
+                    <td data-rotulo="Concedente">{c.concedente}</td>
+                    <td class="cv-num" data-rotulo="Pactuado">{moeda(c.repasse)}</td>
+                    <td class="cv-num" data-rotulo="Liberado">{moeda(c.liberado)}</td>
+                    <td class="cv-num" data-rotulo="A liberar">{moeda(c.aLiberar)}</td>
+                    <td data-rotulo="Vigência">{vigencia(c.vigencia)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>}
+    </section>
+
+    <section class="cv-bloco" id="cv-risco" data-cv-bloco="risco" aria-labelledby="cv-risco-titulo">
+      <h2 id="cv-risco-titulo">Convênios em risco</h2>
+      <p class="cv-regra">Em execução e sem nenhum desembolso há mais de 180 dias (indício de cláusula suspensiva), ou com a vigência terminando em até {DIAS_RISCO_VIGENCIA} dias. É a mesma regra do Painel da equipe e da central de alertas.</p>
+      {!risco.disponivel
+        ? <p class="cv-vazio" data-cv-vazio>A coleta do Transferegov ainda não foi feita.</p>
+        : risco.lista.length === 0
+          ? <p class="cv-vazio" data-cv-vazio>Nenhum convênio em risco hoje.</p>
+          : <table class="cv-tabela" data-cv-tabela="risco">
+            <caption class="sr-only">Convênios em risco</caption>
+            <thead><tr><th scope="col">Convênio</th><th scope="col">Objeto</th><th scope="col">Por que está em risco</th><th scope="col" class="cv-num">A liberar</th><th scope="col">Vigência</th></tr></thead>
+            <tbody>
+              {risco.lista.map((c) => (
+                <tr data-cv-linha data-convenio={c.nr} data-gravidade={c.gravidade}>
+                  <th scope="row" data-rotulo="Convênio"><a href={c.link}>{c.nr}</a></th>
+                  <td data-rotulo="Objeto">{c.objeto}</td>
+                  <td data-rotulo="Por que está em risco"><span class="cv-selo" data-gravidade={c.gravidade}>{c.gravidade === 'vermelho' ? 'Urgente' : 'Atenção'}</span> {c.motivos.join('; ')}</td>
+                  <td class="cv-num" data-rotulo="A liberar">{moeda(c.aLiberar)}</td>
+                  <td data-rotulo="Vigência">{vigencia(c.vigencia)} ({textoDias(c.dias)})</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>}
+    </section>
+
+    <section class="cv-bloco" id="cv-cauc" data-cv-bloco="cauc" aria-labelledby="cv-cauc-titulo">
+      <h2 id="cv-cauc-titulo">Regularidade no CAUC</h2>
+      {!cauc.disponivel
+        ? <p class="cv-vazio" data-cv-vazio>A coleta do CAUC ainda não foi feita.</p>
+        : <>
+          <p class="cv-resumo" data-cv-cauc-resumo>Situação: <strong>{estadoCauc}</strong>. {plural(cauc.regulares, 'item regular', 'itens regulares')}, {plural(cauc.pendencias.length, 'com pendência', 'com pendência')} e {plural(cauc.semInformacao.length, 'sem informação', 'sem informação')}, de {plural(cauc.total, 'item', 'itens')}. Consulta do Tesouro de {cauc.referencia ? dataBr(cauc.referencia) : 'data não informada'}. Pendência no CAUC bloqueia transferências voluntárias.</p>
+          <h3>Itens com pendência</h3>
+          {cauc.pendencias.length === 0
+            ? <p class="cv-vazio" data-cv-sem-pendencia>Nenhum item com pendência.</p>
+            : <ul class="cv-itens" data-cv-pendencias>{cauc.pendencias.map((i) => <li data-cv-item={i.item}><strong>Item {i.item}</strong>: {i.descricao}</li>)}</ul>}
+          {cauc.semInformacao.length > 0 && <>
+            <h3>Itens sem informação na consulta</h3>
+            <ul class="cv-itens" data-cv-sem-informacao>{cauc.semInformacao.map((i) => <li data-cv-item={i.item}><strong>Item {i.item}</strong> ({i.situacao}): {i.descricao}</li>)}</ul>
+          </>}
+        </>}
+      <p class="cv-links"><a href={ROTA_ALERTAS_CAPTACAO}>Ver os alertas da Captação</a> · <a href={ROTA_ACOMPANHAMENTO}>Abrir o Acompanhamento</a> · <a href={ROTA_CAPTACAO}>Captação · Principal</a></p>
+    </section>
+
+    <p class="cv-fonte" data-cv-fonte>Fontes: Transferegov (arquivos abertos){visao.coletaConvenios ? `, coleta de ${dataOuDataHoraBr(visao.coletaConvenios)}` : ', sem coleta'}; CAUC do Tesouro Nacional{cauc.coleta ? `, coleta de ${dataOuDataHoraBr(cauc.coleta)}` : ', sem coleta'}. Prazos contados a partir de {dataBr(hoje)}.</p>
+  </div>
+</Platform>

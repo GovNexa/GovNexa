@@ -67,6 +67,7 @@ São módulos independentes que conversam entre si:
 | Gestão leve | PMBOK para marcos, linha de base e caminho crítico; execução ágil em Kanban; sala de guerra no padrão PMI |
 | Nada fixo em Goiânia | Município, logo, feriados e metas vêm de configuração; cada prefeitura tem acesso e dados isolados |
 | Lei é teto, meta é menor | A prefeitura define metas internas menores que a Lei 14.133; passar do teto legal é alerta grave; o prazo-piso não se encurta |
+| Três visões (22/11/2026) | O menu se organiza em Visão gerencial (o que o prefeito vê para decidir), Governança da execução (o trabalho da equipe) e Convênios (captação e repasses); guia que o perfil não abre fica fora do menu e a página confere de novo |
 
 ### 1.2 Como o produto chegou até aqui (histórico das decisões)
 
@@ -123,6 +124,7 @@ São módulos independentes que conversam entre si:
 
 ### Entregas recentes
 
+- 22/11/2026: E11, menu nas três visões (Visão gerencial, Governança da execução e Convênios) e a tela Visão Convênios (em execução, em risco e CAUC); guias que o perfil não abre ficam fora do menu; pendências pequenas das revisões E4, E6 e E10 fechadas (branch agente/codex/e11-visoes; aguardando portão, prévia do dono e revisão).
 - 22/11/2026: E10, Painel da equipe (o que saiu da tela do prefeito, mais os alertas) e relatório de inconsistências por órgão ou geral, com impressão e CSV (branch agente/codex/e10-equipe; aguardando portão, prévia do dono e revisão).
 - 22/11/2026: E7, Kanban enxuto sem Conclusão, com saída do marco e filtros do padrão; mover no Kanban e nas Pendências de etapa grava no banco (B3) (branch agente/codex/e7-kanban; aguardando portão, prévia do dono e revisão).
 - 22/11/2026: E4, mapa das obras por área (legenda, cor e filtro por área; filtro por macroetapa e região opcional; total de obras e valor por região; sem situação de prazo); o mapa compacto voltou à tela do prefeito, abaixo da linha do tempo, seguindo os filtros dela; bolhas e marcadores sem sobreposição (branch agente/codex/e4-mapa; aguardando portão, prévia do dono e revisão).
@@ -191,7 +193,7 @@ O tema claro usa menu lateral branco, texto e ícones azul-escuros, destaques az
 
 | Funcionalidade | O que oferece | Situação | Código |
 | --- | --- | --- | --- |
-| Menu lateral | Ícones por item e tipografia única; começa recolhido com ícones dos módulos e abre uma lista flutuante com todos os itens; blocos em sanfona e identificação do usuário logado, com iniciais e nome, no rodapé | Disponível | `src/layouts/Platform.astro`, `src/components/Icon.astro`, `src/styles/` |
+| Menu lateral | Três visões (E11): Visão gerencial, Governança da execução e Convênios; depois Licitações (demonstrativo) e Conta. Ícones por item e tipografia única; começa recolhido com ícones das visões e abre uma lista flutuante com todos os itens; blocos em sanfona; as guias que o perfil não pode abrir ficam fora do menu | Disponível no código (E11) | `src/lib/govnexa/catalogo.ts`, `src/layouts/Platform.astro`, `src/components/Icon.astro` |
 
 ### Projetos
 
@@ -218,6 +220,7 @@ O tema claro usa menu lateral branco, texto e ícones azul-escuros, destaques az
 
 | Guia | O que faz |
 | --- | --- |
+| Visão Convênios (E11) | Convênios em execução (da vigência mais próxima à mais distante), convênios em risco (sem desembolso há mais de 180 dias ou vigência em até 180 dias, a mesma regra do Painel da equipe) e regularidade no CAUC, com os dados públicos já coletados. Disponível no código |
 | Principal | Indicadores com fonte e data: convênios, CAUC, SICONFI, FNS, educação, saúde, saneamento e DOU |
 | Oportunidades | Programas abertos compatíveis com o município, com prazos e busca por necessidade |
 | Acompanhamento | Convênios e repasses: pactuado, liberado e saldo a liberar |
@@ -245,7 +248,7 @@ Código: `src/lib/dados/`, `src/lib/projetos/`, `coletores/`. Detalhes em [docs/
 | Inconsistências de dados | Relatório por órgão ou geral com 10 regras (campo essencial faltando, datas fora de ordem, macroetapa vencida, SEI inválido, obra fora do mapa e outras pendências da carga), contagem por regra e por órgão, link para a aba Governança da ficha, impressão em A4 e CSV. Só administrador, gestor e editor | Disponível no código (E10) |
 | Mapa das obras por área (E4) | Na tela do prefeito (compacto, abaixo da linha do tempo, com os filtros da tela) e na Gestão · Painel: cor, legenda e filtro por área (mesmas cores da tela do prefeito); filtro por macroetapa e região opcional; total de obras e valor por região; sem no prazo, atenção, atrasada nem farol. Bolhas e marcadores nunca se cobrem (alvos de toque de 24 px ou mais) | Disponível no código (E4) |
 | Painel antigo (10 indicadores, farol, decisões, convênios, mapa compacto) | Saiu da tela inicial na E3; o código continua (`DashboardPrefeito.astro`, `src/lib/gestao/dashboard.ts`) e volta no painel da equipe (E10) | Fora da tela até a E10 |
-| Gestão · Painel | Foto atual da carteira e dos recursos e mapa das obras | Disponível |
+| Mapa e painel | Foto atual da carteira e dos recursos e o mapa completo das obras (antiga "Gestão · Painel", mesmo endereço; na Visão gerencial desde a E11) | Disponível |
 | Alertas | Central de alertas de convênios, contratação, obras, saldo sem fonte, etapas paradas e dados desatualizados | Disponível |
 | WhatsApp | Permissões por cargo, relatórios, perguntas e modelos para aprovação da Meta | Simulação; envio real depende do banco e da conta do WhatsApp Business |
 
@@ -298,6 +301,7 @@ Os pedidos vêm dos áudios do dono, da reunião com a equipe e das planilhas.
 | Fluxo da Lei 14.133 | Prazos da lei, Licitação em detalhe | Parcial; PNCP a fazer |
 | Painel do prefeito: etapa, empresa, valor, foto atual e histórico | Gestão · Painel, Mapa | Parcial |
 | Tela de gestão da equipe separada da tela do prefeito e relatório de inconsistências por órgão (áudios 13 e 19) | Gestão · Painel da equipe; Gestão · Inconsistências de dados | Disponível no código (E10) |
+| Menu nas três visões e tela própria dos convênios: em execução, em risco e CAUC (áudios 01 e 31) | Menu lateral; Convênios · Visão Convênios | Disponível no código (E11) |
 | Mapa por área em vez de tipo; sem situação de prazo; total e valor por região; região só como filtro (áudios 04, 05, 06 e 14) | Mapa das obras (tela do prefeito e Gestão) | Feito no código (E4) |
 | WhatsApp para o prefeito em linguagem simples | Gestão · WhatsApp | Simulação |
 | Projetos "desejo" separados dos que serão executados | Campo compromisso | A fazer na importação |
@@ -425,6 +429,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Tela do prefeito (22/11/2026, E3):** saem farol, prazos, "onde está parado", decisões pendentes, convênios, valores por região e o mapa compacto (volta por área na E4); Mobilização conta em Execução; Concluídas e Sem macroetapa aparecem como linha própria só quando existem; a área mostrada usa a sugestão pelo órgão quando o projeto não tem área gravada; Principais obras = prioritárias primeiro, depois as de maior valor; linha do tempo do mês atual até dez/2028, com 6 áreas em cor, "Outros" e "Sem área" em cinza.
 - **Kanban e Pendências (22/11/2026, E7):** o card mostra só nome, órgão e a previsão de saída da etapa atual; sem coluna Conclusão; mover grava no banco pela regra única, com motivo para voltar ou forçar; aprovar e reprovar nas Pendências é dos perfis de gestão (admin e gestor).
 
+- **Menu nas três visões (22/11/2026, E11):** Visão gerencial = Projetos prioritários, Carteira, Mapa e painel, Kanban e Gantt (Licitações entram aqui na E12); Governança da execução = o trabalho da equipe; Convênios = Visão Convênios e Captação. Licitações continua como demonstrativo à parte até a E12; Usuários, Fluxo do sistema e WhatsApp ficam em Conta (são de configuração e de consulta do sistema inteiro). Nenhum endereço mudou. O menu esconde as guias que o perfil não abre. "Em risco" na Visão Convênios usa a mesma regra do Painel da equipe.
 - **Painel da equipe e inconsistências (22/11/2026, E10):** o painel antigo virou o Painel da equipe (sem mapa) e o relatório de inconsistências usa 10 regras fixas calculadas dos dados atuais, sem gravar nada; as duas telas são de administrador, gestor e editor.
 
 ## 8. Pendências e próximos passos
@@ -453,10 +458,10 @@ Centros dos bairros: migração 0005 e carga publicadas em 18/11/2026. Parte dos
 6. Logo definitiva do GovNexa: trocar a versão provisória de `src/components/LogoGovNexa.astro`.
 7. Teste "mapa das obras" no Safari (WebKit): falha também na main (marcadores não aparecem após "Cidade inteira" + zoom); investigar à parte. No Chrome passa.
 8. Melhorias de segurança sem falha conhecida: retirar `'unsafe-inline'` da política de scripts (CSP) e redirecionar `www.govnexa.com.br` para o endereço sem www.
-9. E4: o mapa da Gestão ainda usa os nomes das áreas padrão (o catálogo da prefeitura chega lá quando a E10 passar `areas` para `obrasDoMapa` em `PainelPrefeito.astro`); a E10 reativa `tests/dashboard-mapa.spec.ts` (já com o filtro "Macroetapa").
-10. E6: retirar o componente antigo `LocalizacaoProjeto.astro` e o link "Localização e fotos" de `detalheProjeto` depois da junção com a E5; fotos na aba Fotos (E9).
+9. (Feito na E11) O mapa da Gestão usa os nomes de área do catálogo da prefeitura. `tests/dashboard-mapa.spec.ts` saiu: o mapa compacto está na tela do prefeito e é testado em `tests/mapa-area.spec.ts`.
+10. (Feito na E11) Saíram o componente antigo `LocalizacaoProjeto.astro` e o link "Localização e fotos"; os atalhos de localização abrem a aba Localização da ficha. Fotos na aba Fotos (E9).
 11. E7: depois da publicação, conferir no painel de produção que mover no Kanban aparece no Histórico; avaliar mover pela ficha (origem "ficha") e pelo SEI (B7).
-12. **Depois da E10:** os testes do painel antigo voltaram no Painel da equipe; `tests/dashboard-mapa.spec.ts` continua pausado até a E4 decidir onde fica o mapa compacto por área. A E11 usa o Painel da equipe no menu das três visões.
+12. **Depois da E11:** menu nas três visões no código. Próximas: E8 (localização por endereço), E9 (fotos), E12 (Licitações na Visão gerencial) e E13 (responsável e tempo na mão de cada um, na Governança da execução).
 
 ## 9. Como rodar no computador
 

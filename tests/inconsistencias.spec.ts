@@ -20,7 +20,7 @@ async function criarProjeto(page: Page, request: APIRequestContext, dados: Recor
   return (await r.json()).projeto.id as string;
 }
 
-test('inconsistências: está no menu da Gestão e a contagem por regra bate com a lista', async ({ page }) => {
+test('inconsistências: está no menu da Governança da execução e a contagem por regra bate com a lista', async ({ page }) => {
   await page.goto(REL);
   await expect(page.locator('h1')).toHaveText('Inconsistências de dados');
   await expect(page.locator('.side-links a[href="/plataforma/gestao-inconsistencias/"]')).toHaveAttribute('aria-current', 'page');

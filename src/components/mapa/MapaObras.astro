@@ -107,6 +107,7 @@ const dados = JSON.stringify({ obras, semLocalLista, semLocal }).replaceAll('<',
 import * as L from 'leaflet';
 import { criarCamadasFundo, ehCamada, preferenciaCamada, type NomeCamada } from '../../lib/mapa/camadas.ts';
 import 'leaflet/dist/leaflet.css';
+import { hrefFicha } from '../../lib/carteira/ficha.ts';
 import { dataBr } from '../../lib/datas.ts';
 import { ETAPAS, NOME_SEM_AREA, SEM_AREA, nomeEtapa, type IdEtapa } from '../../lib/gestao/prioritarios.ts';
 import { GOIANIA } from '../../lib/mapa/geo.ts';
@@ -662,8 +663,8 @@ document.addEventListener('astro:page-load', () => {
         evento.preventDefault();
         void abrirFicha(obra, ficha);
       });
-      const editar = el('a', 'Editar localização');
-      editar.href = `/plataforma/projetos-localizacao/?id=${encodeURIComponent(obra.id)}`;
+      const editar = el('a', 'Localização');
+      editar.href = hrefFicha(obra.id, null, 'localizacao');
       links.append(ficha, editar);
       painel.append(links);
       return;

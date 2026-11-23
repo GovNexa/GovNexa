@@ -2,10 +2,10 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 const modulos = [
-  { nome: 'Projetos' },
-  { nome: 'Captação' },
+  { nome: 'Visão gerencial' },
+  { nome: 'Governança da execução' },
+  { nome: 'Convênios' },
   { nome: 'Licitações' },
-  { nome: 'Gestão' },
   { nome: 'Conta' },
 ];
 
@@ -132,12 +132,12 @@ test('menu recolhido mostra flyouts acessíveis com todos os links e fecha com E
     await expect(flyout).toBeVisible();
     await expect(flyout.locator('a')).toHaveCount(await page.locator('.side-module').nth(i).locator('a').count());
     await expect(flyout.locator('a[aria-current=page]')).toHaveCount(0);
-    if (modulo.nome === 'Projetos') await expect(flyout.locator('a[data-atual=true]')).toHaveCount(1);
+    if (modulo.nome === 'Visão gerencial') await expect(flyout.locator('a[data-atual=true]')).toHaveCount(1);
     await page.keyboard.press('Escape');
     await expect(button).toHaveAttribute('aria-expanded', 'false');
     await expect(button).toBeFocused();
   }
-  const firstModule = page.getByRole('button', { name: 'Módulo Projetos' });
+  const firstModule = page.getByRole('button', { name: 'Módulo Visão gerencial' });
   await firstModule.click();
   await page.locator('.workspace').click({ position: { x: 10, y: 10 } });
   await expect(firstModule).toHaveAttribute('aria-expanded', 'false');
@@ -149,16 +149,16 @@ test('rail recolhido alinha os botões e a sanfona mantém apenas o contexto atu
   await page.locator('#sidebar-toggle').click();
   const moduleHeaders = page.locator('.side-links button[data-sec^="m:"]');
   for (const header of await moduleHeaders.all()) {
-    const expected = (await header.getAttribute('data-module-id')) === 'projetos' ? 'true' : 'false';
+    const expected = (await header.getAttribute('data-module-id')) === 'gerencial' ? 'true' : 'false';
     await expect(header).toHaveAttribute('aria-expanded', expected);
   }
-  await expect(moduleHeaders.filter({ hasText: 'Projetos' })).toHaveAttribute('aria-expanded', 'true');
-  const projectModule = page.locator('.side-links button[data-sec="m:Projetos"]');
+  await expect(moduleHeaders.filter({ hasText: 'Visão gerencial' })).toHaveAttribute('aria-expanded', 'true');
+  const projectModule = page.locator('.side-links button[data-sec="m:Visão gerencial"]');
   const projectBodyId = await projectModule.getAttribute('aria-controls');
   expect(projectBodyId).toBeTruthy();
   const projectBody = page.locator(`#${projectBodyId}`);
   await expect(projectBody.locator('a[href="/plataforma/projetos-carteira/"][aria-current=page]')).toBeVisible();
-  await expect(page.locator('.side-links button[data-sec^="g:Projetos:"][aria-expanded="true"]')).toHaveCount(0);
+  await expect(page.locator('.side-links button[data-sec^="g:Visão gerencial:"][aria-expanded="true"]')).toHaveCount(0);
   await page.goto('/plataforma/processos/');
   await expect(page.locator('.side-links button[data-sec="m:Licitações"]')).toHaveAttribute('aria-expanded', 'true');
   const procurementGroups = page.locator('.side-links button[data-sec^="g:Licitações:"]');
@@ -168,9 +168,9 @@ test('rail recolhido alinha os botões e a sanfona mantém apenas o contexto atu
   }
   await expect(page.locator('.side-links a[href="/plataforma/processos/"][aria-current=page]')).toBeVisible();
   await page.goto('/plataforma/projetos-carteira/');
-  await page.locator('.side-links button[data-sec="m:Captação"]').click();
-  await expect(page.locator('.side-links button[data-sec="m:Captação"]')).toHaveAttribute('aria-expanded', 'true');
-  await expect(page.locator('.side-links button[data-sec="m:Projetos"]')).toHaveAttribute('aria-expanded', 'false');
+  await page.locator('.side-links button[data-sec="m:Convênios"]').click();
+  await expect(page.locator('.side-links button[data-sec="m:Convênios"]')).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('.side-links button[data-sec="m:Visão gerencial"]')).toHaveAttribute('aria-expanded', 'false');
 
   await page.goto('/plataforma/');
   for (const header of await moduleHeaders.all()) {

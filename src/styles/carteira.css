@@ -476,8 +476,8 @@
 /* E2: padrão visual das telas de Projetos (fundo claro e neutro, cor só na informação) e filtros padrão */
 :root{--prj-fundo:#F7F9FA;--prj-superficie:#FFFFFF;--prj-suave:#F1F4F6;--prj-borda:#D5DDE0;--prj-texto:#1E3438;--prj-texto-suave:#4A5C5A}
 :root[data-theme=dark]{--prj-fundo:#0B1F2A;--prj-superficie:#102A37;--prj-suave:#143240;--prj-borda:#2A4A59;--prj-texto:#E6EFF2;--prj-texto-suave:#B4C5CA}
-.workspace[data-current-module=projetos]{background:var(--prj-fundo);--surface:var(--prj-superficie);--soft:var(--prj-suave);--line:var(--prj-borda);--text:var(--prj-texto);--muted:var(--prj-texto-suave);color:var(--text)}
-.workspace[data-current-module=projetos]::before{display:none}
+.workspace[data-padrao=projetos]{background:var(--prj-fundo);--surface:var(--prj-superficie);--soft:var(--prj-suave);--line:var(--prj-borda);--text:var(--prj-texto);--muted:var(--prj-texto-suave);color:var(--text)}
+.workspace[data-padrao=projetos]::before{display:none}
 .fp{display:grid;gap:.75rem;margin:0 0 1rem;padding:1rem;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
 .fp-campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));gap:.75rem;align-items:end}
 .fp-busca{grid-column:1/-1}

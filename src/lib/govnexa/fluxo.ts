@@ -57,13 +57,14 @@ const T = {
   processos: { rotulo: 'Processos / Licitações', url: '/plataforma/processos/' },
   prazos: { rotulo: 'Prazos da Lei 14.133', url: '/plataforma/licitacoes-prazos/' },
   documentos: { rotulo: 'Documentos da licitação', url: '/plataforma/documentos/' },
-  gestao: { rotulo: 'Gestão · Painel', url: '/plataforma/gestao/' },
+  gestao: { rotulo: 'Mapa e painel', url: '/plataforma/gestao/' },
   whatsapp: { rotulo: 'WhatsApp', url: '/plataforma/gestao-whatsapp/' },
   sei: { rotulo: 'Processos no SEI', url: '/plataforma/projetos-sei/' },
   licitacao: { rotulo: 'Licitação em detalhe', url: '/plataforma/licitacoes-detalhe/' },
   alertasCentral: { rotulo: 'Gestão · Alertas', url: '/plataforma/gestao-alertas/' },
   equipe: { rotulo: 'Painel da equipe', url: '/plataforma/gestao-equipe/' },
   inconsistencias: { rotulo: 'Inconsistências de dados', url: '/plataforma/gestao-inconsistencias/' },
+  convenios: { rotulo: 'Visão Convênios', url: '/plataforma/convenios/' },
 } satisfies Record<string, Tela>;
 
 export const NOS: NoFluxo[] = [
@@ -108,7 +109,7 @@ export const NOS: NoFluxo[] = [
   { id: 'convenio', raia: 'captacao', linha: 6, tipo: 'tarefa', titulo: 'Proposta e convênio',
     oQue: 'Proposta enviada e aprovada vira convênio (ou repasse fundo a fundo) ligado ao projeto: concedente, empenho, repasse, contrapartida, valor global, aditivos.',
     valida: ['Valores e vigência', 'Contrapartida', 'Saldo a liberar'], quem: 'Captação',
-    situacao: 'disponivel', fase: 'Captação; ligação com o projeto na Fase 4', telas: [T.acompanhamento, T.capPrincipal] },
+    situacao: 'disponivel', fase: 'Captação; ligação com o projeto na Fase 4; Visão Convênios na E11', telas: [T.convenios, T.acompanhamento, T.capPrincipal] },
   { id: 'clausula', raia: 'captacao', linha: 7, tipo: 'decisao', titulo: 'Cláusula suspensiva cumprida no prazo?',
     oQue: 'O dinheiro só é liberado depois de cumprir as exigências (projeto executivo, orçamento, licença, titularidade). Cada exigência vira tarefa no cronograma do projeto.',
     valida: ['Prazo da cláusula (alertas a 90, 60, 30 e 15 dias)', 'Exigências entregues'], quem: 'Captação; responsável do projeto',
