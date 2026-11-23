@@ -247,13 +247,16 @@ document.addEventListener('astro:page-load', () => {
       const valor = parametros.get(chave);
       return valor === null ? null : valor.split(',').map((item) => item.trim()).filter(Boolean);
     };
-    const etapas = lista('etapas')?.filter((item): item is IdEtapa => IDS_ETAPA.includes(item as IdEtapa)) ?? [];
-    etapasFiltro = etapas.length && etapas.length < IDS_ETAPA.length ? new Set(etapas) : null;
+    // Parâmetro ausente = todas; presente e vazio (ou sem item válido) = conjunto vazio (nenhuma obra).
+    const etapasLidas = lista('etapas');
+    const etapas = etapasLidas?.filter((item): item is IdEtapa => IDS_ETAPA.includes(item as IdEtapa)) ?? [];
+    etapasFiltro = etapasLidas === null || new Set(etapas).size === IDS_ETAPA.length ? null : new Set(etapas);
     const codigos = opcoesArea.map((area) => area.codigo);
-    const areas = lista('areas')?.filter((item) => codigos.includes(item)) ?? [];
-    areasFiltro = areas.length && areas.length < codigos.length ? new Set(areas) : null;
-    const regiao = (parametros.get('regiao') ?? '').trim();
-    regiaoFiltro = opcoesRegiao.includes(regiao) ? regiao : '';
+    const areasLidas = lista('areas');
+    const areas = areasLidas?.filter((item) => codigos.includes(item)) ?? [];
+    areasFiltro = areasLidas === null || (codigos.length > 0 && new Set(areas).size === codigos.length) ? null : new Set(areas);
+    // Região que não corresponde a nenhuma obra continua valendo: o mapa fica vazio, com aviso.
+    regiaoFiltro = (parametros.get('regiao') ?? '').trim();
   };
   const parametrosIniciais = new URLSearchParams(compacto ? '' : location.search);
   lerFiltrosDoEndereco(parametrosIniciais);
@@ -767,6 +770,7 @@ document.addEventListener('astro:page-load', () => {
       .on('click', () => selecionarGrupo(grupo, zoomSeguinte))
       .addTo(camada);
     rotular(marcador, texto);
+    marcadoresGrupo.set(grupo.id, marcador);
   }
 
   function adicionarObra(obra: ObraVista, posicao: L.LatLng): void {
@@ -807,9 +811,32 @@ document.addEventListener('astro:page-load', () => {
   }
 
   let zoomDesenhado = Number.NaN;
+  const marcadoresGrupo = new Map<string, L.Marker>();
   function desenharCamada(visiveis: ObraVista[]): void {
+    // Redesenhar destrói os marcadores: guarda quem tinha o foco para devolvê-lo ao equivalente novo.
+    let focado: { tipo: 'obra' | 'grupo'; id: string } | null = null;
+    const ativo = document.activeElement;
+    if (ativo && ativo !== document.body && elMapa.contains(ativo)) {
+      for (const [id, marcador] of marcadoresObra) {
+        const e = marcador.getElement();
+        if (e && (e === ativo || e.contains(ativo))) focado = { tipo: 'obra', id };
+      }
+      for (const [id, marcador] of marcadoresGrupo) {
+        const e = marcador.getElement();
+        if (e && (e === ativo || e.contains(ativo))) focado = { tipo: 'grupo', id };
+      }
+    }
+    try { desenharCamadaSemFoco(visiveis); } finally {
+      if (focado) {
+        const novo = focado.tipo === 'obra' ? marcadoresObra.get(focado.id) : marcadoresGrupo.get(focado.id);
+        novo?.getElement()?.focus({ preventScroll: true });
+      }
+    }
+  }
+  function desenharCamadaSemFoco(visiveis: ObraVista[]): void {
     camada.clearLayers();
     marcadoresObra.clear();
+    marcadoresGrupo.clear();
     const zoom = mapa.getZoom();
     zoomDesenhado = zoom;
     const obstaculos = obstaculosDosControles();
@@ -849,7 +876,9 @@ document.addEventListener('astro:page-load', () => {
     const visiveis = obrasFiltradas();
     const ocultas = todas.length - visiveis.length;
     // Na miniatura sem filtros do mapa, "0 ocultas" só confundiria.
-    contagem.textContent = `${plural(todas.length, 'obra', 'obras')} no mapa${compacto && ocultas === 0 ? '' : ` · ${ocultas} ocultas pelos filtros`} · ${semLocal} sem localização`;
+    contagem.textContent = visiveis.length === 0 && todas.length > 0
+      ? 'Nenhuma obra localizada com esses filtros.'
+      : `${plural(todas.length, 'obra', 'obras')} no mapa${compacto && ocultas === 0 ? '' : ` · ${ocultas} ocultas pelos filtros`} · ${semLocal} sem localização`;
     corpo.replaceChildren();
     for (const obra of visiveis) {
       const linha = el('tr');

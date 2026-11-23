@@ -242,3 +242,61 @@ test('mapa por área: nome com marcação aparece como texto no mapa, no painel 
   await expect(page.locator('img[src="x"]')).toHaveCount(0);
   await expect(page.locator('[onerror]')).toHaveCount(0);
 });
+
+test('mapa por área: o foco do teclado não cai no corpo da página quando o mapa se redesenha', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await simular(page, GESTAO, TRES);
+  const mapa = page.locator('#mapa [data-mapa-obras]');
+  const estadoDoFoco = () => page.evaluate(() => {
+    const ativo = document.activeElement;
+    return { corpo: !ativo || ativo === document.body, marcador: !!ativo?.closest('.leaflet-marker-icon'), painel: !!ativo?.closest('[data-mp-painel]') };
+  });
+  // Bolha: o Enter aproxima o mapa e redesenha tudo.
+  const bolha = mapa.locator('.mp-bolha-caixa').first();
+  await expect(bolha).toBeVisible();
+  await bolha.focus();
+  await expect(bolha).toBeFocused();
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(2000);
+  let foco = await estadoDoFoco();
+  expect(foco.corpo).toBe(false);
+  expect(foco.marcador || foco.painel).toBe(true);
+  // Marcador de obra, já em zoom de rua: o Enter só recentraliza e o marcador focado é recriado.
+  await page.goto(`${GESTAO}?z=16&c=-16.64000,-49.22000`);
+  await page.waitForTimeout(1500);
+  const marcador = mapa.locator('.mp-marcador-caixa').first();
+  await expect(marcador).toBeVisible();
+  await marcador.focus();
+  await expect(marcador).toBeFocused();
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(2000);
+  foco = await estadoDoFoco();
+  expect(foco.corpo).toBe(false);
+  expect(foco.marcador || foco.painel).toBe(true);
+});
+
+test('mapa por área: "Desmarcar todos" continua sem nenhuma área marcada depois de recarregar', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await simular(page, GESTAO, TRES);
+  const mapa = page.locator('#mapa [data-mapa-obras]');
+  const filtro = mapa.locator('[data-mp-filtro="areas"]');
+  await filtro.locator('[data-mp-abrir]').click();
+  await filtro.getByRole('button', { name: 'Desmarcar todos' }).click();
+  await expect(page).toHaveURL(/[?&]areas=(&|$)/);
+  await page.reload();
+  await filtro.locator('[data-mp-abrir]').click();
+  await expect(filtro.getByRole('checkbox', { checked: true })).toHaveCount(0);
+  await expect(mapa.locator('[data-mp-contagem]')).toContainText('Nenhuma obra localizada com esses filtros.');
+});
+
+test('mapa por área: filtro do endereço sem correspondência não é descartado; mapa vazio com aviso', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await simular(page, GESTAO, TRES);
+  for (const consulta of ['areas=inexistente', 'regiao=Marte']) {
+    await page.goto(`${GESTAO}?${consulta}`);
+    const mapa = page.locator('#mapa [data-mapa-obras]');
+    await expect(mapa.locator('[data-mp-contagem]')).toContainText('Nenhuma obra localizada com esses filtros.');
+    await expect(mapa.locator('.mp-bolha-caixa, .mp-marcador-caixa')).toHaveCount(0);
+    await expect(page).toHaveURL(new RegExp(consulta));
+  }
+});
