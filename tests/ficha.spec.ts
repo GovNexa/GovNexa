@@ -17,7 +17,7 @@ test.beforeEach(async ({ page }) => {
 test('ficha: Ver detalhes da Carteira abre a ficha em tela grande e o X volta à lista com o filtro', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto(CARTEIRA + '?orgao=SEINFRA');
-  await page.locator('tbody [data-row]').filter({ hasText: /\bP-900(?!\d)/ }).first().getByRole('button', { name: 'Ver detalhes' }).click();
+  await page.locator('tbody [data-row][data-id="P-900"]').getByRole('button', { name: 'Ver detalhes' }).click();
   await page.waitForURL((u) => u.pathname === FICHA);
   expect(new URL(page.url()).searchParams.get('volta')).toBe('/plataforma/projetos-carteira/?orgao=SEINFRA');
   await expect(page.locator('#record-dialog')).toBeHidden();
