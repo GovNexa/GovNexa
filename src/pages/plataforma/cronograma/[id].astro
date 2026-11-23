@@ -18,7 +18,7 @@ const r = resumoCronograma(c, hoje);
 const projeto = c.projeto_id ? carregarCarteira().projetos.find((p) => p.id === c.projeto_id) : undefined;
 const pend = [
   ...c.pendencias.map((t) => `Cronograma: ${t}`),
-  ...etapasDoCronograma(c).flatMap((e) => e.pendencias.map((t) => `${e.nome} (linha ${e.origem.linha}): ${t}`)),
+  ...etapasDoCronograma(c).flatMap((e) => e.pendencias.map((t) => `${e.nome}${e.origem ? ` (linha ${e.origem.linha})` : ''}: ${t}`)),
 ];
 const pct = (n: number) => `${Math.round(n)}%`;
 const deps = analisarDependencias(c, hoje);

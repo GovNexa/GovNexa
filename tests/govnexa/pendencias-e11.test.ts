@@ -62,7 +62,7 @@ test('nenhum link interno manda o projeto para o endereço antigo de localizaç�
   assert.deepEqual(comId, []);
   assert.equal(existsSync('src/components/mapa/LocalizacaoProjeto.astro'), false);
   assert.ok(!readFileSync('src/pages/plataforma/[...module].astro', 'utf8').includes('LocalizacaoProjeto'));
-  assert.match(readFileSync('src/components/mapa/MapaObras.astro', 'utf8'), /el\('a', 'Localização'\);\n\s+editar\.href = hrefFicha\(obra\.id, null, 'localizacao'\);/);
+  assert.match(readFileSync('src/components/mapa/MapaObras.astro', 'utf8'), /el\('a', 'Localização'\);\r?\n\s+editar\.href = hrefFicha\(obra\.id, null, 'localizacao'\);/);
 
   const carteira = JSON.parse(readFileSync('data/exemplo/carteira/carteira.json', 'utf8')) as Carteira;
   const p = carteira.projetos[0];

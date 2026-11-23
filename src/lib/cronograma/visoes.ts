@@ -79,7 +79,7 @@ export function resumoCronograma(c: Cronograma, hoje: string = hojePadrao()): Re
     previstoPct,
     spi,
     ritmo: farolRitmo(spi),
-    faseAtual: faseAberta ? faseAberta.nome : 'Concluído',
+    faseAtual: etapas.length === 0 ? 'Sem tarefas' : faseAberta ? faseAberta.nome : 'Concluído',
     atrasadas: etapas.filter((e) => ['atrasada', 'inicio_atrasado'].includes(statusNaData(e, hoje))).length,
     proximos7: etapas.filter((e) => statusNaData(e, hoje) !== 'concluida' && !!e.fim_previsto && e.fim_previsto >= hoje && e.fim_previsto <= limite).length,
     entregaPrevista: fins.length ? fins.reduce((m, d) => (d > m ? d : m), fins[0]) : null,

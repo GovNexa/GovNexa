@@ -67,7 +67,9 @@ function upsert(tabela: string, pk: string[], cols: Record<string, string>, pres
   const atualiza = nomes.filter((c) => !pk.includes(c) && !preservar.includes(c)).map((c) => `${c} = EXCLUDED.${c}`);
   if (sqlite && tabela === 'projeto') atualiza.push('revisao = projeto.revisao + 1');
   // Projeto cadastrado pela tela (origem.aba = CADASTRO) nunca é sobrescrito pela planilha, mesmo que ela traga o mesmo código.
-  const protegeCadastro = sqlite && tabela === 'projeto' ? " WHERE json_extract(projeto.origem, '$.aba') IS NOT 'CADASTRO'" : '';
+  const protegeCadastro = sqlite && tabela === 'projeto' ? " WHERE json_extract(projeto.origem, '$.aba') IS NOT 'CADASTRO'"
+    // E13: cronograma editado na tela fica congelado para a planilha (cabeçalho e tarefas); só a tela o altera.
+    : sqlite && tabela === 'cronograma' ? ' WHERE cronograma.editado_na_tela = 0' : '';
   return (
     `INSERT INTO ${tabela} (${nomes.join(', ')}) VALUES (${nomes.map((c) => cols[c]).join(', ')})\n` +
     `  ON CONFLICT (${pk.join(', ')}) DO UPDATE SET ${atualiza.join(', ')}${protegeCadastro};`
@@ -110,15 +112,35 @@ for (const c of cronogramas?.cronogramas ?? []) {
     }),
   );
   if (sqlite) {
-    // Etapas que saíram da planilha deixam de existir no banco (etapas só vêm da planilha; nada é editado no sistema).
-    const ordens = c.fases.flatMap((f) => f.etapas.map((e) => e.ordem));
+    // Etapas que saíram da planilha deixam de existir no banco, EXCETO em cronograma editado na tela (E13: a tela vence a planilha).
+    const ids = c.fases.flatMap((f) => f.etapas.map((e) => txt(`${c.id}#${e.ordem}`)));
     linhas.push(
       `DELETE FROM etapa_cronograma WHERE prefeitura_id = ${num(ibge)} AND cronograma_id = ${txt(c.id)}` +
-        (ordens.length ? ` AND ordem NOT IN (${ordens.map(num).join(', ')});` : ';'), // cronograma sem nenhuma etapa: apaga todas as antigas
+        (ids.length ? ` AND id NOT IN (${ids.join(', ')})` : '') + // cronograma sem nenhuma etapa: apaga todas as antigas
+        ` AND NOT EXISTS (SELECT 1 FROM cronograma WHERE prefeitura_id = ${num(ibge)} AND id = ${txt(c.id)} AND editado_na_tela = 1);`,
     );
   }
   for (const fase of c.fases) {
     for (const e of fase.etapas) {
+      if (sqlite) {
+        // A tarefa da carga tem código estável cronograma#ordem; cronograma editado na tela não recebe nada da planilha.
+        const cols: Record<string, string> = {
+          prefeitura_id: num(ibge), id: txt(`${c.id}#${e.ordem}`), cronograma_id: txt(c.id), ordem: num(e.ordem), fase: txt(e.fase ?? fase.nome), nome: txt(e.nome),
+          unidade: txt(e.unidade), responsavel: txt(e.responsavel), situacao_planilha: txt(e.situacao_planilha),
+          duracao_prevista: num(e.duracao_prevista), inicio_previsto: txt(e.inicio_previsto), fim_previsto: txt(e.fim_previsto),
+          inicio_real: txt(e.inicio_real), fim_real: txt(e.fim_real), status: txt(e.status), ciclo: num(e.ciclo),
+          pendencias: arr(e.pendencias), origem: json(e.origem),
+        };
+        const nomes = Object.keys(cols);
+        linhas.push(
+          `INSERT INTO etapa_cronograma (${nomes.join(', ')}) SELECT ${nomes.map((n) => cols[n]).join(', ')}
+` +
+            `  WHERE NOT EXISTS (SELECT 1 FROM cronograma WHERE prefeitura_id = ${num(ibge)} AND id = ${txt(c.id)} AND editado_na_tela = 1)
+` +
+            `  ON CONFLICT (prefeitura_id, id) DO UPDATE SET ${nomes.filter((n) => !['prefeitura_id', 'id', 'cronograma_id'].includes(n)).map((n) => `${n} = excluded.${n}`).join(', ')};`,
+        );
+        continue;
+      }
       linhas.push(
         upsert('etapa_cronograma', ['prefeitura_id', 'cronograma_id', 'ordem'], {
           prefeitura_id: num(ibge), cronograma_id: txt(c.id), ordem: num(e.ordem), fase: txt(e.fase ?? fase.nome), nome: txt(e.nome),

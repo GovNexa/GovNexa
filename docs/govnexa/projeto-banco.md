@@ -173,3 +173,7 @@ Consequências no projeto: gravações em lote dividem os parâmetros em blocos;
 
 1. Princípios e ordem do roteiro (seção 6): aprovados em 17/11/2026.
 2. Plano da Cloudflare: a conta está no plano pago (conferido pelo dono em 17/11/2026). Valem 30 dias de restauração e 1000 consultas por acesso.
+
+### Nota técnica da migração 0009 (E13, cronograma na tela)
+
+Os gatilhos `cronograma_sem_delete_tela` e `etapa_cronograma_sem_delete_tela` impedem apagar cronograma ou tarefa editados na tela, e `troca_responsavel` e o histórico são imutáveis. Isso impede também a limpeza administrativa (por exemplo, apagar uma prefeitura de teste): ela exige uma migração própria que recrie esses gatilhos. A 0009 sanea dado antigo inválido (data impossível, duração negativa, término antes do início) para NULL e registra o motivo na coluna `pendencias` da tarefa; a lista prévia está em `db/d1/prefeitura/checagens/0009-pre.sql`.

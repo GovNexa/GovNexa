@@ -42,7 +42,16 @@ export function isoData(d: Date): string {
   return x.toISOString().slice(0, 10);
 }
 
-export function numero(v: unknown, campo: string, pend: string[]): number | null {
+/** `min`: valor abaixo dele é recusado (vira null) com pendência; usado na duração, que não pode ser negativa. */
+export function numero(v: unknown, campo: string, pend: string[], min?: number): number | null {
+  const n = numeroBruto(v, campo, pend);
+  if (n !== null && min !== undefined && n < min) {
+    pend.push(`Valor negativo em ${campo}: ${n}`);
+    return null;
+  }
+  return n;
+}
+function numeroBruto(v: unknown, campo: string, pend: string[]): number | null {
   const b = bruto(v);
   if (b === null) return null;
   if (typeof b === 'number') return Number.isFinite(b) ? b : null;
@@ -60,17 +69,33 @@ export function numero(v: unknown, campo: string, pend: string[]): number | null
   return n;
 }
 
+/** Monta a data de verdade (Date.UTC) e confere que volta a mesma AAAA-MM-DD; 31/02 e semelhantes são inválidas. */
+function dataReal(a: number, m: number, d: number): string | null {
+  const x = new Date(Date.UTC(a, m - 1, d));
+  const iso = `${String(a).padStart(4, '0')}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  return Number.isNaN(x.getTime()) || x.toISOString().slice(0, 10) !== iso ? null : iso;
+}
+
 export function dataIso(v: unknown, campo: string, pend: string[]): string | null {
   const b = bruto(v);
   if (b === null) return null;
-  if (b instanceof Date) return isoData(b);
+  if (b instanceof Date) {
+    if (!Number.isNaN(b.getTime())) return isoData(b);
+    pend.push(`Data não reconhecida em ${campo}`);
+    return null;
+  }
   if (typeof b === 'number' && b >= 20000 && b <= 80000) return new Date(Date.UTC(1899, 11, 30) + Math.floor(b) * 86400000).toISOString().slice(0, 10); // serial do Excel
   if (typeof b === 'string') {
     const s = b.trim();
     if (s === '' || s === '-' || s === '—') return null;
     if (/^\d{5}(\.\d+)?$/.test(s) && Number(s) >= 20000 && Number(s) <= 80000) return dataIso(Number(s), campo, pend);
     const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+    if (m) {
+      const iso = dataReal(Number(m[3]), Number(m[2]), Number(m[1]));
+      if (iso) return iso;
+      pend.push(`Data não reconhecida em ${campo}: ${s}`);
+      return null;
+    }
   }
   pend.push(`Data não reconhecida em ${campo}`);
   return null;

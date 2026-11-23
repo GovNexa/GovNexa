@@ -38,10 +38,14 @@ export interface ResumoImportacao {
   editadosNoSistema: number | null; // pulados: já foram alterados no sistema
   foraDaPlanilha: number | null; // projetos que estão no banco e saíram da planilha: ficam, só são avisados
   cronogramasForaDaPlanilha: number | null;
+  cronogramasEditadosNaTela: number | null; // congelados: a planilha não os altera (E13); null no destino 'nenhum'
   avisos: string[];
   arquivos: { carteira: string; cronogramas: string };
   sql: string;
 }
+
+/** Projeto "alterado no sistema": tem evento que não veio da importação. A gravação feita no cronograma (E13) NÃO conta: não congela o projeto da carteira. */
+export const SQL_EDITADOS = (ibge: number): string => `SELECT DISTINCT projeto_id FROM evento_projeto WHERE prefeitura_id = ${ibge} AND origem NOT IN ('importacao','cronograma')`;
 
 const NOME_CARTEIRA = /^Projeto_obras_prioritarias.*\.xlsx$/i;
 const NOME_CRONOGRAMAS = /^GEPP.*\.xlsx$/i;
@@ -178,6 +182,7 @@ export async function importarPlanilhas(op: OpcoesImportacao): Promise<ResumoImp
     editadosNoSistema: null,
     foraDaPlanilha: null,
     cronogramasForaDaPlanilha: null,
+    cronogramasEditadosNaTela: null,
     avisos,
     arquivos: { carteira: basename(planilhaCarteira), cronogramas: basename(planilhaCronogramas) },
     sql: join(trabalho, 'carga.sql'),
@@ -193,15 +198,21 @@ export async function importarPlanilhas(op: OpcoesImportacao): Promise<ResumoImp
     const areasInvalidas = carteira.projetos.filter((p) => p.area != null && !areasAtivas.has(p.area)).map((p) => p.codigo_legado);
     if (areasInvalidas.length) avisos.push(`${areasInvalidas.length} projeto(s) com área fora da lista da prefeitura (mantida a área anterior): códigos ${areasInvalidas.join(', ')}.`);
     const doBanco = new Map(consultar(banco, op.destino, `SELECT id, orgao FROM projeto WHERE prefeitura_id = ${ibge}`).map((l) => [String(l.id), { orgao: (l.orgao as string | null) ?? null }]));
-    editados = new Set(consultar(banco, op.destino, `SELECT DISTINCT projeto_id FROM evento_projeto WHERE prefeitura_id = ${ibge} AND origem <> 'importacao'`).map((l) => String(l.projeto_id)));
+    editados = new Set(consultar(banco, op.destino, SQL_EDITADOS(ibge)).map((l) => String(l.projeto_id)));
     const idsCronogramas = new Set(consultar(banco, op.destino, `SELECT id FROM cronograma WHERE prefeitura_id = ${ibge}`).map((l) => String(l.id)));
+    const congelados = consultar(banco, op.destino, `SELECT id, projeto_id FROM cronograma WHERE prefeitura_id = ${ibge} AND editado_na_tela = 1 ORDER BY id`).map((l) => ({ id: String(l.id), projeto: l.projeto_id == null ? null : String(l.projeto_id) }));
     const av = avaliarImportacao(new Map(carteira.projetos.map((p) => [p.id, { orgao: p.orgao }])), doBanco, editados);
     resumo.novos = av.novos.length;
     resumo.atualizados = av.atualizados.length;
     resumo.editadosNoSistema = av.editadosNoSistema.length;
     resumo.foraDaPlanilha = av.foraDaPlanilha.length;
     avisos.push(...av.avisos);
-    const doExcel = JSON.parse(readFileSync(join(pastaDados, 'cronogramas.json'), 'utf8')) as { cronogramas: { id: string }[] };
+    const doExcel = JSON.parse(readFileSync(join(pastaDados, 'cronogramas.json'), 'utf8')) as { cronogramas: { id: string; projeto_id: string | null }[] };
+    resumo.cronogramasEditadosNaTela = congelados.length;
+    if (congelados.length > 0) avisos.push(`${congelados.length} cronograma(s) foram editados na tela e não foram alterados pela planilha: ${congelados.map((x) => x.id).join(', ')}.`);
+    // Planilha com cronograma casado a projeto que já tem cronograma feito na tela (outro id): ficam dois; a tela mostra o editado na tela.
+    const casadosComTela = doExcel.cronogramas.filter((x) => x.projeto_id && congelados.some((g) => g.projeto === x.projeto_id && g.id !== x.id)).map((x) => x.id);
+    if (casadosComTela.length > 0) avisos.push(`${casadosComTela.length} cronograma(s) da planilha casam com projeto que já tem cronograma editado na tela: ${casadosComTela.join(', ')}.`);
     const idsExcel = new Set(doExcel.cronogramas.map((c) => c.id));
     resumo.cronogramasForaDaPlanilha = [...idsCronogramas].filter((i) => !idsExcel.has(i)).length;
     if (resumo.cronogramasForaDaPlanilha > 0) avisos.push(`${resumo.cronogramasForaDaPlanilha} cronograma(s) do banco não estão mais na planilha (aba renomeada ou removida?). Foram mantidos.`);
@@ -264,6 +275,7 @@ export function relatorioMd(r: ResumoImportacao, destino: Destino): string {
   L.push(`| Cronogramas casados com a carteira por SEI / por nome / sem par | ${r.casamentoCronogramas.sei} / ${r.casamentoCronogramas.nome} / ${r.casamentoCronogramas.semPar} |`);
   if (r.novos !== null) {
     L.push(`| Projetos novos no banco | ${r.novos} |`, `| Projetos atualizados | ${r.atualizados} |`, `| Projetos pulados por já terem sido alterados no sistema | ${r.editadosNoSistema} |`, `| Projetos no banco que saíram da planilha (mantidos) | ${r.foraDaPlanilha} |`);
+    if (r.cronogramasEditadosNaTela !== null) L.push(`| Cronogramas editados na tela (mantidos) | ${r.cronogramasEditadosNaTela} |`);
     if (r.cronogramasForaDaPlanilha !== null) L.push(`| Cronogramas no banco que saíram da planilha (mantidos) | ${r.cronogramasForaDaPlanilha} |`);
   }
   L.push('', '## Avisos', '');

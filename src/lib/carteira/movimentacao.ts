@@ -2,7 +2,7 @@
 // Todo caminho (Kanban, ficha, pendência, SEI, importação) passa por aqui e gera histórico.
 import type { CodigoMacroetapa, Projeto } from './tipos.ts';
 
-export type OrigemEvento = 'kanban' | 'ficha' | 'pendencia' | 'sei' | 'importacao' | 'cadastro' | 'sala';
+export type OrigemEvento = 'kanban' | 'ficha' | 'pendencia' | 'sei' | 'importacao' | 'cadastro' | 'sala' | 'cronograma';
 
 interface EventoBase {
   projeto_id: string;

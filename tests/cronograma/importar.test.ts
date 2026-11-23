@@ -120,7 +120,10 @@ test('pendências da etapa', () => {
   assert.ok(!e[2].pendencias.includes('Situação da planilha diferente da calculada')); // "em andamento" equivale a atrasada
   assert.deepEqual(e[0].pendencias, []);
   const b = etapas(cron.cronogramas.cronogramas[1])[0];
-  assert.ok(b.pendencias.includes('Término antes do início'));
+  // E13 (Delta 1, item 2): término antes do início não vai para o banco; o término vira null e a pendência guarda o valor.
+  assert.ok(b.pendencias.includes('Término antes do início: DATA TÉRMINO PREVISTO = 2026-02-21'));
+  assert.equal(b.fim_previsto, null);
+  assert.equal(b.inicio_previsto, '2026-03-02');
 });
 
 test('casamento com a carteira: por SEI e por nome', () => {
