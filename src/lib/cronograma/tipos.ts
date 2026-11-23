@@ -50,6 +50,7 @@ export interface Cronograma {
   revisao?: number;
   editado_na_tela?: boolean;
   origem_registro?: 'planilha' | 'tela';
+  atualizado_em?: string | null; // última alteração (só no D1); decide qual cronograma a ficha mostra
 }
 
 export interface FonteCronogramas {

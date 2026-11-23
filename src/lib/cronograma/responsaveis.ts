@@ -69,7 +69,8 @@ export function tempoNaMao(e: EtapaCronograma, hoje: string): TempoNaMao {
     responsavel: atual.responsavel, unidade: atual.unidade, iniciada, concluida,
     desde: iniciada ? atual.inicio : null,
     diasAtual: atual.dias, diasPessoa, diasArea,
-    alerta: alertaDoTempo(diasPessoa, e.duracao_prevista, !e.fim_real && iniciada),
+    // Sem responsável, somar as passagens "sem pessoa" de áreas diferentes seria enganoso: o alerta usa o tempo da área atual.
+    alerta: alertaDoTempo(pessoa ? diasPessoa : diasArea, e.duracao_prevista, !e.fim_real && iniciada),
     passagens,
   };
 }

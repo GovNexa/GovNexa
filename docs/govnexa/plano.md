@@ -14,7 +14,9 @@
 > - **Repositório antigo (`SLo0th1/Atlas_Conecta`):** congelado. Todo o trabalho segue só neste repositório.
 > - **Publicação em produção:** só com ordem expressa do dono (regras no `CLAUDE.md`).
 
-## Andamento · última atualização em 22/11/2026
+## Andamento · última atualização em 23/11/2026
+
+23/11/2026: E13 (cronograma como processo na tela, responsável e tempo na mão, painel Responsáveis, migração 0009) concluída no código, aguardando revisão e publicação; a Fase 2 (Cronograma e equipe) passa a 95%.
 
 22/11/2026: os requisitos dos áudios de 20/11 (três visões: gerencial, governança da execução e convênios; tela do prefeito; carteira, ficha, Kanban, mapa por área e licitações) estão planejados em [plano-requisitos-audios.md](plano-requisitos-audios.md).
 
@@ -41,6 +43,7 @@ Percentuais mantidos até homologação do login próprio; Access continua padr�
 
 | Data | Entrega | PR |
 | --- | --- | --- |
+| 23/11 | E13: cronograma criado e mantido na tela, troca de responsável com histórico, tempo na mão e painel Responsáveis (migração 0009) | a numerar |
 | 22/11 | E11: menu nas três visões (Gerencial, Governança da execução, Convênios) e Visão Convênios (em execução, em risco, CAUC); menu esconde o que o perfil não abre | a numerar |
 | 22/11 | E10: Painel da equipe e relatório de inconsistências (impressão e CSV) | GovNexa #49, mesclado |
 | 22/11 | E7: Kanban enxuto e mover gravando no banco (B3), com portão e motivo | GovNexa #48, mesclado |

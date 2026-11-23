@@ -105,3 +105,16 @@ test('ficha: dependências de recurso externo e de projeto técnico', () => {
   assert.ok(f.governanca.dependencias.includes('Depende de recurso externo para ser executado.'));
   assert.ok(f.governanca.dependencias.includes('Ainda não tem projeto técnico.'));
 });
+
+test('ficha (E13): mostra o cronograma editado na tela, o mais recente; os demais viram link', () => {
+  const base = cronogramas[0];
+  const c = (id: string, extra: Partial<Cronograma>): Cronograma => ({ ...base, id, titulo: `Cronograma ${id}`, projeto_id: 'P-900', ...extra });
+  const lista = [c('C-planilha', {}), c('C-tela-antigo', { editado_na_tela: true, atualizado_em: '2026-11-01T10:00:00.000Z' }), c('C-tela-novo', { editado_na_tela: true, atualizado_em: '2026-11-20T10:00:00.000Z' })];
+  const f = montarFicha({ projeto: P('P-900'), fonte: FONTE, localizacao: 'x', cronogramas: lista, hoje: '2026-11-22' });
+  assert.deepEqual(f.cronogramas.map((x) => x.id), ['C-tela-novo']);
+  assert.deepEqual(f.outrosCronogramas.map((x) => x.id).sort(), ['C-planilha', 'C-tela-antigo']);
+  assert.ok(f.cronogramas[0].linhas.some((l) => l.rotulo === 'Tarefas com alerta de tempo'));
+  const semTela = montarFicha({ projeto: P('P-900'), fonte: FONTE, localizacao: 'x', cronogramas: [c('C-a', {}), c('C-b', {})], hoje: '2026-11-22' });
+  assert.equal(semTela.cronogramas.length, 2);
+  assert.equal(semTela.outrosCronogramas.length, 0);
+});

@@ -88,6 +88,8 @@ export function criarRepositorioPostgres(cliente: ClienteSql, prefeituraId: numb
         const r = await cliente.query(`SELECT ${COLUNAS_LOG} FROM log_alteracoes WHERE prefeitura_id = $1 ORDER BY em DESC, id DESC`, [prefeituraId]);
         return r.rows.map(linhaParaLog);
       }),
+    // E13: caminho legado (Postgres), fora de uso em produção e SEM as colunas da migração 0009 do D1 (removida_em, id estável, trocas).
+    // Por isso não filtra `removida_em IS NULL`: lá não existe tarefa removida pela tela. O cronograma da tela só existe no D1.
     listarCronogramas: () =>
       transacao(async () => {
         const c = await cliente.query(

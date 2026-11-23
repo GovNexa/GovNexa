@@ -165,3 +165,61 @@ test('normalizarPedido: responsável não se edita pela edição; campos fora da
 test('importação: a gravação no cronograma não congela o projeto da carteira', () => {
   assert.match(SQL_EDITADOS(PREF), /AND origem NOT IN \('importacao','cronograma'\)/);
 });
+
+const SEM_MUDAR = 'O cronograma foi alterado por outra pessoa. Recarregue a página e tente de novo.';
+const fotografia = (banco: ReturnType<typeof bancoTeste>) => JSON.stringify({
+  tarefas: banco.sqlite.prepare('SELECT * FROM etapa_cronograma ORDER BY prefeitura_id, id').all(),
+  trocas: banco.sqlite.prepare('SELECT * FROM troca_responsavel ORDER BY prefeitura_id, id').all(),
+  eventos: banco.sqlite.prepare('SELECT count(*) AS n FROM evento_projeto').get(),
+  sistema: banco.sqlite.prepare('SELECT count(*) AS n FROM evento_sistema').get(),
+});
+
+test('concorrência no batch: outra gravação entre a leitura e o batch dá 409 e não grava nada (Delta 2, item 2)', async (t) => {
+  const banco = bancoTeste();
+  t.after(() => banco.sqlite.close());
+  carregarExemplo(banco.sqlite);
+  // Intercepta o batch: a "outra pessoa" grava (revisao + 1) depois da leitura e antes do lote.
+  const interceptado = { prepare: banco.db.prepare.bind(banco.db), batch: async (st: Parameters<typeof banco.db.batch>[0]) => {
+    banco.sqlite.exec("UPDATE cronograma SET revisao = revisao + 1 WHERE id = 'C-exemplo-001'");
+    return banco.db.batch(st);
+  } };
+  const repo = repositorioD1ParaTestes(interceptado as typeof banco.db, PREF);
+  const c: ContextoCronograma = { usuario: usuario(), repositorio: comInvalidacao(repo, PREF) };
+  const antes = fotografia(banco);
+  const r = await gravarCronograma(c, 'C-exemplo-001', { revisao: 0, acao: 'incluir_tarefa', tarefa: tarefa({ nome: 'Corrida no batch' }) }, RELOGIO);
+  assert.deepEqual({ ...r }, { ok: false, status: 409, erro: SEM_MUDAR });
+  assert.equal(fotografia(banco), antes);
+  assert.equal(banco.sqlite.prepare("SELECT revisao AS r FROM cronograma WHERE id = 'C-exemplo-001'").get()!.r, 1); // só a gravação da "outra pessoa"
+});
+
+test('isolamento das trocas: a mesma chave em outra prefeitura não aparece na leitura (Delta 2, item 3)', async (t) => {
+  const banco = bancoTeste();
+  t.after(() => banco.sqlite.close());
+  carregarExemplo(banco.sqlite);
+  banco.sqlite.prepare("INSERT INTO prefeitura (id, nome, uf) VALUES (1, 'Outra', 'GO')").run();
+  banco.sqlite.exec("INSERT INTO cronograma (prefeitura_id, id, titulo) VALUES (1, 'C-exemplo-001', 'Cronograma da outra')");
+  banco.sqlite.exec("INSERT INTO etapa_cronograma (prefeitura_id, id, cronograma_id, ordem, fase, nome) VALUES (1, 'C-exemplo-001#10', 'C-exemplo-001', 1, 'F', 'Tarefa da outra')");
+  banco.sqlite.exec(`INSERT INTO troca_responsavel (prefeitura_id, id, cronograma_id, tarefa_id, tipo, para_responsavel, desde, registrado_por, registrado_em)
+    VALUES (1, 'troca-da-outra', 'C-exemplo-001', 'C-exemplo-001#10', 'inicial', 'Pessoa Alheia', '2026-01-02', 'b@exemplo.invalid', '2026-01-03T10:00:00.000Z')`);
+  const deA = (await repositorioD1ParaTestes(banco.db, PREF).obterCronograma!('C-exemplo-001'))!.cronograma;
+  const tarefaA = deA.fases.flatMap((f) => f.etapas).find((e) => e.id === 'C-exemplo-001#10')!;
+  assert.deepEqual(tarefaA.trocas, []);
+  assert.ok(!JSON.stringify(deA).includes('Pessoa Alheia'));
+  const deB = (await repositorioD1ParaTestes(banco.db, 1).obterCronograma!('C-exemplo-001'))!.cronograma;
+  assert.equal(deB.fases.flatMap((f) => f.etapas)[0].trocas!.length, 1);
+});
+
+test('posição negativa ativa (passada interrompida) trava a gravação estrutural com 409 (Delta 2, item 4)', async (t) => {
+  const banco = bancoTeste();
+  t.after(() => banco.sqlite.close());
+  carregarExemplo(banco.sqlite);
+  const repo = repositorioD1ParaTestes(banco.db, PREF);
+  const c: ContextoCronograma = { usuario: usuario(), repositorio: comInvalidacao(repo, PREF) };
+  banco.sqlite.exec("UPDATE etapa_cronograma SET ordem = -ordem WHERE id = 'C-exemplo-001#10'");
+  const antes = fotografia(banco);
+  // Edição simples não reescreve as posições: a negativa continua ativa e o lote inteiro cai (revisao = NULL).
+  const r = await gravarCronograma(c, 'C-exemplo-001', { revisao: 0, acao: 'editar_tarefa', tarefa_id: 'C-exemplo-001#11', campos: { nome: 'Depois da passada interrompida' } }, RELOGIO);
+  assert.deepEqual({ ...r }, { ok: false, status: 409, erro: SEM_MUDAR });
+  assert.equal(fotografia(banco), antes);
+  assert.equal(banco.sqlite.prepare("SELECT revisao AS r FROM cronograma WHERE id = 'C-exemplo-001'").get()!.r, 0);
+});

@@ -92,7 +92,7 @@ test('ficha: processos SEI, cronograma e projeto sem dados', async ({ page, requ
   await expect(page.locator('[data-fp-sei] li')).toHaveText(['26.18.000001001-1']);
   await page.goto(FICHA + '?aba=cronograma');
   await expect(page.locator('[data-fp-cron]')).toHaveCount(1);
-  await expect(page.locator('[data-fp-cron] a')).toHaveAttribute('href', '/plataforma/cronograma/C-exemplo-001/');
+  await expect(page.locator('[data-fp-cron] a')).toHaveAttribute('href', /^\/plataforma\/cronograma\/C-exemplo-001\/\?volta=/);
   const origin = new URL(page.url()).origin;
   const criado = await request.post('/plataforma/projeto/criar/', { headers: { 'content-type': 'application/json', origin }, data: { nome: 'Projeto E6 sem dados', orgao: 'SMS' } });
   expect(criado.status()).toBe(201);

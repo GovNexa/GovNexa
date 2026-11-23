@@ -104,12 +104,12 @@ São módulos independentes que conversam entre si:
 | 0 · Base e identidade | Marca, menu por módulos, município configurável | Plataforma com a marca e o menu novos |
 | 1 · Carteira de Projetos | Substituir a planilha: carteira, ficha, Kanban, Gantt, por órgão | Carga conciliada com a planilha |
 | 1.5 · Cadastro e movimentação | Projeto nasce no cadastro e anda ou volta por qualquer caminho, com histórico | Gravar de verdade no banco |
-| 2 · Cronograma e equipe | Cronogramas, quem está com cada tarefa, onde está parado, reunião semanal e SEI | Leitura diária do SEI gravada no banco |
+| 2 · Cronograma e equipe | Cronogramas criados e mantidos na tela (E13), quadro de tarefas, Responsáveis, Onde está parado, Reunião semanal, dependências, SEI | Telas entregues; E13 (cronograma como processo, responsável e tempo na mão) concluída no código, aguardando revisão, migração 0009 e publicação; leitura automática do SEI a fazer | 95% |
 | 3 · Produção com banco (Cloudflare D1) | Gravação, perfis por secretaria e isolamento por prefeitura | Simulações viram gravação real no D1 |
 | 4 · Contratação, convênios e Gestão | Lei 14.133 ponta a ponta, cláusula suspensiva, painel do prefeito e medições | PNCP e datas reais por licitação |
 | 5 · Integrações e inteligência | PNCP, SIMEC, SISMOB, SINAPI e GOINFRA, WhatsApp real, IA com revisão humana | Conta do WhatsApp Business; IA aprovada |
 
-## 2. Situação atual (19/11/2026)
+## 2. Situação atual (23/11/2026)
 
 | Fase | O que entrega | Situação | % |
 | --- | --- | --- | --- |
@@ -124,6 +124,7 @@ São módulos independentes que conversam entre si:
 
 ### Entregas recentes
 
+- 23/11/2026: E13, cronograma como processo na tela (criar o cronograma de um projeto, incluir, editar, reordenar, iniciar, concluir e remover tarefas, trocar o responsável com histórico) e o painel Responsáveis (com quem está cada tarefa e há quantos dias, por pessoa e por área, com atenção e urgente; impressão e CSV); migração 0009 (branch agente/codex/e13-cronogramas; aguardando revisão e publicação).
 - 22/11/2026: E11, menu nas três visões (Visão gerencial, Governança da execução e Convênios) e a tela Visão Convênios (em execução, em risco e CAUC); guias que o perfil não abre ficam fora do menu; pendências pequenas das revisões E4, E6 e E10 fechadas (branch agente/codex/e11-visoes; aguardando portão, prévia do dono e revisão).
 - 22/11/2026: E9, fotos da obra na aba Fotos da ficha: enviar (JPG, PNG ou WEBP, até 10 MB, com legenda e data da foto), ver em grade com ampliação e remover (remoção lógica); envio e remoção entram no Histórico; migração 0008 (branch agente/codex/e9-fotos; aguardando portão, prévia do dono e revisão).
 - 22/11/2026: E8, busca de endereço na localização (rua, endereço completo ou bairro pelo OpenStreetMap, resultado no mapa, a pessoa confirma e só o Salvar grava) (branch agente/codex/e8-endereco; aguardando portão, prévia do dono e revisão).
@@ -212,7 +213,8 @@ O tema claro usa menu lateral branco, texto e ícones azul-escuros, destaques az
 | Kanban por macroetapa | Colunas de Em estruturação até Execução, com a quantidade e a previsão de saída do marco; card com nome, órgão e data de saída; filtros do padrão; mover (botão ou arrastar) grava com portão, motivo e Histórico | Disponível no código (E7) | `src/components/carteira/Kanban.astro`, `src/lib/carteira/kanban.ts`, `src/lib/carteira/mover.ts` |
 | Gantt geral | Linha do tempo prevista por macroetapa, da entrega mais próxima à mais distante; filtros por nome, órgão, macroetapa e período de entrega (mês e ano), guardados no endereço | Disponível | `src/components/carteira/Gantt.astro`, `src/components/carteira/FiltrosProjetos.astro`, `src/lib/carteira/filtros.ts` |
 | Visão por órgão | Incorporada à Carteira (E5): o endereço antigo abre a Carteira filtrada pelo órgão | Substituída | `src/lib/carteira/lista.ts` |
-| Cronogramas | Fase atual, realizado × previsto, linha do tempo, tarefas, dependências e pendências de dado | Disponível | `src/lib/cronograma/`, `src/pages/plataforma/cronograma/[id].astro` |
+| Cronogramas | Fase atual, realizado × previsto, linha do tempo, quadro, dependências e pendências de dado; aba Tarefas e responsáveis para criar o cronograma de um projeto e incluir, editar, reordenar, iniciar, concluir e remover tarefas, e trocar o responsável (cada troca fica no Histórico e na tarefa) | Disponível: criação e manutenção na tela (E13) | `src/lib/cronograma/`, `src/pages/plataforma/cronograma/`, `src/components/cronograma/TarefasResponsaveis.astro` |
+| Responsáveis | Com quem está cada tarefa aberta e há quantos dias, por pessoa e por área; atenção (passou da duração prevista) e urgente (passou do dobro); filtros, impressão e CSV; visível ao perfil leitura (só leitura) | Disponível (E13) | `src/lib/cronograma/painel-responsaveis.ts`, `src/pages/plataforma/gestao-responsaveis/` |
 | Onde está parado | Etapas vencidas por unidade e responsável | Disponível | `src/components/cronograma/Parado.astro` |
 | Pendências de etapa | Aprovar avança; reprovar volta uma etapa com motivo; grava no banco pela mesma regra do Kanban (perfis de gestão) | Disponível no código (E7) | `src/components/carteira/PendenciasEtapa.astro`, `src/pages/plataforma/projeto/mover/[id].ts` |
 | Reunião semanal | Pauta, decisões, ações e ata | Simulação | `src/lib/reuniao/` |
@@ -295,7 +297,7 @@ Os pedidos vêm dos áudios do dono, da reunião com a equipe e das planilhas.
 | Telas simples, sem barra de rolagem, que funcionem no celular | Interface responsiva e testes | Feito |
 | Projeto nasce no cadastro e anda ou volta por qualquer caminho, com histórico | Motor de movimentação, Histórico | Regras prontas; gravações em integração |
 | Log de toda alteração (o quê, quem, quando) | Histórico de alterações | Feito para eventos existentes |
-| Com quem está cada tarefa; em que ponto da contratação está | Cronogramas, Onde está parado | Feito |
+| Com quem está cada tarefa; em que ponto da contratação está | Cronogramas, Onde está parado, Responsáveis (E13) | Feito |
 | Predecessoras e etapas em paralelo | Dependências | Feito (opção A; revisar com o cliente) |
 | Reunião semanal, providências e ações | Reunião semanal | Simulação |
 | SEI: atualizar a partir do processo público | Processos no SEI, Licitação em detalhe | Leitura apresentada; rotina automática a fazer |
@@ -446,6 +448,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Painel da equipe e inconsistências (22/11/2026, E10):** o painel antigo virou o Painel da equipe (sem mapa) e o relatório de inconsistências usa 10 regras fixas calculadas dos dados atuais, sem gravar nada; as duas telas são de administrador, gestor e editor.
 - **Fotos da obra (22/11/2026, E9):** as fotos ficam na aba Fotos da ficha, separadas da localização, no mesmo R2 e no mesmo padrão de segurança dos documentos; reaproveitam a tabela `projeto_foto` já existente (migração 0008 só acrescenta colunas e índices); uma foto por envio, com legenda e data.
 
+- **Cronograma como processo (23/11/2026, E13; decisões do dono P1=A, P2=A e P4=A):** o cronograma passa a ser mantido na tela e a planilha só carrega o que nunca foi editado ali (a tela vence a planilha). Padrões adotados, **a confirmar pelo dono**: (1) o relógio do tempo na mão começa no início real da tarefa, também nas criadas na tela; (2) o alerta compara o tempo total da pessoa atual naquela tarefa com a duração prevista (sem responsável, o da área atual); (3) o painel Responsáveis é visível ao perfil leitura, só leitura; (4) "Área" da tarefa é a unidade em texto livre, com sugestões; (5) a data da troca pode ser retroativa, nunca antes da última troca nem no futuro, e quem lançou e quando ficam visíveis; (6) **congelamento:** qualquer gravação na tela congela o cronograma inteiro (tarefas, projeto, casamento, título e SEI) para a planilha, e a importação lista os ids congelados no relatório; um cronograma por projeto criado pela tela; se a carga casar com um projeto que já tem cronograma da tela, a ficha mostra o editado na tela (o mais recente) e os demais ficam em "Outros cronogramas deste projeto".
 - **Busca de endereço (22/11/2026, E8, decisão D4):** serviço gratuito OpenStreetMap/Nominatim, consultado só pelo servidor (a política de segurança do navegador continua `connect-src 'self'`); no máximo 1 pedido por segundo por instância, 10 buscas por minuto por pessoa, cache de 24 h (1 h para "nada encontrado") e nenhuma busca a cada tecla; só entram resultados de Goiânia e do entorno; nada é gravado sem a pessoa confirmar e salvar; o texto da busca não vai a log. Na máquina local a busca usa respostas fictícias (`BUSCA_ENDERECO_REAL=1` liga o serviço real na prévia).
 
 ## 8. Pendências e próximos passos
@@ -453,6 +456,8 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 Centros dos bairros: migração 0005 e carga publicadas em 18/11/2026. Parte dos bairros não foi encontrada no OpenStreetMap e as obras deles aparecem como "sem localização"; a correção é o cadastro manual (centro do bairro ou localização da obra), nunca uma coordenada inventada.
 
 ### Dependem do dono
+
+**E13, publicação da migração 0009 (procedimento; só com ordem do dono):** (1) rodar no D1 remoto a checagem só de leitura `db/d1/prefeitura/checagens/0009-pre.sql` e relatar ao dono as linhas que seriam saneadas ou que fazem a migração falhar; (2) antes de aplicar, anotar o ponto de retorno (`wrangler d1 time-travel info`); (3) aplicar em horário sem uso (`wrangler d1 migrations apply ... --remote`); (4) o retorno (`time-travel restore`) só com autorização do dono e também desfaz as gravações feitas na tela depois do ponto; (5) conferir as telas do cronograma e do painel Responsáveis. Os gatilhos `*_sem_delete_tela` impedem também a limpeza administrativa (exige migração própria). Generalizar o "voltar" com a E15 (ficha nova).
 
 | Pendência | Para quê |
 | --- | --- |

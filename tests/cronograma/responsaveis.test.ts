@@ -95,3 +95,14 @@ test('textos: desde hoje, há 1 dia, há 3 dias', () => {
   assert.equal(textoTempoNaMao(tempoNaMao(etapa({ inicio_real: '2026-11-17', unidade: null }), HOJE)), 'Com Pessoa Teste 1 há 3 dias');
   assert.equal(textoTempoNaMao(tempoNaMao(etapa({ responsavel: null, unidade: null, inicio_real: '2026-11-17' }), HOJE)), 'Com ninguém há 3 dias');
 });
+
+test('sem responsável, o alerta usa os dias da área atual e não soma passagens sem pessoa de áreas diferentes (Delta 2, item 8)', () => {
+  const e = etapa({
+    responsavel: null, unidade: 'Área B', duracao_prevista: 10, inicio_real: '2026-11-01',
+    trocas: [troca({ de_responsavel: null, de_unidade: 'Área A', para_responsavel: null, para_unidade: 'Área B', desde: '2026-11-10' })],
+  });
+  const t = tempoNaMao(e, HOJE);
+  assert.equal(t.diasArea, 10); // Área B: de 10/11 a 20/11
+  assert.equal(t.diasPessoa, 19); // soma de pessoas "vazias" de áreas diferentes: não vale para o alerta
+  assert.equal(t.alerta, null);
+});

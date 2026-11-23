@@ -75,19 +75,49 @@ test('0009: a checagem só de leitura lista as linhas que serão saneadas', () =
   sqlite.close();
 });
 
-test('0009: atomicidade — dado que a migração não sanea (ordem = 0) faz falhar tudo e nada muda', () => {
+test('0009: atomicidade — posição <= 0 (0 e -2) faz falhar tudo e nada muda; a checagem prévia lista (Delta 2, item 1)', () => {
+  for (const ordem of [0, -2]) {
+    const sqlite = bancoAntigo();
+    sqlite.exec(`INSERT INTO etapa_cronograma (prefeitura_id, cronograma_id, ordem, fase, nome) VALUES (1, 'C-x', ${ordem}, 'F', 'Ordem ruim')`);
+    assert.equal(sqlite.prepare(PRE_CHECAGEM).get()!.invalidas, 1);
+    assert.deepEqual(sqlite.prepare(readFileSync(PASTA + 'checagens/0009-pre.sql', 'utf8')).all().map((l) => ({ ...l })),
+      [{ prefeitura_id: 1, cronograma_id: 'C-x', ordem, campo: 'ordem (migração falha)', valor: String(ordem) }]);
+    // Mesmo modo do D1: o arquivo da migração roda numa transação só.
+    sqlite.exec('BEGIN');
+    assert.throws(() => migrar(sqlite), /CHECK constraint failed/);
+    sqlite.exec('ROLLBACK');
+    const colunas = sqlite.prepare("SELECT name FROM pragma_table_info('etapa_cronograma')").all().map((c) => c.name);
+    assert.ok(!colunas.includes('id'), 'formato antigo mantido');
+    assert.equal(sqlite.prepare('SELECT count(*) AS n FROM etapa_cronograma').get()!.n, 5);
+    for (const nome of ['etapa_cronograma_nova', 'etapa_cronograma_guarda']) assert.equal(sqlite.prepare('SELECT count(*) AS n FROM sqlite_master WHERE name = ?').get(nome)!.n, 0);
+    assert.ok(!sqlite.prepare("SELECT name FROM pragma_table_info('cronograma')").all().some((c) => c.name === 'revisao'));
+    sqlite.close();
+  }
+});
+
+test('0009: código cronograma#ordem com mais de 120 caracteres falha tudo e a checagem prévia lista (Delta 2, item 6)', () => {
   const sqlite = bancoAntigo();
-  sqlite.exec("INSERT INTO etapa_cronograma (prefeitura_id, cronograma_id, ordem, fase, nome) VALUES (1, 'C-x', 0, 'F', 'Ordem zero')");
-  assert.equal(sqlite.prepare(PRE_CHECAGEM).get()!.invalidas, 1);
-  // Mesmo modo do D1: o arquivo da migração roda numa transação só.
+  const longo = 'C-' + 'x'.repeat(130);
+  sqlite.exec(`INSERT INTO cronograma (prefeitura_id, id, aba, titulo) VALUES (1, '${longo}', 'AbaL', 'Longo')`);
+  sqlite.exec(`INSERT INTO etapa_cronograma (prefeitura_id, cronograma_id, ordem, fase, nome) VALUES (1, '${longo}', 1, 'F', 'Tarefa longa')`);
+  const linhas = sqlite.prepare(readFileSync(PASTA + 'checagens/0009-pre.sql', 'utf8')).all();
+  assert.equal(linhas.length, 1);
+  assert.match(String(linhas[0].campo), /mais de 120 caracteres/);
   sqlite.exec('BEGIN');
   assert.throws(() => migrar(sqlite), /CHECK constraint failed/);
   sqlite.exec('ROLLBACK');
-  const colunas = sqlite.prepare("SELECT name FROM pragma_table_info('etapa_cronograma')").all().map((c) => c.name);
-  assert.ok(!colunas.includes('id'), 'formato antigo mantido');
-  assert.equal(sqlite.prepare('SELECT count(*) AS n FROM etapa_cronograma').get()!.n, 5);
-  assert.equal(sqlite.prepare("SELECT count(*) AS n FROM sqlite_master WHERE name = 'etapa_cronograma_nova'").get()!.n, 0);
-  assert.ok(!sqlite.prepare("SELECT name FROM pragma_table_info('cronograma')").all().some((c) => c.name === 'revisao'));
+  assert.ok(!sqlite.prepare("SELECT name FROM pragma_table_info('etapa_cronograma')").all().some((c) => c.name === 'id'));
+  sqlite.close();
+});
+
+test('0009: pendência antiga que é objeto ou lista JSON é preservada como JSON; texto segue texto (Delta 2, item 5)', () => {
+  const sqlite = bancoAntigo();
+  sqlite.exec(`INSERT INTO etapa_cronograma (prefeitura_id, cronograma_id, ordem, fase, nome, inicio_real, pendencias)
+    VALUES (1, 'C-x', 4, 'F', 'Pendência estruturada', '2026-02-30', '["Texto", {"campo":"x","n":1}, [1,2], 7]')`);
+  migrar(sqlite);
+  const pend = JSON.parse(String(sqlite.prepare("SELECT pendencias FROM etapa_cronograma WHERE id = 'C-x#4'").get()!.pendencias));
+  assert.deepEqual(pend.slice(0, 4), ['Texto', { campo: 'x', n: 1 }, [1, 2], 7]);
+  assert.equal(pend[4], 'Data não reconhecida na carga: inicio_real = 2026-02-30');
   sqlite.close();
 });
 

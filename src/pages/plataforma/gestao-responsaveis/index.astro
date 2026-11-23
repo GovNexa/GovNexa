@@ -1,0 +1,159 @@
+---
+// Painel Responsáveis (E13, áudio 31): com quem está cada tarefa aberta dos cronogramas e há quantos dias. Só leitura; impressão e CSV.
+import Platform from '../../../layouts/Platform.astro';
+import '../../../styles/inconsistencias.css';
+import '../../../styles/responsaveis.css';
+import { carregarCarteira } from '../../../lib/carteira/carga.ts';
+import { carregarCronogramas } from '../../../lib/cronograma/carga.ts';
+import { ROTA_RESPONSAVEIS, urlCronograma } from '../../../lib/cronograma/navegacao.ts';
+import { montarPainel, ROTULO_SEM_AREA, ROTULO_SEM_PESSOA, SEM, situacaoDoItem, urlCsvResponsaveis, urlPainel } from '../../../lib/cronograma/painel-responsaveis.ts';
+import { dataBr } from '../../../lib/datas.ts';
+import { municipioAtivo } from '../../../lib/municipio-ativo.ts';
+import { usuarioPode } from '../../../lib/usuarios/index.ts';
+import { hojeEmBrasilia } from '../../../lib/whatsapp/farol.ts';
+
+export const prerender = false;
+const pode = usuarioPode(Astro.locals.usuario, 'ver');
+if (!pode) Astro.response.status = 403;
+const hoje = hojeEmBrasilia();
+const nomes = new Map(carregarCarteira().projetos.map((p) => [p.id, p.nome]));
+const painel = pode ? montarPainel(carregarCronogramas().cronogramas, hoje, nomes, Astro.url.searchParams) : null;
+const inteiro = (n: number) => n.toLocaleString('pt-BR');
+const plural = (n: number, um: string, varios: string) => `${inteiro(n)} ${n === 1 ? um : varios}`;
+const rotuloArea = (v: string | null) => (v === null ? 'todas as áreas' : v === SEM ? ROTULO_SEM_AREA : v);
+const rotuloPessoa = (v: string | null) => (v === null ? 'todas as pessoas' : v === SEM ? ROTULO_SEM_PESSOA : v);
+const escopo = painel
+  ? [`área: ${rotuloArea(painel.filtros.area)}`, `pessoa: ${rotuloPessoa(painel.filtros.pessoa)}`, painel.filtros.soAlerta ? 'só com alerta' : 'com e sem alerta'].join(' · ')
+  : '';
+const volta = painel ? urlPainel(painel.filtros) : ROTA_RESPONSAVEIS;
+const comAlerta = painel ? painel.lista.filter((i) => i.alerta !== null).length : 0;
+const nPessoas = painel ? new Set(painel.lista.map((i) => (i.responsavel ?? SEM).toLocaleLowerCase('pt-BR'))).size : 0;
+const dias = (n: number) => `${n} ${n === 1 ? 'dia' : 'dias'}`;
+---
+<Platform title="Responsáveis" slug="gestao-responsaveis">
+  <div class="inc" data-inc data-rp>
+    <div class="section-head"><div>
+      <h1>Responsáveis</h1>
+      <p class="muted">Com quem está cada tarefa dos cronogramas e há quantos dias. O relógio começa no início real da tarefa e para quando ela é concluída. Atenção: passou da duração prevista. Urgente: passou do dobro.</p>
+    </div></div>
+
+    {!painel && <p class="inc-aviso" role="alert" data-rp-sem-permissao>Sem permissão para ver este painel.</p>}
+
+    {painel && (
+      <>
+        <p class="inc-impressao" data-rp-impressao>{municipioAtivo().nomeExibicao} · Relatório de {dataBr(hoje)} · {escopo}</p>
+        {painel.areaInvalida && <p class="inc-aviso" role="status" data-rp-aviso-area>A área informada no endereço não existe entre as tarefas em aberto. Mostrando todas as áreas.</p>}
+        {painel.pessoaInvalida && <p class="inc-aviso" role="status" data-rp-aviso-pessoa>A pessoa informada no endereço não existe entre as tarefas em aberto. Mostrando todas as pessoas.</p>}
+
+        <form class="inc-filtros rp-sem-impressao" method="get" action={ROTA_RESPONSAVEIS} data-rp-filtros aria-label="Filtros do painel">
+          <label>Área
+            <select name="area">
+              <option value="">Todas as áreas</option>
+              {painel.opcoes.areas.map((o) => <option value={o} selected={painel.filtros.area === o}>{o}</option>)}
+              <option value={SEM} selected={painel.filtros.area === SEM}>{ROTULO_SEM_AREA}</option>
+            </select>
+          </label>
+          <label>Pessoa
+            <select name="pessoa">
+              <option value="">Todas as pessoas</option>
+              {painel.opcoes.pessoas.map((o) => <option value={o} selected={painel.filtros.pessoa === o}>{o}</option>)}
+              <option value={SEM} selected={painel.filtros.pessoa === SEM}>{ROTULO_SEM_PESSOA}</option>
+            </select>
+          </label>
+          <label class="rp-alerta"><input type="checkbox" name="alerta" value="1" checked={painel.filtros.soAlerta} /> Só com alerta</label>
+          <button class="primary" type="submit">Aplicar filtros</button>
+          <a class="inc-botao" href={ROTA_RESPONSAVEIS}>Limpar</a>
+        </form>
+
+        <div class="inc-acoes rp-sem-impressao">
+          <button type="button" class="inc-botao" data-rp-imprimir>Imprimir</button>
+          <a class="inc-botao" href={urlCsvResponsaveis(painel.filtros)} download data-rp-csv>Baixar CSV</a>
+        </div>
+
+        <p class="inc-resumo" role="status" data-rp-resumo>
+          {painel.todos.length === 0
+            ? 'Nenhuma tarefa em aberto nos cronogramas.'
+            : `${plural(painel.lista.length, 'tarefa', 'tarefas')} em mãos de ${plural(nPessoas, 'pessoa', 'pessoas')}; ${comAlerta} com alerta.`}
+        </p>
+
+        <section class="inc-bloco rp-bloco" aria-labelledby="rp-por-pessoa">
+          <h2 id="rp-por-pessoa">Por pessoa</h2>
+          {painel.pessoas.length === 0 ? <p class="inc-vazio" data-rp-vazio-pessoa>Nenhuma tarefa nos filtros atuais.</p> : (
+            <table class="inc-tabela rp-cel" data-rp-pessoas>
+              <caption class="sr-only">Tarefas em mãos por pessoa ({escopo})</caption>
+              <thead><tr><th scope="col">Pessoa</th><th scope="col">Áreas</th><th scope="col" class="inc-num">Em andamento</th><th scope="col" class="inc-num">A iniciar</th><th scope="col" class="inc-num">Dias em mãos</th><th scope="col">Mais antiga</th><th scope="col" class="inc-num">Atenção</th><th scope="col" class="inc-num">Urgente</th></tr></thead>
+              <tbody>
+                {painel.pessoas.map((l) => (
+                  <tr data-rp-pessoa={l.chave}>
+                    <th scope="row"><a href={urlPainel({ ...painel.filtros, pessoa: l.chave === SEM ? SEM : l.nome })}>{l.nome}</a></th>
+                    <td data-rotulo="Áreas">{l.areas.length ? l.areas.join(', ') : ROTULO_SEM_AREA}</td>
+                    <td class="inc-num" data-rotulo="Em andamento">{inteiro(l.emAndamento)}</td>
+                    <td class="inc-num" data-rotulo="A iniciar">{inteiro(l.aIniciar)}</td>
+                    <td class="inc-num" data-rotulo="Dias em mãos">{inteiro(l.dias)}</td>
+                    <td data-rotulo="Mais antiga">{l.maisAntiga ? `${l.maisAntiga.tarefa} · ${dias(l.maisAntiga.dias)}` : '—'}</td>
+                    <td class="inc-num" data-rotulo="Atenção">{inteiro(l.atencao)}</td>
+                    <td class="inc-num" data-rotulo="Urgente">{inteiro(l.urgente)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
+
+        <section class="inc-bloco rp-bloco" aria-labelledby="rp-por-area">
+          <h2 id="rp-por-area">Por área</h2>
+          {painel.areas.length === 0 ? <p class="inc-vazio" data-rp-vazio-area>Nenhuma tarefa nos filtros atuais.</p> : (
+            <table class="inc-tabela rp-cel" data-rp-areas>
+              <caption class="sr-only">Tarefas em mãos por área ({escopo})</caption>
+              <thead><tr><th scope="col">Área</th><th scope="col" class="inc-num">Em andamento</th><th scope="col" class="inc-num">A iniciar</th><th scope="col" class="inc-num">Dias em mãos</th><th scope="col">Mais antiga</th><th scope="col" class="inc-num">Atenção</th><th scope="col" class="inc-num">Urgente</th></tr></thead>
+              <tbody>
+                {painel.areas.map((l) => (
+                  <tr data-rp-area={l.chave}>
+                    <th scope="row"><a href={urlPainel({ ...painel.filtros, area: l.chave === SEM ? SEM : l.nome })}>{l.nome}</a></th>
+                    <td class="inc-num" data-rotulo="Em andamento">{inteiro(l.emAndamento)}</td>
+                    <td class="inc-num" data-rotulo="A iniciar">{inteiro(l.aIniciar)}</td>
+                    <td class="inc-num" data-rotulo="Dias em mãos">{inteiro(l.dias)}</td>
+                    <td data-rotulo="Mais antiga">{l.maisAntiga ? `${l.maisAntiga.tarefa} · ${dias(l.maisAntiga.dias)}` : '—'}</td>
+                    <td class="inc-num" data-rotulo="Atenção">{inteiro(l.atencao)}</td>
+                    <td class="inc-num" data-rotulo="Urgente">{inteiro(l.urgente)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
+
+        <section class="inc-bloco rp-bloco" aria-labelledby="rp-lista">
+          <h2 id="rp-lista">Tarefas em mãos</h2>
+          {painel.lista.length === 0
+            ? <p class="inc-vazio" data-rp-vazio>{painel.todos.length === 0 ? 'Nenhuma tarefa em aberto nos cronogramas.' : 'Nenhuma tarefa nos filtros atuais.'}</p>
+            : (
+              <table class="inc-tabela rp-cel" data-rp-itens>
+                <caption class="sr-only">Tarefas em mãos ({escopo})</caption>
+                <thead><tr><th scope="col">Tarefa</th><th scope="col">Cronograma</th><th scope="col">Responsável</th><th scope="col">Área</th><th scope="col">Tempo na mão</th><th scope="col">Duração prevista</th><th scope="col">Situação</th></tr></thead>
+                <tbody>
+                  {painel.lista.map((i) => (
+                    <tr data-rp-linha data-cronograma={i.cronogramaId}>
+                      <td data-rotulo="Tarefa">{i.tarefaId ? <a href={urlCronograma(i.cronogramaId, { aba: 'tarefas', volta, tarefa: i.tarefaId })}>{i.tarefa}</a> : i.tarefa}</td>
+                      <td data-rotulo="Cronograma">{i.cronograma}</td>
+                      <td data-rotulo="Responsável">{i.responsavel ?? ROTULO_SEM_PESSOA}</td>
+                      <td data-rotulo="Área">{i.unidade ?? ROTULO_SEM_AREA}</td>
+                      <td data-rotulo="Tempo na mão">{i.iniciada ? `${dias(i.diasAtual)}${i.desde ? ` (desde ${dataBr(i.desde)})` : ''}` : 'Ainda não iniciada'}</td>
+                      <td data-rotulo="Duração prevista">{i.duracao !== null ? dias(i.duracao) : '—'}</td>
+                      <td data-rotulo="Situação">{situacaoDoItem(i)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+        </section>
+      </>
+    )}
+  </div>
+</Platform>
+
+<script>
+document.addEventListener('astro:page-load', () => {
+  document.querySelector<HTMLButtonElement>('[data-rp-imprimir]')?.addEventListener('click', () => window.print());
+});
+</script>

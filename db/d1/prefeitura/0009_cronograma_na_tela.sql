@@ -48,15 +48,21 @@ CREATE TABLE etapa_cronograma_nova (
 -- viram NULL e o motivo entra, com o valor original, na coluna "pendencias" da própria linha. Nada some sem registro.
 -- (Só 'ordem' fora da regra, p.ex. 0, ainda faz a migração falhar inteira: nada muda.) A lista do que será saneado está em
 -- db/d1/prefeitura/checagens/0009-pre.sql (só leitura; rodar antes de publicar).
+-- Guarda: posição <= 0 (ou o código cronograma#ordem passando de 120 caracteres) não é saneada: a migração falha inteira e nada muda.
+-- (O CHECK final da tabela é "ordem <> 0" porque a reordenação usa posições negativas por instantes, dentro do mesmo lote.)
+CREATE TABLE etapa_cronograma_guarda (o integer NOT NULL CHECK(o > 0), id_ok integer NOT NULL CHECK(id_ok = 1));
+INSERT INTO etapa_cronograma_guarda SELECT ordem, length(cronograma_id || '#' || ordem) <= 120 FROM etapa_cronograma;
+DROP TABLE etapa_cronograma_guarda;
 INSERT INTO etapa_cronograma_nova (prefeitura_id, id, cronograma_id, ordem, fase, nome, unidade, responsavel, situacao_planilha,
   duracao_prevista, inicio_previsto, fim_previsto, inicio_real, fim_real, status, ciclo, pendencias, origem)
  SELECT prefeitura_id, cronograma_id || '#' || ordem, cronograma_id, ordem, fase, nome, unidade, responsavel, situacao_planilha,
   dur, ip, CASE WHEN ip IS NOT NULL AND fp IS NOT NULL AND fp < ip THEN NULL ELSE fp END,
   ir, CASE WHEN ir IS NOT NULL AND fr IS NOT NULL AND fr < ir THEN NULL ELSE fr END,
   status, ciclo,
-  (SELECT json_group_array(v) FROM (
-     SELECT value AS v FROM json_each(c.pendencias)
-     UNION ALL SELECT column1 FROM (VALUES
+  -- Pendência antiga que já é objeto ou lista JSON volta como JSON (o texto do valor); o resto vira texto JSON (json_quote).
+  (SELECT COALESCE('[' || group_concat(v, ',') || ']', '[]') FROM (
+     SELECT CASE WHEN type IN ('object','array') THEN value ELSE json_quote(value) END AS v FROM json_each(c.pendencias)
+     UNION ALL SELECT json_quote(column1) FROM (VALUES
        (CASE WHEN o_ip IS NOT NULL AND ip IS NULL THEN 'Data não reconhecida na carga: inicio_previsto = ' || o_ip END),
        (CASE WHEN o_fp IS NOT NULL AND fp IS NULL THEN 'Data não reconhecida na carga: fim_previsto = ' || o_fp END),
        (CASE WHEN o_ir IS NOT NULL AND ir IS NULL THEN 'Data não reconhecida na carga: inicio_real = ' || o_ir END),

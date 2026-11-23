@@ -122,12 +122,14 @@ export function criarRepositorioD1(db: BancoD1, prefeituraId: number): Repositor
     });
   }
 
+  // As três leituras abaixo (cronogramas, tarefas, trocas) não são do mesmo instante: uma gravação entre elas pode mostrar
+  // um quadro misto. Só afeta a exibição (a gravação confere a revisão no batch); a próxima leitura corrige.
   /** Leitura única dos cronogramas (todos ou um): cronogramas, tarefas ativas (com o código estável) e o histórico de responsável. */
   async function lerCronogramas(somenteId: string | null): Promise<Cronograma[]> {
     const filtro = somenteId === null ? '' : ' AND id = ?';
     const filtroC = somenteId === null ? '' : ' AND cronograma_id = ?';
     const args = somenteId === null ? [prefeituraId] : [prefeituraId, somenteId];
-    const c = await db.prepare(`SELECT id, aba, titulo, endereco, sei, projeto_id, casamento, pendencias, revisao, editado_na_tela, origem_registro FROM cronograma WHERE prefeitura_id = ?${filtro} ORDER BY id`).bind(...args).all();
+    const c = await db.prepare(`SELECT id, aba, titulo, endereco, sei, projeto_id, casamento, pendencias, revisao, editado_na_tela, origem_registro, atualizado_em FROM cronograma WHERE prefeitura_id = ?${filtro} ORDER BY id`).bind(...args).all();
     const e = await db.prepare(
       `SELECT id, cronograma_id, ordem, fase, nome, unidade, responsavel, situacao_planilha, duracao_prevista,
         inicio_previsto, fim_previsto, inicio_real, fim_real, status, ciclo, pendencias, origem
@@ -163,6 +165,7 @@ export function criarRepositorioD1(db: BancoD1, prefeituraId: number): Repositor
         id: row.id, aba: row.aba ?? '', titulo: row.titulo ?? '', endereco: row.endereco ?? null, sei: row.sei ?? [],
         projeto_id: row.projeto_id ?? null, casamento: row.casamento ?? null, fases, pendencias: row.pendencias ?? [],
         revisao: Number(row.revisao), editado_na_tela: row.editado_na_tela === 1, origem_registro: row.origem_registro === 'tela' ? 'tela' : 'planilha',
+        atualizado_em: typeof row.atualizado_em === 'string' ? row.atualizado_em : null,
       };
     });
   }

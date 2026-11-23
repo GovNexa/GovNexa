@@ -2,6 +2,7 @@
 -- (valor vira NULL e o motivo entra em "pendencias"). Rodar no banco REMOTO antes de publicar e relatar ao dono.
 -- 'ordem' fora da regra (<= 0) NÃO é saneada: a migração falharia inteira; corrija antes.
 SELECT prefeitura_id, cronograma_id, ordem, 'ordem (migração falha)' AS campo, CAST(ordem AS TEXT) AS valor FROM etapa_cronograma WHERE ordem <= 0
+UNION ALL SELECT prefeitura_id, cronograma_id, ordem, 'código cronograma#ordem com mais de 120 caracteres (migração falha)', cronograma_id || '#' || ordem FROM etapa_cronograma WHERE length(cronograma_id || '#' || ordem) > 120
 UNION ALL SELECT prefeitura_id, cronograma_id, ordem, 'duracao_prevista', CAST(duracao_prevista AS TEXT) FROM etapa_cronograma WHERE duracao_prevista < 0
 UNION ALL SELECT prefeitura_id, cronograma_id, ordem, 'inicio_previsto', inicio_previsto FROM etapa_cronograma WHERE inicio_previsto IS NOT NULL AND date(inicio_previsto) IS NOT inicio_previsto
 UNION ALL SELECT prefeitura_id, cronograma_id, ordem, 'fim_previsto', fim_previsto FROM etapa_cronograma WHERE fim_previsto IS NOT NULL AND date(fim_previsto) IS NOT fim_previsto

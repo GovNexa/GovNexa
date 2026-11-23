@@ -1,0 +1,47 @@
+/* Tarefas e responsáveis do cronograma e painel Responsáveis (E13). Prefixo cr- (cronograma) e rp- (painel). */
+.cr-selo-alerta{display:inline-block;margin-left:.4rem;padding:0 .5rem;border:2px solid currentColor;border-radius:30px;font-size:.75rem;font-weight:700;background:var(--surface);vertical-align:middle;white-space:nowrap}
+.cr-selo-atencao{color:#8A4B08}
+.cr-selo-urgente{color:#A11212}
+:root[data-theme=dark] .cr-selo-atencao{color:#FBBF24}
+:root[data-theme=dark] .cr-selo-urgente{color:#FCA5A5}
+.cr-tarefas{display:grid;gap:1.25rem;min-width:0}
+.cr-fase-cab{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;justify-content:space-between;margin:0 0 .5rem}
+.cr-fase-cab h3{margin:0;font-size:1.05rem;overflow-wrap:anywhere}
+.cr-tarefas .inc-tabela{table-layout:auto}
+.cr-tarefas td{overflow-wrap:anywhere}
+.cr-tarefas .cr-acoes{display:flex;flex-wrap:wrap;gap:.35rem}
+.cr-tarefas button,.cr-botao{min-height:36px;padding:.3rem .6rem;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--text);font-weight:600;cursor:pointer}
+.cr-tarefas button:disabled{opacity:.5;cursor:not-allowed}
+.cr-tarefas button.primary{background:var(--text);color:var(--bg)}
+.cr-sub{display:block;color:var(--muted);font-size:.9em}
+.cr-historico{margin-top:.4rem;font-size:.9em}
+.cr-historico summary{cursor:pointer;font-weight:600}
+.cr-historico ul{margin:.3rem 0 0;padding-left:1.1rem}
+.cr-aviso-vazio{margin:0;padding:.75rem 1rem;border:1px dashed var(--line);border-radius:8px;max-width:none}
+.cr-dialogo{width:min(34rem,94vw);max-height:92vh;overflow:auto}
+.cr-dialogo form{display:grid;gap:.7rem}
+.cr-dialogo [data-cr-modo]{display:grid;gap:.7rem}
+.cr-dialogo [data-cr-modo][hidden]{display:none}
+.cr-dialogo label{display:grid;gap:.2rem;font-weight:600}
+.cr-dialogo input,.cr-dialogo textarea{width:100%;box-sizing:border-box}
+.cr-ajuda{margin:0;color:var(--muted);font-size:.9em;max-width:none}
+.cr-erro{margin:0;padding:.5rem .7rem;border:1px solid var(--cart-vermelho);border-left:5px solid var(--cart-vermelho);border-radius:6px;max-width:none}
+.cr-erro:empty{display:none}
+.cr-erro ul{margin:.3rem 0 0;padding-left:1.1rem}
+.cr-novo{display:grid;gap:1rem;max-width:40rem;min-width:0}
+.cr-novo label{display:grid;gap:.25rem;font-weight:600}
+.cr-novo input,.cr-novo select{width:100%;box-sizing:border-box}
+.rp-bloco table td,.rp-bloco table th{overflow-wrap:anywhere}
+.rp-lista-pessoas tbody th{white-space:normal}
+@media (max-width:760px){
+  .cr-tarefas .inc-tabela thead,.rp-cel thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+  .cr-tarefas .inc-tabela,.cr-tarefas .inc-tabela tbody,.cr-tarefas .inc-tabela tr,.cr-tarefas .inc-tabela td,
+  .rp-cel,.rp-cel tbody,.rp-cel tr,.rp-cel td,.rp-cel th{display:block;width:100%}
+  .cr-tarefas .inc-tabela tr,.rp-cel tr{padding:.5rem 0;border-bottom:1px solid var(--line)}
+  .cr-tarefas .inc-tabela td,.rp-cel td,.rp-cel tbody th{padding:.15rem 0;border:0}
+  .cr-tarefas .inc-tabela td::before,.rp-cel td::before{content:attr(data-rotulo) ": ";color:var(--muted);font-weight:650}
+  .cr-tarefas button{min-height:44px}
+}
+@media print{
+  .cr-tarefas button,.rp-sem-impressao{display:none!important}
+}

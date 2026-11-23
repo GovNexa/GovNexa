@@ -1,5 +1,17 @@
 # Changelog
 
+
+## E13 · Cronograma como processo e painel Responsáveis (23/11/2026)
+
+**O que mudou**
+- Cronograma criado e mantido na tela: criar o cronograma de um projeto (botão na ficha e na lista), incluir, editar, reordenar (tarefas e fases), iniciar, concluir e remover tarefas, e trocar o responsável com histórico; tudo entra no Histórico. Nova aba "Tarefas e responsáveis" no cronograma.
+- Painel Responsáveis (menu da Governança da execução): com quem está cada tarefa aberta e há quantos dias, por pessoa e por área, com atenção e urgente; filtros, impressão e CSV; visível ao perfil leitura.
+- Quadro de tarefas e ficha do projeto mostram o tempo na mão e as tarefas com alerta; a ficha mostra o cronograma editado na tela e leva "voltar" para a tela de origem.
+- Migração 0009 (D1): chave estável das tarefas, trocas de responsável, versão do cronograma e marca "editado na tela"; dado antigo inválido é saneado com registro na pendência da tarefa; a carga da planilha não altera o que foi editado na tela.
+- Fluxo atualizado (Planejamento e Onde está parado).
+
+**O que NÃO mudou:** login, publicação na Cloudflare, `wrangler.jsonc`, Postgres legado (só comentário), dependências do projeto. Nada foi aplicado em produção.
+
 ## E11 · Menu nas três visões e Visão Convênios (22/11/2026)
 - Menu lateral em três visões (áudio 31): **Visão gerencial** (Projetos prioritários, Carteira, Mapa e painel, Kanban e Gantt), **Governança da execução** (Painel da equipe, Projetos · Início, Cronogramas, Onde está parado, Inconsistências, Pendências, Reunião, Sala de guerra, Histórico, Alertas e Processos no SEI) e **Convênios** (Visão Convênios e as guias da Captação). Depois vêm Licitações (demonstrativo, com os grupos de antes) e Conta (Usuários, Fluxo do sistema, WhatsApp, relatórios, perfil e configurações).
 - Nenhum endereço mudou: todas as telas abrem no mesmo lugar. A guia "Gestão · Painel" passou a se chamar "Mapa e painel" (mesmo endereço).
