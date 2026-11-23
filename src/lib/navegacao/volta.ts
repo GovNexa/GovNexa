@@ -10,7 +10,7 @@ export const PARAMETROS_PASSAGEIROS = ['salvo', 'rf', 'r'] as const;
 const CONTROLE = /[\u0000-\u001f\u007f]/;
 const ID_PROJETO_TELA = /^P-[A-Za-z0-9_-]{1,40}$/;
 /** Rotas que não são telas (gravação, arquivo, CSV, agenda): nunca são destino de volta. */
-const NAO_E_TELA = /^\/plataforma\/(?:documentos-projeto\/(?:arquivo|classificar|enviar|remover)\/|fotos-projeto\/|projeto\/(?:criar|editar|localizacao|mover)\/|localizacao\/buscar\/|usuarios\/acao\/|gestao-inconsistencias\/csv\/|agenda\.ics)/;
+const NAO_E_TELA = /^\/plataforma\/(?:documentos-projeto\/(?:arquivo|classificar|enviar|remover)\/|fotos-projeto\/|projeto\/(?:criar|editar|localizacao|mover)\/|localizacao\/buscar\/|usuarios\/acao\/|gestao-inconsistencias\/csv\/|gestao-licitacoes\/(?:gravar|csv)\/|agenda\.ics)/;
 
 /** Caminho interno seguro (pathname + search + hash) ou null. `niveis` limita a volta dentro da volta. */
 export function voltaSegura(candidato: string | null | undefined, origem: string, niveis: number = NIVEIS_VOLTA): string | null {
@@ -87,6 +87,7 @@ const NOMES_TELA: Record<string, string> = {
   '/plataforma/licitacoes-detalhe/': 'Licitação em detalhe',
   '/plataforma/licitacoes-prazos/': 'Prazos da Lei 14.133',
   '/plataforma/convenios/': 'Visão Convênios',
+  '/plataforma/gestao-licitacoes/': 'Gestão das licitações',
   '/plataforma/documentos-projeto/': 'Documentos dos projetos',
   '/plataforma/usuarios/': 'Usuários',
 };
@@ -104,5 +105,6 @@ export function nomeTela(volta: string | null | undefined): string {
   if (/^\/plataforma\/sala-de-guerra\/[^/]+\/$/.test(caminho)) return 'a sala de guerra';
   if (/^\/plataforma\/documentos-projeto\/projeto\/[^/]+\/$/.test(caminho)) return 'os documentos do projeto';
   if (/^\/plataforma\/fluxo\/[^/]+\/$/.test(caminho)) return 'o fluxo detalhado';
+  if (/^\/plataforma\/gestao-licitacoes\/[^/]+\/$/.test(caminho)) return 'a contratação';
   return 'a tela anterior';
 }

@@ -4,7 +4,7 @@ export { voltaSegura, MAX_VOLTA } from '../navegacao/volta.ts';
 export const ABAS = [
   { id: 'cadastro', rotulo: 'Cadastro' }, { id: 'recurso', rotulo: 'Recurso' }, { id: 'entrega', rotulo: 'Entrega' },
   { id: 'localizacao', rotulo: 'Localização' }, { id: 'fotos', rotulo: 'Fotos' }, { id: 'documentos', rotulo: 'Documentos' },
-  { id: 'sei', rotulo: 'Processos SEI' }, { id: 'cronograma', rotulo: 'Cronograma' }, { id: 'historico', rotulo: 'Histórico' },
+  { id: 'sei', rotulo: 'Processos SEI' }, { id: 'contratacoes', rotulo: 'Contratações' }, { id: 'cronograma', rotulo: 'Cronograma' }, { id: 'historico', rotulo: 'Histórico' },
   { id: 'governanca', rotulo: 'Governança' },
 ] as const;
 export type Aba = (typeof ABAS)[number]['id'];
@@ -21,6 +21,7 @@ const ROTULOS_FIXOS: readonly (readonly [string, string])[] = [
   ['/plataforma/gestao/', 'Fechar e voltar ao mapa'], ['/plataforma/projetos-kanban/', 'Fechar e voltar ao Kanban'],
   ['/plataforma/projetos-gantt/', 'Fechar e voltar ao Gantt'], ['/plataforma/gestao-equipe/', 'Fechar e voltar ao painel da equipe'],
   ['/plataforma/gestao-inconsistencias/', 'Fechar e voltar ao relatório'],
+  ['/plataforma/gestao-licitacoes/', 'Fechar e voltar às licitações'],
 ];
 export function rotuloVolta(volta: string | null): string {
   if (!volta || volta.startsWith('/plataforma/projetos-carteira/')) return 'Fechar e voltar à Carteira';

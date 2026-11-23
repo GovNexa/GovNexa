@@ -16,7 +16,7 @@ const cronogramas = JSON.parse(readFileSync('data/exemplo/cronogramas/cronograma
 const P = (id: string) => JSON.parse(JSON.stringify(carteira.projetos.find((p) => p.id === id))) as Projeto;
 
 test('ficha: abas na ordem pedida, Governança por último', () => {
-  assert.deepEqual(ABAS.map((a) => a.id), ['cadastro', 'recurso', 'entrega', 'localizacao', 'fotos', 'documentos', 'sei', 'cronograma', 'historico', 'governanca']);
+  assert.deepEqual(ABAS.map((a) => a.id), ['cadastro', 'recurso', 'entrega', 'localizacao', 'fotos', 'documentos', 'sei', 'contratacoes', 'cronograma', 'historico', 'governanca']);
 });
 
 test('ficha: aba inválida abre Cadastro', () => {

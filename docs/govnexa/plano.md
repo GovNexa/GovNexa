@@ -18,6 +18,7 @@
 
 23/11/2026: **E1 a E11 estão no ar em produção** (E8, E9 e E11 publicadas em 23/11 com a migração 0008), aguardando o teste do dono. Em andamento, em branches separadas e fora da `main`: **E12** Gestão das licitações (migração 0010; cadastro e acompanhamento 100% no sistema), **E13** Governança da execução ampliada (cronograma completo no sistema, responsável, tempo na mão e painel Responsáveis; migração 0009) e **E15** Navegação (sempre poder voltar à tela de origem), cada uma com cerca de 25%. **E14** (PNCP e Compras.gov) é futura. A conferência de cada áudio contra o plano acrescentou seis pedidos (40 no total) e o dono fixou dois princípios novos: o sistema substitui a planilha, e sempre poder voltar. As linhas de 22/11 abaixo que dizem "aguardando revisão" ou "a numerar" foram escritas antes da publicação.
 
+23/11/2026: E12 (Gestão das licitações) entregue no código: guia na Visão gerencial, edição em linha, página da contratação, aba Contratações na ficha, impressão e CSV; carga da planilha modelo aguarda D5; integração PNCP e Compras.gov na E14.
 23/11/2026: E15 (navegação: "← Voltar para [tela de origem]" em toda tela de destino, com os filtros preservados) no código, aguardando portão e revisão.
 
 22/11/2026: os requisitos dos áudios de 20/11 (três visões: gerencial, governança da execução e convênios; tela do prefeito; carteira, ficha, Kanban, mapa por área e licitações) estão planejados em [plano-requisitos-audios.md](plano-requisitos-audios.md).

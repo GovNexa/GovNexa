@@ -1,0 +1,146 @@
+---
+// Página da contratação (E12): todos os campos, mudança de etapa, marcos, remoção e Histórico próprio.
+import Platform from '../../../layouts/Platform.astro';
+import '../../../styles/contratacoes.css';
+import { hrefFicha } from '../../../lib/carteira/ficha.ts';
+import { carregarCarteira } from '../../../lib/carteira/carga.ts';
+import { dataBr, dataHoraBr } from '../../../lib/datas.ts';
+import { voltaContratacao } from '../../../lib/contratacoes/navegacao.ts';
+import {
+  CAMPOS, ETAPAS, ID_CONTRATACAO, ROTULO_AGUARDANDO, ROTULO_ETAPA_CURTO, economia, formatarCampo, hojeBrasilia, percentualPago,
+  proximaEtapa, reaisCompleto, type CampoEditavel,
+} from '../../../lib/contratacoes/regras.ts';
+import { podeGravarNaTela } from '../../../lib/contratacoes/servico.ts';
+
+export const prerender = false;
+const repo = Astro.locals.repositorio;
+const id = String(Astro.params.id ?? '');
+if (!ID_CONTRATACAO.test(id) || !repo.contratacoes) return new Response('Página não encontrada', { status: 404 });
+const c = await repo.contratacoes.obter(id);
+if (!c) return new Response('Página não encontrada', { status: 404 });
+const marcos = await repo.contratacoes.listarMarcos(id);
+const historico = await repo.contratacoes.historico(id, 100);
+const { href, rotulo } = voltaContratacao(Astro.url.searchParams.get('volta'), Astro.url.origin);
+const aqui = Astro.url.pathname + Astro.url.search;
+const podeEditar = podeGravarNaTela(Astro.locals.usuario, repo) === 'ok';
+const projeto = c.projeto_id ? carregarCarteira().projetos.find((p) => p.id === c.projeto_id) ?? null : null;
+const hoje = hojeBrasilia();
+const proxima = proximaEtapa(c.etapa);
+const ROTULO_CAMPO = new Map<string, string>(CAMPOS.map((d) => [d.campo, d.rotulo]));
+const ROTULO_EVENTO: Record<string, string> = {
+  criada: 'Cadastro', carga: 'Carga da planilha', editada: 'Edição', etapa: 'Mudança de etapa', removida: 'Remoção',
+  marco_criado: 'Novo marco', marco_concluido: 'Marco concluído', marco_reaberto: 'Marco reaberto', marco_removido: 'Marco removido',
+};
+const pct = percentualPago(c);
+const eco = economia(c);
+---
+<Platform title="Contratação" slug="gestao-licitacoes">
+  <p slot="contexto" class="ct-contexto"><a href={href} data-voltar data-ct-voltar>← {rotulo}</a></p>
+  <div class="ct ct-pagina" data-ct data-ct-pagina data-pode-editar={podeEditar ? '1' : '0'} data-id={c.id} data-revisao={c.revisao} data-etapa={c.etapa} data-nome={c.nome}>
+    <div class="section-head"><div>
+      <h1>{c.nome}</h1>
+      <p class="ct-meta">
+        <span class="ct-selo" data-ct-etapa-atual>{ROTULO_ETAPA_CURTO[c.etapa]}</span>
+        <span>desde {dataBr(c.etapa_desde)}</span>
+        {c.aguardando !== 'nao' && <span class="ct-selo">{ROTULO_AGUARDANDO[c.aguardando as keyof typeof ROTULO_AGUARDANDO] ?? c.aguardando}</span>}
+      </p>
+      <p>{projeto || c.projeto_id ? <>Projeto: <a href={hrefFicha(c.projeto_id!, aqui, 'contratacoes')}>{c.projeto_id}{projeto ? ` · ${projeto.nome}` : ''}</a></> : 'Sem projeto ligado.'}</p>
+    </div></div>
+
+    {podeEditar && <p class="ct-msg" role="status" aria-live="polite" data-ct-msg></p>}
+
+    <section aria-labelledby="ct-campos">
+      <h2 id="ct-campos">Dados da contratação</h2>
+      <dl class="ct-campos">
+        {CAMPOS.map((d) => {
+          const valor = c[d.campo as CampoEditavel];
+          return (
+            <div data-ct-campo={d.campo} data-valor={valor === null || valor === undefined ? '' : String(valor)} data-tipo={d.tipo}>
+              <dt>{d.rotulo}</dt>
+              <dd data-ct-texto>{formatarCampo(d.campo, valor)}</dd>
+            </div>
+          );
+        })}
+        <div data-ct-calculado="economia"><dt>Economia</dt><dd>{eco === null ? '—' : reaisCompleto(eco)}</dd></div>
+        <div data-ct-calculado="pago"><dt>% pago</dt><dd>{pct === null ? '—' : `${String(pct).replace('.', ',')}%`}</dd></div>
+      </dl>
+    </section>
+
+    {podeEditar && (
+      <section class="ct-bloco" aria-labelledby="ct-etapa-t">
+        <h2 id="ct-etapa-t">Mudar etapa</h2>
+        <form data-ct-etapa-form class="ct-form">
+          {proxima && <div class="ct-cheio"><button type="button" class="primary" data-ct-avancar data-para={proxima}>Avançar para {ROTULO_ETAPA_CURTO[proxima]}</button></div>}
+          <details class="ct-cheio ct-detalhes">
+            <summary>Outra etapa</summary>
+            <div class="ct-form">
+              <label>Etapa
+                <select name="para">{ETAPAS.filter((e) => e !== c.etapa).map((e) => <option value={e}>{ROTULO_ETAPA_CURTO[e]}</option>)}</select>
+              </label>
+              <label>Data<input type="date" name="data" value={hoje} max={hoje} /></label>
+              <label class="ct-cheio">Motivo (obrigatório para pular ou voltar etapa)<textarea name="motivo" rows="2" maxlength="500"></textarea></label>
+              <div class="ct-cheio"><button type="submit" class="primary">Mudar etapa</button></div>
+            </div>
+          </details>
+        </form>
+      </section>
+    )}
+
+    <section class="ct-bloco" data-ct-marcos-lista aria-labelledby="ct-marcos-t">
+      <h2 id="ct-marcos-t">Marcos</h2>
+      {marcos.length === 0 ? <p class="ct-vazio">Nenhum marco registrado.</p> : (
+        <ul class="ct-marcos-lista">
+          {marcos.map((m) => (
+            <li data-marco-id={m.id}>
+              <span>{dataBr(m.data)} · {m.descricao} · {m.concluido ? `Concluído em ${m.concluido_em ? dataHoraBr(m.concluido_em) : ''}` : 'Pendente'}</span>
+              {podeEditar && (
+                <span class="ct-linha-botoes">
+                  <button type="button" data-ct-marco-acao={m.concluido ? 'marco_reabrir' : 'marco_concluir'}>{m.concluido ? 'Reabrir' : 'Concluir'}</button>
+                  <button type="button" data-ct-marco-acao="marco_remover">Remover</button>
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      {podeEditar && (
+        <form class="ct-form" data-ct-form-marco aria-label="Novo marco">
+          <label>Data<input type="date" name="data" required /></label>
+          <label>Descrição<input type="text" name="descricao" maxlength="200" required /></label>
+          <div class="ct-cheio"><button type="submit">Adicionar</button></div>
+        </form>
+      )}
+    </section>
+
+    <section class="ct-bloco" data-ct-historico aria-labelledby="ct-hist-t">
+      <h2 id="ct-hist-t">Histórico</h2>
+      {historico.length === 0 ? <p class="ct-vazio">Nenhum registro ainda.</p> : (
+        <ol class="ct-historico-lista">
+          {historico.map((h) => (
+            <li>
+              <span>{dataHoraBr(h.em)} · <strong>{ROTULO_EVENTO[h.tipo] ?? h.tipo}</strong>{h.descricao ? ` · ${h.descricao}` : ''}</span>
+              {h.tipo === 'editada' && h.campos && (
+                <ul>
+                  {Object.entries(h.campos).map(([campo, v]) => <li>{ROTULO_CAMPO.get(campo) ?? campo}: {formatarCampo(campo as CampoEditavel, v.de)} → {formatarCampo(campo as CampoEditavel, v.para)}</li>)}
+                </ul>
+              )}
+              {h.motivo && <span class="muted"> · Motivo: {h.motivo}</span>}
+              <span class="muted"> · por {h.autor}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
+
+    {podeEditar && (
+      <details class="ct-detalhes" data-ct-remover>
+        <summary>Remover contratação</summary>
+        <form class="ct-form" data-ct-form-remover>
+          <label class="ct-cheio">Motivo *<textarea name="motivo" rows="2" maxlength="500" required></textarea></label>
+          <div class="ct-cheio"><button type="submit">Remover</button></div>
+        </form>
+      </details>
+    )}
+  </div>
+</Platform>
+<script>import '../../../scripts/contratacoes.ts';</script>

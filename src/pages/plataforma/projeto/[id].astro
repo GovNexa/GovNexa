@@ -11,6 +11,9 @@ import { areasDaPrefeitura } from '../../../lib/carteira/area.ts';
 import { carregarCarteira } from '../../../lib/carteira/carga.ts';
 import { ABAS, abaValida, hrefFicha, podeEditarFicha, rotuloVolta, voltaSegura, VOLTA_PADRAO, type Aba } from '../../../lib/carteira/ficha.ts';
 import { comVolta } from '../../../lib/navegacao/volta.ts';
+import { hrefContratacao } from '../../../lib/contratacoes/navegacao.ts';
+import { ROTULO_ETAPA_CURTO, reaisResumido, valorReferencia } from '../../../lib/contratacoes/regras.ts';
+import { podeGravarNaTela } from '../../../lib/contratacoes/servico.ts';
 import { montarFicha } from '../../../lib/carteira/ficha-dados.ts';
 import { carregarCronogramas } from '../../../lib/cronograma/carga.ts';
 import { ID_PROJETO } from '../../../lib/documentos/regras.ts';
@@ -59,6 +62,9 @@ const LIMITE_HISTORICO = 50;
 const historico = (await repo.historico(projeto.id) as RegistroLog[]).slice().reverse();
 const visiveis = historico.slice(0, LIMITE_HISTORICO);
 const idEnc = encodeURIComponent(projeto.id);
+const contratacoes = repo.contratacoes ? await repo.contratacoes.listarDoProjeto(projeto.id) : [];
+const aquiFicha = hrefFicha(projeto.id, volta, 'contratacoes');
+const podeCadastrarContratacao = podeGravarNaTela(Astro.locals.usuario, repo) === 'ok';
 ---
 <Platform title="Projeto" slug="projetos-carteira">
   <p slot="contexto" class="pj-contexto fp-contexto"><a class="fp-fechar" href={volta ?? VOLTA_PADRAO} data-ficha-fechar><Icon name="x" size={18} /><span>{rotuloVolta(volta)}</span></a></p>
@@ -105,6 +111,12 @@ const idEnc = encodeURIComponent(projeto.id);
       <section class="card pj-bloco fp-painel" id="fp-painel-sei" aria-labelledby="fp-t-sei"><h2 id="fp-t-sei">Processos SEI</h2>
         {ficha.sei.length === 0 ? <p data-fp-sei-vazio>Nenhum processo do SEI vinculado a este projeto.</p> : <ul class="pj-itens" data-fp-sei>{ficha.sei.map((n) => <li>{n}</li>)}</ul>}
         <p><a href={comVolta(`/plataforma/projetos-sei/?projeto=${idEnc}`, naAba('sei'))}>Abrir a tela Processos no SEI</a></p></section>
+      <section class="card pj-bloco fp-painel" id="fp-painel-contratacoes" aria-labelledby="fp-t-contratacoes"><h2 id="fp-t-contratacoes">Contratações</h2>
+        {!repo.contratacoes ? <p>Contratações indisponíveis neste ambiente.</p> : contratacoes.length === 0 ? <p data-fp-contratacoes-vazio>Nenhuma contratação ligada a este projeto.</p> : (
+          <ul class="pj-itens" data-fp-contratacoes>{contratacoes.map((c) => <li><a href={hrefContratacao(c.id, aquiFicha)}>{c.nome}</a> · {ROTULO_ETAPA_CURTO[c.etapa]} · {reaisResumido(valorReferencia(c))}</li>)}</ul>
+        )}
+        {podeCadastrarContratacao && <p><a href={`/plataforma/gestao-licitacoes/?novo=1&projeto=${idEnc}#ct-nova`} data-fp-contratacoes-novo>Cadastrar contratação para este projeto</a></p>}
+        <p><a href="/plataforma/gestao-licitacoes/">Abrir a Gestão das licitações</a></p></section>
       <section class="card pj-bloco fp-painel" id="fp-painel-cronograma" aria-labelledby="fp-t-cronograma"><h2 id="fp-t-cronograma">Cronograma</h2>
         {ficha.cronogramas.length === 0 ? <p data-fp-cron-vazio>Este projeto ainda não tem cronograma detalhado.</p> : ficha.cronogramas.map((c) => (
           <div class="fp-cron" data-fp-cron>

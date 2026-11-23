@@ -162,6 +162,8 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 
 ## 6. Lições técnicas (para não repetir erros)
 
+23/11/2026 (E12): processo da contratação 100% na tela; a carga da planilha nunca sobrescreve o que foi editado. Decisões E12-P1=A e E12-P2=A: projeto opcional na contratação e Histórico próprio.
+
 17/11/2026: D1 exige operações condicionais e atômicas para consumo de token/código. Não consumir links no GET. Workers limita PBKDF2 a 100000 iterações. Cookie __Host exige HTTPS; exceção local deve verificar host e ausência de cf-ray. Astro ignora arquivos iniciados por sublinhado: a rota local de e-mails usa um endpoint dinâmico que aceita apenas `_emails-locais`.
 
 | Situação | O que aprendemos |
@@ -194,6 +196,8 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 ## 7. Todos os PRs (descrição completa)
 
 ### 7.1 Repositório novo (`GovNexa/GovNexa`)
+
+23/11/2026 — E12, Gestão das licitações: PR a abrir (migração 0010, módulo de contratações, telas, ficha e Fluxo).
 
 17/11/2026 — Login próprio e usuários, sem PR/publicação nesta entrega: migração central, senha com pepper, TOTP cifrado, convites, recuperação, sessões, limites, Turnstile e administração isolada por prefeitura. Validação: astro check sem erros, 316 testes Node passando, build concluído e impacto conferido com Fluxo atualizado. Testes de navegador escritos e listados para execução externa. Percentuais anteriores mantidos até homologação.
 

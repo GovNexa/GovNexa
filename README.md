@@ -141,6 +141,7 @@ Situação por fase do produto:
 
 ### Entregas recentes
 
+- 23/11/2026: E12, Gestão das licitações na Visão gerencial (cadastro e acompanhamento manual): grandes números por etapa, listas com os campos do relatório, edição em linha para editor ou acima (o prefeito só vê), página da contratação com etapas, marcos e Histórico próprio, aba Contratações na ficha, impressão e CSV. A carga da planilha modelo depende da decisão D5; a integração com PNCP e Compras.gov fica para a E14.
 - 23/11/2026: E15, navegação: em toda tela de destino aparece "← Voltar para [tela de origem]" com os filtros preservados; corrigidos 13 caminhos sem volta (ficha, cronograma, sala de guerra, documentos, SEI, histórico, diálogo de detalhes, prioritários, alertas, reunião, licitação, localização, mapa, novo projeto e Gantt) (branch agente/codex/e15-navegacao; aguardando portão e revisão).
 - 23/11/2026: **E8 (localização por endereço), E9 (fotos da obra) e E11 (menu nas três visões e Visão Convênios) publicadas em produção**, com a migração 0008 aplicada; com elas, E1 a E11 estão no ar, aguardando o teste do dono em produção. As entregas de 22/11 listadas abaixo foram escritas antes da publicação; todas estão no ar desde 23/11.
 - 23/11/2026, em andamento (branches separadas, fora da `main`): **E12** Gestão das licitações (migração 0010; cadastro e acompanhamento 100% no sistema), **E13** Governança da execução ampliada (cronograma completo no sistema, responsável, tempo na mão e painel Responsáveis; migração 0009) e **E15** Navegação (sempre poder voltar à tela de origem; 13 caminhos quebrados corrigidos).
@@ -264,7 +265,7 @@ Código: `src/lib/dados/`, `src/lib/projetos/`, `coletores/`. Detalhes em [docs/
 
 | Guia | O que faz | Situação |
 | --- | --- | --- |
-| Gestão das licitações (E12) | Na Visão gerencial: grandes números por situação (6 etapas), lista por etapa com os campos do relatório, edição em linha para editor ou acima (o prefeito só vê), cadastro de nova contratação e avanço de etapa na tela, ligação opcional com o projeto. Tudo no sistema; a planilha do dono, quando chegar, só serve para a carga inicial. Migração 0010 | Em desenvolvimento (~25%, branch separada) |
+| Gestão das licitações (E12) | Na Visão gerencial: grandes números por etapa, listas por etapa, próximos marcos, aguardando PGM e outras áreas, filtros, impressão e CSV; edição em linha, cadastro, mudança de etapa e marcos para editor ou acima; Histórico próprio. Aba Contratações na ficha do projeto. Integração com PNCP e Compras.gov: planejada (E14) | Disponível (manual) |
 | Integração PNCP e Compras.gov (E14) | Trazer resultado, colocação e homologação dos portais do governo | Futuro (0%) |
 | Licitação em detalhe | Fases da Lei 14.133 com datas de documentos públicos do SEI, fase atual, prazos e projeto relacionado | Simulação |
 | Prazos da Lei 14.133 | Prazos legais, metas internas e calendário com feriados | Disponível |
@@ -320,6 +321,7 @@ Os pedidos vêm dos áudios do dono, da reunião com a equipe e das planilhas.
 | Kanban com valores no topo das colunas | Kanban | Substituído pelos áudios de 20/11 (E7): card e coluna sem valor; a coluna mostra a previsão de saída do marco |
 | Cadastrar todos os projetos a partir da planilha | Importação da carteira | Carga inicial feita |
 | Telas simples, sem barra de rolagem, que funcionem no celular | Interface responsiva e testes | Feito |
+| Gestão das licitações dentro da visão gerencial, por etapa, com edição rápida em linha (A34 a A37) | Guia Gestão das licitações (E12) | Feito (manual); carga da planilha modelo depende de D5; integração na E14 |
 | Projeto nasce no cadastro e anda ou volta por qualquer caminho, com histórico | Motor de movimentação, Histórico | Regras prontas; gravações em integração |
 | Log de toda alteração (o quê, quem, quando) | Histórico de alterações | Feito para eventos existentes |
 | Com quem está cada tarefa; em que ponto da contratação está | Cronogramas, Onde está parado | Feito |
@@ -485,6 +487,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 
 - **Menu nas três visões (22/11/2026, E11):** Visão gerencial = Projetos prioritários, Carteira, Mapa e painel, Kanban e Gantt (Licitações entram aqui na E12); Governança da execução = o trabalho da equipe; Convênios = Visão Convênios e Captação. Licitações continua como demonstrativo à parte até a E12; Usuários, Fluxo do sistema e WhatsApp ficam em Conta (são de configuração e de consulta do sistema inteiro). Nenhum endereço mudou. O menu esconde as guias que o perfil não abre. "Em risco" na Visão Convênios usa a mesma regra do Painel da equipe.
 - **Painel da equipe e inconsistências (22/11/2026, E10):** o painel antigo virou o Painel da equipe (sem mapa) e o relatório de inconsistências usa 10 regras fixas calculadas dos dados atuais, sem gravar nada; as duas telas são de administrador, gestor e editor.
+- **Gestão das licitações (23/11/2026, E12; decisões E12-P1=A e E12-P2=A):** a contratação pode ou não ter projeto da carteira (ligação opcional); tem Histórico próprio (`evento_contratacao`), separado do Histórico dos projetos; a carga da planilha nunca sobrescreve o que foi editado na tela. Pendências: mostrar eventos de contratação no Histórico geral, se o dono quiser; E14 (PNCP e Compras.gov).
 - **Fotos da obra (22/11/2026, E9):** as fotos ficam na aba Fotos da ficha, separadas da localização, no mesmo R2 e no mesmo padrão de segurança dos documentos; reaproveitam a tabela `projeto_foto` já existente (migração 0008 só acrescenta colunas e índices); uma foto por envio, com legenda e data.
 
 - **Busca de endereço (22/11/2026, E8, decisão D4):** serviço gratuito OpenStreetMap/Nominatim, consultado só pelo servidor (a política de segurança do navegador continua `connect-src 'self'`); no máximo 1 pedido por segundo por instância, 10 buscas por minuto por pessoa, cache de 24 h (1 h para "nada encontrado") e nenhuma busca a cada tecla; só entram resultados de Goiânia e do entorno; nada é gravado sem a pessoa confirmar e salvar; o texto da busca não vai a log. Na máquina local a busca usa respostas fictícias (`BUSCA_ENDERECO_REAL=1` liga o serviço real na prévia).
@@ -500,6 +503,7 @@ Centros dos bairros: migração 0005 e carga publicadas em 18/11/2026. Parte dos
 
 | Pendência | Para quê |
 | --- | --- |
+| Enviar a planilha modelo de acompanhamento das licitações (D5) | Carga inicial das contratações; a E12 já funciona com cadastro manual |
 | Validar o Fluxo com as áreas e com o cliente | Confirmar etapas, dependências e subprocessos |
 | Fornecer o decreto de feriados de Goiânia | Contagem exata dos dias úteis |
 | Configurar conta oficial do WhatsApp Business e aprovar modelos | Envio real de relatórios |

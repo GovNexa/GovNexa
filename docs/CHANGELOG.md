@@ -1,5 +1,12 @@
 # Changelog
 
+## E12 · Gestão das licitações (23/11/2026)
+- **Parte B (telas):** guia Gestão das licitações na Visão gerencial (depois de Mapa e painel): grandes números por etapa, listas com os campos do relatório, próximos marcos, aguardando PGM e outras áreas, filtros, impressão em A4 e CSV; edição em linha, cadastro, mudança de etapa, marcos e remoção para editor ou acima (o prefeito só vê); página da contratação com Histórico; aba Contratações na ficha do projeto; Fluxo atualizado.
+- **Não mudou:** login, protótipo do SEI (módulo Licitações), Histórico dos projetos, painel do prefeito.
+- **Parte A:** banco, regras, gravação e carga. Teto de valor de R$ 10 bilhões por campo; carga valida `concluido_em` e o limite de marcos.
+- Migração D1 `0010_contratacao.sql` (contratação, marcos e Histórico próprio), módulo `src/lib/contratacoes/`, rota `POST /plataforma/gestao-licitacoes/gravar/` e carga de exemplo. Telas na Parte B.
+- **Riscos aceitos:** o Histórico (`evento_contratacao`) cresce sem limite próprio; o freio é o limite de 30 gravações por minuto por pessoa e o teto de 20.000 contratações (ativas e removidas) por prefeitura.
+
 ## E15 · Navegação: sempre poder voltar à tela de origem (23/11/2026)
 - Pedido do dono: "entro numa tela, dela vou pra outra, porém não consigo retornar para a tela que iniciei". Todo link de conteúdo que leva a outra tela carrega a origem (caminho e filtros) no parâmetro `volta`; a tela de destino mostra "← Voltar para [tela]" (componente `Voltar.astro`, automático no layout da plataforma).
 - Só telas sob `/plataforma/` valem como volta (módulo `src/lib/navegacao/volta.ts`); no máximo 2 níveis; avisos de ação concluída (`salvo`, `rf`, `r`) não voltam junto. Link externo, rota de gravação, arquivo ou CSV são ignorados.
