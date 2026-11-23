@@ -47,7 +47,7 @@ export const COMPONENTES: Record<string, string[]> = {
   alertas: ['src/lib/alertas/**', 'src/components/alertas/**', 'src/lib/dados/alertas.ts', 'src/lib/carteira/visoes.ts', 'src/lib/cronograma/visoes.ts', 'src/lib/dados/qualidade.ts', 'src/lib/prazos/**', 'src/components/prazos/**', 'data/config/feriados.json', 'data/config/prazos-internos.json'],
   parado: ['src/lib/cronograma/visoes.ts', 'src/lib/cronograma/dependencias.ts', 'src/components/cronograma/Parado.astro'],
   sala: ['src/lib/sala/**', 'src/components/sala/**', 'src/pages/plataforma/sala-de-guerra/**'],
-  painel: ['src/components/carteira/VisaoOrgaos.astro', 'src/lib/govnexa/catalogo.ts', 'src/lib/gestao/**', 'src/components/gestao/**', ...MAPA],
+  painel: ['src/components/carteira/VisaoOrgaos.astro', 'src/lib/govnexa/catalogo.ts', 'src/lib/gestao/**', 'src/components/gestao/**', 'src/pages/plataforma/index.astro', 'src/styles/prioritarios.css', ...MAPA],
   log: ['src/lib/log/**', 'src/components/log/**', 'db/migracoes/002_*'],
   whatsapp: ['src/lib/whatsapp/**', 'src/components/whatsapp/**', 'src/lib/gestao/painel.ts', 'src/lib/carteira/visoes.ts'],
 };
