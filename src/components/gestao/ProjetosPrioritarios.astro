@@ -12,6 +12,9 @@ import {
   ETAPAS, FILTROS_PRIORITARIOS_VAZIOS, FIM_LINHA_TEMPO, OUTRAS, SEM_AREA, alternar, alternarMes, montarPrioritarios, nomeEtapa,
   reaisCurtos, rotuloMes, rotulosDoEixo, urlPrioritarios,
 } from '../../lib/gestao/prioritarios.ts';
+import MapaObras from '../mapa/MapaObras.astro';
+import { urlMapaCompleto } from '../../lib/mapa/link.ts';
+import { carregarGeoBairros, obrasDoMapa, obrasSemLocal } from '../../lib/mapa/obras.ts';
 
 const carteira = carregarCarteira();
 let areas: Area[] = [...AREAS_PADRAO];
@@ -24,6 +27,12 @@ const hoje = hojeEmBrasilia();
 const municipio = municipioAtivo();
 const tela = montarPrioritarios(carteira.projetos, Astro.url.searchParams, hoje, areas);
 const { filtros, opcoes, resumo, porArea, linha, proximas, principais } = tela;
+// E4: mapa compacto com as obras dos filtros desta tela, a mesma área e a mesma cor (as cores vêm da carteira inteira).
+const geoMapa = carregarGeoBairros();
+const carteiraMapa = { ...carteira, projetos: tela.projetos };
+const opcoesMapa = { areas, cores: tela.cores };
+const mapaObras = obrasDoMapa(carteiraMapa, geoMapa, hoje, opcoesMapa);
+const mapaSemLocal = obrasSemLocal(carteiraMapa, geoMapa, hoje, opcoesMapa);
 
 const inteiro = (n: number) => n.toLocaleString('pt-BR');
 const plural = (n: number, um: string, varios: string) => `${inteiro(n)} ${n === 1 ? um : varios}`;
@@ -197,6 +206,10 @@ const fora = [
           </>
         ) : <p class="pp-vazio">Nenhuma entrega prevista no período para estes filtros.</p>}
         {fora && <p class="pp-nota" data-pp-fora>Fora da linha do tempo: {fora}.</p>}
+      </section>
+
+      <section class="pp-mapa" aria-label="Mapa das obras por área" data-pp-mapa>
+        <MapaObras obras={mapaObras.obras} semLocal={mapaObras.semLocal} semLocalLista={mapaSemLocal} id="mapa-prefeito" altura="clamp(260px, 40vh, 420px)" compacto linkCompleto={urlMapaCompleto(filtros)} />
       </section>
 
       <div class="pp-listas">
