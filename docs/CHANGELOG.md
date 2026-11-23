@@ -6,6 +6,22 @@
 - As duas telas são só leitura e só para administrador, gestor e editor; o perfil leitura vê "Sem permissão".
 - Os testes de tela do painel antigo (pausados na E3) voltaram, apontando para o Painel da equipe; os do mapa compacto continuam pausados para a E4.
 
+## E7 · Kanban e Pendências gravando; filtros e saída do marco (22/11/2026)
+- Kanban com cards enxutos: nome, órgão e a previsão de saída da etapa (aba PIPELINE); sem valor e sem farol; mais cards por coluna.
+- Sem a coluna Conclusão: o quadro vai até Execução e informa quantos projetos estão concluídos (ficam na Carteira e no Histórico).
+- Filtros do padrão no Kanban: nome, órgão, área, macroetapa e período de entrega.
+- Mover no Kanban e aprovar ou reprovar nas Pendências de etapa gravam no banco (B3), com portão, motivo, forçar com motivo e controle de alteração simultânea; cada mudança entra no Histórico no mesmo lote.
+- Rota nova `POST /plataforma/projeto/mover/<id>/` com origem, perfil, formato, limite de requisições e tamanho conferidos antes de ler o pedido.
+- Sem migração nova.
+
+## E4 · Mapa das obras por área (22/11/2026)
+- Legenda, cor e filtro por área (saúde, educação, assistência social, drenagem, parques e lazer, cultura…), com as mesmas cores da tela do prefeito; a área sugerida pelo órgão vale até a área ser gravada.
+- Filtros só por macroetapa (a mesma divisão da tela do prefeito) e área, mais a região como filtro opcional; estado no endereço da Gestão (`etapas`, `areas`, `regiao`).
+- Saem do mapa a situação do prazo (no prazo, atenção, atrasada), o farol e o tipo de obra; o painel da região mostra o total de obras e o valor.
+- O mapa compacto voltou à tela do prefeito, abaixo da linha do tempo, com as obras dos filtros da tela; "Abrir na Gestão" leva área, macroetapa e região.
+- Bolhas e marcadores nunca se cobrem nem ficam embaixo dos controles (posição calculada sem sobreposição); a linha do trecho de rua deixa de ser clicável e ganha um marcador. Corrige a instabilidade do teste de acessibilidade (alvos de toque) do mapa.
+- Sem rota nova, sem gravação e sem migração.
+
 ## E6 · Ficha única do projeto (22/11/2026)
 - A Carteira abre a ficha do projeto em página inteira; o X volta à lista com os mesmos filtros.
 - Topo com órgão, área, valor total, macroetapa, entrega prevista, localização e observação em destaque; abas Cadastro, Recurso, Entrega, Localização, Fotos (em breve), Documentos, Processos SEI, Cronograma, Histórico e Governança.

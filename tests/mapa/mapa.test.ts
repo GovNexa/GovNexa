@@ -140,7 +140,8 @@ test('obrasDoMapa: semLocal e percentual coerente', () => {
   assert.equal(por('P-2').percentual, null);
   assert.equal(por('P-1').precisao, 'cadastrada');
   assert.equal(por('P-3').precisao, 'bairro');
-  assert.equal(por('P-1').situacao, 'execucao');
+  assert.equal(por('P-1').etapa, 'execucao');
+  assert.equal('farol' in por('P-1'), false);
   assert.equal(por('P-1').foto, null);
   // os dois do mesmo bairro não ficam um sobre o outro
   const a = por('P-3').localizacao;

@@ -64,12 +64,11 @@ test('govnexa: carteira, kanban, gantt e órgãos',async({page})=>{
  const paginas=['/plataforma/projetos-carteira/','/plataforma/projetos-kanban/','/plataforma/projetos-gantt/','/plataforma/projetos-orgaos/'];
  for(const path of paginas){const response=await page.goto(path);expect(response?.status(),path).toBe(200);await expect(page.locator('h1'),path).toHaveCount(1);}
  await page.goto('/plataforma/projetos-kanban/');
- const nomes=['Em estruturação','Planejamento','Preparatório para Contratação','Contratação','Mobilização','Execução','Conclusão'];
- const cabecalhos=page.locator('.kb-col h2');await expect(cabecalhos).toHaveCount(7);
- for(let i=0;i<nomes.length;i++)await expect(cabecalhos.nth(i)).toHaveText(nomes[i]);
- const todos=await page.locator('.kb-card:visible').count();expect(todos).toBeGreaterThan(0);
- await page.locator('[data-kb-orgao]').selectOption({index:1});
- expect(await page.locator('.kb-card:visible').count()).toBeLessThan(todos);
+ // E7: sem a coluna Conclusão; filtros do padrão pelo endereço
+ await expect(page.locator('.kq-col h2')).toHaveText(['Em estruturação','Planejamento','Preparatório para Contratação','Contratação','Mobilização','Execução']);
+ const todos=await page.locator('[data-kb-card]').count();expect(todos).toBeGreaterThan(0);
+ await page.goto('/plataforma/projetos-kanban/?orgao=SEINFRA');
+ expect(await page.locator('[data-kb-card]').count()).toBeLessThan(todos);
  await page.goto('/plataforma/projetos-gantt/');expect(await page.locator('.gt-bar').count()).toBeGreaterThan(0);
  await page.goto('/plataforma/projetos-carteira/');
  await Promise.all([page.waitForURL(/\/plataforma\/projeto\/[^/]+\//),page.getByRole('button',{name:'Ver detalhes'}).first().click()]);
@@ -94,27 +93,18 @@ test('govnexa: cronogramas, onde está parado e simulação',async({page})=>{
  await page.goto(`/plataforma/cronograma/${idCronograma}/`);
  const abas=[['Linha do tempo','tempo'],['Quadro de tarefas','quadro'],['Pendências de dado','dados']];
  for(const [nome,chave] of abas){const botao=page.getByRole('button',{name:nome});await botao.click();await expect(botao).toHaveAttribute('aria-pressed','true');await expect(page.locator(`[data-cr-painel="${chave}"]`)).toBeVisible();for(const [,outra] of abas)if(outra!==chave)await expect(page.locator(`[data-cr-painel="${outra}"]`)).toBeHidden();}
- // Kanban: botão Mover em modo simulação
+ // Kanban e Pendências gravam de verdade (E7); os testes que gravam estão em tests/kanban.spec.ts e usam projetos próprios
  await page.goto('/plataforma/projetos-kanban/');
- await expect(page.getByText('Modo simulação: as regras são aplicadas, mas nada é gravado até o banco de dados ser configurado.').first()).toBeVisible();
- const coluna=page.locator('.kb-col').filter({has:page.getByRole('heading',{name:'Em estruturação',exact:true})});
- await coluna.locator('[data-kb-card]').first().getByRole('button',{name:/Mover/}).click();
- await expect(page.locator('#kb-dialog')).toBeVisible();
- await page.locator('#kb-dialog').getByLabel('Para a etapa').selectOption({label:'Planejamento'});
- await page.locator('#kb-dialog').getByRole('button',{name:'Aplicar',exact:true}).click();
- const resultado=page.locator('#toast:not([hidden]), #kb-dialog[open]').first();
- await expect(resultado).toBeVisible();
- if(await page.locator('#kb-dialog[open]').count()){await expect(page.locator('#kb-dialog')).toContainText('Faltam requisitos');expect(await page.locator('#kb-dialog [data-kb-dlg-erro] li').count()).toBeGreaterThan(0);}
- else await expect(page.locator('#toast')).toContainText('Simulação');
- // Pendências: reprovar exige motivo
+ await expect(page.getByText('Modo simulação')).toHaveCount(0);
+ await expect(page.locator('[data-kb-mover]').first()).toBeVisible();
+ // Pendências: reprovar exige motivo antes de enviar (nada é gravado aqui)
  await page.goto('/plataforma/projetos-pendencias/');
+ await expect(page.getByText('Modo simulação')).toHaveCount(0);
  await page.getByRole('button',{name:'Reprovar',exact:true}).first().click();
  const dialogo=page.locator('#pd-dialog');await expect(dialogo).toBeVisible();
  await dialogo.getByRole('button',{name:'Aplicar',exact:true}).click();
  await expect(dialogo).toBeVisible();await expect(dialogo.getByRole('alert')).toContainText('motivo');await expect(page.locator('.pd-resultado:visible')).toHaveCount(0);
- await dialogo.getByLabel('Motivo (obrigatório)').fill('Documento incompleto');
- await dialogo.getByRole('button',{name:'Aplicar',exact:true}).click();
- await expect(dialogo).toBeHidden();await expect(page.locator('.pd-resultado:visible').first()).toContainText('Simulação');
+ await dialogo.getByRole('button',{name:'Cancelar',exact:true}).click();await expect(dialogo).toBeHidden();
  // sem rolagem horizontal das tabelas
  for(const path of paginas){await page.goto(path);const sobra=await page.$$eval('.table-wrap',ws=>Math.max(0,...ws.map(e=>e.scrollWidth-e.clientWidth)));expect(sobra,path).toBeLessThanOrEqual(1);}
  // axe: pendências e cronograma, claro e escuro
@@ -154,22 +144,20 @@ test('govnexa: histórico de alterações',async({page})=>{
  await expect(page.locator('[data-lg-projeto]')).toHaveValue('P-900');
  await expect.poll(async()=>(await page.locator('[data-lg-corpo] tr:not(.lg-detalhe)').count())).toBeGreaterThan(0);
  for(const celula of await page.locator('[data-lg-corpo] tr:not(.lg-detalhe) td:nth-child(2)').all())await expect(celula).toContainText('P-900');
- // simulação no Kanban aparece no topo do log com o selo
- await page.goto('/plataforma/projetos-kanban/');
- const coluna=page.locator('.kb-col').filter({has:page.getByRole('heading',{name:'Em estruturação',exact:true})});
- await coluna.locator('[data-kb-card]').first().getByRole('button',{name:/Mover/}).click();
+ // E7: a mudança de etapa feita no Kanban fica gravada no log (projeto criado só para este teste)
+ const nomeLog=`Projeto E7 do teste do log ${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+ const criado=await page.request.post('/plataforma/projeto/criar/',{headers:{origin:new URL(page.url()).origin,'content-type':'application/json'},data:{nome:nomeLog,orgao:'SMS'}});
+ expect(criado.status()).toBe(201);
+ const idLog=(await criado.json()).projeto.id;
+ await page.goto('/plataforma/projetos-kanban/?q='+encodeURIComponent(nomeLog));
+ await page.locator(`[data-kb-card][data-id="${idLog}"]`).getByRole('button',{name:/Mover/}).click();
  const dialogo=page.locator('#kb-dialog');
- await dialogo.getByLabel('Para a etapa').selectOption({label:'Planejamento'});
  await dialogo.getByRole('button',{name:'Aplicar',exact:true}).click();
- if(await dialogo.evaluate((d:HTMLDialogElement)=>d.open)){
-  await dialogo.getByLabel(/Forçar com motivo/).check();
-  await dialogo.getByLabel(/Motivo/).fill('Teste da simulação no histórico');
-  await dialogo.getByRole('button',{name:'Aplicar',exact:true}).click();
- }
- await expect(page.locator('#toast')).toContainText('Simulação');
- await page.goto('/plataforma/projetos-log/');
- await expect(page.locator('[data-lg-corpo] tr').first()).toContainText('Simulação (não gravado)');
+ await expect(page.locator('#toast')).toContainText('Registrado no Histórico');
+ await page.goto('/plataforma/projetos-log/?projeto='+encodeURIComponent(idLog));
+ await expect(page.locator('[data-lg-corpo] tr').first()).toContainText(idLog);
  await expect(page.locator('[data-lg-corpo] tr').first()).toContainText('Mudança de etapa');
+ await expect(page.locator('[data-lg-corpo] tr').first()).not.toContainText('Simulação (não gravado)');
  // sem rolagem horizontal em 1280px (página e tabela)
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
  expect(await page.$$eval('.lg-tabela',ws=>Math.max(0,...ws.map(e=>e.scrollWidth-e.clientWidth)))).toBeLessThanOrEqual(1);
@@ -635,12 +623,13 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  await expect(page.locator('#mapa [data-mp-contagem]')).toContainText('ocultas pelos filtros');
  const antes=await page.locator('#mapa [data-mp-lista-corpo] tr').count();
  expect(antes).toBeGreaterThanOrEqual(2);
- await page.locator('#mapa [data-mp-filtro="situacoes"] [data-mp-abrir]').click();
- await expect(page.locator('#mapa [data-mp-filtro="situacoes"] input:checked')).toHaveCount(6);
- await page.locator('#mapa [data-mp-filtro="situacoes"] [data-mp-pronto]').click();
- await page.locator('#mapa [data-mp-filtro="categorias"] [data-mp-abrir]').click();
- await expect(page.locator('#mapa [data-mp-filtro="categorias"] input:checked')).toHaveCount(9);
- await page.locator('#mapa [data-mp-filtro="categorias"] [data-mp-pronto]').click();
+ await page.locator('#mapa [data-mp-filtro="etapas"] [data-mp-abrir]').click();
+ await expect(page.locator('#mapa [data-mp-filtro="etapas"] input:checked')).toHaveCount(7);
+ await page.locator('#mapa [data-mp-filtro="etapas"] [data-mp-pronto]').click();
+ await page.locator('#mapa [data-mp-filtro="areas"] [data-mp-abrir]').click();
+ await expect(page.locator('#mapa [data-mp-filtro="areas"] input:not(:checked)')).toHaveCount(0);
+ expect(await page.locator('#mapa [data-mp-filtro="areas"] input:checked').count()).toBeGreaterThanOrEqual(2);
+ await page.locator('#mapa [data-mp-filtro="areas"] [data-mp-pronto]').click();
  await page.screenshot({path:'test-results/mapa-1280.png',fullPage:false});
  await page.locator('#mapa .leaflet-container').scrollIntoViewIfNeeded();
  await page.locator('#mapa .mp-bolha-caixa').first().click();
@@ -656,14 +645,15 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  await page.locator('#mapa').getByRole('button',{name:'Cidade inteira'}).click();
  for(let i=0;i<3;i++)await page.locator('#mapa [data-mp-zoom-in]').click();
  await expect(page.locator('#mapa .leaflet-marker-icon .mp-marcador').first()).toBeVisible();
- await expect(page.locator('#mapa path.leaflet-interactive').first()).toBeAttached();
+ await expect(page.locator('#mapa .leaflet-overlay-pane path.mp-trecho-linha').first()).toBeAttached();
  await page.goto('/plataforma/gestao/');
- await page.locator('#mapa [data-mp-filtro="farol"] [data-mp-abrir]').click();
- await page.locator('#mapa [data-mp-filtro="farol"] input[value="vermelho"]').check();
+ await page.locator('#mapa [data-mp-filtro="areas"] [data-mp-abrir]').click();
+ await page.locator('#mapa [data-mp-filtro="areas"] input').first().uncheck();
  expect(await page.locator('#mapa [data-mp-lista-corpo] tr').count()).toBeLessThan(antes);
- await page.locator('#mapa [data-mp-filtro="farol"] [data-mp-pronto]').click();
+ await page.locator('#mapa [data-mp-filtro="areas"] [data-mp-pronto]').click();
  await page.locator('#mapa').getByRole('button',{name:'Limpar filtros'}).click();
- await expect(page.locator('#mapa [data-mp-filtro="situacoes"] [data-mp-abrir]')).toContainText('Etapas: Todas');
+ await expect(page.locator('#mapa [data-mp-filtro="etapas"] [data-mp-abrir]')).toContainText('Macroetapa: Todas');
+ await expect(page.locator('#mapa [data-mp-filtro="areas"] [data-mp-abrir]')).toContainText('Área: Todas');
  // lista alternativa
  await page.locator('#mapa summary').click();
  await expect(page.locator('#mapa [data-mp-lista-corpo] tr')).toHaveCount(antes);
@@ -766,7 +756,7 @@ test('govnexa: arquivos do build com nome só hexadecimal',async({page})=>{
  await page.route('https://tile.openstreetmap.org/**',r=>r.abort());
  await page.goto('/plataforma/gestao/');
  await expect(page.locator('#mapa .leaflet-container')).toBeVisible();
- await expect(page.locator('#mapa .mp-filtros [data-mp-filtro="situacoes"] [data-mp-abrir]')).toBeVisible();
+ await expect(page.locator('#mapa .mp-filtros [data-mp-filtro="etapas"] [data-mp-abrir]')).toBeVisible();
  expect(falhas).toEqual([]);
 });
 
