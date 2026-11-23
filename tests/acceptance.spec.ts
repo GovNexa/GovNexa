@@ -184,7 +184,7 @@ test('govnexa: fluxo do sistema',async({page})=>{
  const resposta=await page.goto('/plataforma/projetos-fluxo/');
  expect(resposta?.status()).toBe(200);
  await expect(page.locator('h1')).toHaveCount(1);
- await expect(page.locator('svg.fx-svg [data-no]')).toHaveCount(33);
+ await expect(page.locator('svg.fx-svg [data-no]')).toHaveCount(34);
  // clique no portão: validações e link para as pendências
  await page.locator('svg.fx-svg [data-no="portao"]').click();
  const dlg=page.locator('#fluxo-detalhe');
@@ -214,7 +214,7 @@ test('govnexa: fluxo do sistema',async({page})=>{
 
 test('govnexa: fluxo exporta em PDF',async({page})=>{
  await page.goto('/plataforma/projetos-fluxo/');await expect(page.getByRole('button',{name:'Exportar em PDF'})).toBeVisible();
- await page.emulateMedia({media:'print'});await expect(page.locator('.fx-anexo')).toBeVisible();await expect(page.locator('.fx-anexo-no')).toHaveCount(33);await expect(page.getByRole('button',{name:'Exportar em PDF'})).toBeHidden();
+ await page.emulateMedia({media:'print'});await expect(page.locator('.fx-anexo')).toBeVisible();await expect(page.locator('.fx-anexo-no')).toHaveCount(34);await expect(page.getByRole('button',{name:'Exportar em PDF'})).toBeHidden();
 });
 
 test('govnexa: sala de guerra',async({page})=>{

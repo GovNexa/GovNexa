@@ -1,0 +1,134 @@
+---
+// Relatório de inconsistências (E10): por órgão ou geral, para a equipe. Só leitura; impressão em A4 e CSV.
+import Platform from '../../../layouts/Platform.astro';
+import '../../../styles/inconsistencias.css';
+import { hrefFicha } from '../../../lib/carteira/ficha.ts';
+import { dataBr } from '../../../lib/datas.ts';
+import { AVISO_SEM_PERMISSAO, podeVerEquipe, ROTA_INCONSISTENCIAS } from '../../../lib/gestao/equipe.ts';
+import { REGRAS, ROTULO_SEM_ORGAO, SEM_ORGAO, rotuloOrgao, rotuloRegra, urlCsv, urlRelatorio } from '../../../lib/gestao/inconsistencias.ts';
+import { relatorioDaRequisicao } from '../../../lib/gestao/inconsistencias-carga.ts';
+import { municipioAtivo } from '../../../lib/municipio-ativo.ts';
+
+export const prerender = false;
+const pode = podeVerEquipe(Astro.locals.usuario);
+if (!pode) Astro.response.status = 403;
+const tela = pode ? await relatorioDaRequisicao(Astro.locals.repositorio, Astro.url.searchParams) : null;
+const inteiro = (n: number) => n.toLocaleString('pt-BR');
+const plural = (n: number, um: string, varios: string) => `${inteiro(n)} ${n === 1 ? um : varios}`;
+const escopo = tela
+  ? [tela.filtros.orgao ? `órgão ${rotuloOrgao(tela.filtros.orgao)}` : 'todos os órgãos', tela.filtros.regra ? `regra ${rotuloRegra(tela.filtros.regra)}` : 'todas as regras'].join(' · ')
+  : '';
+// A ficha volta para este relatório com os mesmos filtros.
+const volta = tela ? urlRelatorio(tela.filtros) : ROTA_INCONSISTENCIAS;
+---
+<Platform title="Inconsistências de dados" slug="gestao-inconsistencias">
+  <div class="inc" data-inc>
+    <div class="section-head"><div>
+      <h1>Inconsistências de dados</h1>
+      <p class="muted">Campos essenciais faltando, datas fora de ordem, macroetapa vencida, SEI inválido e obra fora do mapa. Clique no projeto para abrir a aba Governança da ficha e corrigir.</p>
+    </div></div>
+
+    {!tela && <p class="inc-aviso" role="alert" data-inc-sem-permissao>{AVISO_SEM_PERMISSAO}</p>}
+
+    {tela && (
+      <>
+        <p class="inc-impressao" data-inc-impressao>{municipioAtivo().nomeExibicao} · Relatório de {dataBr(tela.hoje)} · {escopo}</p>
+        {tela.orgaoInvalido && <p class="inc-aviso" role="status" data-inc-aviso-orgao>O órgão informado no endereço não existe nesta carteira. Mostrando todos os órgãos.</p>}
+        {tela.regraInvalida && <p class="inc-aviso" role="status" data-inc-aviso-regra>A regra informada no endereço não existe. Mostrando todas as regras.</p>}
+
+        <form class="inc-filtros" method="get" action={ROTA_INCONSISTENCIAS} data-inc-filtros aria-label="Filtros do relatório">
+          <label>Órgão
+            <select name="orgao">
+              <option value="">Todos os órgãos</option>
+              {tela.opcoes.orgaos.map((o) => <option value={o} selected={tela.filtros.orgao === o}>{o}</option>)}
+              <option value={SEM_ORGAO} selected={tela.filtros.orgao === SEM_ORGAO}>{ROTULO_SEM_ORGAO}</option>
+            </select>
+          </label>
+          <label>Regra
+            <select name="regra">
+              <option value="">Todas as regras</option>
+              {REGRAS.map((r) => <option value={r.id} selected={tela.filtros.regra === r.id}>{r.rotulo}</option>)}
+            </select>
+          </label>
+          <button class="primary" type="submit">Aplicar filtros</button>
+          <a class="inc-botao" href={ROTA_INCONSISTENCIAS}>Limpar</a>
+        </form>
+
+        <div class="inc-acoes">
+          <button type="button" class="inc-botao" data-inc-imprimir>Imprimir</button>
+          <a class="inc-botao" href={urlCsv(tela.filtros)} download data-inc-csv>Baixar CSV</a>
+        </div>
+
+        <p class="inc-resumo" role="status" data-inc-resumo>
+          {tela.carteira.projetos.length === 0
+            ? 'Nenhum projeto cadastrado.'
+            : `${plural(tela.relatorio.itens.length, 'inconsistência', 'inconsistências')} em ${plural(tela.relatorio.projetosComInconsistencia, 'projeto', 'projetos')} de ${plural(tela.relatorio.totalProjetos, 'projeto', 'projetos')} (${escopo}).`}
+        </p>
+
+        <section class="inc-bloco" aria-labelledby="inc-por-regra">
+          <h2 id="inc-por-regra">Por regra</h2>
+          <table class="inc-tabela inc-regras" data-inc-regras>
+            <caption class="sr-only">Projetos por regra ({escopo})</caption>
+            <thead><tr><th scope="col">Regra</th><th scope="col" class="inc-descricao">O que confere</th><th scope="col" class="inc-num">Projetos</th></tr></thead>
+            <tbody>
+              {tela.relatorio.porRegra.map((g) => (
+                <tr data-inc-regra={g.id} data-qtd={g.qtd}>
+                  <th scope="row"><a href={urlRelatorio({ orgao: tela.filtros.orgao, regra: g.id })} aria-current={tela.filtros.regra === g.id ? 'true' : undefined}>{g.rotulo}</a></th>
+                  <td class="inc-descricao">{g.descricao}</td>
+                  <td class="inc-num">{inteiro(g.qtd)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+
+        {tela.filtros.orgao === null && tela.relatorio.porOrgao.length > 0 && (
+          <section class="inc-bloco" aria-labelledby="inc-por-orgao">
+            <h2 id="inc-por-orgao">Por órgão</h2>
+            <table class="inc-tabela" data-inc-orgaos>
+              <caption class="sr-only">Inconsistências por órgão ({escopo})</caption>
+              <thead><tr><th scope="col">Órgão</th><th scope="col" class="inc-num">Projetos</th><th scope="col" class="inc-num">Inconsistências</th></tr></thead>
+              <tbody>
+                {tela.relatorio.porOrgao.map((o) => (
+                  <tr data-inc-orgao={o.orgao ?? SEM_ORGAO}>
+                    <th scope="row"><a href={urlRelatorio({ orgao: o.orgao ?? SEM_ORGAO, regra: tela.filtros.regra })}>{rotuloOrgao(o.orgao)}</a></th>
+                    <td class="inc-num">{inteiro(o.projetos)}</td>
+                    <td class="inc-num">{inteiro(o.qtd)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        )}
+
+        <section class="inc-bloco" aria-labelledby="inc-lista">
+          <h2 id="inc-lista">Lista para corrigir</h2>
+          {tela.relatorio.itens.length === 0
+            ? <p class="inc-vazio" data-inc-vazio>{tela.carteira.projetos.length === 0 ? 'Nenhum projeto cadastrado.' : 'Nenhuma inconsistência encontrada nos filtros atuais.'}</p>
+            : (
+              <table class="inc-tabela inc-itens" data-inc-itens>
+                <caption class="sr-only">Inconsistências para corrigir ({escopo})</caption>
+                <thead><tr><th scope="col">Projeto</th><th scope="col">Órgão</th><th scope="col">Regra</th><th scope="col">O que corrigir</th></tr></thead>
+                <tbody>
+                  {tela.relatorio.itens.map((i) => (
+                    <tr data-inc-linha data-projeto={i.projeto.id} data-regra={i.regra}>
+                      <td data-rotulo="Projeto"><a href={hrefFicha(i.projeto.id, volta, 'governanca')}>{i.projeto.nome || i.projeto.id}</a> <span class="inc-id">{i.projeto.id}</span></td>
+                      <td data-rotulo="Órgão" data-inc-celula-orgao>{rotuloOrgao(i.projeto.orgao)}</td>
+                      <td data-rotulo="Regra">{rotuloRegra(i.regra)}</td>
+                      <td data-rotulo="O que corrigir">{i.detalhe}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+        </section>
+      </>
+    )}
+  </div>
+</Platform>
+
+<script>
+document.addEventListener('astro:page-load', () => {
+  document.querySelector<HTMLButtonElement>('[data-inc-imprimir]')?.addEventListener('click', () => window.print());
+});
+</script>

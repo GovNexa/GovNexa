@@ -62,6 +62,8 @@ const T = {
   sei: { rotulo: 'Processos no SEI', url: '/plataforma/projetos-sei/' },
   licitacao: { rotulo: 'Licitação em detalhe', url: '/plataforma/licitacoes-detalhe/' },
   alertasCentral: { rotulo: 'Gestão · Alertas', url: '/plataforma/gestao-alertas/' },
+  equipe: { rotulo: 'Painel da equipe', url: '/plataforma/gestao-equipe/' },
+  inconsistencias: { rotulo: 'Inconsistências de dados', url: '/plataforma/gestao-inconsistencias/' },
 } satisfies Record<string, Tela>;
 
 export const NOS: NoFluxo[] = [
@@ -201,6 +203,10 @@ export const NOS: NoFluxo[] = [
     oQue: 'Toda alteração do ciclo de vida: o que foi feito, por quem, quando, de onde veio, antes e depois, motivo; com filtros e exportação.',
     valida: ['Registro imutável'], quem: 'Todos (consulta)',
     situacao: 'disponivel', fase: 'Etapa 1.5', telas: [T.log] },
+  { id: 'equipe', raia: 'gestao', linha: 15, tipo: 'tarefa', titulo: 'Painel da equipe e inconsistências',
+    oQue: 'A equipe acompanha o que saiu da tela do prefeito (farol, prazos, onde está parado, decisões pendentes, alertas e convênios) e corrige os dados pelo relatório de inconsistências, por órgão ou geral, com impressão e CSV.',
+    valida: ['Campo essencial faltando (órgão, área, valor, macroetapa, datas previstas)', 'Datas fora de ordem e macroetapa vencida', 'SEI inválido e obra fora do mapa', 'Só administrador, gestor e editor veem'], quem: 'Equipe de gestão de portfólio',
+    situacao: 'disponivel', fase: 'E10', telas: [T.equipe, T.inconsistencias] },
 ];
 
 export const LIGACOES: Ligacao[] = [

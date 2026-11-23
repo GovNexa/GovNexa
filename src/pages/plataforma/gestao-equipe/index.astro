@@ -1,0 +1,15 @@
+---
+// Painel da equipe (E10): visão operacional da Gestão. Só para administrador, gestor e editor.
+import Platform from '../../../layouts/Platform.astro';
+import DashboardPrefeito from '../../../components/dashboard/DashboardPrefeito.astro';
+import { AVISO_SEM_PERMISSAO, podeVerEquipe } from '../../../lib/gestao/equipe.ts';
+
+export const prerender = false;
+const pode = podeVerEquipe(Astro.locals.usuario);
+if (!pode) Astro.response.status = 403;
+---
+<Platform title="Painel da equipe" slug="gestao-equipe">
+  {pode
+    ? <DashboardPrefeito />
+    : <div class="section-head"><div><h1>Painel da equipe</h1><p class="notice" role="alert" data-equipe-sem-permissao>{AVISO_SEM_PERMISSAO}</p></div></div>}
+</Platform>

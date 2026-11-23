@@ -1,0 +1,50 @@
+/* Relatório de inconsistências (E10). Prefixo inc- só existe nesta tela. */
+.inc{display:grid;gap:1rem;min-width:0}
+.inc .section-head{margin-bottom:0}
+.inc-aviso{margin:0;max-width:none;padding:.75rem 1rem;border:1px solid var(--line);border-left:4px solid #b67710;border-radius:8px;background:var(--surface)}
+.inc-filtros{display:flex;flex-wrap:wrap;gap:.75rem 1rem;align-items:end;margin:0}
+.inc-filtros label{flex:1 1 14rem;min-width:0}
+.inc-filtros button,.inc-botao{min-height:44px}
+.inc-acoes{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center}
+.inc-botao{display:inline-flex;align-items:center;justify-content:center;padding:.65rem 1rem;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--text);font-weight:650;text-decoration:none;cursor:pointer}
+.inc-botao:hover{border-color:var(--text)}
+.inc-resumo{margin:0;max-width:none;font-weight:650}
+.inc-bloco{min-width:0;max-width:none;margin:0;padding:clamp(1rem,1.5vw,1.5rem);border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.inc-bloco h2{margin:0 0 .75rem;font-size:1.15rem}
+.inc-tabela{width:100%;table-layout:auto;white-space:normal}
+.inc-tabela th,.inc-tabela td{padding:.6rem .7rem;white-space:normal;overflow-wrap:anywhere;vertical-align:top}
+.inc-tabela tbody th{background:transparent;font-weight:600}
+.inc-tabela a{font-weight:650}
+.inc-tabela a[aria-current]{text-decoration-thickness:3px}
+.inc-tabela .inc-num{text-align:right;white-space:nowrap;overflow-wrap:normal}
+.inc-id{color:var(--muted);font-size:.85em;white-space:nowrap}
+.inc-vazio{margin:0;color:var(--muted)}
+.inc-impressao{display:none}
+@media (max-width:760px){
+  .inc-regras .inc-descricao{display:none}
+  .inc-itens thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+  .inc-itens,.inc-itens tbody,.inc-itens tr,.inc-itens td{display:block;width:100%}
+  .inc-itens tr{padding:.5rem 0;border-bottom:1px solid var(--line)}
+  .inc-itens tr:last-child{border-bottom:0}
+  .inc-itens td{padding:.15rem 0;border:0}
+  .inc-itens td::before{content:attr(data-rotulo) ": ";color:var(--muted);font-weight:650}
+}
+/* Impressão em A4 retrato: página nomeada na raiz (outras telas não mudam). */
+@page inconsistencias{size:A4 portrait;margin:12mm}
+@media print{
+  html:has([data-inc]){page:inconsistencias}
+  body:has([data-inc]) .sidebar,body:has([data-inc]) .appbar,body:has([data-inc]) .app-footer,body:has([data-inc]) .skip,body:has([data-inc]) #toast,body:has([data-inc]) .workspace>.notice{display:none!important}
+  body:has([data-inc]) .platform{display:block!important}
+  body:has([data-inc]) .workspace{padding:0!important;background:#fff}
+  .inc-filtros,.inc-acoes,.inc-aviso,.inc .section-head .muted{display:none!important}
+  .inc,.inc *{color:#000!important;background:#fff!important;box-shadow:none!important}
+  .inc h1{margin:0 0 .3rem;font-size:16pt}
+  .inc-impressao{display:block;margin:0;font-size:9pt}
+  .inc-bloco{padding:0;border:0}
+  .inc-bloco h2{font-size:12pt}
+  .inc-tabela{font-size:9pt}
+  .inc-tabela th,.inc-tabela td{padding:.2rem .35rem;border-bottom:1px solid #888!important}
+  .inc-tabela tr{break-inside:avoid}
+  .inc-tabela thead{display:table-header-group}
+  .inc a{text-decoration:none}
+}

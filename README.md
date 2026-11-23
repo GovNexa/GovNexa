@@ -123,6 +123,7 @@ São módulos independentes que conversam entre si:
 
 ### Entregas recentes
 
+- 22/11/2026: E10, Painel da equipe (o que saiu da tela do prefeito, mais os alertas) e relatório de inconsistências por órgão ou geral, com impressão e CSV (branch agente/codex/e10-equipe; aguardando portão, prévia do dono e revisão).
 - 22/11/2026: E6, ficha única do projeto (página inteira aberta pela Carteira, abas, Governança no fim; guia Localização e fotos fora do menu) (branch agente/codex/e6-ficha; aguardando portão, prévia do dono e revisão).
 - 22/11/2026: E5, Carteira de projetos com grandes números, colunas do relatório, filtros com "Só prioritários", grupos por macroetapa e impressão; a Visão por órgão foi incorporada (branch agente/codex/e5-carteira; aguardando revisão).
 - 22/11/2026: E2, padrão visual das telas de Projetos (fundo claro e neutro nos dois temas) e filtros padrão, aplicados no Gantt geral (branch agente/codex/e2-filtros; aguardando revisão).
@@ -172,7 +173,7 @@ Guia Usuários: cadastro, convite por e-mail, reenvio, perfil, ativação e rede
 
 ### Dashboard: efeitos, alertas e atualização automática
 
-Desde a E3 (22/11/2026) este painel não é mais a tela inicial; o que está descrito abaixo volta no painel da equipe (E10).
+Desde a E10 (22/11/2026) este painel é o **Painel da equipe** (Gestão › Painel da equipe, `/plataforma/gestao-equipe/`), só para administrador, gestor e editor. O mapa compacto descrito no fim desta seção saiu do painel; o mapa por área é da E4.
 
 Os dez cartões entram em sequência e contam até o valor calculado em cerca de 800 ms quando visíveis. Sem JavaScript, com movimento reduzido ou na impressão, os valores finais permanecem disponíveis. Campos ausentes continuam “—”. Críticos têm indicador com ícone e texto e faixa de até três links; atenção usa indicador estático. Hover e foco explicam o cálculo, também disponível no painel, cujo esqueleto dura 240 ms.
 
@@ -238,7 +239,8 @@ Código: `src/lib/dados/`, `src/lib/projetos/`, `coletores/`. Detalhes em [docs/
 | Guia | O que faz | Situação |
 | --- | --- | --- |
 | Início · Projetos prioritários | Tela do prefeito: obras por área, quantidade e valor por etapa (as partes somam o total), linha do tempo de entregas por área até dez/2028, próximas entregas e principais obras; todo número vira filtro guardado no endereço; "Só prioritários"; região só como filtro opcional. Sem farol, prazos, "onde está parado", decisões pendentes e convênios | Disponível no código (E3) |
-| Painel antigo (10 indicadores, farol, decisões, convênios, mapa compacto) | Saiu da tela inicial na E3; o código continua (`DashboardPrefeito.astro`, `src/lib/gestao/dashboard.ts`) e volta no painel da equipe (E10) | Fora da tela até a E10 |
+| Painel da equipe | Visão operacional que saiu da tela do prefeito: 10 indicadores com farol e situação, prazos da Lei, onde está parado, decisões pendentes, alertas da central, convênios e valores por região; o projeto abre a ficha e o X volta ao painel. Só administrador, gestor e editor | Disponível no código (E10) |
+| Inconsistências de dados | Relatório por órgão ou geral com 10 regras (campo essencial faltando, datas fora de ordem, macroetapa vencida, SEI inválido, obra fora do mapa e outras pendências da carga), contagem por regra e por órgão, link para a aba Governança da ficha, impressão em A4 e CSV. Só administrador, gestor e editor | Disponível no código (E10) |
 | Gestão · Painel | Foto atual da carteira e dos recursos e mapa das obras | Disponível |
 | Alertas | Central de alertas de convênios, contratação, obras, saldo sem fonte, etapas paradas e dados desatualizados | Disponível |
 | WhatsApp | Permissões por cargo, relatórios, perguntas e modelos para aprovação da Meta | Simulação; envio real depende do banco e da conta do WhatsApp Business |
@@ -291,6 +293,7 @@ Os pedidos vêm dos áudios do dono, da reunião com a equipe e das planilhas.
 | Cláusula suspensiva com prazo e alertas | Central de alertas | Parcial |
 | Fluxo da Lei 14.133 | Prazos da lei, Licitação em detalhe | Parcial; PNCP a fazer |
 | Painel do prefeito: etapa, empresa, valor, foto atual e histórico | Gestão · Painel, Mapa | Parcial |
+| Tela de gestão da equipe separada da tela do prefeito e relatório de inconsistências por órgão (áudios 13 e 19) | Gestão · Painel da equipe; Gestão · Inconsistências de dados | Disponível no código (E10) |
 | WhatsApp para o prefeito em linguagem simples | Gestão · WhatsApp | Simulação |
 | Projetos "desejo" separados dos que serão executados | Campo compromisso | A fazer na importação |
 | Projeto × oportunidade com sugestão | Captação e Projetos | A fazer |
@@ -415,6 +418,8 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Ficha única do projeto (22/11/2026, E6):** a Carteira abre a ficha em página inteira (a política de segurança proíbe janela embutida) e o X volta à lista com os filtros; a localização e as fotos ficam dentro do projeto; o endereço antigo de localização virou a lista de obras sem localização.
 - **Tela do prefeito (22/11/2026, E3):** saem farol, prazos, "onde está parado", decisões pendentes, convênios, valores por região e o mapa compacto (volta por área na E4); Mobilização conta em Execução; Concluídas e Sem macroetapa aparecem como linha própria só quando existem; a área mostrada usa a sugestão pelo órgão quando o projeto não tem área gravada; Principais obras = prioritárias primeiro, depois as de maior valor; linha do tempo do mês atual até dez/2028, com 6 áreas em cor, "Outros" e "Sem área" em cinza.
 
+- **Painel da equipe e inconsistências (22/11/2026, E10):** o painel antigo virou o Painel da equipe (sem mapa) e o relatório de inconsistências usa 10 regras fixas calculadas dos dados atuais, sem gravar nada; as duas telas são de administrador, gestor e editor.
+
 ## 8. Pendências e próximos passos
 
 Centros dos bairros: migração 0005 e carga publicadas em 18/11/2026. Parte dos bairros não foi encontrada no OpenStreetMap e as obras deles aparecem como "sem localização"; a correção é o cadastro manual (centro do bairro ou localização da obra), nunca uma coordenada inventada.
@@ -442,7 +447,7 @@ Centros dos bairros: migração 0005 e carga publicadas em 18/11/2026. Parte dos
 7. Teste "mapa das obras" no Safari (WebKit): falha também na main (marcadores não aparecem após "Cidade inteira" + zoom); investigar à parte. No Chrome passa.
 8. Melhorias de segurança sem falha conhecida: retirar `'unsafe-inline'` da política de scripts (CSP) e redirecionar `www.govnexa.com.br` para o endereço sem www.
 9. E6: retirar o componente antigo `LocalizacaoProjeto.astro` e o link "Localização e fotos" de `detalheProjeto` depois da junção com a E5; fotos na aba Fotos (E9).
-10. **Depois da E3:** a E10 reativa os testes de tela do painel antigo (`tests/dashboard.spec.ts`, `dashboard-efeitos.spec.ts`, `dashboard-mapa.spec.ts`, pulados na E3) na rota do painel da equipe; a E4 traz o mapa por área para a tela inicial.
+10. **Depois da E10:** os testes do painel antigo voltaram no Painel da equipe; `tests/dashboard-mapa.spec.ts` continua pausado até a E4 decidir onde fica o mapa compacto por área. A E11 usa o Painel da equipe no menu das três visões.
 
 ## 9. Como rodar no computador
 

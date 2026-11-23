@@ -132,7 +132,7 @@ export const maisRecentes = (regs: RegistroLog[]): RegistroLog[] =>
 
 const CABECALHO_CSV = ['Data e hora', 'Projeto (ID)', 'Nome do projeto', 'Ação', 'O que mudou', 'Motivo', 'Por', 'Origem', 'Forçado'];
 
-function celula(v: unknown): string {
+export function celula(v: unknown): string {
   let s = String(v ?? '');
   if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`; // proteção contra injeção de fórmula em planilhas
   return `"${s.replaceAll('"', '""')}"`;

@@ -20,7 +20,7 @@ export const PRIORIDADES = ['Muito Alta', 'Alta', 'Média', 'Baixa'] as const;
 export const TIPOS_CONTRATACAO = ['LICITAÇÃO', 'Execução Própria', 'Adesão a Ata', 'Dispensa', 'Termo de compensação'] as const;
 export const ORIGENS_RECURSO = ['Municipal', 'Federal', 'Estadual', 'Outro'] as const;
 const COMPROMISSOS = ['decidido', 'condicionado', 'ideia'] as const;
-const SEI = /^\d{2}\.\d{1,2}\.\d{9}-\d$/;
+export const SEI = /^\d{2}\.\d{1,2}\.\d{9}-\d$/;
 const DATA = /^\d{4}-\d{2}-\d{2}$/;
 // Controles (inclui os C1), invisíveis e marcas de direção do texto (permitem nome enganoso): viram espaço.
 const INVISIVEIS = '\\u0080-\\u009f\\u00ad\\u200b-\\u200f\\u2028\\u2029\\u202a-\\u202e\\u2060-\\u2069\\ufeff';

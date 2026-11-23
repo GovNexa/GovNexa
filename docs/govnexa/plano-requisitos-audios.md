@@ -40,13 +40,13 @@ Situação hoje: **Atende**, **Parcial** ou **Não**. A coluna "Entrega" aponta 
 | A09 | Tela principal no layout do croqui: obras por área (esquerda), quantidade e valor por macroetapa (centro e direita), linha do tempo de entregas (embaixo) | Não | E3 |
 | A11 | Linha do tempo de entregas empilhada por área, por mês e ano, até 2028; "outros" se houver muitas áreas | Não | E3 |
 | A12 | Sai a "carteira por macroetapa" abaixo do mapa; grandes números viram filtro global | Não | E3 |
-| A13 | Separar a tela do prefeito (gerencial) da tela de gestão (operacional) | Parcial | E3 + E10 |
+| A13 | Separar a tela do prefeito (gerencial) da tela de gestão (operacional) | No código (E3 + E10, aguardando revisão) | E3 + E10 |
 | A14 | Região só como filtro opcional, sem quadro aberto | Não | E3 + E4 |
 | A16 | Carteira: ID só número e discreto; colunas ID, órgão, projeto, valor, macroetapa e datas das etapas (peças técnicas, fim da contratação, dias de obra, entrega); sem farol; filtros; ordem por entrega | Parcial | E5 |
 | A17 | Detalhe abre em tela grande com X para fechar, não em gaveta lateral | Não | E6 |
 | A18 | Evitar barra de rolagem em todo o sistema | Parcial (regra já existe para a horizontal) | E2 (regra) e cada entrega |
 | A19 | Ficha: o que é, valor, macroetapa e **observação** em destaque; sem farol | Parcial | E6 |
-| A19 | Relatório de inconsistências por órgão ou geral, para a equipe | Parcial (pendências de dado existem) | E10 |
+| A19 | Relatório de inconsistências por órgão ou geral, para a equipe | No código (E10, aguardando revisão) | E10 |
 | A20 | Abas: cadastro, recurso, entrega; governança no fim (origem e responsável pelo dado, pontos de atenção); sem valores por ano | Parcial | E6 |
 | A21 | Ficha hierarquizada; recursos resumidos (total, fonte de captação, contrapartida); saem tipo e órgão de contratação, situação e tipo de recurso | Parcial | E6 |
 | A22 | Sem menu próprio de "Localização e fotos"; as duas ficam dentro do projeto, separadas | Parcial (localização já está no projeto; fotos não existem) | E6 + E9 |
@@ -88,7 +88,7 @@ A % de cada entrega começa em 0 e é atualizada no README (seção 2) a cada PR
 | E7 | **Kanban e Gantt**: cards com nome, órgão e entrega prevista; coluna mostra a previsão de saída do marco; sem Conclusão; filtros do padrão; mover grava no banco com portão e motivo (B3); Gantt com os mesmos filtros | A23, A24, A26, A27, A28, A29 | E2; B3 grava | Sem migração nova prevista (usa `evento_projeto`) | Codex sol (gravação) + revisão Opus | 0% |
 | E8 | **Localização por endereço**: procurar rua, endereço ou bairro; mostrar o ponto; o usuário confirma; segue o limite da cidade e do entorno | A07 | D4 | — | Codex sol (serviço externo) + revisão Opus | 0% |
 | E9 | **Fotos da obra**: enviar, legendar e ver fotos na aba Fotos (R2, como os documentos); Histórico | A22 | E6 | Migração: tabela `foto_projeto` | Codex sol + revisão Opus | 0% |
-| E10 | **Painel de gestão (equipe)**: recebe o que saiu da tela do prefeito (farol, onde está parado, decisões pendentes, alertas); **relatório de inconsistências** por órgão ou geral (campo faltando, data fora de ordem, macroetapa vencida), com impressão e CSV | A13, A19 | E3 | — | Codex terra | 0% |
+| E10 | **Painel de gestão (equipe)**: recebe o que saiu da tela do prefeito (farol, onde está parado, decisões pendentes, alertas); **relatório de inconsistências** por órgão ou geral (campo faltando, data fora de ordem, macroetapa vencida), com impressão e CSV | A13, A19 | E3 | — | Codex terra | 70% (código e testes escritos; aguardando portão, prévia do dono e revisão) |
 | E11 | **Menu nas três visões** (Gerencial, Governança da execução, Convênios); tela **Visão Convênios** com convênios em execução, em risco e CAUC, usando a Captação | A01, A31 | E3, E10 | — | Codex luna | 0% |
 | E12 | **Gestão das licitações**: grandes números por situação (6 etapas) → listas por etapa com os campos do relatório (marco, valor estimado/contratado/proposta, pago, empresa e colocação, onde está, aguardando quem, abertura, publicação prevista); próximos marcos; "aguardando PGM" e "aguardando outras áreas"; **edição em linha** para editor ou acima (prefeito só lê); importação por planilha modelo; ligação opcional com o projeto (há contratações sem projeto) | A34, A35, A36, A37 | D5 | Migração: `contratacao`, `contratacao_marco` (com Histórico) | Codex sol + revisão Opus | 0% |
 | E13 | **Governança da execução**: responsável por tarefa do cronograma e **tempo na mão do responsável** (registro de cada troca); painel por responsável | A31 | E11 | Migração: histórico de responsável da tarefa | Plano Opus próprio, depois Codex sol | 0% |
