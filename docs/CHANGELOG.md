@@ -1,5 +1,10 @@
 # Changelog
 
+## Documentação: rastreabilidade dos áudios e princípios de 23/11 (23/11/2026)
+- Cada um dos 31 áudios foi conferido contra a tabela de requisitos: seis pedidos acrescentados (40 no total) e a situação real de cada um (E1 a E11 no ar; E12, E13 e E15 em andamento; E14 futura).
+- Dois princípios novos do dono entram no plano, no README e no histórico: o sistema substitui a planilha, e sempre poder voltar à tela de origem.
+- Decisões de E12 e E13 (tempo na mão por pessoa e por área, relógio no início real, atenção e urgente, 6 etapas, quem edita) registradas; README com pendências e próximos passos atualizados. Sem mudança de código.
+
 ## E11 · Menu nas três visões e Visão Convênios (22/11/2026)
 - Menu lateral em três visões (áudio 31): **Visão gerencial** (Projetos prioritários, Carteira, Mapa e painel, Kanban e Gantt), **Governança da execução** (Painel da equipe, Projetos · Início, Cronogramas, Onde está parado, Inconsistências, Pendências, Reunião, Sala de guerra, Histórico, Alertas e Processos no SEI) e **Convênios** (Visão Convênios e as guias da Captação). Depois vêm Licitações (demonstrativo, com os grupos de antes) e Conta (Usuários, Fluxo do sistema, WhatsApp, relatórios, perfil e configurações).
 - Nenhum endereço mudou: todas as telas abrem no mesmo lugar. A guia "Gestão · Painel" passou a se chamar "Mapa e painel" (mesmo endereço).
