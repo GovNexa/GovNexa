@@ -1,8 +1,9 @@
 // Tipos do histórico de alterações (log) do GovNexa. A tela, o CSV, o importador e o banco usam estes rótulos.
 import type { OrigemEvento, RegistroHistorico } from '../carteira/movimentacao.ts';
+import type { TipoEventoCronograma } from '../cronograma/planejar.ts';
 
 /** Tipos do motor ('passo', 'pendencia'...) mais os que só o log conhece ('criado', 'removido', 'carga'). */
-export type TipoAcaoLog = RegistroHistorico['tipo'] | 'registrar_passo' | 'resolver_pendencia' | 'criado' | 'removido' | 'carga' | 'sala_aberta' | 'sala_reuniao' | 'sala_item' | 'sala_encerrada' | 'sala_projeto_incluido' | 'sala_projeto_retirado' | 'reuniao_registrada' | 'acao_criada' | 'localizacao_alterada' | 'documento_classificado' | 'foto_enviada' | 'foto_removida';
+export type TipoAcaoLog = RegistroHistorico['tipo'] | 'registrar_passo' | 'resolver_pendencia' | 'criado' | 'removido' | 'carga' | 'sala_aberta' | 'sala_reuniao' | 'sala_item' | 'sala_encerrada' | 'sala_projeto_incluido' | 'sala_projeto_retirado' | 'reuniao_registrada' | 'acao_criada' | 'localizacao_alterada' | 'documento_classificado' | 'foto_enviada' | 'foto_removida' | TipoEventoCronograma;
 
 /** Registro do log: o histórico do motor, com tipos extras, nome do projeto e marca de simulação (não gravado). */
 export type RegistroLog = Omit<RegistroHistorico, 'tipo'> & {
@@ -33,6 +34,12 @@ export const ROTULO_ACAO: Record<TipoAcaoLog, string> = {
   documento_classificado: 'Tipo de documento alterado',
   foto_enviada: 'Foto enviada',
   foto_removida: 'Foto removida',
+  cronograma_criado: 'Cronograma criado',
+  tarefa_incluida: 'Tarefa incluída no cronograma',
+  tarefa_alterada: 'Tarefa do cronograma alterada',
+  responsavel_trocado: 'Responsável da tarefa trocado',
+  tarefas_reordenadas: 'Tarefas do cronograma reordenadas',
+  tarefa_removida: 'Tarefa removida do cronograma',
 };
 
 export const ROTULO_ORIGEM: Record<OrigemEvento | 'reuniao', string> = {
@@ -44,6 +51,7 @@ export const ROTULO_ORIGEM: Record<OrigemEvento | 'reuniao', string> = {
   cadastro: 'Cadastro de projeto',
   sala: 'Sala de guerra',
   reuniao: 'Reunião semanal',
+  cronograma: 'Cronograma',
 };
 
 /** Tipos de ação que aparecem no filtro (cada rótulo uma vez). */

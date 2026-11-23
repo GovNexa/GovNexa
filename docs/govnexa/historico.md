@@ -168,7 +168,8 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 
 | Situação | O que aprendemos |
 | --- | --- |
-| 23/11/2026 | Volta dentro de volta fica limitada a 2 níveis e sem avisos passageiros (`salvo`, `rf`, `r`); link para a ficha, a partir de uma tela aberta pela própria ficha, devolve a volta em vez de criar um ciclo; a volta é validada de novo no servidor antes de entrar num redirecionamento. |
+| Reordenar tarefas com a posição como chave (23/11, E13) | Posição não é chave: reordenar com a chave na posição colide. Usar chave estável (`id`) e posição única só entre as tarefas ativas, gravada em duas passadas (negativos e depois positivos) no mesmo lote. |
+| Volta dentro de volta e ciclo ao voltar (23/11, E15) | Volta dentro de volta fica limitada a 2 níveis e sem avisos passageiros (`salvo`, `rf`, `r`); link para a ficha, a partir de uma tela aberta pela própria ficha, devolve a volta em vez de criar um ciclo; a volta é validada de novo no servidor antes de entrar num redirecionamento. |
 | Página nova com o nome de uma guia que já existia (16/11, novo #10) | A pasta `documentos/` das rotas da etapa 3.4 sobrescreveu a guia de demonstração "Documentos" e derrubou um teste antigo. As rotas passaram a ficar em `documentos-projeto/`. Antes de criar rota nova sob `/plataforma/`, conferir `src/data/modules.json` e o catálogo. |
 | Revisão independente reprovou a 1ª versão da 3.4 (16/11, novo #10) | Achados: arquivo copiado duas vezes na memória do Worker, rota de remoção lendo corpo sem limite, perfil conferido só depois de ler o arquivo, teste de origem que passava mesmo sem a trava, e corrida entre dois envios iguais. Tudo corrigido (leitura em fluxo, conferências antes do corpo, índice único, testes mais rígidos). Regra: em rota que grava, conferir origem, perfil e tamanho antes de abrir o corpo. |
 | Reimportar a planilha pode apagar o que foi feito no sistema (16/11, novo #9) | A revisão independente achou que o upsert da planilha sobrescreveria colunas que o sistema também grava (etapa, datas, localização, compromisso) e que um código reaproveitado pela planilha poderia virar outro projeto. A rotina agora preserva localização e compromisso, **pula** o projeto já alterado no sistema e **para tudo** se um código mudar de órgão. Antes de a gravação de verdade existir no sistema (3.3 em diante), revisar de novo quem manda em cada coluna. |
@@ -197,7 +198,11 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 
 ### 7.1 Repositório novo (`GovNexa/GovNexa`)
 
-23/11/2026 — E12, Gestão das licitações: PR a abrir (migração 0010, módulo de contratações, telas, ficha e Fluxo).
+23/11/2026 — E13, cronograma como processo e painel Responsáveis: PR a abrir (migração 0009; a branch contém também a E12 e a E15 juntadas; ~90%, aguardando merge e publicação).
+
+23/11/2026 — E12, Gestão das licitações: PR #55 (migração 0010, módulo de contratações, telas, ficha e Fluxo; contém a E15; revisão independente e prévia aprovada pelo dono; ~90%, aguardando merge e publicação).
+
+23/11/2026 — E15, navegação (sempre poder voltar à tela de origem): PR #54 (revisão independente e prévia aprovada pelo dono; ~90%, aguardando merge e publicação).
 
 17/11/2026 — Login próprio e usuários, sem PR/publicação nesta entrega: migração central, senha com pepper, TOTP cifrado, convites, recuperação, sessões, limites, Turnstile e administração isolada por prefeitura. Validação: astro check sem erros, 316 testes Node passando, build concluído e impacto conferido com Fluxo atualizado. Testes de navegador escritos e listados para execução externa. Percentuais anteriores mantidos até homologação.
 

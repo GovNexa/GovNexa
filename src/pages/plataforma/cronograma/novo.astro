@@ -1,0 +1,99 @@
+---
+// Criar cronograma (E13): escolhe o projeto da carteira e cria o cronograma vazio, para incluir fases e tarefas na tela.
+import '../../../styles/carteira.css';
+import '../../../styles/responsaveis.css';
+import Platform from '../../../layouts/Platform.astro';
+import { carregarCarteira } from '../../../lib/carteira/carga.ts';
+import { ID_FICHA } from '../../../lib/carteira/ficha.ts';
+import { carregarCronogramas } from '../../../lib/cronograma/carga.ts';
+import { ROTA_CRONOGRAMAS, rotuloVoltaCronograma, urlCronograma, voltaCronograma } from '../../../lib/cronograma/navegacao.ts';
+import { usuarioPode } from '../../../lib/usuarios/index.ts';
+
+export const prerender = false;
+const pode = usuarioPode(Astro.locals.usuario, 'editar_projeto');
+if (!pode) Astro.response.status = 403;
+const gravacaoOk = !!Astro.locals.repositorio?.criarCronograma && !!Astro.locals.repositorio?.podeGravar;
+const volta = voltaCronograma(Astro.url.searchParams.get('volta'), Astro.url.origin);
+const cronogramas = carregarCronogramas().cronogramas;
+const comCronograma = new Set(cronogramas.map((c) => c.projeto_id).filter(Boolean));
+const elegiveis = carregarCarteira().projetos
+  .filter((p) => !comCronograma.has(p.id))
+  .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+const pedido = Astro.url.searchParams.get('projeto') ?? '';
+let aviso: string | null = null;
+let existente: string | null = null;
+let escolhido = '';
+if (pedido) {
+  const existe = ID_FICHA.test(pedido) ? cronogramas.find((c) => c.projeto_id === pedido) : undefined;
+  if (existe) {
+    aviso = 'Este projeto já tem cronograma.';
+    existente = existe.id;
+  } else if (elegiveis.some((p) => p.id === pedido)) {
+    escolhido = pedido;
+  } else {
+    aviso = 'Projeto não encontrado.';
+  }
+}
+---
+<Platform title="Novo cronograma" slug="projetos-cronogramas">
+  <div class="section-head">
+    <div>
+      <h1>Novo cronograma</h1>
+      <p class="muted"><a href={volta ?? ROTA_CRONOGRAMAS} data-voltar>{rotuloVoltaCronograma(volta)}</a></p>
+      <p class="muted">Crie o cronograma do projeto e inclua as fases e as tarefas. Daqui em diante o cronograma é mantido só no sistema: a planilha não o altera mais.</p>
+    </div>
+  </div>
+  {!pode && <p class="cart-aviso" role="alert" data-cr-sem-permissao>Sem permissão: seu perfil só permite ver os cronogramas.</p>}
+  {pode && !gravacaoOk && <p class="cart-aviso" role="status" data-cr-sem-gravacao>Gravação indisponível no momento.</p>}
+  {pode && aviso && (
+    <p class="cart-aviso" role="status" data-cr-aviso>{aviso}{existente && <> <a href={urlCronograma(existente, { volta })} data-cr-existente>Abrir o cronograma existente</a></>}</p>
+  )}
+  {pode && gravacaoOk && (
+    <form class="cr-novo" data-cr-novo data-volta={volta ?? ''} data-cart>
+      <label>Projeto *
+        <select name="projeto_id" required>
+          <option value="">Escolha o projeto</option>
+          {elegiveis.map((p) => <option value={p.id} selected={p.id === escolhido}>{p.id} · {p.nome}</option>)}
+        </select>
+      </label>
+      <label>Título
+        <input name="titulo" maxlength="200" autocomplete="off" />
+        <span class="cr-ajuda">Vazio = nome do projeto</span>
+      </label>
+      {elegiveis.length === 0 && <p class="cr-ajuda">Todos os projetos da carteira já têm cronograma.</p>}
+      <div class="cr-erro" role="alert" data-cr-erro></div>
+      <div class="actions"><button type="submit" class="primary" data-cr-criar>Criar cronograma</button></div>
+    </form>
+  )}
+</Platform>
+<script>
+import { enviar, ROTA_CRIAR } from '../../../lib/cronograma/editor-cliente.ts';
+
+document.addEventListener('astro:page-load', () => {
+  const form = document.querySelector<HTMLFormElement>('[data-cr-novo]');
+  if (!form || form.dataset.pronto) return;
+  form.dataset.pronto = 'sim';
+  const erro = form.querySelector<HTMLElement>('[data-cr-erro]')!;
+  const botao = form.querySelector<HTMLButtonElement>('[data-cr-criar]')!;
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    erro.textContent = '';
+    botao.disabled = true;
+    const dados = new FormData(form);
+    const r = await enviar(ROTA_CRIAR, { projeto_id: String(dados.get('projeto_id') ?? ''), titulo: String(dados.get('titulo') ?? '').trim(), volta: form.dataset.volta || null });
+    if (r.ok && typeof r.dados.url === 'string' && r.dados.url.startsWith('/plataforma/cronograma/')) {
+      location.assign(r.dados.url);
+      return;
+    }
+    botao.disabled = false;
+    if (r.ok) { erro.textContent = 'Resposta inesperada do servidor. Recarregue a página e tente de novo.'; return; }
+    erro.textContent = r.erro;
+    if (r.status === 409 && r.existente && /^C-[A-Za-z0-9_-]{1,80}$/.test(r.existente)) {
+      const a = document.createElement('a');
+      a.href = `/plataforma/cronograma/${encodeURIComponent(r.existente)}/?aba=tarefas${form.dataset.volta ? `&volta=${encodeURIComponent(form.dataset.volta)}` : ''}`;
+      a.textContent = 'Abrir o cronograma existente';
+      erro.append(' ', a);
+    }
+  });
+});
+</script>

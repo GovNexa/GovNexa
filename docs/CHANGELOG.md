@@ -1,5 +1,22 @@
 # Changelog
 
+
+## Junção E12 + E13 + E15 (23/11/2026)
+- As três entregas foram juntadas na branch da E13: E12 Gestão das licitações (migração 0010), E13 Cronograma como processo e painel Responsáveis (migração 0009) e E15 Navegação. Cada uma tem código, testes, revisão independente e prévia aprovada pelo dono (~90%); aguardam merge (PR #54 E15, PR #55 E12 que contém a E15, e o PR da E13 que conterá as três) e publicação.
+- Na junção, os links da E13 passaram a usar o mecanismo da E15 (`volta` na ficha, no cronograma e em Novo cronograma; Responsáveis aparece nos nomes de tela do "Voltar"). Menu: Responsáveis na Governança da execução e Gestão das licitações na Visão gerencial.
+- Ordem de publicação: migração 0009, depois 0010 (ordem numérica), antes do código. Nada foi aplicado em produção.
+
+## E13 · Cronograma como processo e painel Responsáveis (23/11/2026)
+
+**O que mudou**
+- Cronograma criado e mantido na tela: criar o cronograma de um projeto (botão na ficha e na lista), incluir, editar, reordenar (tarefas e fases), iniciar, concluir e remover tarefas, e trocar o responsável com histórico; tudo entra no Histórico. Nova aba "Tarefas e responsáveis" no cronograma.
+- Painel Responsáveis (menu da Governança da execução): com quem está cada tarefa aberta e há quantos dias, por pessoa e por área, com atenção e urgente; filtros, impressão e CSV; visível ao perfil leitura.
+- Quadro de tarefas e ficha do projeto mostram o tempo na mão e as tarefas com alerta; a ficha mostra o cronograma editado na tela e leva "voltar" para a tela de origem.
+- Migração 0009 (D1): chave estável das tarefas, trocas de responsável, versão do cronograma e marca "editado na tela"; dado antigo inválido é saneado com registro na pendência da tarefa; a carga da planilha não altera o que foi editado na tela.
+- Fluxo atualizado (Planejamento e Onde está parado).
+
+**O que NÃO mudou:** login, publicação na Cloudflare, `wrangler.jsonc`, Postgres legado (só comentário), dependências do projeto. Nada foi aplicado em produção.
+
 ## E12 · Gestão das licitações (23/11/2026)
 - **Parte B (telas):** guia Gestão das licitações na Visão gerencial (depois de Mapa e painel): grandes números por etapa, listas com os campos do relatório, próximos marcos, aguardando PGM e outras áreas, filtros, impressão em A4 e CSV; edição em linha, cadastro, mudança de etapa, marcos e remoção para editor ou acima (o prefeito só vê); página da contratação com Histórico; aba Contratações na ficha do projeto; Fluxo atualizado.
 - **Não mudou:** login, protótipo do SEI (módulo Licitações), Histórico dos projetos, painel do prefeito.

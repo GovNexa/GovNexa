@@ -90,7 +90,7 @@ test('gerador de SQL: reimportação preserva localização e compromisso, apaga
     const aposConflito = com.slice(com.indexOf('INSERT INTO projeto'), com.indexOf('INSERT INTO projeto') + 20000).split('ON CONFLICT (prefeitura_id, id) DO UPDATE SET ')[1].split(';')[0];
     assert.doesNotMatch(aposConflito, /compromisso|localizacao/); // mas não sobrescreve ao atualizar
     assert.match(aposConflito, /nome = EXCLUDED\.nome/);
-    assert.match(com, /DELETE FROM etapa_cronograma WHERE prefeitura_id = \d+ AND cronograma_id = '[^']+' AND ordem NOT IN/);
+    assert.match(com, /DELETE FROM etapa_cronograma WHERE prefeitura_id = \d+ AND cronograma_id = '[^']+' AND id NOT IN/);
     assert.match(com, /INSERT INTO evento_projeto/);
     assert.doesNotMatch(sem, /INSERT INTO evento_projeto|INSERT INTO evento_sistema/);
   } finally {
@@ -119,7 +119,7 @@ test('relatório: traz só contagens, códigos e linhas; diz se gravou ou só co
     projetos: 334, cronogramas: 13, etapas: 725,
     codigosRepetidos: [{ codigo: 450, linhas: [280, 281], orgaos: ['SECAP', 'SEINFRA'], resolvido: true, novo: 506 }],
     correcoesSemEfeito: 0, casamentoCronogramas: { sei: 7, nome: 4, semPar: 2 },
-    novos: null, atualizados: null, editadosNoSistema: null, foraDaPlanilha: null, cronogramasForaDaPlanilha: null,
+    novos: null, atualizados: null, editadosNoSistema: null, foraDaPlanilha: null, cronogramasForaDaPlanilha: null, cronogramasEditadosNaTela: null,
     avisos: ['Código 450 repetido nas linhas 280, 281 (órgãos SECAP, SEINFRA): corrigido.'],
     arquivos: { carteira: 'Projeto_obras_prioritarias.xlsx', cronogramas: 'GEPP.xlsx' }, sql: 'x.sql',
   };
@@ -127,7 +127,7 @@ test('relatório: traz só contagens, códigos e linhas; diz se gravou ou só co
   assert.match(conferencia, /só conferência \(nada foi gravado/);
   assert.match(conferencia, /\| Projetos na planilha \| 334 \|/);
   assert.doesNotMatch(conferencia, /Projetos novos no banco/);
-  const remoto = relatorioMd({ ...resumo, novos: 0, atualizados: 334, editadosNoSistema: 0, foraDaPlanilha: 0, cronogramasForaDaPlanilha: 0 }, 'remoto');
+  const remoto = relatorioMd({ ...resumo, novos: 0, atualizados: 334, editadosNoSistema: 0, foraDaPlanilha: 0, cronogramasForaDaPlanilha: 0, cronogramasEditadosNaTela: 0 }, 'remoto');
   assert.match(remoto, /gravado no banco de produção/);
   assert.match(remoto, /Projetos atualizados \| 334/);
 });

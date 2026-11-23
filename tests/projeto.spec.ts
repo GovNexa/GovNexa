@@ -12,7 +12,7 @@ test('ficha do projeto: abre pelo endereço com as abas e o X volta à Carteira'
   await page.goto(PAGINA);
   await expect(page.locator('h1')).toContainText(PROJETO);
   await expect(page.locator('[data-module-title]')).toHaveText('Projeto');
-  await expect(page.locator('.fp-aba label')).toHaveText(['Cadastro', 'Recurso', 'Entrega', 'Localização', 'Fotos', 'Documentos', 'Processos SEI', 'Cronograma', 'Histórico', 'Governança']);
+  await expect(page.locator('.fp-aba label')).toHaveText(['Cadastro', 'Recurso', 'Entrega', 'Localização', 'Fotos', 'Documentos', 'Processos SEI', 'Contratações', 'Cronograma', 'Histórico', 'Governança']);
   await expect(page.getByRole('heading', { level: 2, name: 'Resumo do cadastro', exact: true })).toBeVisible();
   await expect(page.getByText('Modo simulação')).toHaveCount(0);
   await expect(page.locator('#fp-painel-documentos a', { hasText: 'Abrir os documentos do projeto' })).toHaveAttribute('href', new RegExp(`^/plataforma/documentos-projeto/projeto/${PROJETO}/\\?volta=`));

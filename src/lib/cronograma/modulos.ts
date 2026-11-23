@@ -4,6 +4,7 @@ import type { Detalhe } from '../dados/detalhes.ts';
 import type { Modulo } from '../dados/tipos.ts';
 import { carregarCarteira } from '../carteira/carga.ts';
 import { carregarCronogramas } from './carga.ts';
+import { urlCronograma } from './navegacao.ts';
 import type { Cronograma } from './tipos.ts';
 import { diasEntre, etapasDoCronograma, resumoCronograma, rotuloRitmo, statusNaData } from './visoes.ts';
 
@@ -36,7 +37,7 @@ function detalheCronograma(c: Cronograma, hoje: string): Detalhe {
       { titulo: 'Projeto da carteira', itens: [projeto ? `${projeto.id} · ${projeto.nome}` : 'Sem correspondência na carteira'] },
       { titulo: 'Etapas atrasadas', itens: atrasadas.length ? atrasadas : ['Nenhuma'] },
     ],
-    links: [{ rotulo: 'Abrir a página do cronograma', url: `/plataforma/cronograma/${c.id}/` }],
+    links: [{ rotulo: 'Abrir a página do cronograma', url: urlCronograma(c.id) }],
   };
 }
 

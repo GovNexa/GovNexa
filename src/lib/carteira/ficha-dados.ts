@@ -1,7 +1,9 @@
 // Dados da ficha única do projeto (E6). Função pura: recebe tudo pronto e devolve textos. Sem leitura de arquivo nem relógio global.
 import type { Cronograma } from '../cronograma/tipos.ts';
-import { resumoCronograma } from '../cronograma/visoes.ts';
+import { tempoNaMao } from '../cronograma/responsaveis.ts';
+import { etapasDoCronograma, resumoCronograma } from '../cronograma/visoes.ts';
 import { dataBr } from '../datas.ts';
+import { hojeEmBrasilia } from '../whatsapp/farol.ts';
 import { AREAS_PADRAO, areaDoProjeto, type Area } from './area.ts';
 import { dataEntrega } from './filtros.ts';
 import { nomeMacroetapa } from './macroetapas.ts';
@@ -16,6 +18,7 @@ export interface FichaProjeto {
   topo: (LinhaFicha & { chave: string })[]; observacao: string | null; prioritario: boolean;
   cadastro: LinhaFicha[]; recurso: LinhaFicha[]; entrega: LinhaFicha[]; sei: string[];
   cronogramas: { id: string; titulo: string; linhas: LinhaFicha[] }[];
+  outrosCronogramas: { id: string; titulo: string }[]; // E13: quando há cronograma editado na tela, os demais do projeto ficam só como link
   governanca: { origem: string[]; responsavel: LinhaFicha[]; atencao: string[]; acompanhamento: LinhaFicha[]; sei: string; dependencias: string[] };
 }
 /** Rótulos que NÃO podem aparecer na ficha (áudios 19 a 21). Conferidos no teste. */
@@ -41,6 +44,13 @@ export function montarFicha(e: EntradaFicha): FichaProjeto {
   const d = p.datas;
   const fonteCaptacao = [r.fonte_programa, r.origem].map((x) => (x ?? '').trim()).find(Boolean);
   const sei = (p.sei ?? []).filter((x) => x.trim());
+  const hoje = e.hoje ?? hojeEmBrasilia();
+  // E13: o cronograma editado na tela vence; com mais de um, o de atualização mais recente; os demais viram só link.
+  const doProjeto = (e.cronogramas ?? []).filter((c) => c.projeto_id === p.id);
+  const daTela = doProjeto.filter((c) => c.editado_na_tela === true || c.origem_registro === 'tela');
+  const escolhido = [...daTela].sort((a, b) => (b.atualizado_em ?? '').localeCompare(a.atualizado_em ?? '') || b.id.localeCompare(a.id))[0];
+  const principais = escolhido ? [escolhido] : doProjeto;
+  const outros = escolhido ? doProjeto.filter((c) => c !== escolhido) : [];
   const o = p.operacional;
   const atencao = [...(p.pendencias ?? []).filter((x) => x.trim()), ...(o?.providencias?.trim() ? [`Providências: ${o.providencias.trim()}`] : [])];
   const dependencias = [
@@ -76,14 +86,17 @@ export function montarFicha(e: EntradaFicha): FichaProjeto {
       { rotulo: 'Encerramento (entrega prevista)', valor: entregaTexto },
     ],
     sei,
-    cronogramas: (e.cronogramas ?? []).filter((c) => c.projeto_id === p.id).map((c) => {
-      const s = resumoCronograma(c, e.hoje);
+    cronogramas: principais.map((c) => {
+      const s = resumoCronograma(c, hoje);
+      const alertas = etapasDoCronograma(c).filter((x) => tempoNaMao(x, hoje).alerta !== null).length;
       return { id: c.id, titulo: txt(c.titulo, 'Cronograma detalhado'), linhas: [
         { rotulo: 'Fase atual', valor: txt(s.faseAtual) },
         { rotulo: 'Realizado × previsto até hoje', valor: `${Math.round(s.realizadoPct)}% × ${Math.round(s.previstoPct)}%` },
         { rotulo: 'Etapas atrasadas', valor: String(s.atrasadas) }, { rotulo: 'Entrega prevista no cronograma', valor: dia(s.entregaPrevista) },
+        { rotulo: 'Tarefas com alerta de tempo', valor: String(alertas) },
       ] };
     }),
+    outrosCronogramas: outros.map((c) => ({ id: c.id, titulo: txt(c.titulo, 'Cronograma detalhado') })),
     governanca: {
       origem: [`Planilha: aba ${txt(p.origem?.aba)}, linha ${p.origem?.linha ?? '—'}`, `Arquivo: ${txt(e.fonte.arquivo)}`,
         `Importado em: ${e.fonte.importado_em ? dataBr(e.fonte.importado_em) : SEM}`, ...(e.fonte.ficticio ? ['Dados fictícios de exemplo'] : [])],

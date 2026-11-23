@@ -47,6 +47,7 @@ const T = {
   oportunidades: { rotulo: 'Oportunidades', url: '/plataforma/captacao-oportunidades/' },
   sala: { rotulo: 'Sala de guerra', url: '/plataforma/projetos-sala/' },
   parado: { rotulo: 'Onde está parado', url: '/plataforma/projetos-parado/' },
+  responsaveis: { rotulo: 'Responsáveis', url: '/plataforma/gestao-responsaveis/' },
 } satisfies Record<string, Tela>;
 
 const EXC = 'Exceção aceita e registrada';

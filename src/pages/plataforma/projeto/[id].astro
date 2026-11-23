@@ -16,6 +16,7 @@ import { ROTULO_ETAPA_CURTO, reaisResumido, valorReferencia } from '../../../lib
 import { podeGravarNaTela } from '../../../lib/contratacoes/servico.ts';
 import { montarFicha } from '../../../lib/carteira/ficha-dados.ts';
 import { carregarCronogramas } from '../../../lib/cronograma/carga.ts';
+import { urlCronograma } from '../../../lib/cronograma/navegacao.ts';
 import { ID_PROJETO } from '../../../lib/documentos/regras.ts';
 import { hojeBrasilia } from '../../../lib/fotos/regras.ts';
 import { permissaoFotos } from '../../../lib/fotos/servico.ts';
@@ -65,6 +66,7 @@ const idEnc = encodeURIComponent(projeto.id);
 const contratacoes = repo.contratacoes ? await repo.contratacoes.listarDoProjeto(projeto.id) : [];
 const aquiFicha = hrefFicha(projeto.id, volta, 'contratacoes');
 const podeCadastrarContratacao = podeGravarNaTela(Astro.locals.usuario, repo) === 'ok';
+const podeCriarCronograma = usuarioPode(Astro.locals.usuario, 'editar_projeto') && !!repo.criarCronograma && !!repo.podeGravar;
 ---
 <Platform title="Projeto" slug="projetos-carteira">
   <p slot="contexto" class="pj-contexto fp-contexto"><a class="fp-fechar" href={volta ?? VOLTA_PADRAO} data-ficha-fechar><Icon name="x" size={18} /><span>{rotuloVolta(volta)}</span></a></p>
@@ -118,13 +120,24 @@ const podeCadastrarContratacao = podeGravarNaTela(Astro.locals.usuario, repo) ==
         {podeCadastrarContratacao && <p><a href={`/plataforma/gestao-licitacoes/?novo=1&projeto=${idEnc}#ct-nova`} data-fp-contratacoes-novo>Cadastrar contratação para este projeto</a></p>}
         <p><a href="/plataforma/gestao-licitacoes/">Abrir a Gestão das licitações</a></p></section>
       <section class="card pj-bloco fp-painel" id="fp-painel-cronograma" aria-labelledby="fp-t-cronograma"><h2 id="fp-t-cronograma">Cronograma</h2>
-        {ficha.cronogramas.length === 0 ? <p data-fp-cron-vazio>Este projeto ainda não tem cronograma detalhado.</p> : ficha.cronogramas.map((c) => (
+        {ficha.cronogramas.length === 0 ? (
+          <>
+            <p data-fp-cron-vazio>Este projeto ainda não tem cronograma detalhado.</p>
+            {podeCriarCronograma && <p><a class="button primary" href={`/plataforma/cronograma/novo/?projeto=${encodeURIComponent(projeto.id)}&volta=${encodeURIComponent(naAba('cronograma'))}`} data-fp-cron-criar>Criar o cronograma deste projeto</a></p>}
+          </>
+        ) : ficha.cronogramas.map((c) => (
           <div class="fp-cron" data-fp-cron>
             <h3>{c.titulo}</h3>
             <dl class="pj-lista">{c.linhas.map((l) => <div><dt>{l.rotulo}</dt><dd>{l.valor}</dd></div>)}</dl>
             <p><a href={comVolta(`/plataforma/cronograma/${encodeURIComponent(c.id)}/`, naAba('cronograma'))}>Abrir o cronograma detalhado</a></p>
           </div>
-        ))}</section>
+        ))}
+        {ficha.outrosCronogramas.length > 0 && (
+          <div data-fp-cron-outros>
+            <h3>Outros cronogramas deste projeto</h3>
+            <ul class="pj-itens">{ficha.outrosCronogramas.map((o) => <li><a href={urlCronograma(o.id, { volta: naAba('cronograma') })}>{o.titulo}</a></li>)}</ul>
+          </div>
+        )}</section>
       <section class="card pj-bloco fp-painel pj-historico" id="fp-painel-historico" aria-labelledby="pj-hist"><h2 id="pj-hist">Histórico</h2>
     {visiveis.length === 0 ? <p>Nenhuma alteração registrada ainda.</p> : (
       <ol class="pj-eventos" data-pj-historico>

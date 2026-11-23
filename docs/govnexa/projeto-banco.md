@@ -11,7 +11,7 @@ Este documento vale como regra de trabalho: toda entrega que crie ou use dados c
 | Banco | Guarda | Tabelas |
 | --- | --- | --- |
 | Central (`govnexa-central`) | Quem pode entrar e em qual prefeitura | `prefeitura`, `usuario`, `importacao`, `sessao`, `token_email`, `codigo_recuperacao`, `limite_tentativa`, `evento_acesso` |
-| Um por prefeitura (`govnexa-<código IBGE>`) | Os dados de trabalho daquela prefeitura | `prefeitura`, `projeto`, `evento_projeto`, `evento_sistema`, `cronograma`, `etapa_cronograma`, `projeto_foto`, `documento`, `tipo_documento`, `catalogo` (E1, migração 0007 a aplicar), visão `log_alteracoes`. Fotos da obra (E9): `projeto_foto` com a migração 0008 a aplicar |
+| Um por prefeitura (`govnexa-<código IBGE>`) | Os dados de trabalho daquela prefeitura | `prefeitura`, `projeto`, `evento_projeto`, `evento_sistema`, `cronograma` (E13: versão `revisao`, marca `editado_na_tela`, origem do registro e autoria), `etapa_cronograma` (E13: chave estável `id` no lugar da posição, remoção lógica, posição única só entre as ativas; migração 0009 a aplicar), `troca_responsavel` (E13: histórico imutável de cada troca de responsável da tarefa), `projeto_foto`, `documento`, `tipo_documento`, `catalogo` (E1, migração 0007 a aplicar), visão `log_alteracoes`. Fotos da obra (E9): `projeto_foto` com a migração 0008 a aplicar |
 
 **O que já grava de verdade:** documentos do projeto (envio, tipo, remoção lógica), importação das planilhas, usuários e login. No código (E9, a publicar): fotos da obra (envio e remoção lógica, com Histórico).
 
@@ -174,8 +174,14 @@ Consequências no projeto: gravações em lote dividem os parâmetros em blocos;
 1. Princípios e ordem do roteiro (seção 6): aprovados em 17/11/2026.
 2. Plano da Cloudflare: a conta está no plano pago (conferido pelo dono em 17/11/2026). Valem 30 dias de restauração e 1000 consultas por acesso.
 
+### Nota técnica da migração 0009 (E13, cronograma na tela)
+
+A 0009 troca a chave da tarefa (de `cronograma_id + ordem` para um código estável `id`; as tarefas já carregadas ficam com `cronograma#ordem`), cria `troca_responsavel` e acrescenta colunas em `cronograma` e `etapa_cronograma`. Posição (`ordem`) menor ou igual a zero, ou código com mais de 120 caracteres, faz a migração falhar inteira sem mudar nada; a checagem só de leitura `checagens/0009-pre.sql` lista tudo isso antes. **A migração 0009 está a aplicar em produção** (procedimento no README, seção 8).
+
+Os gatilhos `cronograma_sem_delete_tela` e `etapa_cronograma_sem_delete_tela` impedem apagar cronograma ou tarefa editados na tela, e `troca_responsavel` e o histórico são imutáveis. Isso impede também a limpeza administrativa (por exemplo, apagar uma prefeitura de teste): ela exige uma migração própria que recrie esses gatilhos. A 0009 sanea dado antigo inválido (data impossível, duração negativa, término antes do início) para NULL e registra o motivo na coluna `pendencias` da tarefa; a lista prévia está em `db/d1/prefeitura/checagens/0009-pre.sql`.
+
 ## Contratações (E12, migração 0010)
-- Estudo e projeto: gestão das licitações como processo 100% no sistema (áudios A34 a A37); `contratacao` (1 por processo), `contratacao_marco` (N por contratação) e `evento_contratacao` (Histórico imutável). A migração só acrescenta tabelas; nada existente muda e não depende da 0009.
+- Estudo e projeto: gestão das licitações como processo 100% no sistema (áudios A34 a A37); `contratacao` (1 por processo), `contratacao_marco` (N por contratação) e `evento_contratacao` (Histórico imutável). A migração só acrescenta tabelas; nada existente muda e não depende da 0009. Mesmo assim, em produção a ordem é numérica: aplicar a 0009 (E13) e depois a 0010 (E12), as duas antes do código.
 - Isolamento: toda consulta filtra `prefeitura_id` da sessão; FKs compostas; id de outra prefeitura = 404.
 - Integridade: remoção só lógica; gatilhos proíbem DELETE e UPDATE do Histórico; `revisao` otimista no `WHERE`; evento gravado no MESMO `db.batch` com `WHERE changes() = 1`.
 - Limites: 5.000 contratações ativas e 20.000 no total por prefeitura; 50 marcos ativos por contratação; corpo de gravação até 16 KB; 30 gravações por minuto por pessoa.

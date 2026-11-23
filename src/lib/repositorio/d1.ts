@@ -2,12 +2,14 @@
 import { aplicarEvento, criarProjeto, FAIXA_CADASTRO, SEM_ALTERACAO } from '../carteira/movimentacao.ts';
 import type { Evento, RegistroHistorico } from '../carteira/movimentacao.ts';
 import type { Projeto } from '../carteira/tipos.ts';
-import type { Cronograma, EtapaCronograma, FaseCronograma } from '../cronograma/tipos.ts';
+import { CAMPOS_TAREFA, planejar, type EstadoCronograma, type TarefaAtual } from '../cronograma/planejar.ts';
+import type { Cronograma, EtapaCronograma, FaseCronograma, TrocaResponsavel } from '../cronograma/tipos.ts';
+import { statusNaData } from '../cronograma/visoes.ts';
 import type { RegistroLog } from '../log/tipos.ts';
 import { criarRepositorioDocumentos } from '../documentos/repositorio.ts';
 import { criarRepositorioContratacoes } from '../contratacoes/repositorio.ts';
 import { criarRepositorioFotos } from '../fotos/repositorio.ts';
-import type { RepositorioProjetos, ResultadoAplicacao, ResultadoCriacaoProjeto, ResultadoEdicao, ResultadoMovimento } from './tipos.ts';
+import type { RepositorioProjetos, ResultadoAplicacao, ResultadoCriacaoCronograma, ResultadoCriacaoProjeto, ResultadoEdicao, ResultadoGravacaoCronograma, ResultadoMovimento } from './tipos.ts';
 
 export interface ResultadoD1 { results: any[]; success: boolean; meta?: { changes?: number }; }
 export interface StatementD1 {
@@ -118,6 +120,54 @@ export function criarRepositorioD1(db: BancoD1, prefeituraId: number): Repositor
         [prefeituraId, res.projeto.id, res.projeto.codigo_legado, ...valores]);
       await gravarEventos(cliente, res.historico);
       return { ok: true, projeto: res.projeto, historico: res.historico };
+    });
+  }
+
+  // As três leituras abaixo (cronogramas, tarefas, trocas) não são do mesmo instante: uma gravação entre elas pode mostrar
+  // um quadro misto. Só afeta a exibição (a gravação confere a revisão no batch); a próxima leitura corrige.
+  /** Leitura única dos cronogramas (todos ou um): cronogramas, tarefas ativas (com o código estável) e o histórico de responsável. */
+  async function lerCronogramas(somenteId: string | null): Promise<Cronograma[]> {
+    const filtro = somenteId === null ? '' : ' AND id = ?';
+    const filtroC = somenteId === null ? '' : ' AND cronograma_id = ?';
+    const args = somenteId === null ? [prefeituraId] : [prefeituraId, somenteId];
+    const c = await db.prepare(`SELECT id, aba, titulo, endereco, sei, projeto_id, casamento, pendencias, revisao, editado_na_tela, origem_registro, atualizado_em FROM cronograma WHERE prefeitura_id = ?${filtro} ORDER BY id`).bind(...args).all();
+    const e = await db.prepare(
+      `SELECT id, cronograma_id, ordem, fase, nome, unidade, responsavel, situacao_planilha, duracao_prevista,
+        inicio_previsto, fim_previsto, inicio_real, fim_real, status, ciclo, pendencias, origem
+       FROM etapa_cronograma WHERE prefeitura_id = ? AND removida_em IS NULL${filtroC} ORDER BY cronograma_id, ordem`,
+    ).bind(...args).all();
+    const t = await db.prepare(
+      `SELECT id, tarefa_id, tipo, de_responsavel, de_unidade, para_responsavel, para_unidade, desde, motivo, registrado_por, registrado_em
+       FROM troca_responsavel WHERE prefeitura_id = ?${filtroC} ORDER BY tarefa_id, desde, registrado_em, id`,
+    ).bind(...args).all();
+    const trocasPorTarefa = new Map<string, TrocaResponsavel[]>();
+    for (const r of t.results) {
+      const { tarefa_id, ...troca } = r;
+      trocasPorTarefa.set(String(tarefa_id), [...(trocasPorTarefa.get(String(tarefa_id)) ?? []), troca as TrocaResponsavel]);
+    }
+    const etapasPorCronograma = new Map<string, any[]>();
+    for (const raw of e.results) {
+      const x = decodificarLinha(raw);
+      etapasPorCronograma.set(x.cronograma_id, [...(etapasPorCronograma.get(x.cronograma_id) ?? []), x]);
+    }
+    return c.results.map((raw): Cronograma => {
+      const row = decodificarLinha(raw);
+      const fases: FaseCronograma[] = [];
+      for (const x of etapasPorCronograma.get(row.id) ?? []) {
+        let fase = fases.find((f) => f.nome === x.fase);
+        if (!fase) {
+          fase = { nome: x.fase, ordem: fases.length + 1, etapas: [] };
+          fases.push(fase);
+        }
+        const { cronograma_id: _omitido, ...etapa } = x;
+        fase.etapas.push({ ...etapa, pendencias: etapa.pendencias ?? [], origem: etapa.origem ?? null, trocas: trocasPorTarefa.get(String(etapa.id)) ?? [] } as EtapaCronograma);
+      }
+      return {
+        id: row.id, aba: row.aba ?? '', titulo: row.titulo ?? '', endereco: row.endereco ?? null, sei: row.sei ?? [],
+        projeto_id: row.projeto_id ?? null, casamento: row.casamento ?? null, fases, pendencias: row.pendencias ?? [],
+        revisao: Number(row.revisao), editado_na_tela: row.editado_na_tela === 1, origem_registro: row.origem_registro === 'tela' ? 'tela' : 'planilha',
+        atualizado_em: typeof row.atualizado_em === 'string' ? row.atualizado_em : null,
+      };
     });
   }
 
@@ -252,38 +302,113 @@ export function criarRepositorioD1(db: BancoD1, prefeituraId: number): Repositor
         const r = await cliente.query(`SELECT ${COLUNAS_LOG} FROM log_alteracoes WHERE prefeitura_id = ? ORDER BY em DESC, id DESC`, [prefeituraId]);
         return r.rows.map(linhaParaLog);
       }),
-    listarCronogramas: () =>
-      transacao(async (cliente) => {
-        const c = await cliente.query(
-          'SELECT id, aba, titulo, endereco, sei, projeto_id, casamento, pendencias FROM cronograma WHERE prefeitura_id = ? ORDER BY id',
-          [prefeituraId],
-        );
-        const e = await cliente.query(
-          `SELECT cronograma_id, ordem, fase, nome, unidade, responsavel, situacao_planilha, duracao_prevista,
-            inicio_previsto, fim_previsto,
-            inicio_real, fim_real,
-            status, ciclo, pendencias, origem
-           FROM etapa_cronograma WHERE prefeitura_id = ? ORDER BY cronograma_id, ordem`,
-          [prefeituraId],
-        );
-        return c.rows.map((raw): Cronograma => {
-          const row = decodificarLinha(raw);
-          const fases: FaseCronograma[] = [];
-          for (const x of e.rows.map(decodificarLinha).filter((y) => y.cronograma_id === row.id)) {
-            let fase = fases.find((f) => f.nome === x.fase);
-            if (!fase) {
-              fase = { nome: x.fase, ordem: fases.length + 1, etapas: [] };
-              fases.push(fase);
-            }
-            const { cronograma_id: _omitido, ...etapa } = x;
-            fase.etapas.push({ ...etapa, pendencias: etapa.pendencias ?? [] } as EtapaCronograma);
-          }
-          return {
-            id: row.id, aba: row.aba, titulo: row.titulo, endereco: row.endereco ?? null, sei: row.sei ?? [],
-            projeto_id: row.projeto_id ?? null, casamento: row.casamento ?? null, fases, pendencias: row.pendencias ?? [],
-          };
-        });
-      }),
+    listarCronogramas: () => lerCronogramas(null),
+    async obterCronograma(id) {
+      const [c] = await lerCronogramas(id);
+      return c ? { cronograma: c, revisao: c.revisao ?? 0 } : null;
+    },
+    async gravarCronograma(id, revisao, op, ctx): Promise<ResultadoGravacaoCronograma> {
+      // E13: lê o cronograma e as tarefas ativas, deixa a regra pura decidir (planejar) e grava TUDO num único batch.
+      // O primeiro comando só vale se a revisão ainda for a lida (CASE ... ELSE NULL aborta o lote inteiro: 409).
+      const CONFLITO = 'O cronograma foi alterado por outra pessoa. Recarregue a página e tente de novo.';
+      const cab = await db.prepare('SELECT id, titulo, projeto_id, revisao FROM cronograma WHERE prefeitura_id = ? AND id = ?').bind(prefeituraId, id).first<{ id: string; titulo: string | null; projeto_id: string | null; revisao: number }>();
+      if (!cab) return { ok: false, codigo: 'inexistente', erro: 'Cronograma não encontrado.' };
+      if (Number(cab.revisao) !== revisao) return { ok: false, codigo: 'conflito', erro: CONFLITO };
+      const { results: linhas } = await db.prepare(
+        `SELECT id, ordem, fase, nome, unidade, responsavel, duracao_prevista, inicio_previsto, fim_previsto, inicio_real, fim_real
+           FROM etapa_cronograma WHERE prefeitura_id = ? AND cronograma_id = ? AND removida_em IS NULL ORDER BY ordem`,
+      ).bind(prefeituraId, id).all();
+      const { results: agregadas } = await db.prepare(
+        'SELECT tarefa_id, max(desde) AS ultima, count(*) AS n FROM troca_responsavel WHERE prefeitura_id = ? AND cronograma_id = ? GROUP BY tarefa_id',
+      ).bind(prefeituraId, id).all();
+      const trocas = new Map(agregadas.map((r) => [String(r.tarefa_id), { ultima: String(r.ultima), n: Number(r.n) }]));
+      const estado: EstadoCronograma = {
+        id, titulo: cab.titulo ?? '', projeto_id: cab.projeto_id ?? null, revisao,
+        tarefas: linhas.map((r): TarefaAtual => ({
+          id: String(r.id), ordem: Number(r.ordem), fase: r.fase ?? '', nome: String(r.nome), unidade: r.unidade ?? null, responsavel: r.responsavel ?? null,
+          duracao_prevista: r.duracao_prevista == null ? null : Number(r.duracao_prevista), inicio_previsto: r.inicio_previsto ?? null,
+          fim_previsto: r.fim_previsto ?? null, inicio_real: r.inicio_real ?? null, fim_real: r.fim_real ?? null,
+          ultima_troca: trocas.get(String(r.id))?.ultima ?? null, tem_trocas: (trocas.get(String(r.id))?.n ?? 0) > 0,
+        })),
+      };
+      const decisao = planejar(estado, op, { autor: ctx.autor, agora: ctx.agora, hoje: ctx.hoje, novoId: () => crypto.randomUUID() });
+      if (!decisao.ok) return decisao.codigo === 'sem_mudanca' ? { ok: true, mudou: false, revisao } : { ok: false, codigo: decisao.codigo, erro: decisao.erro };
+      const { plano } = decisao;
+      const ond = [prefeituraId, id] as const;
+      const lote: StatementD1[] = [
+        db.prepare('UPDATE cronograma SET revisao = CASE WHEN revisao = ? THEN revisao + 1 ELSE NULL END, editado_na_tela = 1, atualizado_em = ? WHERE prefeitura_id = ? AND id = ?')
+          .bind(revisao, ctx.agora, prefeituraId, id),
+      ];
+      if (plano.remover) {
+        lote.push(db.prepare('UPDATE etapa_cronograma SET removida_em = ?, removida_por = ?, motivo_remocao = ?, atualizada_por = ?, atualizada_em = ? WHERE prefeitura_id = ? AND cronograma_id = ? AND id = ? AND removida_em IS NULL')
+          .bind(ctx.agora, ctx.autor, plano.remover.motivo, ctx.autor, ctx.agora, ...ond, plano.remover.id));
+      }
+      // Posições em dois tempos (negativas e depois finais) para não esbarrar no índice único das posições ativas.
+      if (plano.ordens.length) lote.push(db.prepare('UPDATE etapa_cronograma SET ordem = -ordem WHERE prefeitura_id = ? AND cronograma_id = ? AND removida_em IS NULL AND ordem > 0').bind(...ond));
+      if (plano.inserir) {
+        const n = plano.inserir;
+        lote.push(db.prepare(
+          `INSERT INTO etapa_cronograma (prefeitura_id, id, cronograma_id, ordem, fase, nome, unidade, responsavel, situacao_planilha, duracao_prevista, inicio_previsto, fim_previsto, inicio_real, fim_real, status, ciclo, pendencias, origem, origem_registro, criada_por, criada_em, atualizada_por, atualizada_em)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, NULL, '[]', NULL, 'tela', ?, ?, ?, ?)`,
+        ).bind(prefeituraId, n.id, id, n.ordem, n.fase, n.nome, n.unidade, n.responsavel, n.duracao_prevista, n.inicio_previsto, n.fim_previsto, n.inicio_real, n.fim_real,
+          statusNaData(n, ctx.hoje), ctx.autor, ctx.agora, ctx.autor, ctx.agora));
+      }
+      for (const o of plano.ordens) {
+        if (o.id === plano.inserir?.id) continue;
+        lote.push(db.prepare('UPDATE etapa_cronograma SET ordem = ? WHERE prefeitura_id = ? AND cronograma_id = ? AND id = ? AND removida_em IS NULL').bind(o.ordem, ...ond, o.id));
+      }
+      if (plano.atualizar) {
+        const antes = estado.tarefas.find((t) => t.id === plano.atualizar!.id)!;
+        const mesclada = { ...antes, ...plano.atualizar.campos };
+        const cols = CAMPOS_TAREFA.filter((c) => Object.hasOwn(plano.atualizar!.campos, c)); // nomes de coluna só desta lista fixa
+        lote.push(db.prepare(`UPDATE etapa_cronograma SET ${cols.map((c) => `${c} = ?`).join(', ')}, status = ?, atualizada_por = ?, atualizada_em = ? WHERE prefeitura_id = ? AND cronograma_id = ? AND id = ? AND removida_em IS NULL`)
+          .bind(...cols.map((c) => plano.atualizar!.campos[c] ?? null), statusNaData(mesclada, ctx.hoje), ctx.autor, ctx.agora, ...ond, plano.atualizar.id));
+      }
+      if (plano.troca) {
+        const t = plano.troca;
+        if (!plano.inserir) {
+          lote.push(db.prepare('UPDATE etapa_cronograma SET responsavel = ?, unidade = ?, atualizada_por = ?, atualizada_em = ? WHERE prefeitura_id = ? AND cronograma_id = ? AND id = ? AND removida_em IS NULL')
+            .bind(t.para_responsavel, t.para_unidade, ctx.autor, ctx.agora, ...ond, t.tarefa_id));
+        }
+        lote.push(db.prepare(
+          'INSERT INTO troca_responsavel (prefeitura_id, id, cronograma_id, tarefa_id, tipo, de_responsavel, de_unidade, para_responsavel, para_unidade, desde, motivo, registrado_por, registrado_em) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        ).bind(prefeituraId, t.id, id, t.tarefa_id, t.tipo, t.de_responsavel, t.de_unidade, t.para_responsavel, t.para_unidade, t.desde, t.motivo, t.registrado_por, t.registrado_em));
+      }
+      lote.push(db.prepare('UPDATE cronograma SET revisao = NULL WHERE prefeitura_id = ? AND id = ? AND EXISTS (SELECT 1 FROM etapa_cronograma WHERE prefeitura_id = ? AND cronograma_id = ? AND removida_em IS NULL AND ordem < 0)')
+        .bind(prefeituraId, id, prefeituraId, id));
+      const ev = plano.evento;
+      lote.push(db.prepare("INSERT INTO evento_projeto (id, prefeitura_id, projeto_id, tipo, origem, autor, em, motivo, descricao) SELECT ?, ?, ?, ?, 'cronograma', ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM projeto WHERE prefeitura_id = ? AND id = ?)")
+        .bind(crypto.randomUUID(), prefeituraId, estado.projeto_id, ev.tipo, ctx.autor, ctx.agora, ev.motivo, ev.descricao, prefeituraId, estado.projeto_id));
+      lote.push(db.prepare("INSERT INTO evento_sistema (id, prefeitura_id, tipo, origem, autor, em, descricao, detalhes) SELECT ?, ?, ?, 'cronograma', ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM projeto WHERE prefeitura_id = ? AND id = ?)")
+        .bind(crypto.randomUUID(), prefeituraId, ev.tipo, ctx.autor, ctx.agora, ev.descricao, JSON.stringify({ cronograma_id: id, ...(ev.motivo ? { motivo: ev.motivo } : {}) }), prefeituraId, estado.projeto_id));
+      try {
+        await db.batch(lote);
+      } catch (erro) {
+        if (/NOT NULL constraint failed: cronograma\.revisao/.test(String(erro)) || /UNIQUE constraint failed: etapa_cronograma/.test(String(erro)) || /Tarefa não pertence ao cronograma/.test(String(erro))) {
+          return { ok: false, codigo: 'conflito', erro: CONFLITO };
+        }
+        throw erro;
+      }
+      return { ok: true, mudou: true, revisao: revisao + 1, ...(decisao.tarefa_id ? { tarefa_id: decisao.tarefa_id } : {}) };
+    },
+    async criarCronograma({ projeto_id, titulo }, ctx): Promise<ResultadoCriacaoCronograma> {
+      const id = 'C-' + crypto.randomUUID();
+      const [r] = await db.batch([
+        db.prepare(
+          `INSERT INTO cronograma (prefeitura_id, id, aba, titulo, endereco, sei, projeto_id, casamento, pendencias, revisao, editado_na_tela, origem_registro, criado_por, criado_em, atualizado_em)
+           SELECT ?, ?, NULL, ?, NULL, '[]', ?, 'tela', '[]', 0, 1, 'tela', ?, ?, ?
+            WHERE EXISTS (SELECT 1 FROM projeto WHERE prefeitura_id = ? AND id = ?)
+              AND NOT EXISTS (SELECT 1 FROM cronograma WHERE prefeitura_id = ? AND projeto_id = ?)`,
+        ).bind(prefeituraId, id, titulo, projeto_id, ctx.autor, ctx.agora, ctx.agora, prefeituraId, projeto_id, prefeituraId, projeto_id),
+        db.prepare("INSERT INTO evento_projeto (id, prefeitura_id, projeto_id, tipo, origem, autor, em, descricao) SELECT ?, ?, ?, 'cronograma_criado', 'cronograma', ?, ?, ? WHERE EXISTS (SELECT 1 FROM cronograma WHERE prefeitura_id = ? AND id = ?)")
+          .bind(crypto.randomUUID(), prefeituraId, projeto_id, ctx.autor, ctx.agora, `Cronograma criado na tela: «${titulo}».`, prefeituraId, id),
+      ]);
+      if ((r?.meta?.changes ?? 0) === 1) return { ok: true, id };
+      const existe = await db.prepare('SELECT 1 AS x FROM projeto WHERE prefeitura_id = ? AND id = ?').bind(prefeituraId, projeto_id).first();
+      if (!existe) return { ok: false, codigo: 'inexistente', erro: 'Projeto não encontrado.' };
+      const outro = await db.prepare('SELECT id FROM cronograma WHERE prefeitura_id = ? AND projeto_id = ? ORDER BY id LIMIT 1').bind(prefeituraId, projeto_id).first<{ id: string }>();
+      return { ok: false, codigo: 'conflito', erro: 'Este projeto já tem cronograma.', ...(outro ? { existente: outro.id } : {}) };
+    },
     async criarProjeto(dados, autor): Promise<ResultadoCriacaoProjeto> {
       // O próximo código é lido e gravado em passos separados: duas pessoas cadastrando juntas podem calcular o mesmo número.
       // O índice único projeto_codigo_unico (migração 0006) faz o banco recusar o segundo lote inteiro (nada fica gravado pela

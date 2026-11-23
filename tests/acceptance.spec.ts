@@ -230,7 +230,7 @@ test('govnexa: sala de guerra',async({page})=>{
  for(const theme of ['light','dark']){await page.evaluate(t=>{document.documentElement.dataset.theme=t},theme);const results=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze();expect(results.violations.filter(v=>['serious','critical'].includes(v.impact||'')),`sala lista ${theme}: ${JSON.stringify(results.violations)}`).toEqual([]);}
  // página da 1ª sala: quadro RAID, ação vencida, modo reunião
  await page.locator('.sl-cartao').first().getByRole('link',{name:/Abrir sala/}).click();
- await expect(page).toHaveURL(/\/plataforma\/sala-de-guerra\/S-1\/$/);
+ await expect(page).toHaveURL(/\/plataforma\/sala-de-guerra\/S-1\/(\?volta=.*)?$/);
  await expect(page.locator('h1')).toHaveCount(1);
  for(const nome of ['Riscos','Ações','Problemas','Decisões'])await expect(page.locator('.sl-coluna').getByRole('heading',{name:nome})).toBeVisible();
  await expect(page.locator('.sl-vencida').first()).toContainText('vencida');
@@ -639,7 +639,7 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  await page.locator('#mapa .mp-bolha-caixa').first().click();
  await expect(page.locator('#mapa [data-mp-painel] .mp-item').first()).toBeVisible();
  await page.locator('#mapa [data-mp-painel] .mp-item').first().click();
- await expect(page.locator('#mapa [data-mp-painel] a', { hasText: 'Abrir ficha completa' })).toHaveAttribute('href',/^\/plataforma\/projeto\/P-\d+\/$/);
+ await expect(page.locator('#mapa [data-mp-painel] a', { hasText: 'Abrir ficha completa' })).toHaveAttribute('href',/^\/plataforma\/projeto\/P-\d+\/(\?volta=.*)?$/);
  await page.screenshot({path:'test-results/mapa-ficha.png'});
  await page.locator('#mapa [data-mp-painel]').getByRole('button',{name:'Voltar',exact:true}).click();
  await expect(page.locator('#mapa [data-mp-painel] .mp-item').first()).toBeVisible();
@@ -668,7 +668,7 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  await tp.locator('#mapa .mp-bolha-caixa').first().tap();
  await tp.locator('#mapa .mp-bolha-caixa').first().tap();
  await tp.locator('#mapa [data-mp-painel] .mp-item').first().tap();
- await expect(tp.locator('#mapa [data-mp-painel] a', { hasText: 'Abrir ficha completa' })).toHaveAttribute('href',/^\/plataforma\/projeto\/P-\d+\/$/);
+ await expect(tp.locator('#mapa [data-mp-painel] a', { hasText: 'Abrir ficha completa' })).toHaveAttribute('href',/^\/plataforma\/projeto\/P-\d+\/(\?volta=.*)?$/);
  await tp.screenshot({path:'test-results/mapa-390.png'});
  await touch.close();
  // tela de localização: trocar para ruas e trechos, desenhar 2 pontos e salvar (grava no banco)

@@ -1,0 +1,320 @@
+---
+// Aba "Tarefas e responsáveis" do cronograma (E13, áudio 31): criar, editar, reordenar, iniciar, concluir, remover e trocar o
+// responsável de cada tarefa. Tudo que o usuário digitou sai pelo escape do Astro; no navegador só `textContent`.
+import '../../styles/inconsistencias.css';
+import '../../styles/responsaveis.css';
+import { dataBr, dataHoraBr } from '../../lib/datas.ts';
+import { ancoraTarefa } from '../../lib/cronograma/navegacao.ts';
+import { textoTempoNaMao, tempoNaMao } from '../../lib/cronograma/responsaveis.ts';
+import type { Cronograma, EtapaCronograma } from '../../lib/cronograma/tipos.ts';
+import { ROTULO_STATUS, statusNaData } from '../../lib/cronograma/visoes.ts';
+
+interface Props {
+  cronograma: Cronograma;
+  hoje: string;
+  podeEditar: boolean;
+  revisao: number | null;
+  sugestoes: { fases: string[]; unidades: string[]; pessoas: string[] };
+}
+const { cronograma: c, hoje, podeEditar, revisao, sugestoes } = Astro.props;
+const nDias = (n: number) => `${n} ${n === 1 ? 'dia' : 'dias'}`;
+const dia = (v: string | null) => (v ? dataBr(v) : '—');
+const previsto = (e: EtapaCronograma) => {
+  const datas = e.inicio_previsto || e.fim_previsto ? `${dia(e.inicio_previsto)} a ${dia(e.fim_previsto)}` : '—';
+  return e.duracao_prevista !== null && e.duracao_prevista !== undefined ? `${datas} · ${nDias(e.duracao_prevista)}` : datas;
+};
+const real = (e: EtapaCronograma) => (e.inicio_real ? `${dataBr(e.inicio_real)} a ${e.fim_real ? dataBr(e.fim_real) : 'em curso'}` : '—');
+const quem = (r: string | null, u: string | null) => (r && u ? `${r} (${u})` : r ?? u ?? 'sem responsável');
+const total = c.fases.reduce((s, f) => s + f.etapas.length, 0);
+---
+<div class="cr-tarefas" data-cr-editor data-cronograma={c.id} data-revisao={revisao ?? ''} data-hoje={hoje} data-cart>
+  <p class="cr-erro" role="alert" data-cr-erro-geral></p>
+  {total === 0 && (
+    <p class="cr-aviso-vazio" data-cr-vazio>Este cronograma ainda não tem tarefas.</p>
+  )}
+  {c.fases.filter((f) => f.etapas.length > 0).map((f, fi, fases) => (
+    <section aria-label={`Fase ${f.nome}`} data-cr-fase={f.nome}>
+      <div class="cr-fase-cab">
+        <h3>{f.nome}</h3>
+        {podeEditar && (
+          <span class="cr-acoes">
+            <button type="button" data-cr-acao="fase-subir" data-fase={f.nome} aria-label={`Subir a fase ${f.nome}`} disabled={fi === 0}>↑ fase</button>
+            <button type="button" data-cr-acao="fase-descer" data-fase={f.nome} aria-label={`Descer a fase ${f.nome}`} disabled={fi === fases.length - 1}>↓ fase</button>
+          </span>
+        )}
+      </div>
+      <table class="inc-tabela">
+        <caption class="sr-only">Tarefas da fase {f.nome}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Tarefa</th><th scope="col">Área</th><th scope="col">Responsável e tempo na mão</th>
+            <th scope="col">Previsto</th><th scope="col">Real</th><th scope="col">Situação</th>
+            {podeEditar && <th scope="col">Ações</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {f.etapas.map((e, ei) => {
+            const tm = tempoNaMao(e, hoje);
+            const duracao = e.duracao_prevista ?? 0;
+            const trocas = (e.trocas ?? []).filter((t) => t.tipo === 'troca');
+            const comHistorico = tm.passagens.length > 1 || trocas.length > 0;
+            const dados = e.id ? JSON.stringify({ id: e.id, nome: e.nome, fase: f.nome, duracao_prevista: e.duracao_prevista, inicio_previsto: e.inicio_previsto, fim_previsto: e.fim_previsto, inicio_real: e.inicio_real, fim_real: e.fim_real, responsavel: tm.responsavel, unidade: tm.unidade }) : undefined;
+            return (
+              <tr id={e.id ? ancoraTarefa(e.id) : undefined} data-cr-tarefa={e.id ?? undefined} data-tarefa={dados}>
+                <td data-rotulo="Tarefa"><strong>{e.nome}</strong></td>
+                <td data-rotulo="Área">{tm.unidade ?? 'Sem área'}</td>
+                <td data-rotulo="Responsável e tempo na mão">
+                  {tm.responsavel ?? 'Sem responsável'}
+                  <span class="cr-sub">{textoTempoNaMao(tm)}</span>
+                  {tm.alerta && (
+                    <span class={`cr-selo-alerta cr-selo-${tm.alerta}`} title={tm.alerta === 'urgente' ? `Passou do dobro da duração prevista (${duracao} dias)` : `Passou da duração prevista (${duracao} dias)`}>{tm.alerta === 'urgente' ? 'Urgente' : 'Atenção'}</span>
+                  )}
+                  {comHistorico && (
+                    <details class="cr-historico" data-cr-historico>
+                      <summary>Histórico de responsáveis</summary>
+                      <ul>
+                        {tm.passagens.map((p) => (
+                          <li>{quem(p.responsavel, p.unidade)}: {p.inicio ? `${dataBr(p.inicio)} a ${p.fim ? dataBr(p.fim) : 'hoje'} · ${nDias(p.dias)}` : 'ainda sem início real'}</li>
+                        ))}
+                        {trocas.map((t) => (
+                          <li>Registrada em {dataHoraBr(t.registrado_em)} por {t.registrado_por}{t.motivo ? ` · Motivo: ${t.motivo}` : ''}</li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
+                </td>
+                <td data-rotulo="Previsto">{previsto(e)}</td>
+                <td data-rotulo="Real">{real(e)}</td>
+                <td data-rotulo="Situação">{ROTULO_STATUS[statusNaData(e, hoje)]}</td>
+                {podeEditar && (
+                  <td data-rotulo="Ações">
+                    {e.id && (
+                      <span class="cr-acoes">
+                        <button type="button" data-cr-acao="editar" data-id={e.id}>Editar</button>
+                        {!e.fim_real && <button type="button" data-cr-acao="trocar" data-id={e.id}>Trocar responsável</button>}
+                        {!e.inicio_real && <button type="button" data-cr-acao="iniciar" data-id={e.id}>Iniciar hoje</button>}
+                        {e.inicio_real && !e.fim_real && <button type="button" data-cr-acao="concluir" data-id={e.id}>Concluir hoje</button>}
+                        <button type="button" data-cr-acao="subir" data-id={e.id} aria-label={`Subir «${e.nome}»`} disabled={ei === 0}>↑</button>
+                        <button type="button" data-cr-acao="descer" data-id={e.id} aria-label={`Descer «${e.nome}»`} disabled={ei === f.etapas.length - 1}>↓</button>
+                        <button type="button" data-cr-acao="remover" data-id={e.id}>Remover</button>
+                      </span>
+                    )}
+                  </td>
+                )}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </section>
+  ))}
+  {podeEditar && (
+    <p><button type="button" class="primary" data-cr-acao="nova">{total === 0 ? 'Incluir a primeira tarefa' : '+ Nova tarefa'}</button></p>
+  )}
+  {podeEditar && (
+    <>
+      <datalist id="cr-fases">{sugestoes.fases.map((v) => <option value={v}></option>)}</datalist>
+      <datalist id="cr-unidades">{sugestoes.unidades.map((v) => <option value={v}></option>)}</datalist>
+      <datalist id="cr-pessoas">{sugestoes.pessoas.map((v) => <option value={v}></option>)}</datalist>
+      <dialog class="cart-dialogo cr-dialogo" data-cr-dialogo aria-labelledby="cr-dlg-titulo">
+        <form method="dialog" data-cr-form>
+          <h2 id="cr-dlg-titulo" data-cr-titulo>Tarefa</h2>
+          <fieldset data-cr-modo="tarefa" class="cr-grupo">
+            <label>Nome *<input name="nome" required maxlength="200" autocomplete="off" /></label>
+            <label>Fase *<input name="fase" required maxlength="80" list="cr-fases" autocomplete="off" /></label>
+            <label>Duração prevista (dias)<input name="duracao_prevista" type="number" min="0" max="3650" step="1" inputmode="numeric" /></label>
+            <label>Início previsto<input name="inicio_previsto" type="date" /></label>
+            <label>Fim previsto<input name="fim_previsto" type="date" /></label>
+            <label>Início real<input name="inicio_real" type="date" max={hoje} /></label>
+            <label>Fim real<input name="fim_real" type="date" max={hoje} /></label>
+            <div data-cr-so-nova class="cr-grupo">
+              <label>Área<input name="unidade" maxlength="80" list="cr-unidades" autocomplete="off" /></label>
+              <label>Responsável<input name="responsavel" maxlength="120" list="cr-pessoas" autocomplete="off" /></label>
+            </div>
+          </fieldset>
+          <fieldset data-cr-modo="troca" class="cr-grupo" hidden disabled>
+            <p data-cr-hoje-com></p>
+            <label>Novo responsável<input name="para_responsavel" maxlength="120" list="cr-pessoas" autocomplete="off" /></label>
+            <label>Área<input name="para_unidade" maxlength="80" list="cr-unidades" autocomplete="off" /></label>
+            <label>A partir de *<input name="desde" type="date" required max={hoje} /></label>
+            <label>Motivo<textarea name="motivo_troca" maxlength="500" rows="3"></textarea></label>
+            <p class="cr-ajuda">A troca fica no histórico e não pode ser apagada. Para corrigir, registre uma nova troca.</p>
+          </fieldset>
+          <fieldset data-cr-modo="remover" class="cr-grupo" hidden disabled>
+            <p data-cr-remover-quem></p>
+            <label>Motivo<textarea name="motivo_remover" maxlength="500" rows="3"></textarea></label>
+            <p class="cr-ajuda">A tarefa sai do cronograma, mas continua no Histórico.</p>
+          </fieldset>
+          <div class="cr-erro" role="alert" data-cr-erro></div>
+          <div class="actions">
+            <button type="submit" class="primary" data-cr-salvar>Salvar</button>
+            <button type="button" data-cr-recarregar hidden>Recarregar a página</button>
+            <button type="button" data-cr-cancelar>Cancelar</button>
+          </div>
+        </form>
+      </dialog>
+    </>
+  )}
+</div>
+<style>
+  .cr-grupo{border:0;margin:0;padding:0;min-width:0;display:grid;gap:.7rem}
+  .cr-grupo[hidden]{display:none}
+</style>
+<script>
+import { camposAlterados, enviar, pedidoReordenar, pedidoReordenarFase, ROTA_GRAVAR } from '../../lib/cronograma/editor-cliente.ts';
+
+interface Tarefa { id: string; nome: string; fase: string; duracao_prevista: number | null; inicio_previsto: string | null; fim_previsto: string | null; inicio_real: string | null; fim_real: string | null; responsavel: string | null; unidade: string | null }
+type Modo = 'nova' | 'editar' | 'troca' | 'remover';
+
+document.addEventListener('astro:page-load', () => {
+  const raiz = document.querySelector<HTMLElement>('[data-cr-editor]');
+  if (!raiz || raiz.dataset.pronto) return;
+  raiz.dataset.pronto = 'sim';
+  const dialogo = raiz.querySelector<HTMLDialogElement>('[data-cr-dialogo]');
+  if (!dialogo) return; // perfil de leitura: sem botões
+  const form = dialogo.querySelector<HTMLFormElement>('[data-cr-form]')!;
+  const erroDialogo = dialogo.querySelector<HTMLElement>('[data-cr-erro]')!;
+  const erroGeral = raiz.querySelector<HTMLElement>('[data-cr-erro-geral]')!;
+  const botaoSalvar = dialogo.querySelector<HTMLButtonElement>('[data-cr-salvar]')!;
+  const botaoRecarregar = dialogo.querySelector<HTMLButtonElement>('[data-cr-recarregar]')!;
+  const cronogramaId = raiz.dataset.cronograma ?? '';
+  const hoje = raiz.dataset.hoje ?? '';
+  const revisao = Number(raiz.dataset.revisao);
+  const tarefas: Tarefa[] = [];
+  raiz.querySelectorAll<HTMLElement>('tr[data-tarefa]').forEach((tr) => {
+    try { tarefas.push(JSON.parse(tr.dataset.tarefa ?? '') as Tarefa); } catch { /* linha sem dados: sem botões */ }
+  });
+  const achar = (id: string | undefined): Tarefa | undefined => tarefas.find((t) => t.id === id);
+  let modo: Modo = 'nova';
+  let alvo: Tarefa | undefined;
+
+  const campo = (nome: string): HTMLInputElement | HTMLTextAreaElement => form.elements.namedItem(nome) as HTMLInputElement;
+  const valor = (nome: string): string => campo(nome).value.trim();
+
+  function mostrarErro(onde: HTMLElement, erro: string, erros?: string[]): void {
+    onde.textContent = erro;
+    const lista = (erros ?? []).filter((e) => e !== erro);
+    if (lista.length > 0) {
+      const ul = document.createElement('ul');
+      for (const e of lista) {
+        const li = document.createElement('li');
+        li.textContent = e;
+        ul.append(li);
+      }
+      onde.append(ul);
+    }
+  }
+  const travar = (v: boolean): void => {
+    raiz.querySelectorAll<HTMLButtonElement>('button[data-cr-acao]').forEach((b) => { if (v) b.dataset.estavaLivre = b.disabled ? 'nao' : 'sim'; b.disabled = v ? true : b.dataset.estavaLivre === 'nao'; });
+    botaoSalvar.disabled = v;
+  };
+
+  async function gravar(corpo: Record<string, unknown>, onde: HTMLElement): Promise<void> {
+    onde.textContent = '';
+    travar(true);
+    const r = await enviar(ROTA_GRAVAR + encodeURIComponent(cronogramaId) + '/', { revisao, ...corpo });
+    if (r.ok) {
+      location.reload();
+      return;
+    }
+    mostrarErro(onde, r.erro, r.erros);
+    if (r.status === 409) {
+      if (dialogo!.open) {
+        botaoSalvar.hidden = true;
+        botaoRecarregar.hidden = false;
+        // Revisão E13: se a pessoa cancelar o diálogo depois do conflito, a página volta a aceitar cliques.
+        dialogo!.addEventListener('close', () => travar(false), { once: true });
+        return;
+      }
+    }
+    travar(false);
+  }
+
+  function abrir(m: Modo, t?: Tarefa): void {
+    modo = m;
+    alvo = t;
+    form.reset();
+    erroDialogo.textContent = '';
+    botaoSalvar.hidden = false;
+    botaoRecarregar.hidden = true;
+    const grupos = dialogo!.querySelectorAll<HTMLFieldSetElement>('[data-cr-modo]');
+    const ativo = m === 'nova' || m === 'editar' ? 'tarefa' : m;
+    grupos.forEach((g) => { const on = g.dataset.crModo === ativo; g.hidden = !on; g.disabled = !on; });
+    dialogo!.querySelector<HTMLElement>('[data-cr-so-nova]')!.hidden = m !== 'nova';
+    dialogo!.querySelectorAll<HTMLInputElement>('[data-cr-so-nova] input').forEach((i) => { i.disabled = m !== 'nova'; });
+    const titulo = dialogo!.querySelector<HTMLElement>('[data-cr-titulo]')!;
+    if (m === 'nova') {
+      titulo.textContent = 'Nova tarefa';
+    } else if (t && m === 'editar') {
+      titulo.textContent = 'Editar tarefa';
+      for (const k of ['nome', 'fase', 'duracao_prevista', 'inicio_previsto', 'fim_previsto', 'inicio_real', 'fim_real'] as const) campo(k).value = t[k] === null ? '' : String(t[k]);
+    } else if (t && m === 'troca') {
+      titulo.textContent = 'Trocar responsável';
+      const atual = t.responsavel && t.unidade ? `${t.responsavel} (${t.unidade})` : t.responsavel ?? t.unidade ?? 'sem responsável';
+      dialogo!.querySelector<HTMLElement>('[data-cr-hoje-com]')!.textContent = `Hoje: ${atual}`;
+      campo('para_unidade').value = t.unidade ?? '';
+      campo('desde').value = hoje;
+    } else if (t && m === 'remover') {
+      titulo.textContent = 'Remover tarefa';
+      dialogo!.querySelector<HTMLElement>('[data-cr-remover-quem]')!.textContent = `Tarefa: ${t.nome}`;
+    }
+    dialogo!.showModal();
+  }
+
+  dialogo.querySelector<HTMLButtonElement>('[data-cr-cancelar]')!.addEventListener('click', () => dialogo.close());
+  botaoRecarregar.addEventListener('click', () => location.reload());
+
+  form.addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    const numero = (nome: string): number | null => (valor(nome) === '' ? null : Number(valor(nome)));
+    if (modo === 'nova') {
+      void gravar({ acao: 'incluir_tarefa', tarefa: {
+        nome: valor('nome'), fase: valor('fase'), duracao_prevista: numero('duracao_prevista'),
+        inicio_previsto: valor('inicio_previsto'), fim_previsto: valor('fim_previsto'), inicio_real: valor('inicio_real'), fim_real: valor('fim_real'),
+        responsavel: valor('responsavel'), unidade: valor('unidade'),
+      } }, erroDialogo);
+    } else if (modo === 'editar' && alvo) {
+      const depois = {
+        nome: valor('nome'), fase: valor('fase'), duracao_prevista: numero('duracao_prevista'),
+        inicio_previsto: valor('inicio_previsto'), fim_previsto: valor('fim_previsto'), inicio_real: valor('inicio_real'), fim_real: valor('fim_real'),
+      };
+      const campos = camposAlterados(alvo as unknown as Record<string, unknown>, depois);
+      if (Object.keys(campos).length === 0) { mostrarErro(erroDialogo, 'Nada foi alterado.'); return; }
+      void gravar({ acao: 'editar_tarefa', tarefa_id: alvo.id, campos }, erroDialogo);
+    } else if (modo === 'troca' && alvo) {
+      void gravar({ acao: 'trocar_responsavel', tarefa_id: alvo.id, para_responsavel: valor('para_responsavel'), para_unidade: valor('para_unidade'), desde: valor('desde'), motivo: valor('motivo_troca') }, erroDialogo);
+    } else if (modo === 'remover' && alvo) {
+      void gravar({ acao: 'remover_tarefa', tarefa_id: alvo.id, motivo: valor('motivo_remover') }, erroDialogo);
+    }
+  });
+
+  const idsDaFase = (fase: string): string[] => tarefas.filter((t) => t.fase === fase).map((t) => t.id);
+  raiz.addEventListener('click', (ev) => {
+    const b = (ev.target as HTMLElement).closest<HTMLButtonElement>('button[data-cr-acao]');
+    if (!b || b.disabled) return;
+    const acao = b.dataset.crAcao;
+    const t = achar(b.dataset.id);
+    erroGeral.textContent = '';
+    if (acao === 'nova') return abrir('nova');
+    if (acao === 'fase-subir' || acao === 'fase-descer') {
+      const ids = pedidoReordenarFase(tarefas, b.dataset.fase ?? '', acao === 'fase-subir' ? -1 : 1);
+      if (ids) void gravar({ acao: 'reordenar', ids }, erroGeral);
+      return;
+    }
+    if (!t) return;
+    if (acao === 'editar') abrir('editar', t);
+    else if (acao === 'trocar') abrir('troca', t);
+    else if (acao === 'remover') abrir('remover', t);
+    else if (acao === 'iniciar') void gravar({ acao: 'editar_tarefa', tarefa_id: t.id, campos: { inicio_real: hoje } }, erroGeral);
+    else if (acao === 'concluir') void gravar({ acao: 'editar_tarefa', tarefa_id: t.id, campos: { fim_real: hoje } }, erroGeral);
+    else if (acao === 'subir' || acao === 'descer') {
+      const novaFase = pedidoReordenar(idsDaFase(t.fase), t.id, acao === 'subir' ? -1 : 1);
+      if (!novaFase) return;
+      const fases: string[] = [];
+      for (const x of tarefas) if (!fases.includes(x.fase)) fases.push(x.fase);
+      const ids = fases.flatMap((f) => (f === t.fase ? novaFase : idsDaFase(f)));
+      void gravar({ acao: 'reordenar', ids }, erroGeral);
+    }
+  });
+});
+</script>

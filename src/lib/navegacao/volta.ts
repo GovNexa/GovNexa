@@ -75,6 +75,7 @@ const NOMES_TELA: Record<string, string> = {
   '/plataforma/projetos-cronogramas/': 'Cronogramas',
   '/plataforma/projetos-parado/': 'Onde está parado',
   '/plataforma/gestao-inconsistencias/': 'Inconsistências de dados',
+  '/plataforma/gestao-responsaveis/': 'Responsáveis',
   '/plataforma/projetos-pendencias/': 'Pendências de etapa',
   '/plataforma/projetos-reuniao/': 'Reunião semanal',
   '/plataforma/projetos-sala/': 'Sala de guerra',

@@ -42,7 +42,7 @@ test('cada visão tem as telas combinadas, nesta ordem, numa lista simples', () 
   const gerencial = menu.find((m) => m.id === 'gerencial')!.grupos[0].itens;
   assert.deepEqual(gerencial.map((i) => i.title), ['Projetos prioritários', 'Carteira de projetos', 'Mapa e painel', 'Gestão das licitações', 'Kanban por macroetapa', 'Gantt geral']);
   const governanca = menu.find((m) => m.id === 'governanca')!.grupos[0].itens.map((i) => i.title);
-  for (const t of ['Painel da equipe', 'Cronogramas', 'Onde está parado', 'Inconsistências de dados', 'Pendências de etapa', 'Reunião semanal', 'Sala de guerra', 'Histórico de alterações']) assert.ok(governanca.includes(t), t);
+  for (const t of ['Painel da equipe', 'Cronogramas', 'Responsáveis', 'Onde está parado', 'Inconsistências de dados', 'Pendências de etapa', 'Reunião semanal', 'Sala de guerra', 'Histórico de alterações']) assert.ok(governanca.includes(t), t);
   assert.equal(menu.find((m) => m.id === 'convenios')!.grupos[0].itens[0].title, 'Visão Convênios');
 });
 
@@ -94,4 +94,11 @@ test('município ativo', () => {
   const m = municipioAtivo();
   assert.equal(m.codigo_ibge, 5208707);
   assert.equal(m.nomeExibicao, 'Prefeitura Municipal de Goiânia');
+});
+
+test('E13: o painel Responsáveis aparece para o perfil leitura e para o editor', () => {
+  for (const perfil of ['leitura', 'editor'] as Perfil[]) {
+    const governanca = menuDe(perfil).find((m) => m.id === 'governanca')!.grupos[0].itens;
+    assert.ok(governanca.some((i) => i.slug === 'gestao-responsaveis' && i.title === 'Responsáveis'), perfil);
+  }
 });

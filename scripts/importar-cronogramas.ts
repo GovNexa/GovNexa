@@ -183,9 +183,18 @@ export async function importarCronogramas(op: { planilha: string; saida: string;
       const respTxt = texto(val(row, cResp));
       const pend: string[] = [];
       const inicio_previsto = dataIso(val(row, cIP), 'DATA INÍCIO PREVISTO', pend);
-      const fim_previsto = dataIso(val(row, cFP), 'DATA TÉRMINO PREVISTO', pend);
+      let fim_previsto = dataIso(val(row, cFP), 'DATA TÉRMINO PREVISTO', pend);
       const inicio_real = dataIso(val(row, cIR), 'DATA INÍCIO REALIZADO', pend);
-      const fim_real = dataIso(val(row, cFR), 'DATA TÉRMINO REALIZADO', pend);
+      let fim_real = dataIso(val(row, cFR), 'DATA TÉRMINO REALIZADO', pend);
+      // E13: término antes do início não vai para o banco (a 0009 recusa); o término vira null e a pendência diz o que havia.
+      if (inicio_previsto && fim_previsto && fim_previsto < inicio_previsto) {
+        pend.push(`Término antes do início: DATA TÉRMINO PREVISTO = ${fim_previsto}`);
+        fim_previsto = null;
+      }
+      if (inicio_real && fim_real && fim_real < inicio_real) {
+        pend.push(`Término antes do início: DATA TÉRMINO REALIZADO = ${fim_real}`);
+        fim_real = null;
+      }
       const situacao_planilha = texto(val(row, cSit));
       const temData = !!(inicio_previsto || fim_previsto || inicio_real || fim_real);
       if (!respTxt && !temData && !situacaoReconhecida(situacao_planilha)) {
@@ -202,7 +211,6 @@ export async function importarCronogramas(op: { planilha: string; saida: string;
       if (respTxt && !respTxt.includes(' - ') && unidade && !responsavel) soUnidade++;
       const status = calcularStatus({ inicio_previsto, fim_previsto, inicio_real, fim_real }, hoje);
       if (situacao_planilha && normCab(situacao_planilha).includes('conclu') && !fim_real) pend.push('Concluída na planilha sem data de término real');
-      if ((inicio_previsto && fim_previsto && fim_previsto < inicio_previsto) || (inicio_real && fim_real && fim_real < inicio_real)) pend.push('Término antes do início');
       const equiv = equivalentes(situacao_planilha);
       if (equiv && !equiv.includes(status)) pend.push('Situação da planilha diferente da calculada');
       const m = nome.match(RE_CICLO);
@@ -214,7 +222,7 @@ export async function importarCronogramas(op: { planilha: string; saida: string;
         unidade,
         responsavel,
         situacao_planilha,
-        duracao_prevista: numero(val(row, cDur), 'DURAÇÃO (DIAS) PREVISTO', []),
+        duracao_prevista: numero(val(row, cDur), 'DURAÇÃO (DIAS) PREVISTO', pend, 0),
         inicio_previsto,
         fim_previsto,
         inicio_real,

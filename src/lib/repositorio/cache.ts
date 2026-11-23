@@ -77,6 +77,24 @@ export function comInvalidacao(repo: RepositorioProjetos, prefeituraId: number):
         }
       },
     } : {}),
+    ...(repo.gravarCronograma ? {
+      gravarCronograma: async (id, revisao, op, ctx) => {
+        try {
+          return await repo.gravarCronograma!(id, revisao, op, ctx);
+        } finally {
+          invalidarCache(prefeituraId);
+        }
+      },
+    } : {}),
+    ...(repo.criarCronograma ? {
+      criarCronograma: async (dados, ctx) => {
+        try {
+          return await repo.criarCronograma!(dados, ctx);
+        } finally {
+          invalidarCache(prefeituraId);
+        }
+      },
+    } : {}),
     aplicar: async (evento) => {
       try {
         return await repo.aplicar(evento);

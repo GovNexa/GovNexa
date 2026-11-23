@@ -16,10 +16,11 @@
 
 ## Andamento · última atualização em 23/11/2026
 
-23/11/2026: **E1 a E11 estão no ar em produção** (E8, E9 e E11 publicadas em 23/11 com a migração 0008), aguardando o teste do dono. Em andamento, em branches separadas e fora da `main`: **E12** Gestão das licitações (migração 0010; cadastro e acompanhamento 100% no sistema), **E13** Governança da execução ampliada (cronograma completo no sistema, responsável, tempo na mão e painel Responsáveis; migração 0009) e **E15** Navegação (sempre poder voltar à tela de origem), cada uma com cerca de 25%. **E14** (PNCP e Compras.gov) é futura. A conferência de cada áudio contra o plano acrescentou seis pedidos (40 no total) e o dono fixou dois princípios novos: o sistema substitui a planilha, e sempre poder voltar. As linhas de 22/11 abaixo que dizem "aguardando revisão" ou "a numerar" foram escritas antes da publicação.
+23/11/2026: **E1 a E11 estão no ar em produção** (E8, E9 e E11 publicadas em 23/11 com a migração 0008), aguardando o teste do dono. **E12** Gestão das licitações (migração 0010; cadastro e acompanhamento 100% no sistema), **E13** Governança da execução ampliada (cronograma completo no sistema, responsável, tempo na mão e painel Responsáveis; migração 0009) e **E15** Navegação (sempre poder voltar à tela de origem) estão com código, testes, revisões independentes e prévias aprovadas pelo dono, cerca de 90% cada, aguardando merge (PR #54 da E15, PR #55 da E12, que contém a E15, e o PR da E13, que conterá as três) e publicação; as migrações 0009 e 0010 são aplicadas antes do código, nessa ordem numérica. **E14** (PNCP e Compras.gov) é futura. A conferência de cada áudio contra o plano acrescentou seis pedidos (40 no total) e o dono fixou dois princípios novos: o sistema substitui a planilha, e sempre poder voltar. As linhas de 22/11 abaixo que dizem "aguardando revisão" ou "a numerar" foram escritas antes da publicação.
 
+23/11/2026: E13 (cronograma como processo na tela, responsável e tempo na mão, painel Responsáveis, migração 0009) no código, com revisão e prévia aprovada; aguardando merge e publicação; a Fase 2 (Cronograma e equipe) passa a 95%.
 23/11/2026: E12 (Gestão das licitações) entregue no código: guia na Visão gerencial, edição em linha, página da contratação, aba Contratações na ficha, impressão e CSV; carga da planilha modelo aguarda D5; integração PNCP e Compras.gov na E14.
-23/11/2026: E15 (navegação: "← Voltar para [tela de origem]" em toda tela de destino, com os filtros preservados) no código, aguardando portão e revisão.
+23/11/2026: E15 (navegação: "← Voltar para [tela de origem]" em toda tela de destino, com os filtros preservados) no código, com revisão e prévia aprovada; aguardando merge e publicação.
 
 22/11/2026: os requisitos dos áudios de 20/11 (três visões: gerencial, governança da execução e convênios; tela do prefeito; carteira, ficha, Kanban, mapa por área e licitações) estão planejados em [plano-requisitos-audios.md](plano-requisitos-audios.md).
 
@@ -47,9 +48,10 @@ Percentuais mantidos até homologação do login próprio; Access continua padr�
 | Data | Entrega | PR |
 | --- | --- | --- |
 | 23/11 | E8, E9 e E11 publicadas em produção (migração 0008); E1 a E11 no ar | publicação do dono |
-| 23/11 | Em andamento: E12 (licitações), E13 (governança da execução) e E15 (navegação) | branches separadas |
+| 23/11 | E12 (licitações), E13 (governança da execução) e E15 (navegação) no código, ~90% cada, com revisão e prévia aprovada | aguardando merge (PRs #54, #55 e o da E13) e publicação; migrações 0009 e 0010 antes do código |
 | 23/11 | Documentação: rastreabilidade dos áudios (40 pedidos) e princípios "o sistema substitui a planilha" e "sempre poder voltar" | a numerar |
-| 23/11 | E15: navegação, voltar sempre à tela de origem (13 caminhos corrigidos) | branch agente/codex/e15-navegacao, aguardando revisão |
+| 23/11 | E13: cronograma criado e mantido na tela, troca de responsável com histórico, tempo na mão e painel Responsáveis (migração 0009) | a numerar |
+| 23/11 | E15: navegação, voltar sempre à tela de origem (13 caminhos corrigidos) | branch agente/codex/e15-navegacao, PR #54 |
 | 22/11 | E11: menu nas três visões (Gerencial, Governança da execução, Convênios) e Visão Convênios (em execução, em risco, CAUC); menu esconde o que o perfil não abre | a numerar |
 | 22/11 | E10: Painel da equipe e relatório de inconsistências (impressão e CSV) | GovNexa #49, mesclado |
 | 22/11 | E7: Kanban enxuto e mover gravando no banco (B3), com portão e motivo | GovNexa #48, mesclado |
