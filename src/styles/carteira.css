@@ -263,7 +263,9 @@
 @media print{
  .fx-legenda{break-inside:avoid}
  .fx-quadro{break-inside:avoid;border:0}
- .fx-svg{width:auto!important;max-width:100%!important;max-height:235mm;margin:0 auto!important}
+ .fx-svg{width:100%!important;max-width:100%!important;max-height:none;margin:0 auto!important}
+ .fx:has(.fx-partes) .fx-svg{width:auto!important;max-height:180mm}
+ .fx:has(.fx-partes) .fx-quadro{break-after:page}
  .fx-lista{break-before:page}
  .fx-dialogo{display:none!important}
  .fx-no{cursor:default}
@@ -491,3 +493,16 @@
 .fp-avisos{margin:0;padding:.5rem .75rem;list-style:none;border-left:3px solid var(--cart-amarelo);background:var(--soft);color:var(--text);font-size:.85rem}
 .gt-vazio{margin:0 0 1rem}
 @media print{:root,:root[data-theme=dark]{--prj-fundo:#fff;--prj-superficie:#fff;--prj-suave:#eee;--prj-borda:#888;--prj-texto:#000;--prj-texto-suave:#222}}
+/* Fluxo: impressão em partes (E17). Folha A4 paisagem; o mapa geral abre e cada faixa de linhas ocupa uma folha. */
+.fx-partes,.fx-so-impressao-svg{display:none}
+.fx-parte-moldura{fill:none;stroke:var(--fx-apoio);stroke-width:1.5;stroke-dasharray:8 5}
+.fx-parte-num{font-size:13px;font-weight:700;fill:var(--text)}
+@page fluxo{size:A4 landscape;margin:8mm}
+@media print{
+ html:has(.fx){page:fluxo}
+ .fx-partes{display:block!important}
+ .fx-so-impressao-svg{display:inline!important}
+ .fx-parte{break-before:page;break-inside:avoid}
+ .fx-parte-svg,.fx-parte-raias{width:100%;height:auto;display:block}
+ .fx-parte-cab,.fx-parte-rodape{font-size:9pt;margin:0 0 1.5mm}
+}

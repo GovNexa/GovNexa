@@ -130,7 +130,7 @@ Situação por fase do produto:
 
 | Fase | O que entrega | Situação | % |
 | --- | --- | --- | --- |
-| Planejamento | Plano, decisões, rastreabilidade, Fluxo do sistema, fluxos detalhados, mapa de impacto | Publicado; Fluxo com zoom e legenda recolhida | 97% |
+| Planejamento | Plano, decisões, rastreabilidade, Fluxo do sistema, fluxos detalhados, mapa de impacto | Publicado; Fluxo com zoom e legenda recolhida; PDF do Fluxo em partes (E17, no código) | 97% |
 | 0 · Base e identidade | Marca GovNexa, menu por módulos, tema estável, paginação | Publicada; blocos do menu começam fechados | 100% |
 | 1 · Carteira de Projetos | Carteira, ficha, Kanban, Gantt, Visão por órgão, celular | Entregue; carga inicial no D1 | 100% |
 | 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, Kanban e Pendências, Histórico, Sala de guerra | E1 no ar (edição pela ficha, área, marca de prioritário e códigos a partir de 9000; migração 0007), aguardando teste do dono em produção | 100% |
@@ -162,6 +162,7 @@ Situação por fase do produto:
 
 | Data | O que | Referência |
 | --- | --- | --- |
+| 23/11 | PDF do Fluxo do sistema em partes legíveis (E17): uma folha A4 paisagem por faixa de linhas, com mapa geral antes | em revisão |
 | 20/11 | Mapa das obras no dashboard: versão compacta com os filtros do dashboard; tocar amplia para a apresentação em tela cheia da Gestão. Verificação de layout em 10 tamanhos de tela e dos modos de apresentação | novo PR |
 | 19/11 | Verificação completa e correções: Esc fecha o menu e a lista de filtro do mapa também no Safari; contorno de foco do painel de detalhes só pelo teclado; link do mapa sublinhado no editor de localização; frase da Qualidade dos dados com data DD/MM/AAAA; testes do Safari estabilizados | novo PR |
 | 18/11 | Entrega B2: Novo projeto grava no banco (macroetapa 00, código único P-N, cadastro no Histórico); migração 0006 (índice único do código) aplicada e publicada em 18/11 | PR #34 |
@@ -226,7 +227,7 @@ O tema claro usa menu lateral branco, texto e ícones azul-escuros, destaques az
 | Guia | O que faz | Situação | Código |
 | --- | --- | --- | --- |
 | Projetos · Início | Resumo da carteira por macroetapa: quantidade, valor e farol de prazo | Disponível | `src/lib/carteira/` |
-| Fluxo do sistema | Diagrama em raias com etapas, validações, responsáveis e links para as telas; inclui fluxos detalhados e zoom | Disponível | `src/lib/govnexa/fluxo.ts`, `subfluxos.ts`, `src/components/fluxo/` |
+| Fluxo do sistema | Diagrama em raias com etapas, validações, responsáveis e links para as telas; inclui fluxos detalhados e zoom; o PDF sai em partes (uma folha A4 paisagem por faixa, com mapa geral) | Disponível | `src/lib/govnexa/fluxo.ts`, `subfluxos.ts`, `src/components/fluxo/` |
 | Novo projeto | Cadastro com área e marca de prioritário. Grava na macroetapa 00, usa códigos a partir de P-9000 e registra no Histórico | Disponível, no ar (B2 e E1) | `src/components/carteira/NovoProjeto.astro` |
 | Carteira de projetos | Grandes números que seguem os filtros, colunas do relatório por órgão, filtros padrão com "Só prioritários", grupos por macroetapa da entrega mais próxima à mais distante, impressão e ficha completa | Disponível (E5) | `src/components/carteira/CarteiraProjetos.astro`, `src/lib/carteira/lista.ts` |
 | Ficha do projeto | Uma só ficha, aberta pela Carteira ou pelo endereço: topo do prefeito (órgão, área, valor total, macroetapa, entrega prevista, localização, observação) e abas Cadastro, Recurso, Entrega, Localização, Fotos, Documentos, Processos SEI, Cronograma, Histórico e Governança. Edição (E1) por quem tem permissão | Disponível, no ar (E6); fotos na aba Fotos (E9) | `src/pages/plataforma/projeto/[id].astro`, `src/lib/carteira/ficha*.ts` |
