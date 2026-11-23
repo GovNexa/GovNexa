@@ -33,7 +33,7 @@ const blocos = blocosProjeto({ orgaos, regioes, origensValor, detalhamentos, are
     <fieldset class="np-bloco">
       <legend>Localização (opcional)</legend>
       <p class="np-dica">Marque no mapa onde fica a obra. Se não souber agora, deixe em branco: o mapa usa o centro do bairro e a localização pode ser cadastrada depois.</p>
-      <EditorLocalizacao idPrefixo="np-loc" bairros={nomesBairros} geo={geoCentros} />
+      <EditorLocalizacao idPrefixo="np-loc" bairros={nomesBairros} geo={geoCentros} buscaEndereco={podeSalvar} />
     </fieldset>
     <div class="actions np-acoes">
       {podeSalvar && <button type="submit" class="primary" data-np-enviar>Cadastrar projeto</button>}

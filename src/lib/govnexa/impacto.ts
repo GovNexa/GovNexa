@@ -13,7 +13,7 @@ export const TRANSVERSAL = [
 ];
 
 /** Mapa das obras e localização: pertence ao Painel do prefeito (mapa) e ao Cadastro do projeto (editor de localização). */
-const MAPA = ['src/lib/mapa/**', 'src/components/mapa/**', 'src/styles/mapa.css', 'scripts/geocodificar-bairros.ts'];
+const MAPA = ['src/lib/mapa/**', 'src/components/mapa/**', 'src/styles/mapa.css', 'scripts/geocodificar-bairros.ts', 'src/pages/plataforma/localizacao/**'];
 
 /** Etapa do mapa geral (id de fluxo.ts) → partes do código. */
 export const COMPONENTES: Record<string, string[]> = {

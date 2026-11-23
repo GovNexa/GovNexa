@@ -52,7 +52,7 @@ const dados = JSON.stringify({ projetos: lista }).replaceAll('<', '\\u003c');
       <p><a data-lp-pagina href="/plataforma/projetos-carteira/">Abrir a página do projeto</a></p>
     </div>
 
-    <EditorLocalizacao idPrefixo="lp-loc" bairros={nomesBairros} geo={geo} />
+    <EditorLocalizacao idPrefixo="lp-loc" bairros={nomesBairros} geo={geo} buscaEndereco={podeSalvar} />
 
     {podeSalvar && <div class="actions">
       <button type="button" class="primary" data-lp-salvar>Salvar localização</button>

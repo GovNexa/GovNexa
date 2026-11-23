@@ -16,7 +16,7 @@ const dados = JSON.stringify({ id, bairro: bairroOk && bairro ? bairro.trim() : 
 <div class="fp-local" data-localizacao-ficha>
   {!podeSalvar && <p class="cart-aviso" role="note">Seu perfil permite ver a localização, mas não alterar.</p>}
   <p data-lp-precisao>Localização atual: {inicial ? 'Cadastrada' : bairroOk ? 'Aproximada pelo bairro' : 'Sem localização'}</p>
-  <EditorLocalizacao idPrefixo="lp-loc" inicial={inicial} bairros={nomesBairros} geo={geo} />
+  <EditorLocalizacao idPrefixo="lp-loc" inicial={inicial} bairros={nomesBairros} geo={geo} buscaEndereco={podeSalvar} />
   {podeSalvar && <div class="actions"><button type="button" class="primary" data-lp-salvar>Salvar localização</button></div>}
   <div class="mp-ok" role="status" data-lp-ok hidden><p data-lp-ok-texto></p><p><a href="/plataforma/gestao/#mapa">Ver no mapa do painel</a></p></div>
   <script is:inline type="application/json" data-lf-dados set:html={dados}></script>
