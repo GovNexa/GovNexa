@@ -3,6 +3,7 @@ process.env.GOVNEXA_EXEMPLO = '1'; // usa os dados fictícios de data/exemplo
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
+import { prazoVencido } from '../../src/lib/carteira/prazo.ts';
 import type { Carteira, Projeto } from '../../src/lib/carteira/tipos.ts';
 import type { RegistroLog } from '../../src/lib/log/tipos.ts';
 import { MOTIVO_MUDOU, MOTIVO_PRIORIDADE, MOTIVO_SALA, MOTIVO_VENCIDO, pautaSemanal } from '../../src/lib/reuniao/visoes.ts';
@@ -11,7 +12,7 @@ import { faltandoNaReuniao, montarRegistrosReuniao } from '../../src/lib/reuniao
 const HOJE = '2026-11-15';
 const carteira = JSON.parse(readFileSync('data/exemplo/carteira/carteira.json', 'utf8')) as Carteira;
 
-/** Projeto sintético em dia (farol verde), sem motivo para a pauta, a menos que se peça. */
+/** Projeto sintético em dia (no prazo), sem motivo para a pauta, a menos que se peça. */
 function proj(id: string, mudar: (p: Projeto) => void = () => {}): Projeto {
   const p = JSON.parse(JSON.stringify(carteira.projetos[0])) as Projeto;
   p.id = id;
@@ -34,12 +35,12 @@ test('projeto em dia e sem mudança não entra na pauta', () => {
   assert.deepEqual(ids(cart(proj('A')), [], []), []);
 });
 
-test('farol vermelho entra com o motivo "Prazo vencido"', () => {
+test('prazo vencido entra com o motivo "Prazo vencido"', () => {
   const c = cart(proj('A', (p) => { p.macroetapa = '04'; p.datas.mobilizacao = '2026-10-01'; }));
   const r = pautaSemanal(c, [], [], '2026-11-08', HOJE);
   assert.deepEqual(r.itens.map((i) => i.motivosNaPauta), [[MOTIVO_VENCIDO]]);
-  assert.equal(r.itens[0].farol.cor, 'vermelho');
-  assert.equal(r.resumo.vermelhos, 1);
+  assert.equal(prazoVencido(r.itens[0].prazo.codigo), true);
+  assert.equal(r.resumo.vencidos, 1);
 });
 
 test('candidato à sala de guerra entra (lista por parâmetro)', () => {
@@ -58,7 +59,7 @@ test('mudança no histórico desde a data entra; antes da data não entra', () =
   assert.deepEqual(r.itens[0].motivosNaPauta, [MOTIVO_MUDOU]);
 });
 
-test('prioridade Muito Alta com farol amarelo entra; Muito Alta verde não', () => {
+test('prioridade Muito Alta com prazo perto de vencer ou dado faltando entra; Muito Alta no prazo não', () => {
   const amarelo = proj('A', (p) => { p.prioridade = 'Muito Alta'; p.pendencias = ['Falta valor']; });
   const verde = proj('B', (p) => { p.prioridade = 'Muito Alta'; });
   const r = pautaSemanal(cart(amarelo, verde), [], [], '2026-11-08', HOJE);

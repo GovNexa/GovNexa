@@ -58,7 +58,7 @@ São módulos independentes que conversam entre si:
 | Princípio | Na prática |
 | --- | --- |
 | Uma fonte da verdade | O projeto é único; os módulos se ligam a ele por referência |
-| Calcular, não digitar | Status, %, farol, entrega projetada, saldo sem fonte, atraso em cascata e economia saem de regras |
+| Calcular, não digitar | Status, %, dias de atraso, entrega projetada, saldo sem fonte, atraso em cascata e economia saem de regras (sem farol de cores, retirado em 23/11/2026) |
 | Dado ausente não é zero | Fica "—" e entra em pendências de dado; nunca se inventa data ou valor |
 | Toda espera tem dono | Etapa parada mostra quem deve o quê e desde quando |
 | Simples para quem usa | Fichas em texto, poucos cliques, sem rolagem lateral, funciona no celular |
@@ -122,7 +122,7 @@ Resumo do plano dos áudios de 20/11 ([plano-requisitos-audios.md](docs/govnexa/
 | --- | --- | --- |
 | Base de dados para operar do zero | E1, E9 | 100% |
 | Visão gerencial (prefeito) | E2 a E8 | 100% |
-| Governança (equipe) | E10, E11, E13, E16 | 100% |
+| Governança (equipe) | E10, E11, E13, E16, E19 (farol retirado, na branch) | 100% |
 | Navegação | E15, E17, E18 | 100% |
 | Licitações | E12 (100%), E14 PNCP completo (70%: E14a no ar; E14b a E14d a fazer) | 85% |
 
@@ -141,6 +141,7 @@ Situação por fase do produto:
 
 ### Entregas recentes
 
+- 23/11/2026: **E19, farol retirado de todo o sistema** (decisão do dono sobre o áudio 19, branch agente/codex/e19-sem-farol; aguardando revisão e PR): os fatos continuam em texto com os dias ("Prazo da macroetapa vencido há 12 dias", "Entrega prevista vencida há 3 dias", "Dados incompletos: 2 pendências"); alertas em Urgente/Atenção; ritmo do cronograma em texto; WhatsApp sem emojis de cor; página pública sem a palavra. Sem migração; a importação avisa quando a planilha traz coluna Farol e a ignora.
 - 23/11/2026: **publicação em produção** de E18, E14a e E16 (versão do Worker 6e5fd492-3904-46ab-94cb-cbf76cb3da16; migrações 0011 da prefeitura e 0003 central aplicadas antes do código; pontos de restauração anotados antes das migrações). Antes, no mesmo dia, já estavam no ar E8, E9, E11, E12 (com ajustes), E13, E15 e E17. Todas aguardam o teste do dono em produção.
 - 23/11/2026: E14a, integração parcial com o PNCP (no ar; migração 0011): cadastro das secretarias compradoras pela tela (permissão própria, hoje só do administrador, com registro de quem criou, editou e desativou), ligação manual da contratação à compra (número de controle ou link, com prévia e confirmação), botão "Atualizar agora" (por contratação ou por secretaria) e quadro "Dados do PNCP" (situação, itens, vencedores, valores, classificação de obra). Só por botão; sem agendamento.
 - 23/11/2026: E16, dispensa temporária da 2ª etapa e conta de consulta: só outro administrador dispensa o código do aplicativo de uma pessoa, de 1 a 60 dias, com motivo e registro; retirar, vencer, mudar o perfil ou desativar encerra a dispensa; a conta de consulta é o perfil Leitura com convite por e-mail. No ar, com testes e revisão independente (migração central 0003 aplicada antes do código). Fase 3 sem mudança de %.
@@ -230,7 +231,7 @@ O tema claro usa menu lateral branco, texto e ícones azul-escuros, destaques az
 
 | Guia | O que faz | Situação | Código |
 | --- | --- | --- | --- |
-| Projetos · Início | Resumo da carteira por macroetapa: quantidade, valor e farol de prazo | Disponível | `src/lib/carteira/` |
+| Projetos · Início | Resumo da carteira por macroetapa: quantidade, valor e quantos estão no prazo, com prazo próximo ou dado faltando e com prazo vencido | Disponível | `src/lib/carteira/` |
 | Fluxo do sistema | Diagrama em raias com etapas, validações, responsáveis e links para as telas; inclui fluxos detalhados e zoom; o PDF sai em partes (uma folha A4 paisagem por faixa, com mapa geral) | Disponível | `src/lib/govnexa/fluxo.ts`, `subfluxos.ts`, `src/components/fluxo/` |
 | Novo projeto | Cadastro com área e marca de prioritário. Grava na macroetapa 00, usa códigos a partir de P-9000 e registra no Histórico | Disponível, no ar (B2 e E1) | `src/components/carteira/NovoProjeto.astro` |
 | Carteira de projetos | Grandes números que seguem os filtros, colunas do relatório por órgão, filtros padrão com "Só prioritários", grupos por macroetapa da entrega mais próxima à mais distante, impressão e ficha completa | Disponível (E5) | `src/components/carteira/CarteiraProjetos.astro`, `src/lib/carteira/lista.ts` |
@@ -283,10 +284,10 @@ Código: `src/lib/dados/`, `src/lib/projetos/`, `coletores/`. Detalhes em [docs/
 | Guia | O que faz | Situação |
 | --- | --- | --- |
 | Início · Projetos prioritários | Tela do prefeito: obras por área, quantidade e valor por etapa (as partes somam o total), linha do tempo de entregas por área até dez/2028, próximas entregas e principais obras; todo número vira filtro guardado no endereço; "Só prioritários"; região só como filtro opcional. Sem farol, prazos, "onde está parado", decisões pendentes e convênios | Disponível, no ar (E3) |
-| Painel da equipe | Visão operacional que saiu da tela do prefeito: 10 indicadores com farol e situação, prazos da Lei, onde está parado, decisões pendentes, alertas da central, convênios e valores por região; o projeto abre a ficha e o X volta ao painel. Só administrador, gestor e editor | Disponível, no ar (E10) |
+| Painel da equipe | Visão operacional que saiu da tela do prefeito: 10 indicadores com situação (sem farol), prazos da Lei, onde está parado, decisões pendentes, alertas da central, convênios e valores por região; o projeto abre a ficha e o X volta ao painel. Só administrador, gestor e editor | Disponível, no ar (E10) |
 | Inconsistências de dados | Relatório por órgão ou geral com 10 regras (campo essencial faltando, datas fora de ordem, macroetapa vencida, SEI inválido, obra fora do mapa e outras pendências da carga), contagem por regra e por órgão, link para a aba Governança da ficha, impressão em A4 e CSV. Só administrador, gestor e editor | Disponível, no ar (E10) |
 | Mapa das obras por área (E4) | Na tela do prefeito (compacto, abaixo da linha do tempo, com os filtros da tela) e na Gestão · Painel: cor, legenda e filtro por área (mesmas cores da tela do prefeito); filtro por macroetapa e região opcional; total de obras e valor por região; sem no prazo, atenção, atrasada nem farol. Bolhas e marcadores nunca se cobrem (alvos de toque de 24 px ou mais) | Disponível, no ar (E4) |
-| Painel antigo (10 indicadores, farol, decisões, convênios, mapa compacto) | Saiu da tela inicial na E3; o código continua (`DashboardPrefeito.astro`, `src/lib/gestao/dashboard.ts`) e volta no painel da equipe (E10) | Fora da tela até a E10 |
+| Painel antigo (10 indicadores, decisões, convênios, mapa compacto) | Saiu da tela inicial na E3; o código continua (`DashboardPrefeito.astro`, `src/lib/gestao/dashboard.ts`) e volta no painel da equipe (E10) | Fora da tela até a E10 |
 | Mapa e painel | Foto atual da carteira e dos recursos e o mapa completo das obras (antiga "Gestão · Painel", mesmo endereço; na Visão gerencial desde a E11) | Disponível |
 | Alertas | Central de alertas de convênios, contratação, obras, saldo sem fonte, etapas paradas e dados desatualizados | Disponível |
 | WhatsApp | Permissões por cargo, relatórios, perguntas e modelos para aprovação da Meta | Simulação; envio real depende do banco e da conta do WhatsApp Business |
@@ -360,7 +361,7 @@ Os pedidos vêm dos áudios do dono, da reunião com a equipe e das planilhas.
 | Link com PNCP e Compras.gov (áudio 37) | E14 | PNCP parcial no ar por botão (E14a, 70% do E14); E14b a E14d a fazer; Compras.gov (E14e) opcional |
 | Tarefas com responsável e tempo na mão; cronogramas dos demais projetos (áudio 31) | Governança da execução (E13) | Feito, no ar (E13), aguardando teste do dono em produção |
 | Controle dos recursos e dos envolvidos do projeto (áudio 31, citado de passagem) | Ainda sem entrega | A planejar |
-| Origem e regra do farol (vermelho, amarelo, cinza e verde): o dono não lembra de tê-lo na planilha (áudio 19) | Farol só para a equipe | Esclarecer com o dono |
+| Origem e regra do farol (áudio 19) | Retirado por decisão do dono (23/11/2026) | Feito (E19) |
 | Mapa de pedidos: cada áudio (01 a 37) com sua entrega e situação | [plano-requisitos-audios.md](docs/govnexa/plano-requisitos-audios.md), seção 2 (40 pedidos) | Fonte completa da rastreabilidade |
 | "Entro numa tela, dela vou pra outra, porém não consigo retornar para a tela que iniciei" (23/11/2026) | Link "← Voltar para …" em toda tela de destino, com os filtros da origem (E15) | Disponível (E15, no ar), aguardando teste do dono em produção |
 | Liberar uma administradora a entrar sem a 2ª etapa por um tempo, e uma conta de consulta temporária só de leitura (23/11/2026) | Guia Usuários: "Dispensar a 2ª etapa por um prazo" (E16) | Disponível (E16, no ar; migração central 0003); a conceder pelo dono |
@@ -470,6 +471,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Banco:** D1, um por prefeitura, e um D1 central para prefeituras, usuários e importações. Supabase/PostgreSQL fica apenas como plano B.
 - **Login (17/11/2026):** modo próprio com senha e 2FA obrigatório (salvo dispensa temporária, E16) autorizado; Access permanece padrão até decisão expressa de troca. Perfis admin, gestor, editor e leitura.
 - **Dispensa da 2ª etapa e conta de consulta (23/11/2026):** prazo máximo de 60 dias; nunca a si mesmo; só outro administrador concede (e quem está dispensado não concede); a conta de consulta é o perfil Leitura, cadastrada pela guia Usuários, e define a própria senha pelo convite por e-mail. Publicada em 23/11/2026 (migração central 0003); conceder as dispensas e cadastrar a conta de consulta ainda é tarefa do dono.
+- **Farol (23/11/2026, áudio 19):** retirado de todo o sistema; os fatos (dias de atraso, prazo vencendo, dado faltando) aparecem em texto; gravidade de alerta = Urgente/Atenção.
 - **Publicação de 23/11/2026 (ordem expressa do dono):** E18 (ícone de tema ao lado do sino), E14a (PNCP por botão) e E16 foram publicadas com as migrações 0011 (banco da prefeitura) e 0003 (banco central) aplicadas antes do código; pontos de restauração anotados antes das migrações. Antes, no mesmo dia, já estavam no ar E8, E9, E11, E12, E13, E15, E17 e os ajustes da E12.
 - **Cadastro (17/11/2026):** administrador cadastra e envia convite pelo GovNexa. Preparar senha e 2FA antes de mudar `LOGIN_MODO`; sem sincronização automática com Access.
 - **Datas (17/11/2026):** padrão brasileiro em todo o sistema: `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` no horário de Brasília.
@@ -527,16 +529,16 @@ Centros dos bairros: migração 0005 e carga publicadas em 18/11/2026. Parte dos
 | Testar em produção as entregas E1 a E13 e E15 a E18 (no ar desde 23/11; em especial E12, E13, E15, E17, E18, E14a e E16) e dar o aceite | Fechar o plano dos áudios; erros achados viram correção |
 | Liberar a conta de uma administradora (dispensa da 2ª etapa) e cadastrar a conta de consulta pela tela de Usuários | Atender o pedido de 23/11/2026 (E16, já no ar); ainda a fazer pelo dono |
 | Testar o mapa das obras no monitor touch | Conferir o toque, a ampliação e a saída da tela cheia no aparelho real |
-| Decidir os recursos do projeto (áudio 31) e a regra do farol (áudio 19) | Decisões pendentes; hoje sem entrega |
+| Decidir os recursos do projeto (áudio 31) | Decisão pendente; hoje sem entrega |
 | Enviar o modelo da planilha de licitações, quando houver | Só para a carga inicial da E12; não bloqueia a entrega |
 | Enviar a lista oficial de áreas, quando houver | Substitui a área sugerida pelo órgão (D2) |
-| Explicar de onde vem o farol (vermelho, amarelo, cinza e verde) | Decidir como a equipe o usa (áudio 19) |
 
 ### Próximos passos
 
+- **Limpeza futura:** renomear os valores internos de gravidade `vermelho/amarelo` para `urgente/atencao` (só código; sem efeito na tela).
 0. **Requisitos dos áudios de 20/11/2026 (visão do prefeito, gestão e governança):** plano completo em [docs/govnexa/plano-requisitos-audios.md](docs/govnexa/plano-requisitos-audios.md), com 40 pedidos rastreados (conferência de 23/11/2026 contra a transcrição dos 31 áudios), entregas E1 a E18, ordem e % por fase. Decisões D1 a D6 respondidas em 22/11/2026 e as de E12 e E13 em 23/11/2026 (seção 7). **Situação em 23/11/2026:** E1 a E13 e E15 a E18 no ar em produção (100%), aguardando o teste do dono (a última publicação, de E18, E14a e E16, usou a versão do Worker 6e5fd492-3904-46ab-94cb-cbf76cb3da16, com as migrações 0011 e 0003 aplicadas antes do código); E14 (PNCP) em 70%: E14a no ar, E14b a E14d a fazer, E14e opcional.
    - **Varredura pendente (princípio "o sistema substitui a planilha"):** conferir módulo a módulo o que ainda depende de planilha para continuar o trabalho (os cronogramas eram só leitura e viraram a E13; falta olhar Reunião semanal, Sala de guerra, importação de projetos e demais telas em simulação) e abrir uma entrega para cada achado.
-   - **A planejar, sem entrega ainda:** controle dos recursos e dos envolvidos do projeto (áudio 31); regra e origem do farol para a equipe (áudio 19).
+   - **A planejar, sem entrega ainda:** controle dos recursos e dos envolvidos do projeto (áudio 31).
    - **Ligação real com o SEI (B7):** a aba Processos SEI da ficha está no ar; a lista real de processos por projeto depende do banco.
    - **E14:** a E14a (secretarias compradoras, vínculo manual e quadro Dados do PNCP, por botão) está no ar desde 23/11/2026; faltam E14b (sugestões e alertas: sugestões a confirmar, alertas e selos), E14c (atualização automática diária; exige autorizar a mudança em `wrangler.jsonc`), E14d (sugestão automática de ligação: varredura e possíveis vínculos) e E14e (Compras.gov, opcional). A categoria do item no PNCP como sinal de obra e os rótulos das situações 2 a 4 da compra e 3 a 5 do item estão "a confirmar" com o PNCP. Riscos aceitos da E14a (23/11/2026): (a) `mascararCpf` não cobre CPF colado a letra ou hífen (`CPF00000000191`, `MEI-000.000.001-91`) nem separado por espaços; o banco recusa CPF só no campo de identificação do fornecedor; (b) a prévia e a conferência do `vincular` não entram no teto de 120 coletas por hora (valem só os 60 por minuto da instância e o limite por pessoa); (c) a pausa depois de 429/503 do PNCP e os limites por minuto são por instância do Worker (pausa global na E14c); o teto de 120 coletas por hora no D1 vale para todas as instâncias. Subrequisições: o plano da conta Workers é o pago (confirmado pelo dono), que permite 1000 subrequisições por invocação; `MAX_CHAMADAS_PEDIDO` fica em 60 por vínculo.
 

@@ -5,7 +5,7 @@ import { carregarCarteira } from '../carteira/carga.ts';
 import type { Carteira } from '../carteira/tipos.ts';
 import { carregarGeoBairros } from '../mapa/obras.ts';
 import type { RepositorioProjetos } from '../repositorio/tipos.ts';
-import { hojeEmBrasilia } from '../whatsapp/farol.ts';
+import { hojeEmBrasilia } from '../datas.ts';
 import { filtrosDaUrl, montarRelatorio, opcoesRelatorio, type FiltrosRelatorio, type OpcoesRelatorio, type RelatorioInconsistencias } from './inconsistencias.ts';
 
 export interface TelaInconsistencias {

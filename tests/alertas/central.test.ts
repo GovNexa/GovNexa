@@ -14,6 +14,7 @@ import {
   gravidadeMetaTeto,
   montarCentral,
   ordenar,
+  ROTULO_GRAVIDADE,
   SEM_ORGAO,
   textoDias,
 } from '../../src/lib/alertas/central.ts';
@@ -219,4 +220,11 @@ test('texto dos dias', () => {
   assert.equal(textoDias(1), 'falta 1 dia');
   assert.equal(textoDias(12), 'faltam 12 dias');
   assert.equal(textoDias(null), 'sem prazo');
+});
+
+test('gravidade aparece como Urgente/Atenção e nenhuma regra fala em cor', () => {
+  assert.deepEqual(ROTULO_GRAVIDADE, { vermelho: 'Urgente', amarelo: 'Atenção' });
+  const { alertas } = montarCentral(entrada());
+  assert.ok(alertas.length > 0);
+  for (const a of alertas) assert.doesNotMatch(a.regra, /vermelh|amarel/i, a.id);
 });

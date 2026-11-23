@@ -6,11 +6,13 @@ import { test } from 'node:test';
 import type { Carteira } from '../../src/lib/carteira/tipos.ts';
 import { montarBase } from '../../src/lib/whatsapp/base.ts';
 import { contatosExemplo } from '../../src/lib/whatsapp/exemplo.ts';
-import { AJUDA, caber, LIMITE_MENSAGEM, montarRelatorio, procurarProjeto, responderPergunta, SEM_CAPTACAO, SEM_PROJETO } from '../../src/lib/whatsapp/mensagens.ts';
+import { AJUDA, caber, detalheProjeto, LIMITE_MENSAGEM, montarRelatorio, procurarProjeto, responderPergunta, SEM_CAPTACAO, SEM_PROJETO } from '../../src/lib/whatsapp/mensagens.ts';
 import { descreverPermissao, descreverRelatorio, mascararTelefone, normalizarTelefone, permissaoDoPerfil, projetosVisiveis, validarContato } from '../../src/lib/whatsapp/permissoes.ts';
 import type { CaptacaoWhats, Contato, Permissao } from '../../src/lib/whatsapp/tipos.ts';
-import { farol } from '../../src/lib/carteira/visoes.ts';
-import { farolWhats, hojeEmBrasilia } from '../../src/lib/whatsapp/farol.ts';
+import { prazoVencido } from '../../src/lib/carteira/prazo.ts';
+import { situacaoPrazo } from '../../src/lib/carteira/visoes.ts';
+import { hojeEmBrasilia } from '../../src/lib/datas.ts';
+import { prazoWhats } from '../../src/lib/whatsapp/prazo.ts';
 import { CHAVE_WHATSAPP_SIMULACAO, guardarContatos, lerContatos } from '../../src/lib/whatsapp/simulacao.ts';
 
 const HOJE = '2026-11-15';
@@ -116,8 +118,8 @@ test('ajuda, atrasados, entregas e execução', () => {
   assert.equal(responderPergunta('', c, base, CAPTACAO, HOJE), AJUDA);
   assert.equal(responderPergunta('Bom dia!', c, base, CAPTACAO, HOJE), AJUDA);
   const atrasados = responderPergunta('o que está atrasado?', c, base, CAPTACAO, HOJE);
-  const vermelhos = base.filter((p) => p.macroetapa !== '06' && p.farol === 'vermelho');
-  if (vermelhos.length) assert.match(atrasados, new RegExp(`^\\*${vermelhos.length} projetos? com prazo vencido\\*`));
+  const vencidos = base.filter((p) => p.macroetapa !== '06' && prazoVencido(p.prazo));
+  if (vencidos.length) assert.match(atrasados, new RegExp(`^\\*${vencidos.length} projetos? com prazo vencido\\*`));
   else assert.match(atrasados, /Nenhum projeto com prazo vencido/);
   assert.match(responderPergunta('próximas entregas', c, base, CAPTACAO, HOJE), /entrega/i);
   assert.match(responderPergunta('obras em execução', c, base, CAPTACAO, HOJE), /execução/);
@@ -162,15 +164,27 @@ test('validarContato: aceita os exemplos e recusa campos ruins com mensagem clar
   assert.deepEqual(validarContato(contato(), orgaos, ids, exemplos), []);
 });
 
-test('farolWhats dá o mesmo resultado que farol() da carteira em várias datas (recalculado no navegador)', () => {
+test('prazoWhats dá o mesmo resultado que situacaoPrazo() da carteira em várias datas (recalculado no navegador)', () => {
   for (const dia of ['2025-01-01', '2026-06-15', HOJE, '2027-03-01', '2029-01-01']) {
     const b = montarBase(carteira, '2000-01-01');
     for (const p of carteira.projetos) {
       const w = b.find((x) => x.id === p.id)!;
-      const f = farol(p, dia);
-      assert.deepEqual(farolWhats(w, dia), { farol: f.cor, motivo: f.motivo }, `${p.id} em ${dia}`);
+      const s = situacaoPrazo(p, dia);
+      assert.deepEqual(prazoWhats(w, dia), { prazo: s.codigo, motivo: s.texto }, `${p.id} em ${dia}`);
     }
   }
+});
+
+test('nenhuma mensagem usa emoji de cor nem a palavra farol (retirado em 23/11/2026)', () => {
+  const c = contato();
+  const textos = [
+    montarRelatorio(c, base, CAPTACAO, HOJE, 'resumo'),
+    montarRelatorio(c, base, CAPTACAO, HOJE, 'prioritarios'),
+    responderPergunta('o que está atrasado?', c, base, CAPTACAO, HOJE),
+    responderPergunta('relatório', c, base, CAPTACAO, HOJE),
+    ...base.map((p) => detalheProjeto(p)),
+  ];
+  for (const t of textos) assert.doesNotMatch(t, /🔴|🟡|🟢|farol/i);
 });
 
 test('hoje em Brasília: 01h30 UTC ainda é o dia anterior', () => {

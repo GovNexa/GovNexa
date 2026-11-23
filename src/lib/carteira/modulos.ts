@@ -11,13 +11,14 @@ import { carregarCarteira } from './carga.ts';
 import { hrefFicha } from './ficha.ts';
 import { MACROETAPAS, nomeMacroetapa } from './macroetapas.ts';
 import type { Projeto } from './tipos.ts';
-import { farol, fimDaMacroetapaAtual, resumoPorMacroetapa, saldoSemFonte, valorProjeto } from './visoes.ts';
+import { hojeEmBrasilia } from '../datas.ts';
+import { prazoVencido, type CodigoPrazo } from './prazo.ts';
+import { fimDaMacroetapaAtual, resumoPorMacroetapa, saldoSemFonte, situacaoPrazo, valorProjeto } from './visoes.ts';
 
 const dash = '—';
 const txt = (v: string | null | undefined): string => (v && v.trim() ? v : dash);
 const rs = (v: number | null): string => (v === null ? dash : reais(v));
 const sim = (v: boolean | null): string => (v === null ? dash : v ? 'Sim' : 'Não');
-const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 
 // Sem uso desde a E5; remover depois da junção da E6 (evita conflito com a ficha).
 function ordenar(l: Projeto[]): Projeto[] {
@@ -59,7 +60,7 @@ export function detalheProjeto(
         `Tem projeto: ${sim(p.tem_projeto)}`,
         `Status: ${txt(p.status_projeto)}`,
         `Macroetapa: ${nomeMacroetapa(p.macroetapa)}`,
-        `Situação: ${cap(farol(p).cor)} (${farol(p).motivo})`,
+        `Prazo: ${situacaoPrazo(p, hojeEmBrasilia()).texto}`,
         `Tipo de contratação: ${txt(p.tipo_contratacao)}`,
         `Órgão da contratação: ${txt(p.orgao_contratacao)}`,
       ],
@@ -157,18 +158,19 @@ function montarCarteira(): Modulo {
   };
 }
 
-/** Página inicial do módulo Projetos: resumo real da carteira por macroetapa (quantidade, valor e situação). */
+/** Página inicial do módulo Projetos: resumo real da carteira por macroetapa (quantidade, valor e prazo). */
 function montarInicio(): Modulo {
   const c = carregarCarteira();
   const grupos = resumoPorMacroetapa(c);
-  const conta = (ps: Projeto[], cor: string) => ps.filter((p) => farol(p).cor === cor).length;
-  const linha = (nome: string, ps: Projeto[], valor: number) => [nome, ps.length, valor || dash, conta(ps, 'verde'), conta(ps, 'amarelo'), conta(ps, 'vermelho')];
+  const hoje = hojeEmBrasilia();
+  const conta = (ps: Projeto[], f: (c: CodigoPrazo) => boolean) => ps.filter((p) => f(situacaoPrazo(p, hoje).codigo)).length;
+  const linha = (nome: string, ps: Projeto[], valor: number) => [nome, ps.length, valor || dash, conta(ps, (c) => c === 'no-prazo'), conta(ps, (c) => c === 'dados-incompletos' || c === 'etapa-vencendo'), conta(ps, prazoVencido)];
   const total = c.projetos.reduce((s, p) => s + (valorProjeto(p) ?? 0), 0);
   return {
     slug: 'projetos',
     title: 'Projetos · Início',
     group: 'Projetos',
-    columns: ['Macroetapa', 'Projetos', 'Valor', 'Verde', 'Amarelo', 'Vermelho'],
+    columns: ['Macroetapa', 'Projetos', 'Valor', 'No prazo', 'Prazo próximo ou dado faltando', 'Prazo vencido'],
     rows: [...grupos.map((g) => linha(g.nome, g.projetos, g.valor)), linha('Total da carteira', c.projetos, total)],
     fields: [],
     source: 'govnexa-carteira',

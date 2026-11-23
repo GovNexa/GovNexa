@@ -130,7 +130,7 @@ O GovNexa — Inteligência para a gestão pública — será a base única da c
 **Princípios do plano**
 
 - **Uma fonte da verdade:** o projeto é único; módulos independentes se ligam a ele por referência.
-- **Calcular, não digitar:** status, %, farol, entrega projetada, saldo sem fonte e economia saem de regras.
+- **Calcular, não digitar:** status, %, dias de atraso, entrega projetada, saldo sem fonte e economia saem de regras.
 - **Dado ausente não é zero:** fica "—" e entra em pendências de dado.
 - **Toda espera tem dono:** etapa parada mostra quem deve o quê e desde quando.
 - **Simples para quem usa:** fichas em texto, sem barra de rolagem lateral, poucos cliques; a equipe tem dificuldade com planilha e IA.
@@ -163,7 +163,7 @@ Seis perfis cobrem todos os usos. O acesso usa Cloudflare Access e cadastro ativ
 | Perfil | Quem é | O que precisa ver | O que faz no sistema |
 | --- | --- | --- | --- |
 | Prefeito / Gabinete | Decisor de governo | Foto atual de cada projeto, licitações em curso (empresa, colocação, valor), medições, previsões de entrega | Consulta; recebe notificações (fase futura: WhatsApp) |
-| Gestor de portfólio (equipe gestora) | Coordena a carteira e a reunião semanal | Tudo, com farol e o que mudou na semana | Cadastra e prioriza projetos, distribui responsáveis, conduz a reunião, força portão de fase com justificativa |
+| Gestor de portfólio (equipe gestora) | Coordena a carteira e a reunião semanal | Tudo, com a situação de prazo e o que mudou na semana | Cadastra e prioriza projetos, distribui responsáveis, conduz a reunião, força portão de fase com justificativa |
 | Responsável / técnico | Engenheiro, arquiteto, analista | Suas tarefas, prazos e bloqueios | Registra início, conclusão, envio e retorno de etapas; anexa documentos |
 | Equipe de captação | Busca e acompanha recursos federais | Oportunidades, convênios, cláusulas suspensivas, prazos | Liga projeto a oportunidade, registra proposta e convênio |
 | Equipe de contratação / agente de contratação | Conduz a licitação (Lei 14.133) | Funil de licitações, prazos legais, colocados | Registra publicação, sessão, propostas, habilitação, recursos e homologação |
@@ -271,7 +271,7 @@ Recomendação de nome para a aba dos desejos: **Banco de Projetos Condicionados
 
 ### 5.3 Ficha do projeto (campos essenciais na primeira tela)
 
-Título e local · tipo de projeto · órgão demandante e executor · **onde está agora** (órgão/pessoa) · responsável e gerente · macroetapa atual e farol · valor estimado com selo de confiabilidade (orçado, projeto básico, paramétrico, estimativa) e data-base · fontes de recurso e saldo sem fonte · prioridade executiva (P0–P3) e "obra do prefeito" · entrega projetada × linha de base · processos SEI vinculados · compromisso de execução.
+Título e local · tipo de projeto · órgão demandante e executor · **onde está agora** (órgão/pessoa) · responsável e gerente · macroetapa atual e situação de prazo · valor estimado com selo de confiabilidade (orçado, projeto básico, paramétrico, estimativa) e data-base · fontes de recurso e saldo sem fonte · prioridade executiva (P0–P3) e "obra do prefeito" · entrega projetada × linha de base · processos SEI vinculados · compromisso de execução.
 
 Abas da ficha: Resumo · Valores e recursos · Cronograma (Kanban/Gantt) · Captação (oportunidades e convênios ligados) · Contratações · SEI e documentos · Ações e pendências · Reuniões · Histórico · Origem do dado.
 
@@ -293,7 +293,7 @@ Abas da ficha: Resumo · Valores e recursos · Cronograma (Kanban/Gantt) · Capt
 
 ### 5.6 Reunião semanal e ações
 
-O modo Reunião percorre os projetos por prioridade ou farol, mostra o que mudou desde a semana anterior e registra discussão, decisão e ações (responsável e prazo). Substitui a coluna "Reunião dd-mm" e a coluna "Providências" da planilha. Ideias soltas do rodapé da planilha viram itens de um backlog de demandas, conversíveis em projeto.
+O modo Reunião percorre os projetos por prioridade ou prazo vencido, mostra o que mudou desde a semana anterior e registra discussão, decisão e ações (responsável e prazo). Substitui a coluna "Reunião dd-mm" e a coluna "Providências" da planilha. Ideias soltas do rodapé da planilha viram itens de um backlog de demandas, conversíveis em projeto.
 
 ### 5.7 Navegação: voltar à tela de origem (23/11/2026, E15)
 
@@ -461,12 +461,12 @@ O usuário registra fatos e o sistema deriva o resto; só três status são manu
 7. Predecessora aberta → Aguardando dependência.
 8. Demais casos → A fazer.
 
-### 9.2 Percentuais, desempenho e farol
+### 9.2 Percentuais, desempenho e prazo
 
 - Etapa: 0% ou 100%; só etapas longas (obra, aprovações externas) usam percentual informado.
 - Fase e projeto: média ponderada pela duração prevista.
-- Índice de desempenho de prazo (SPI) = realizado ÷ previsto até hoje: verde ≥ 0,95 · amarelo 0,85 a 0,95 · vermelho < 0,85.
-- Farol do projeto: **vermelho** se houver ação vencida, pendência externa acima de 30 dias, entrega projetada vencida, SPI < 0,85 ou saldo sem fonte em projeto em contratação; **amarelo** se faltar dado obrigatório, valor desatualizado ou pendência de 15 a 30 dias; **verde** nos demais.
+- Índice de desempenho de prazo (SPI) = realizado ÷ previsto até hoje: no ritmo ≥ 0,95 · um pouco abaixo 0,85 a 0,95 · bem abaixo < 0,85.
+- Situação de prazo do projeto (em texto, sem cores; o farol foi retirado em 23/11/2026): macroetapa ou entrega vencida há N dias; dados incompletos; prazo da macroetapa vence em até 15 dias; no prazo.
 - Caminho crítico calculado; atraso em etapa crítica empurra a entrega projetada e o painel mostra quantos dias.
 
 ### 9.3 Datas

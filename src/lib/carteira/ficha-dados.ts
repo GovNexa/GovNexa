@@ -2,8 +2,7 @@
 import type { Cronograma } from '../cronograma/tipos.ts';
 import { tempoNaMao } from '../cronograma/responsaveis.ts';
 import { etapasDoCronograma, resumoCronograma } from '../cronograma/visoes.ts';
-import { dataBr } from '../datas.ts';
-import { hojeEmBrasilia } from '../whatsapp/farol.ts';
+import { dataBr, hojeEmBrasilia } from '../datas.ts';
 import { AREAS_PADRAO, areaDoProjeto, type Area } from './area.ts';
 import { dataEntrega } from './filtros.ts';
 import { nomeMacroetapa } from './macroetapas.ts';

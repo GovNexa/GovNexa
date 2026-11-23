@@ -1,9 +1,9 @@
-// Base de projetos do WhatsApp: só os campos que podem sair por mensagem. Roda no build; o farol é recalculado
-// no navegador com a data de HOJE em Brasília (farolWhats), para a página publicada não ficar com a data do deploy.
+// Base de projetos do WhatsApp: só os campos que podem sair por mensagem. Roda no build; a situação de prazo é recalculada
+// no navegador com a data de HOJE em Brasília (prazoWhats), para a página publicada não ficar com a data do deploy.
 import { MACROETAPAS } from '../carteira/macroetapas.ts';
 import type { Carteira } from '../carteira/tipos.ts';
 import { fimDaMacroetapaAtual, valorProjeto } from '../carteira/visoes.ts';
-import { farolWhats } from './farol.ts';
+import { prazoWhats } from './prazo.ts';
 import type { ProjetoWhats } from './tipos.ts';
 
 export function montarBase(carteira: Carteira, hoje: string): ProjetoWhats[] {
@@ -24,7 +24,7 @@ export function montarBase(carteira: Carteira, hoje: string): ProjetoWhats[] {
       // % executado continua visível sem a permissão de valores: é uma proporção e não revela o R$ (decisão registrada).
       percentual: valor !== null && valor > 0 && executado !== null && executado >= 0 && executado <= valor ? Math.round((executado / valor) * 1000) / 10 : null,
       ...parcial,
-      ...farolWhats(parcial, hoje),
+      ...prazoWhats(parcial, hoje),
     };
   });
 }

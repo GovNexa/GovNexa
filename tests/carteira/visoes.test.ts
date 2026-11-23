@@ -1,10 +1,10 @@
 process.env.GOVNEXA_EXEMPLO = '1'; // usa os dados fictícios de data/exemplo, não a carga real
-// Testes das visões da Carteira de Projetos (Kanban, órgãos, farol, saldo, Gantt).
+// Testes das visões da Carteira de Projetos (Kanban, órgãos, prazo, saldo, Gantt).
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import type { Carteira, Projeto } from '../../src/lib/carteira/tipos.ts';
-import { farol, resumoPorMacroetapa, resumoPorOrgao, saldoSemFonte, segmentosGantt } from '../../src/lib/carteira/visoes.ts';
+import { resumoPorMacroetapa, resumoPorOrgao, saldoSemFonte, segmentosGantt, situacaoPrazo } from '../../src/lib/carteira/visoes.ts';
 
 const carteira = JSON.parse(readFileSync('data/exemplo/carteira/carteira.json', 'utf8')) as Carteira;
 
@@ -28,21 +28,32 @@ test('resumo por órgão: percentuais somam 100 e ordem por valor', () => {
   assert.equal(o.reduce((s, x) => s + x.qtd, 0), carteira.projetos.length);
 });
 
-test('farol: vencido é vermelho, pendência amarelo, ok verde, concluído nunca vermelho', () => {
+test('situação de prazo: vencido com dias, pendência, prazo perto, ok e concluído nunca vencido', () => {
   const hoje = '2026-11-15';
   const vencido = sintetico((p) => { p.macroetapa = '01'; p.datas.planejamento = '2026-10-01'; });
-  assert.equal(farol(vencido, hoje).cor, 'vermelho');
-  assert.equal(farol(vencido, hoje).motivo, 'Prazo da macroetapa vencido');
+  assert.equal(situacaoPrazo(vencido, hoje).codigo, 'etapa-vencida');
+  assert.equal(situacaoPrazo(vencido, hoje).texto, 'Prazo da macroetapa vencido há 45 dias');
+  assert.equal(situacaoPrazo(vencido, hoje).dias, 45);
+  const umDia = sintetico((p) => { p.macroetapa = '01'; p.datas.planejamento = '2026-11-14'; });
+  assert.equal(situacaoPrazo(umDia, hoje).texto, 'Prazo da macroetapa vencido há 1 dia');
   const entrega = sintetico((p) => { p.macroetapa = '03'; p.datas.contratacao = '2027-01-01'; p.datas.encerramento = '2026-11-01'; });
-  assert.equal(farol(entrega, hoje).motivo, 'Entrega prevista vencida');
+  assert.equal(situacaoPrazo(entrega, hoje).codigo, 'entrega-vencida');
+  assert.equal(situacaoPrazo(entrega, hoje).texto, 'Entrega prevista vencida há 14 dias');
   const pend = sintetico((p) => { p.macroetapa = '01'; p.datas.planejamento = '2027-06-01'; p.datas.encerramento = '2028-01-01'; p.pendencias = ['Falta valor']; });
-  assert.equal(farol(pend, hoje).cor, 'amarelo');
+  assert.equal(situacaoPrazo(pend, hoje).codigo, 'dados-incompletos');
+  assert.equal(situacaoPrazo(pend, hoje).texto, 'Dados incompletos: 1 pendência');
+  const pend2 = sintetico((p) => { p.macroetapa = '01'; p.datas.planejamento = '2027-06-01'; p.datas.encerramento = '2028-01-01'; p.pendencias = ['Falta valor', 'Falta data']; });
+  assert.equal(situacaoPrazo(pend2, hoje).texto, 'Dados incompletos: 2 pendências');
   const perto = sintetico((p) => { p.macroetapa = '01'; p.datas.planejamento = '2026-11-20'; p.datas.encerramento = '2028-01-01'; });
-  assert.equal(farol(perto, hoje).cor, 'amarelo');
+  assert.equal(situacaoPrazo(perto, hoje).codigo, 'etapa-vencendo');
+  assert.equal(situacaoPrazo(perto, hoje).texto, 'Prazo da macroetapa vence em 5 dias');
+  const hojeVence = sintetico((p) => { p.macroetapa = '01'; p.datas.planejamento = '2026-11-15'; p.datas.encerramento = '2028-01-01'; });
+  assert.equal(situacaoPrazo(hojeVence, hoje).texto, 'Prazo da macroetapa vence hoje');
   const ok = sintetico((p) => { p.macroetapa = '01'; p.datas.planejamento = '2027-06-01'; p.datas.encerramento = '2028-01-01'; });
-  assert.deepEqual(farol(ok, hoje), { cor: 'verde', motivo: 'No prazo' });
+  assert.deepEqual(situacaoPrazo(ok, hoje), { codigo: 'no-prazo', texto: 'No prazo', dias: null });
   const concluido = sintetico((p) => { p.macroetapa = '06'; p.datas.encerramento = '2026-01-01'; });
-  assert.notEqual(farol(concluido, hoje).cor, 'vermelho');
+  assert.equal(situacaoPrazo(concluido, hoje).codigo, 'no-prazo');
+  assert.equal(situacaoPrazo(concluido, hoje).texto, 'Concluído');
 });
 
 test('saldo sem fonte: null sem fontes, calculado quando há', () => {

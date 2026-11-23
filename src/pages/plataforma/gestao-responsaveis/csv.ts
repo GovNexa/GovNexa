@@ -4,7 +4,7 @@ import { carregarCarteira } from '../../../lib/carteira/carga.ts';
 import { carregarCronogramas } from '../../../lib/cronograma/carga.ts';
 import { montarPainel, nomeArquivoCsvResponsaveis, paraCsvResponsaveis } from '../../../lib/cronograma/painel-responsaveis.ts';
 import { usuarioPode } from '../../../lib/usuarios/index.ts';
-import { hojeEmBrasilia } from '../../../lib/whatsapp/farol.ts';
+import { hojeEmBrasilia } from '../../../lib/datas.ts';
 
 export const prerender = false;
 const SEM_CACHE = { 'Cache-Control': 'private, no-store' };

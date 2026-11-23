@@ -155,6 +155,7 @@ const soma = (xs: (number | null)[]) => xs.reduce<number>((a, x) => a + (x ?? 0)
 
 function lerPipeline(aba: Aba) {
   aba.exigir(['ID', 'Orgão', 'Nome do Projeto', 'SEI', 'Macroetapa', 'VALOR TOTAL', 'Valor Estimado Execução Obra']);
+  const colunasIgnoradas = ['farol', 'semaforo'].filter((n) => aba.colComecando(n) !== null).map((n) => (n === 'farol' ? 'Farol' : 'Semáforo'));
   const projetos: Projeto[] = [];
   const ignoradas: { linha: number; motivo: string }[] = [];
   let comConteudo = 0;
@@ -276,7 +277,7 @@ function lerPipeline(aba: Aba) {
     projetos.push(p);
   }
   projetos.sort((a, b) => a.codigo_legado - b.codigo_legado);
-  return { projetos, ignoradas, comConteudo };
+  return { projetos, ignoradas, comConteudo, colunasIgnoradas };
 }
 
 // ---------- BASE_OPERACIONAL ----------
@@ -500,7 +501,7 @@ export async function importarCarteira(op: { planilha: string; saida: string; ag
     hash,
     ...(op.anonimizar ? { anonimizado: true } : {}),
     abas: {
-      PIPELINE: { linhas_com_conteudo: pipe.comConteudo, projetos: projetos.length, ignoradas: pipe.ignoradas },
+      PIPELINE: { linhas_com_conteudo: pipe.comConteudo, projetos: projetos.length, ignoradas: pipe.ignoradas, colunas_ignoradas: pipe.colunasIgnoradas },
       BASE_OPERACIONAL: { registros: base.registros, casadas_sei: base.casadasSei, casadas_nome: base.casadasNome, sem_par: base.semPar },
     },
     totais: { valor_total: valorTotal, valor_obra: valorObra, por_macroetapa: porMacro, por_orgao: porOrgao, por_ano: porAno },
@@ -544,7 +545,7 @@ function montarTipo() {
     arquivo: string;
     hash: string;
     abas: {
-      PIPELINE: { linhas_com_conteudo: number; projetos: number; ignoradas: { linha: number; motivo: string }[] };
+      PIPELINE: { linhas_com_conteudo: number; projetos: number; ignoradas: { linha: number; motivo: string }[]; colunas_ignoradas: string[] };
       BASE_OPERACIONAL: { registros: number; casadas_sei: number; casadas_nome: number; sem_par: { id_base: string; seis: number; motivo: string }[] };
     };
     totais: {
@@ -579,6 +580,7 @@ function relatorioMd(rel: object): string {
     L.push('', 'Corrija o código na própria planilha quando puder: assim a correção deixa de ser necessária.');
   }
   L.push('', '## Aba PIPELINE', '', `- Linhas com conteúdo: ${r.abas.PIPELINE.linhas_com_conteudo}`, `- Projetos importados: ${r.abas.PIPELINE.projetos}`, `- Linhas ignoradas: ${r.abas.PIPELINE.ignoradas.length}`, '');
+  if (r.abas.PIPELINE.colunas_ignoradas.length) L.push(`- Colunas ignoradas: ${r.abas.PIPELINE.colunas_ignoradas.join(', ')} (o farol foi retirado do sistema por decisão do dono em 23/11/2026; o prazo é calculado pelas datas).`, '');
   if (r.abas.PIPELINE.ignoradas.length) {
     L.push('| Linha | Motivo |', '|---:|---|');
     for (const i of r.abas.PIPELINE.ignoradas) L.push(`| ${i.linha} | ${i.motivo} |`);
@@ -625,7 +627,7 @@ if (executadoDireto) {
     const correcoes = existsSync(arquivoCorrecoes) ? lerCorrecoes(arquivoCorrecoes) : [];
     const { carteira, relatorio } = await importarCarteira({ planilha, saida, anonimizar: args.includes('--anonimizar'), autor: pega('--autor'), correcoes });
     const rel = relatorio as Relatorio;
-    console.log(`Importação concluída: ${carteira.projetos.length} projetos, ${rel.abas.PIPELINE.ignoradas.length} linhas ignoradas, ${rel.abas.BASE_OPERACIONAL.casadas_sei + rel.abas.BASE_OPERACIONAL.casadas_nome} registros da base casados, ${rel.abas.BASE_OPERACIONAL.sem_par.length} sem par.`);
+    console.log(`Importação concluída: ${carteira.projetos.length} projetos, ${rel.abas.PIPELINE.ignoradas.length} linhas ignoradas, ${rel.abas.BASE_OPERACIONAL.casadas_sei + rel.abas.BASE_OPERACIONAL.casadas_nome} registros da base casados, ${rel.abas.BASE_OPERACIONAL.sem_par.length} sem par.${rel.abas.PIPELINE.colunas_ignoradas.length ? ` Aviso: coluna ${rel.abas.PIPELINE.colunas_ignoradas.join(', ')} ignorada.` : ''}`);
     console.log(`Arquivos gravados em: ${saida}`);
   } catch (e) {
     console.error(`Falha na importação: ${(e as Error).message}`);

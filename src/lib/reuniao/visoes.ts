@@ -2,14 +2,15 @@
 // Funções puras: `desde` e `hoje` (ISO 'AAAA-MM-DD') sempre vêm de fora; nada lê arquivo nem relógio.
 import { MACROETAPAS, nomeMacroetapa } from '../carteira/macroetapas.ts';
 import type { Carteira, CodigoMacroetapa } from '../carteira/tipos.ts';
-import { farol, type Farol } from '../carteira/visoes.ts';
+import { prazoVencido } from '../carteira/prazo.ts';
+import { situacaoPrazo, type SituacaoPrazo } from '../carteira/visoes.ts';
 import type { RegistroLog } from '../log/tipos.ts';
 import { acaoCanonica, diaLocal, resumoRegistro } from '../log/visoes.ts';
 
 export const MOTIVO_VENCIDO = 'Prazo vencido';
 export const MOTIVO_SALA = 'Candidato à sala de guerra';
 export const MOTIVO_MUDOU = 'Mudou desde a última reunião';
-export const MOTIVO_PRIORIDADE = 'Prioridade muito alta em atenção';
+export const MOTIVO_PRIORIDADE = 'Prioridade muito alta com prazo perto de vencer ou dado faltando';
 export const MOTIVOS_PAUTA = [MOTIVO_VENCIDO, MOTIVO_SALA, MOTIVO_MUDOU, MOTIVO_PRIORIDADE];
 
 export interface RegistroDoItem {
@@ -25,7 +26,7 @@ export interface ItemBase {
   orgao: string | null;
   macroetapa: string; // nome
   macroetapaCodigo: CodigoMacroetapa | null;
-  farol: Farol;
+  prazo: SituacaoPrazo;
   prioridade: string | null;
   entrega: string | null; // entrega prevista (ISO) ou null
   candidatoSala: boolean;
@@ -41,7 +42,7 @@ export interface ItemPauta {
   orgao: string | null;
   macroetapa: string;
   macroetapaCodigo: CodigoMacroetapa | null;
-  farol: Farol;
+  prazo: SituacaoPrazo;
   motivosNaPauta: string[];
   mudancas: string[];
   ultimaReuniaoPlanilha: string | null;
@@ -52,7 +53,7 @@ export interface ItemPauta {
 export interface ResumoPauta {
   total: number;
   porMacroetapa: { codigo: string; nome: string; qtd: number }[];
-  vermelhos: number;
+  vencidos: number;
   mudaramDeEtapa: number;
   novos: number;
 }
@@ -68,18 +69,19 @@ export function baseDaPauta(carteira: Carteira, historico: RegistroLog[], candid
   for (const r of historico) porProjeto.set(r.projeto_id, [...(porProjeto.get(r.projeto_id) ?? []), r]);
   const lista: ItemBase[] = [];
   for (const p of carteira.projetos) {
-    const f = farol(p, hoje);
+    const s = situacaoPrazo(p, hoje);
+    const vencido = prazoVencido(s.codigo);
     const regs = porProjeto.get(p.id) ?? [];
-    const prioridadeEmAtencao = p.prioridade === 'Muito Alta' && f.cor === 'amarelo';
+    const prioridadeEmAtencao = p.prioridade === 'Muito Alta' && !vencido && s.codigo !== 'no-prazo';
     const candidatoSala = salas.has(p.id);
-    if (f.cor !== 'vermelho' && !candidatoSala && !prioridadeEmAtencao && regs.length === 0) continue;
+    if (!vencido && !candidatoSala && !prioridadeEmAtencao && regs.length === 0) continue;
     lista.push({
       projeto_id: p.id,
       nome: p.nome,
       orgao: p.orgao,
       macroetapa: nomeMacroetapa(p.macroetapa),
       macroetapaCodigo: p.macroetapa,
-      farol: f,
+      prazo: s,
       prioridade: p.prioridade,
       entrega: p.datas.encerramento,
       candidatoSala,
@@ -97,29 +99,29 @@ const pesoPrioridade = (p: string | null): number => (p !== null && p in PESO_PR
 
 /** Aplica a data da última reunião à base: quem entra na pauta, motivos, o que mudou, resumo e ordem. Pura e sem acesso a arquivo (roda também no navegador). */
 export function pautaDaBase(base: ItemBase[], desde: string): PautaSemanal {
-  const itens: { item: ItemPauta; entrega: string | null; vermelho: boolean; etapa: boolean; novo: boolean }[] = [];
+  const itens: { item: ItemPauta; entrega: string | null; vencido: boolean; etapa: boolean; novo: boolean }[] = [];
   for (const b of base) {
     const novos = b.registros.filter((r) => r.dia >= desde);
     const motivos: string[] = [];
-    if (b.farol.cor === 'vermelho') motivos.push(MOTIVO_VENCIDO);
+    if (prazoVencido(b.prazo.codigo)) motivos.push(MOTIVO_VENCIDO);
     if (b.candidatoSala) motivos.push(MOTIVO_SALA);
     if (novos.length) motivos.push(MOTIVO_MUDOU);
     if (b.prioridadeEmAtencao) motivos.push(MOTIVO_PRIORIDADE);
     if (!motivos.length) continue;
     itens.push({
       item: {
-        projeto_id: b.projeto_id, nome: b.nome, orgao: b.orgao, macroetapa: b.macroetapa, macroetapaCodigo: b.macroetapaCodigo, farol: b.farol,
+        projeto_id: b.projeto_id, nome: b.nome, orgao: b.orgao, macroetapa: b.macroetapa, macroetapaCodigo: b.macroetapaCodigo, prazo: b.prazo,
         motivosNaPauta: motivos, mudancas: novos.map((r) => r.texto), ultimaReuniaoPlanilha: b.ultimaReuniaoPlanilha,
         providenciasPlanilha: b.providenciasPlanilha, prioridade: b.prioridade,
       },
       entrega: b.entrega,
-      vermelho: b.farol.cor === 'vermelho',
+      vencido: prazoVencido(b.prazo.codigo),
       etapa: novos.some((r) => r.tipo === 'mover_macroetapa'),
       novo: novos.some((r) => r.tipo === 'criado'),
     });
   }
   itens.sort((a, b) => {
-    if (a.vermelho !== b.vermelho) return a.vermelho ? -1 : 1;
+    if (a.vencido !== b.vencido) return a.vencido ? -1 : 1;
     const pa = pesoPrioridade(a.item.prioridade);
     const pb = pesoPrioridade(b.item.prioridade);
     if (pa !== pb) return pa - pb;
@@ -134,7 +136,7 @@ export function pautaDaBase(base: ItemBase[], desde: string): PautaSemanal {
     resumo: {
       total: itens.length,
       porMacroetapa,
-      vermelhos: itens.filter((x) => x.vermelho).length,
+      vencidos: itens.filter((x) => x.vencido).length,
       mudaramDeEtapa: itens.filter((x) => x.etapa).length,
       novos: itens.filter((x) => x.novo).length,
     },
@@ -143,8 +145,8 @@ export function pautaDaBase(base: ItemBase[], desde: string): PautaSemanal {
 }
 
 /**
- * Pauta da reunião semanal. Entram, sem repetir: farol vermelho; candidatos à sala de guerra (`salasCandidatas` = IDs de projeto,
- * por exemplo `candidatosSala(...).map((c) => c.projeto.id)`); projetos com mudança no histórico desde `desde`; prioridade "Muito Alta" com farol amarelo.
+ * Pauta da reunião semanal. Entram, sem repetir: prazo vencido; candidatos à sala de guerra (`salasCandidatas` = IDs de projeto,
+ * por exemplo `candidatosSala(...).map((c) => c.projeto.id)`); projetos com mudança no histórico desde `desde`; prioridade "Muito Alta" com prazo perto de vencer ou dado faltando.
  */
 export function pautaSemanal(carteira: Carteira, historico: RegistroLog[], salasCandidatas: string[], desde: string, hoje: string): PautaSemanal {
   return pautaDaBase(baseDaPauta(carteira, historico, salasCandidatas, hoje), desde);

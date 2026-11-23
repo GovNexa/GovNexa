@@ -1,5 +1,12 @@
 # Changelog
 
+## E19 · Farol retirado do sistema (23/11/2026)
+- Decisão do dono sobre o áudio 19 ("farol: tirar"): some de todo o sistema a classificação por cores (vermelho, amarelo, verde, cinza), com selos, bolinhas, rótulos "Farol ...", contagens por cor, colunas "Verde/Amarelo/Vermelho", emojis de cor no WhatsApp e a palavra na página pública e no Fluxo.
+- **Telas:** Painel da equipe (prazo vencido em texto e situação do projeto só crítica ou neutra), central de alertas (gravidade escrita como Urgente ou Atenção), Reunião semanal ("Prazo: Prazo da macroetapa vencido há N dias"), Sala de guerra ("Situação: ..." com dias), Projetos · Início (colunas "No prazo", "Prazo próximo ou dado faltando" e "Prazo vencido"), ficha da sala e do cronograma (ritmo em texto: "No ritmo previsto", "Um pouco abaixo do previsto", "Bem abaixo do previsto", "Sem previsão"), WhatsApp sem emojis de cor e página pública do site.
+- **Regra única do prazo do projeto:** `src/lib/carteira/prazo.ts` (sem dependências), usada pela carteira, painel, reunião, sala e WhatsApp. `hojeEmBrasilia` passou para `src/lib/datas.ts`.
+- **Importação:** a coluna "Farol" ou "Semáforo" da planilha é ignorada e o relatório da carga avisa; nunca falha por isso.
+- **Não mudou:** banco (sem migração; o farol sempre foi calculado), login, `wrangler.jsonc`, rotas, e quem entra na pauta da reunião, na sala de guerra, na lista de vencidos e no WhatsApp (provado por teste de equivalência com a regra anterior em 5 datas).
+
 ## Publicação 23/11/2026
 - Em produção: E18 (ícone de tema), E14a (PNCP por botão) e E16 (dispensa da 2ª etapa e conta de consulta), na versão do Worker 6e5fd492-3904-46ab-94cb-cbf76cb3da16. Migrações 0011 (banco da prefeitura) e 0003 (banco central) aplicadas antes do código, com ponto de restauração anotado antes. No mesmo dia, antes dessa versão, já estavam no ar E8, E9, E11, E12 (com ajustes), E13, E15 e E17.
 

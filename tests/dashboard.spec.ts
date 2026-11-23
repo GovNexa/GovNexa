@@ -182,7 +182,7 @@ test('dashboard mantém acessibilidade WCAG 2.2 AA nos temas claro e escuro', as
   }
 });
 
-test('painel da equipe: farol, onde está parado, decisões pendentes e alertas, sem mapa', async ({ page }) => {
+test('painel da equipe: prazos vencidos, onde está parado, decisões pendentes e alertas, sem mapa', async ({ page }) => {
   await page.goto(PAINEL);
   await expect(page.locator('h1')).toHaveText('Painel da equipe');
   await expect(page.locator('.side-links a[href="/plataforma/gestao-equipe/"]')).toHaveAttribute('aria-current', 'page');
