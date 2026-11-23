@@ -58,10 +58,10 @@ Situação hoje: **Atende**, **Parcial** ou **Não**. A coluna "Entrega" aponta 
 | A30 | Carteira com grandes números no topo (total de projetos e de valor) que mudam com os filtros; a "Visão por órgão" deixa de existir | Não | E5 |
 | A31 | Menu nas três visões; governança da execução com responsável e tempo na mão do responsável | Parcial: menu nas três visões no código (E11); responsável e tempo na mão ficam para a E13 | E11 + E13 |
 | A32 | Processos do SEI listados dentro do projeto | Parcial (leitor existe, ligação em simulação) | E6 (+ B7 do banco) |
-| A34 | Gestão das licitações dentro da visão gerencial: grandes números primeiro | Não (só protótipo) | E12 |
-| A35 | Por etapa da contratação: concluídas (ordem de serviço, pago, %), em julgamento, publicadas, editais em ajustes, em preparação, projetos em finalização; campos de cada uma | Não | E12 |
-| A36 | Edição rápida em linha dos dados da licitação (o prefeito só vê) | Não | E12 |
-| A37 | Por enquanto manual ou por planilha modelo; depois, integração com PNCP e Compras.gov | Não | E12 (manual) + E14 (integração) |
+| A34 | Gestão das licitações dentro da visão gerencial: grandes números primeiro | Sim (E12) | E12 |
+| A35 | Por etapa da contratação: concluídas (ordem de serviço, pago, %), em julgamento, publicadas, editais em ajustes, em preparação, projetos em finalização; campos de cada uma | Sim (E12) | E12 |
+| A36 | Edição rápida em linha dos dados da licitação (o prefeito só vê) | Sim (E12) | E12 |
+| A37 | Por enquanto manual ou por planilha modelo; depois, integração com PNCP e Compras.gov | Manual (E12); integração na E14 | E12 (manual) + E14 (integração) |
 
 Quadro final: 34 pedidos (alguns áudios trazem mais de um). Hoje: 0 atendem por inteiro, 17 em parte, 17 não atendem.
 
@@ -90,7 +90,7 @@ A % de cada entrega começa em 0 e é atualizada no README (seção 2) a cada PR
 | E9 | **Fotos da obra**: enviar, legendar e ver fotos na aba Fotos (R2, como os documentos); Histórico | A22 | E6 | Migração 0008: colunas e índices na tabela `projeto_foto` (já existente) | Codex sol + revisão Opus | 70% (código e testes validados pela Opus em rascunho; aguardando aplicação, portão, prévia do dono e revisão) |
 | E10 | **Painel de gestão (equipe)**: recebe o que saiu da tela do prefeito (farol, onde está parado, decisões pendentes, alertas); **relatório de inconsistências** por órgão ou geral (campo faltando, data fora de ordem, macroetapa vencida), com impressão e CSV | A13, A19 | E3 | — | Codex terra | 70% (código e testes escritos; aguardando portão, prévia do dono e revisão) |
 | E11 | **Menu nas três visões** (Gerencial, Governança da execução, Convênios); tela **Visão Convênios** com convênios em execução, em risco e CAUC, usando a Captação | A01, A31 | E3, E10 | — | Codex luna | 70% (código e testes validados pela Opus em rascunho; aguardando aplicação, portão, prévia do dono e revisão) |
-| E12 | **Gestão das licitações**: grandes números por situação (6 etapas) → listas por etapa com os campos do relatório (marco, valor estimado/contratado/proposta, pago, empresa e colocação, onde está, aguardando quem, abertura, publicação prevista); próximos marcos; "aguardando PGM" e "aguardando outras áreas"; **edição em linha** para editor ou acima (prefeito só lê); importação por planilha modelo; ligação opcional com o projeto (há contratações sem projeto) | A34, A35, A36, A37 | D5 | Migração: `contratacao`, `contratacao_marco` (com Histórico) | Codex sol + revisão Opus | 0% |
+| E12 | **Gestão das licitações**: grandes números por situação (6 etapas) → listas por etapa com os campos do relatório (marco, valor estimado/contratado/proposta, pago, empresa e colocação, onde está, aguardando quem, abertura, publicação prevista); próximos marcos; "aguardando PGM" e "aguardando outras áreas"; **edição em linha** para editor ou acima (prefeito só lê); importação por planilha modelo; ligação opcional com o projeto (há contratações sem projeto) | A34, A35, A36, A37 | D5 | Migração: `contratacao`, `contratacao_marco` (com Histórico) | Codex sol + revisão Opus | 100% (carga da planilha modelo depende de D5) |
 | E13 | **Governança da execução**: responsável por tarefa do cronograma e **tempo na mão do responsável** (registro de cada troca); painel por responsável | A31 | E11 | Migração: histórico de responsável da tarefa | Plano Opus próprio, depois Codex sol | 0% |
 | E14 | **Integração PNCP e Compras.gov** (resultado, colocação, homologação) | A37 | E12 | — | Plano Opus próprio | 0% (evolução futura) |
 
@@ -110,7 +110,7 @@ A % de cada entrega começa em 0 e é atualizada no README (seção 2) a cada PR
 | Base de dados para operar do zero | E1, E9 | 35% |
 | Visão gerencial (prefeito) | E2, E3, E4, E5, E6, E7, E8 | 0% |
 | Governança (equipe) | E10, E11, E13 | 0% |
-| Licitações | E12, E14 | 0% |
+| Licitações | E12, E14 | E12 100% (carga da planilha modelo depende de D5); E14 0% |
 
 ## 4. Banco de dados (projetar antes de criar)
 
@@ -122,6 +122,7 @@ Segue o roteiro do `projeto-banco.md`; cada migração passa por revisão indepe
   - `contratacao` (`prefeitura_id`, `id`, `projeto_id` opcional, nome, situação nas 6 etapas, valores estimado, de proposta e contratado, pago, empresa, colocação, onde está, aguardando, datas de abertura, publicação prevista e marco, observação, `revisao`).
   - `contratacao_marco` (data e descrição).
   - Todo evento entra no Histórico.
+  - **Real (migração 0010, E12):** `contratacao`, `contratacao_marco` e `evento_contratacao` (Histórico próprio, imutável), com valores em centavos (teto de R$ 10 bilhões), datas conferidas e chaves compostas por prefeitura.
 - **Governança (E13):** histórico de responsável por tarefa, para calcular o tempo na mão de cada um.
 - **Sem dado real no repositório.** Exemplos novos (áreas, licitações, fotos) entram em `data/exemplo`.
 

@@ -16,6 +16,8 @@
 
 ## Andamento · última atualização em 22/11/2026
 
+23/11/2026: E12 (Gestão das licitações) entregue no código: guia na Visão gerencial, edição em linha, página da contratação, aba Contratações na ficha, impressão e CSV; carga da planilha modelo aguarda D5; integração PNCP e Compras.gov na E14.
+
 22/11/2026: os requisitos dos áudios de 20/11 (três visões: gerencial, governança da execução e convênios; tela do prefeito; carteira, ficha, Kanban, mapa por área e licitações) estão planejados em [plano-requisitos-audios.md](plano-requisitos-audios.md).
 
 22/11/2026: E1 a E7 e E10 mesclados na `main` (PRs #40, #41 e #44 a #49), sem publicação; E11 (menu nas três visões e Visão Convênios) no código, aguardando revisão. A situação de cada entrega fica na seção 3 de [plano-requisitos-audios.md](plano-requisitos-audios.md).

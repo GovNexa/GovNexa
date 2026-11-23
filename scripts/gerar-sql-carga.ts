@@ -10,7 +10,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { texto } from '../src/lib/carteira/cadastro.ts';
-import { COLUNAS_EDITAVEIS, ID_CONTRATACAO, ID_MARCO, dataIsoValida, hojeBrasilia, normalizarCampos } from '../src/lib/contratacoes/regras.ts';
+import { COLUNAS_EDITAVEIS, ID_CONTRATACAO, ID_MARCO, MAX_MARCOS, dataIsoValida, hojeBrasilia, normalizarCampos } from '../src/lib/contratacoes/regras.ts';
 import type { Carteira } from '../src/lib/carteira/tipos.ts';
 import type { Cronogramas } from '../src/lib/cronograma/tipos.ts';
 import type { RegistroLog } from '../src/lib/log/tipos.ts';
@@ -182,6 +182,7 @@ if (caminhoContratacoes && !sqlite) {
     if (desde > hoje) throw new Error(`Contratação ${id}: Data da etapa: não pode ser futura.`);
     const projeto = n.campos.projeto_id;
     if (typeof projeto === 'string' && !idsProjetos.has(projeto)) throw new Error(`Contratação ${id}: projeto ${projeto} fora da carteira.`);
+    if ((c.marcos ?? []).length > MAX_MARCOS) throw new Error(`Contratação ${id}: mais de ${MAX_MARCOS} marcos.`);
     const marcos = (c.marcos ?? []).map((m) => {
       const mid = String(m.id);
       if (!ID_MARCO.test(mid)) throw new Error(`Contratação ${id}, marco ${mid}: código inválido.`);
@@ -190,6 +191,7 @@ if (caminhoContratacoes && !sqlite) {
       if (!desc || Array.from(desc).length > 200) throw new Error(`Contratação ${id}, marco ${mid}: descrição de 1 a 200 caracteres.`);
       if (typeof m.concluido !== 'boolean') throw new Error(`Contratação ${id}, marco ${mid}: concluido deve ser verdadeiro ou falso.`);
       if (m.concluido && (typeof m.concluido_em !== 'string' || typeof m.concluido_por !== 'string')) throw new Error(`Contratação ${id}, marco ${mid}: concluído sem data e autor.`);
+      if (m.concluido && !(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/.test(String(m.concluido_em)) && !Number.isNaN(Date.parse(String(m.concluido_em))))) throw new Error(`Contratação ${id}, marco ${mid}: concluido_em fora do formato ISO com Z.`);
       return { mid, data: m.data, desc, concluido: m.concluido, em: m.concluido ? m.concluido_em : null, por: m.concluido ? m.concluido_por : null };
     });
     const valor = (col: string): string => {
@@ -204,9 +206,9 @@ if (caminhoContratacoes && !sqlite) {
     );
     for (const m of marcos) {
       sqls.push(
-        `INSERT INTO contratacao_marco (prefeitura_id, id, contratacao_id, data, descricao, concluido, concluido_em, concluido_por, criado_por) VALUES (` +
+        `INSERT INTO contratacao_marco (prefeitura_id, id, contratacao_id, data, descricao, concluido, concluido_em, concluido_por, criado_por) SELECT ` +
           [num(ibge), txt(m.mid), txt(id), txt(m.data), txt(m.desc), m.concluido ? '1' : '0', txt(m.em), txt(m.por), "'carga'"].join(', ') +
-          `)\n  ON CONFLICT (prefeitura_id, id) DO NOTHING;`,
+          ` WHERE EXISTS (SELECT 1 FROM contratacao WHERE prefeitura_id = ${num(ibge)} AND id = ${txt(id)} AND removida_em IS NULL)\n  ON CONFLICT (prefeitura_id, id) DO NOTHING;`,
       );
     }
     nContratacoes++;

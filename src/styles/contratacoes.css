@@ -1,0 +1,94 @@
+/* Gestão das licitações (E12). Prefixo ct- só existe nesta tela e na página da contratação. */
+.ct{display:grid;gap:1rem;min-width:0}
+.ct *{min-width:0}
+.ct p,.ct td,.ct dd{overflow-wrap:anywhere}
+.ct .section-head{margin-bottom:0}
+.ct section{padding:0;margin:0;max-width:none}
+.ct h1{font-size:clamp(1.7rem,3vw,2.3rem);margin:0 0 .4rem;max-width:none;overflow-wrap:anywhere}
+.ct h2{font-size:1.15rem;margin:0 0 .75rem}
+.ct-aviso{margin:0;max-width:none;padding:.75rem 1rem;border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:8px;background:var(--surface);color:var(--text)}
+.ct-msg{position:sticky;top:.5rem;z-index:5;margin:0;max-width:none}
+.ct-msg:empty{display:none}
+.ct-msg{padding:.7rem 1rem;border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:8px;background:var(--soft);color:var(--text)}
+.ct-msg ul{margin:.3rem 0 0;padding-left:1.1rem}
+.ct-impressao{display:none}
+.ct-total{margin:0;max-width:none;font-weight:700}
+.ct-cartoes{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.75rem;margin:0;padding:0;list-style:none}
+.ct-cartoes li{display:flex}
+.ct-cartoes a{display:grid;gap:.15rem;flex:1;align-content:start;padding:.9rem 1rem;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--text);text-decoration:none}
+.ct-cartoes a:hover{border-color:var(--text)}
+.ct-cartoes a[aria-current]{border:3px solid var(--text);padding:calc(.9rem - 2px) calc(1rem - 2px)}
+.ct-numero{font-size:2rem;font-weight:700;line-height:1.1}
+.ct-rotulo{font-weight:650}
+.ct-valor{font-weight:700}
+.ct-sub{color:var(--muted);font-size:.85rem}
+.ct-duas{display:grid;grid-template-columns:minmax(0,1fr);gap:1rem}
+@media (min-width:900px){.ct-duas{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.ct-bloco,.ct-etapa{min-width:0;margin:0;padding:clamp(1rem,1.5vw,1.5rem)!important;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.ct-bloco h3{margin:.75rem 0 .3rem;font-size:1rem}
+.ct-bloco ol,.ct-bloco ul{margin:0;padding-left:1.1rem}
+.ct-bloco li{margin:.25rem 0}
+.ct-filtros{display:flex;flex-wrap:wrap;gap:.75rem 1rem;align-items:end;margin:0}
+.ct-filtros label{flex:1 1 13rem;min-width:0}
+.ct-filtros button,.ct-botao,.ct .primary{min-height:44px}
+.ct-acoes{display:flex;flex-wrap:wrap;gap:.75rem;align-items:center}
+.ct-botao,.ct .primary{display:inline-flex;align-items:center;justify-content:center;padding:.65rem 1rem;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--text);font-weight:650;text-decoration:none;cursor:pointer}
+.ct .primary{background:var(--text);color:var(--bg);border-color:var(--text)}
+.ct-botao:hover{border-color:var(--text)}
+.ct-tabela{width:100%;table-layout:fixed;border-collapse:collapse;font-size:.92rem;white-space:normal}
+.ct-tabela th,.ct-tabela td{padding:.5rem .55rem;white-space:normal;overflow-wrap:anywhere;vertical-align:top;text-align:left}
+.ct-tabela a{font-weight:650}
+.ct-tabela .muted{display:block;font-size:.85em}
+.ct-selo{display:inline-block;padding:.1rem .6rem;border:1px solid var(--line);border-radius:999px;background:var(--soft);color:var(--text);font-size:.8rem;font-weight:650}
+.ct-atrasado{border:2px solid var(--accent);font-weight:800}
+.ct-editar{width:32px;height:32px;min-height:32px;padding:0;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;margin-left:.25rem;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--muted);line-height:1}
+.ct-editar:hover{border-color:var(--line);color:var(--text)}
+.ct-editar:focus-visible{outline:3px solid var(--text);outline-offset:2px}
+.ct-editor{display:grid;gap:.4rem}
+.ct-editor-botoes{display:flex;flex-wrap:wrap;gap:.4rem}
+.ct-editor-botoes button{min-height:36px;padding:.3rem .8rem}
+.ct-vazio{margin:0;color:var(--muted)}
+.ct-nova,.ct-detalhes{min-width:0;padding:clamp(1rem,1.5vw,1.5rem);border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.ct-nova summary,.ct-detalhes summary{font-weight:700}
+.ct-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:.75rem 1rem;margin-top:.75rem}
+.ct-form .ct-cheio{grid-column:1/-1}
+.ct-contexto{margin:0 0 .75rem;display:flex;justify-content:flex-end}
+.ct-contexto a{display:inline-flex;align-items:center;min-height:44px;padding:.45rem .9rem;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--text);font-weight:600;text-decoration:none}
+.ct-contexto a:hover{border-color:var(--text)}
+.ct-meta{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .75rem;margin:0}
+.ct-campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:.6rem;margin:0}
+.ct-campos>div{padding:.55rem .75rem;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.ct-campos dt{color:var(--muted);font-size:.85rem}
+.ct-campos dd{margin:.15rem 0 0;font-weight:650;display:inline}
+.ct-marcos-lista,.ct-historico-lista{margin:0;padding:0;list-style:none;display:grid;gap:.5rem}
+.ct-marcos-lista li,.ct-historico-lista li{padding:.55rem .75rem;border:1px solid var(--line);border-radius:10px}
+.ct-linha-botoes{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.35rem}
+.ct-linha-botoes button{min-height:36px;padding:.3rem .8rem}
+.ct-historico-lista ul{margin:.2rem 0 0;padding-left:1.1rem}
+@media (max-width:760px){
+  .ct-tabela thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+  .ct-tabela,.ct-tabela tbody,.ct-tabela tr,.ct-tabela td{display:block;width:100%}
+  .ct-tabela tr{padding:.5rem 0;border-bottom:1px solid var(--line)}
+  .ct-tabela tr:last-child{border-bottom:0}
+  .ct-tabela td{padding:.15rem 0;border:0}
+  .ct-tabela td::before{content:attr(data-rotulo) ": ";color:var(--muted);font-weight:600;display:block}
+}
+/* Impressão em A4 retrato (formato do relatório): página nomeada na raiz (outras telas não mudam). */
+@page licitacoes{size:A4 portrait;margin:12mm}
+@media print{
+  html:has([data-ct]){page:licitacoes}
+  body:has([data-ct]) .sidebar,body:has([data-ct]) .appbar,body:has([data-ct]) .app-footer,body:has([data-ct]) .skip,body:has([data-ct]) #toast,body:has([data-ct]) .workspace>.notice{display:none!important}
+  body:has([data-ct]) .platform{display:block!important}
+  body:has([data-ct]) .workspace{padding:0!important;background:#fff}
+  .ct-filtros,.ct-acoes,.ct-aviso,.ct-msg,.ct-editar,[data-ct-nova],[data-ct-etapa-form],[data-ct-remover],[data-ct-form-marco],.ct .section-head .muted{display:none!important}
+  .ct,.ct *{color:#000!important;background:#fff!important;box-shadow:none!important}
+  .ct h1{margin:0 0 .3rem;font-size:16pt}
+  .ct-impressao{display:block;margin:0;font-size:9pt}
+  .ct-bloco,.ct-etapa{padding:0!important;border:0}
+  .ct h2{font-size:12pt}
+  .ct-tabela{font-size:9pt}
+  .ct-tabela th,.ct-tabela td{padding:.2rem .35rem;border-bottom:1px solid #888!important}
+  .ct-tabela tr{break-inside:avoid}
+  .ct-tabela thead{display:table-header-group}
+  .ct a{text-decoration:none}
+}

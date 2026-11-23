@@ -140,6 +140,17 @@ test('4. outra prefeitura não lê nem grava', async () => {
   const r = await exec(b.ctx, { acao: 'criar', campos: { nome: 'x', etapa: 'finalizacao', projeto_id: 'P-A' } });
   assert.ok(!r.ok && r.status === 400);
   assert.equal((await b.repo.listar()).length, 0);
+  // Leituras: com projeto, marco pendente e evento na prefeitura A, a B não vê nada.
+  assert.ok((await exec(a.ctx, { acao: 'marco_criar', id, data: '2026-12-01', descricao: 'Marco A' })).ok);
+  assert.equal((await a.repo.listarMarcosPendentes(20)).length, 1);
+  assert.equal((await a.repo.listarMarcos(id)).length, 1);
+  assert.ok((await a.repo.historico(id, 50)).length > 0);
+  assert.equal((await a.repo.listarDoProjeto('P-A')).length, 1);
+  assert.deepEqual(await b.repo.listarMarcosPendentes(20), []);
+  assert.deepEqual(await b.repo.listarMarcos(id), []);
+  assert.deepEqual(await b.repo.historico(id, 50), []);
+  assert.deepEqual(await b.repo.listarDoProjeto('P-A'), []);
+  assert.equal((await b.repo.datasMarcosPendentes()).size, 0);
 });
 
 test('5. concorrência: revisão otimista', async () => {
@@ -222,6 +233,10 @@ test('7. normalizador e valores em reais', () => {
   assert.equal(centavosDeTexto('0,1'), 10);
   assert.equal(centavosDeTexto('R$ 10'), 1000);
   assert.equal(centavosDeTexto(''), null);
+  assert.equal(centavosDeTexto('10.000.000.000,00'), 1_000_000_000_000);
+  assert.equal(centavosDeTexto('10.000.000.000,01'), 'invalido');
+  assert.ok(normalizarCampos({ valor_estimado: 1e12 }, 'editar').ok);
+  assert.ok(!normalizarCampos({ valor_estimado: 1e12 + 1 }, 'editar').ok);
   for (const ruim of ['-1', '1,234', 'abc', '1.23', '99999999999999999999']) assert.equal(centavosDeTexto(ruim), 'invalido', ruim);
   assert.equal(SEI_CONTRATACAO.source, SEI.source);
   assert.deepEqual(COLUNAS_EDITAVEIS, CAMPOS.map((c) => c.campo));
@@ -378,6 +393,10 @@ test('11. carga: idempotente e a tela vence; validações antes de gerar SQL', a
     assert.ok(rodar((j) => { j.contratacoes[1].marcos[0].data = '2026-02-30'; }).falhou);
     assert.ok(rodar((j) => { j.contratacoes[1].marcos[0].concluido = 'sim'; }).falhou);
     assert.ok(rodar((j) => { j.contratacoes[1].marcos[0].descricao = '  '; }).falhou);
+    const emRuim = rodar((j) => { j.contratacoes[10].marcos[0].concluido_em = '2026-11-10 12:00:00'; });
+    assert.ok(emRuim.falhou && !emRuim.saida && /concluido_em/.test(emRuim.msg), emRuim.msg);
+    const muitos = rodar((j) => { j.contratacoes[0].marcos = Array.from({ length: 51 }, (_, i) => ({ id: `M-Z${i}`, data: '2026-12-01', descricao: 'd', concluido: false })); });
+    assert.ok(muitos.falhou && !muitos.saida && /C-EX01/.test(muitos.msg), muitos.msg);
     const futura = rodar((j) => { j.contratacoes[0].etapa_desde = '2099-01-01'; });
     assert.ok(futura.falhou && !futura.saida);
     const outra = rodar((j) => { j.prefeitura_id = 1; });

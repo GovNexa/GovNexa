@@ -42,7 +42,7 @@ export const ID_PROJETO_LIGADO = ID_FICHA;
 /** Mesmo formato de `SEI` em src/lib/carteira/cadastro.ts (um teste confere). */
 export const SEI_CONTRATACAO = /^\d{2}\.\d{1,2}\.\d{9}-\d$/;
 
-export const MAX_VALOR_CENTAVOS = 100_000_000_000_000;
+export const MAX_VALOR_CENTAVOS = 1_000_000_000_000;
 export const MAX_CONTRATACOES = 5000;
 export const MAX_MARCOS = 50;
 /** Teto TOTAL (ativas e removidas) por prefeitura: 4 vezes o das ativas. */

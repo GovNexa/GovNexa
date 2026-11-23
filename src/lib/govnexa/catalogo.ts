@@ -1,12 +1,12 @@
 // Catálogo de módulos do GovNexa. Desde a E11 (áudio 31) o menu lateral tem TRÊS VISÕES: Gerencial (o que o prefeito vê),
 // Governança da execução (o trabalho da equipe) e Convênios (captação e repasses); depois vêm Licitações (demonstrativo,
-// até a E12 trazer a gestão das licitações para a Visão gerencial) e Conta. Os endereços das telas não mudaram.
+// a gestão das licitações (E12) fica na Visão gerencial) e Conta. Os endereços das telas não mudaram.
 import type { Acao } from '../usuarios/index.ts';
 
 export type ModuloId = 'gerencial' | 'governanca' | 'convenios' | 'licitacoes' | 'conta';
 
 export const MODULOS: { id: ModuloId; nome: string; descricao: string; ativo: boolean }[] = [
-  { id: 'gerencial', nome: 'Visão gerencial', descricao: 'O que o prefeito vê para decidir: projetos prioritários, carteira, mapa, Kanban e Gantt.', ativo: true },
+  { id: 'gerencial', nome: 'Visão gerencial', descricao: 'O que o prefeito vê para decidir: projetos prioritários, carteira, mapa, licitações, Kanban e Gantt.', ativo: true },
   { id: 'governanca', nome: 'Governança da execução', descricao: 'O trabalho da equipe: painel da equipe, cronogramas, onde está parado, inconsistências, pendências, reunião, sala de guerra e histórico.', ativo: true },
   { id: 'convenios', nome: 'Convênios', descricao: 'Captação e repasses: convênios em execução e em risco, CAUC, oportunidades e alertas.', ativo: true },
   { id: 'licitacoes', nome: 'Licitações', descricao: 'Demonstrativo: operação, planejamento, preços, automação, mercado e cadastros.', ativo: true },
@@ -15,7 +15,7 @@ export const MODULOS: { id: ModuloId; nome: string; descricao: string; ativo: bo
 
 /** Telas de cada visão, na ordem do menu (slug '' = /plataforma/). Toda tela do catálogo fica em exatamente um lugar. */
 export const ITENS_DA_VISAO: Record<Exclude<ModuloId, 'licitacoes'>, readonly string[]> = {
-  gerencial: ['', 'projetos-carteira', 'gestao', 'projetos-kanban', 'projetos-gantt'],
+  gerencial: ['', 'projetos-carteira', 'gestao', 'gestao-licitacoes', 'projetos-kanban', 'projetos-gantt'],
   governanca: ['gestao-equipe', 'projetos', 'projetos-cronogramas', 'projetos-parado', 'gestao-inconsistencias', 'projetos-pendencias', 'projetos-reuniao', 'projetos-sala', 'projetos-log', 'gestao-alertas', 'projetos-sei'],
   convenios: ['convenios', 'captacao', 'captacao-acompanhamento', 'captacao-alertas', 'captacao-oportunidades', 'captacao-projetos', 'captacao-comparativo', 'captacao-qualidade'],
   conta: ['usuarios', 'projetos-fluxo', 'gestao-whatsapp', 'relatorios', 'perfil', 'configuracoes'],
@@ -43,7 +43,7 @@ export const PERMISSAO_DO_ITEM: Record<string, Acao> = {
 };
 
 const textosGestao: Record<string, string> = {
-  gerencial: 'Projetos prioritários, carteira, mapa, Kanban e Gantt',
+  gerencial: 'Projetos prioritários, carteira, mapa, licitações, Kanban e Gantt',
   governanca: 'Cronogramas, onde está parado, inconsistências e pendências',
   convenios: 'Convênios em execução e em risco e regularidade no CAUC',
 };
@@ -78,6 +78,7 @@ export const NOVOS_MODULOS = [
   },
   tela('gestao-equipe', 'Painel da equipe', 'Gestão', 'govnexa-equipe'),
   tela('gestao-inconsistencias', 'Inconsistências de dados', 'Gestão', 'govnexa-inconsistencias'),
+  tela('gestao-licitacoes', 'Gestão das licitações', 'Gestão', 'govnexa-licitacoes'),
   tela('gestao-whatsapp', 'WhatsApp', 'Gestão', 'govnexa-whatsapp'),
   tela('gestao-alertas', 'Alertas', 'Gestão', 'govnexa-alertas'),
   // E11: tela própria em src/pages/plataforma/convenios/ (o grupo Captação liga a tela ao Fluxo).
