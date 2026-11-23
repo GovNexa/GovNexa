@@ -127,6 +127,36 @@ test('4. edição em linha no painel', async ({ page, request, baseURL }, testIn
   await expect(page.locator('[data-ct-msg]')).toHaveText('Valor inválido: use o formato 1.234,56.');
 });
 
+test('4b. clique duplo cria um marco só; editar Empresa mantém o % pago', async ({ page, request, baseURL }, testInfo) => {
+  const nome = nomeUnico(testInfo);
+  const orgao = orgaoUnico(testInfo);
+  const id = await criarPorApi(request, baseURL, { nome, etapa: 'concluida', orgao });
+  await page.goto(`/plataforma/gestao-licitacoes/${id}/`);
+  const m = page.locator('[data-ct-marcos-lista]');
+  await m.locator('[name="data"]').fill('2026-12-21');
+  await m.locator('[name="descricao"]').fill('Marco duplo');
+  await m.getByRole('button', { name: 'Adicionar' }).dblclick();
+  await expect(m.locator('li[data-marco-id]')).toHaveCount(1);
+  await page.reload();
+  await expect(m.locator('li[data-marco-id]')).toHaveCount(1);
+  await page.goto(`${PAINEL}?orgao=${encodeURIComponent(orgao)}`);
+  const linha = page.locator(`[data-ct-linha][data-id="${id}"]`);
+  const campo = (c: string) => linha.locator(`[data-ct-campo="${c}"]`);
+  await campo('valor_contratado').locator('.ct-editar').click();
+  await campo('valor_contratado').locator('input').fill('1.000,00');
+  await campo('valor_contratado').getByRole('button', { name: 'Salvar' }).click();
+  await expect(page.locator('[data-ct-msg]')).toHaveText('Salvo e registrado no Histórico.');
+  await campo('valor_pago').locator('.ct-editar').click();
+  await campo('valor_pago').locator('input').fill('500,00');
+  await campo('valor_pago').getByRole('button', { name: 'Salvar' }).click();
+  await expect(campo('valor_pago').locator('[data-ct-extra]')).toContainText('50% pago');
+  await campo('empresa').locator('.ct-editar').click();
+  await campo('empresa').locator('input').fill('Empresa Mantem');
+  await campo('empresa').getByRole('button', { name: 'Salvar' }).click();
+  await expect(campo('empresa').locator('[data-ct-texto]')).toHaveText('Empresa Mantem');
+  await expect(campo('valor_pago').locator('[data-ct-extra]')).toContainText('50% pago');
+});
+
 test('5. XSS: nome e motivo aparecem como texto', async ({ page, request, baseURL }, testInfo) => {
   page.on('dialog', (d) => { void d.accept(); });
   const nome = `<img src=x onerror="window.__xss=1">E2E ${Date.now()}`;

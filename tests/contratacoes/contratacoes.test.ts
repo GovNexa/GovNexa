@@ -88,6 +88,8 @@ test('2. do zero: criar, avançar 5 etapas, editar, marcos e Histórico', async 
     avisoFinal = r.avisos;
   }
   assert.equal(rev, 5);
+  // Sem `data`, o servidor grava a data de hoje em Brasília (relógio injetado).
+  assert.equal((await repo.obter(id))?.etapa_desde, '2026-11-22');
   assert.deepEqual(avisoFinal, ['Preencha na nova etapa: Valor contratado, Empresa, Marco, Data do marco.']);
   const e = await exec(ctx, { acao: 'editar', id, revisao: rev, campos: { valor_contratado: 100000, valor_pago: 50000, empresa: 'Empresa Exemplo', colocacao: 1 } });
   assert.ok(e.ok && e.revisao === 6 && e.mudou);

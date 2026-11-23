@@ -2,7 +2,7 @@
 // Todo texto vindo do banco entra na tela só por textContent (nunca como HTML). A gravação é uma única rota JSON.
 import { hrefContratacao } from '../lib/contratacoes/navegacao.ts';
 import {
-  CAMPOS, ROTULO_AGUARDANDO, ROTULO_MARCO, ROTULO_MODALIDADE, centavosDeTexto, formatarCampo, hojeBrasilia, type CampoEditavel, type DefCampo,
+  CAMPOS, ROTULO_AGUARDANDO, ROTULO_MARCO, ROTULO_MODALIDADE, centavosDeTexto, formatarCampo, type CampoEditavel, type DefCampo,
 } from '../lib/contratacoes/regras.ts';
 
 const ROTA_GRAVAR = '/plataforma/gestao-licitacoes/gravar/';
@@ -154,7 +154,8 @@ function abrirEditor(raiz: HTMLElement, el: HTMLElement, def: DefCampo, botao: H
     salvar.disabled = false; cancelar.disabled = false;
     if (!r.ok) { mostrar(raiz, r.erro, r.lista); return; }
     const avisos = r.r.avisos ?? [];
-    if (raiz.hasAttribute('data-ct-pagina')) {
+    const recarrega = def.campo === 'aguardando' || def.campo === 'aguardando_quem' || def.campo.startsWith('valor_');
+    if (raiz.hasAttribute('data-ct-pagina') || recarrega) {
       guardarMsg('Salvo e registrado no Histórico.', avisos);
       location.reload();
       return;
@@ -162,7 +163,7 @@ function abrirEditor(raiz: HTMLElement, el: HTMLElement, def: DefCampo, botao: H
     if (typeof r.r.revisao === 'number') linha.dataset.revisao = String(r.r.revisao);
     el.dataset.valor = valor === null ? '' : String(valor);
     alvo.textContent = formatarCampo(def.campo as CampoEditavel, valor);
-    for (const x of linha.querySelectorAll('[data-ct-extra]')) x.remove();
+    for (const x of el.querySelectorAll('[data-ct-extra]')) x.remove();
     fechar();
     mostrar(raiz, 'Salvo e registrado no Histórico.', avisos);
   };
@@ -198,6 +199,14 @@ function prepararCadastro(raiz: HTMLElement): void {
   });
 }
 
+/** Desabilita os botões durante o envio e reabilita no fim (evita clique duplo). */
+async function travando(botoes: Iterable<HTMLButtonElement>, fn: () => Promise<void>): Promise<void> {
+  const lista = [...botoes];
+  const antes = lista.map((b) => b.disabled);
+  for (const b of lista) b.disabled = true;
+  try { await fn(); } finally { lista.forEach((b, i) => { b.disabled = antes[i]; }); }
+}
+
 function prepararPagina(raiz: HTMLElement): void {
   const id = raiz.dataset.id ?? '';
   const revisao = (): number => Number(raiz.dataset.revisao);
@@ -212,14 +221,13 @@ function prepararPagina(raiz: HTMLElement): void {
   };
   raiz.querySelector<HTMLButtonElement>('[data-ct-avancar]')?.addEventListener('click', (e) => {
     const botao = e.currentTarget as HTMLButtonElement;
-    botao.disabled = true;
-    void mudarEtapa(botao.dataset.para ?? '', hojeBrasilia(), null).finally(() => { botao.disabled = false; });
+    void travando([botao], () => mudarEtapa(botao.dataset.para ?? '', null, null));
   });
   const formEtapa = raiz.querySelector<HTMLFormElement>('[data-ct-etapa-form]');
   formEtapa?.addEventListener('submit', (e) => {
     e.preventDefault();
     const dados = new FormData(formEtapa);
-    void mudarEtapa(String(dados.get('para') ?? ''), textoLimpo(String(dados.get('data') ?? '')), textoLimpo(String(dados.get('motivo') ?? '')));
+    void travando(formEtapa.querySelectorAll('button'), () => mudarEtapa(String(dados.get('para') ?? ''), textoLimpo(String(dados.get('data') ?? '')), textoLimpo(String(dados.get('motivo') ?? ''))));
   });
   const recarregarApos = async (corpo: Record<string, unknown>, texto: string): Promise<void> => {
     const r = await enviar(corpo);
@@ -231,14 +239,14 @@ function prepararPagina(raiz: HTMLElement): void {
   formMarco?.addEventListener('submit', (e) => {
     e.preventDefault();
     const dados = new FormData(formMarco);
-    void recarregarApos({ acao: 'marco_criar', id, data: String(dados.get('data') ?? ''), descricao: String(dados.get('descricao') ?? '') }, 'Marco adicionado.');
+    void travando(formMarco.querySelectorAll('button'), () => recarregarApos({ acao: 'marco_criar', id, data: String(dados.get('data') ?? ''), descricao: String(dados.get('descricao') ?? '') }, 'Marco adicionado.'));
   });
   for (const botao of raiz.querySelectorAll<HTMLButtonElement>('[data-ct-marco-acao]')) {
     botao.addEventListener('click', () => {
       const acao = botao.dataset.ctMarcoAcao ?? '';
       const marcoId = botao.closest<HTMLElement>('[data-marco-id]')?.dataset.marcoId ?? '';
       if (acao === 'marco_remover' && !confirm('Remover este marco?')) return;
-      void recarregarApos({ acao, id, marco_id: marcoId }, acao === 'marco_remover' ? 'Marco removido.' : acao === 'marco_concluir' ? 'Marco concluído.' : 'Marco reaberto.');
+      void travando(raiz.querySelectorAll<HTMLButtonElement>('[data-ct-marco-acao]'), () => recarregarApos({ acao, id, marco_id: marcoId }, acao === 'marco_remover' ? 'Marco removido.' : acao === 'marco_concluir' ? 'Marco concluído.' : 'Marco reaberto.'));
     });
   }
   const formRemover = raiz.querySelector<HTMLFormElement>('[data-ct-form-remover]');
@@ -247,7 +255,7 @@ function prepararPagina(raiz: HTMLElement): void {
     const motivo = textoLimpo(String(new FormData(formRemover).get('motivo') ?? ''));
     if (!motivo) { mostrar(raiz, 'Informe o motivo da remoção.'); return; }
     if (!confirm('Remover esta contratação? Ela sai das listas; o Histórico fica guardado.')) return;
-    const r = await enviar({ acao: 'remover', id, revisao: revisao(), motivo });
+    const r = await (async () => { let x: Awaited<ReturnType<typeof enviar>> | undefined; await travando(formRemover.querySelectorAll('button'), async () => { x = await enviar({ acao: 'remover', id, revisao: revisao(), motivo }); }); return x!; })();
     if (!r.ok) { mostrar(raiz, r.erro, r.lista); return; }
     location.assign(document.querySelector<HTMLAnchorElement>('[data-ct-voltar]')?.getAttribute('href') ?? '/plataforma/gestao-licitacoes/');
   });
