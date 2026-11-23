@@ -22,6 +22,8 @@ async function enviar(corpo: Record<string, unknown>): Promise<Retorno> {
     });
     if (resposta.type === 'opaqueredirect' || resposta.status === 401) return { ok: false, erro: 'Sua sessão terminou. Entre de novo e repita a alteração.', lista: [] };
     if (resposta.status === 409) return { ok: false, erro: 'Esta contratação foi alterada por outra pessoa. Recarregue a página para ver a versão atual; o que você digitou não foi salvo.', lista: [] };
+    if (resposta.status === 403) return { ok: false, erro: 'Seu perfil não pode alterar contratações.', lista: [] };
+    if (resposta.status === 404) return { ok: false, erro: 'Esta contratação ou marco não existe mais. Recarregue a página.', lista: [] };
     if (resposta.status === 429) return { ok: false, erro: 'Muitas ações em pouco tempo. Tente de novo em um minuto.', lista: [] };
     const r = await resposta.json().catch(() => null) as Resposta | null;
     if (resposta.status === 400) return { ok: false, erro: 'Não foi possível salvar. Corrija:', lista: r?.erros?.length ? r.erros : [r?.erro ?? 'Pedido inválido.'] };

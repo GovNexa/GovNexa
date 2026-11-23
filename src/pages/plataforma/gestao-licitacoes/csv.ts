@@ -4,7 +4,7 @@ import { lerFiltros, montarPainel, nomeArquivoCsvLicitacoes, paraCsvContratacoes
 import { hojeBrasilia } from '../../../lib/contratacoes/regras.ts';
 
 export const prerender = false;
-const SEM_CACHE = { 'Cache-Control': 'private, no-store' };
+const SEM_CACHE = { 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' };
 
 export const GET: APIRoute = async ({ locals, url }) => {
   const repo = locals.repositorio.contratacoes;
@@ -17,7 +17,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
   const hoje = hojeBrasilia();
   const painel = montarPainel(lista, pendentes, filtros, hoje, datasPendentes);
   // A marca inicial (BOM) faz o Excel abrir o arquivo em UTF-8; o código-fonte continua sem BOM.
-  return new Response(`﻿${paraCsvContratacoes(painel.filtradas)}`, {
+  return new Response(`\uFEFF${paraCsvContratacoes(painel.filtradas)}`, {
     headers: {
       ...SEM_CACHE,
       'Content-Type': 'text/csv; charset=utf-8',
