@@ -156,5 +156,5 @@ test('prioritários: próximas entregas em ordem e o item abre a página do proj
   expect(datas.length).toBeGreaterThan(0);
   expect(datas).toEqual([...datas].sort());
   await page.locator('[data-pp-proximas] li a').first().click();
-  await expect(page).toHaveURL(/\/plataforma\/projeto\/P-\d+\/$/);
+  await expect(page).toHaveURL(/\/plataforma\/projeto\/P-\d+\/\?volta=%2Fplataforma%2F$/);
 });

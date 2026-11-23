@@ -4,14 +4,14 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 import { classificarDocumento, podeEnviar, type BucketR2 } from '../../../../lib/documentos/servico.ts';
-import { codigoDe } from '../../../../lib/documentos/mensagens.ts';
+import { codigoDe, destinoDocumentos } from '../../../../lib/documentos/mensagens.ts';
 import { mesmaOrigem } from '../../../../lib/documentos/http.ts';
 import { ID_PROJETO } from '../../../../lib/documentos/regras.ts';
 import { dentroDoLimite, limitadorDoAmbiente } from '../../../../lib/seguranca/limite.ts';
 
 const BASE = '/plataforma/documentos-projeto/';
 
-export const POST: APIRoute = async ({ request, params, locals, redirect }) => {
+export const POST: APIRoute = async ({ request, params, locals, redirect, url }) => {
   const contexto = { usuario: locals.usuario, repositorio: locals.repositorio, bucket: (env as unknown as { DOCUMENTOS?: BucketR2 }).DOCUMENTOS };
   if (!mesmaOrigem(request)) return redirect(`${BASE}?r=origem`, 303);
   const pode = podeEnviar(contexto);
@@ -22,7 +22,7 @@ export const POST: APIRoute = async ({ request, params, locals, redirect }) => {
   if (!(await dentroDoLimite(limitadorDoAmbiente(env), contexto.repositorio.prefeituraId, contexto.usuario.email))) return redirect(`${BASE}?r=limite`, 303);
   const form = await request.formData().catch(() => null);
   const projeto = String(form?.get('projeto') ?? '');
-  const base = ID_PROJETO.test(projeto) ? `${BASE}projeto/${encodeURIComponent(projeto)}/` : BASE;
   const r = await classificarDocumento(contexto, String(params.id ?? ''), form ? form.get('tipo') : null);
-  return redirect(`${base}?r=${r.ok ? 'classificado' : codigoDe(r)}`, 303);
+  const codigo = r.ok ? 'classificado' : codigoDe(r);
+  return redirect(ID_PROJETO.test(projeto) ? destinoDocumentos(projeto, codigo, url.searchParams.get('volta'), url.origin) : `${BASE}?r=${codigo}`, 303);
 };

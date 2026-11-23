@@ -39,6 +39,7 @@
 .gt-linha{display:grid;grid-template-columns:220px 1fr;border-bottom:1px solid var(--line);min-height:2.4rem;align-items:center}
 .gt-rotulo{padding:.3rem .6rem;font-size:.8rem;line-height:1.25;color:var(--text);position:sticky;left:0;background:var(--surface);z-index:2;border-right:1px solid var(--line);align-self:stretch;display:grid;align-content:center}
 .gt-rotulo small{color:var(--muted)}
+.gt-rotulo .gt-nome{color:inherit;font-weight:600}
 .gt-trilha{position:relative;height:1.4rem}
 .gt-bar{position:absolute;top:.2rem;height:1rem;border-radius:3px;background:var(--cor);min-width:4px}
 .gt-eixo{background:var(--soft)}

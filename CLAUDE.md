@@ -31,6 +31,7 @@ Vale para todos os desenvolvedores e para toda sessão do Claude Code: o outro d
 - `npm run impacto`: mostra as etapas do **Fluxo do sistema** afetadas. Se a mudança afetar o fluxo (etapa, tela ou situação), atualizar `src/lib/govnexa/fluxo.ts`, `subfluxos.ts` e `impacto.ts` na mesma entrega.
 - Telas responsivas: sem rolagem horizontal em 1280px e 390px (celular); textos simples; contraste adequado nos temas claro e escuro.
 - Datas no padrão brasileiro (regra do dono, 17/11/2026): só o dia em `DD/MM/AAAA`; dia e hora em `DD/MM/AAAA HH:MM` (24 h, horário de Brasília, sem segundos). Use sempre `src/lib/datas.ts` (`dataBr`, `dataHoraBr`, `dataOuDataHoraBr`); nunca `toLocaleString`, `slice` de ISO ou `dateStyle`.
+- Link de conteúdo para outra tela usa `comVolta(href, aquiDe(Astro.url))` (ou `hrefFicha`/`linkFicha`); a tela de destino usa `Voltar.astro` ou o automático do `Platform` (E15).
 
 ## 4. README sempre atualizado (regra do dono, 16/11/2026)
 O `README.md` é a fonte para dar continuidade: quem baixar o repositório precisa saber o que o sistema é, o que já foi feito, o que está sendo feito e o que falta.

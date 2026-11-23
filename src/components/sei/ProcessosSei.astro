@@ -218,6 +218,13 @@ if (raiz) {
     const q = filtro.value.trim().toLowerCase();
     for (const l of linhas) l.hidden = q !== '' && !(l.dataset.busca ?? '').includes(q);
   });
+  const pre = new URLSearchParams(location.search).get('projeto');
+  if (pre && ids.has(pre)) {
+    filtro.value = pre;
+    filtro.dispatchEvent(new Event('input'));
+    const seletor = form.querySelector<HTMLSelectElement>('select[name="projeto"]');
+    if (seletor) seletor.value = pre;
+  }
 
   desenhar();
 }

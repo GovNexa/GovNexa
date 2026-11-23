@@ -64,6 +64,8 @@ const dados = JSON.stringify({ base, hoje, desdePadrao, prefeitura: municipioAti
 </div>
 <script>
 import { avisar, mostrarErro } from '../../lib/carteira/simulacao.ts';
+import { hrefFicha, ID_FICHA } from '../../lib/carteira/ficha.ts';
+import { aquiDe } from '../../lib/navegacao/volta.ts';
 import { pautaDaBase, type ItemBase, type ItemPauta } from '../../lib/reuniao/visoes.ts';
 import { dataBr, faltandoNaReuniao, guardarRegistrosReuniao, montarRegistrosReuniao, type AcaoReuniao, type ItemDiscutido } from '../../lib/reuniao/simulacao.ts';
 
@@ -161,7 +163,7 @@ document.addEventListener('astro:page-load', () => {
     li.dataset.discutido = estado.discutido ? 'sim' : 'nao';
     const h3 = el('h3');
     const a = el('a', item.nome);
-    a.href = `/plataforma/projetos-carteira/?q=${encodeURIComponent(item.projeto_id)}`;
+    a.href = ID_FICHA.test(item.projeto_id) ? hrefFicha(item.projeto_id, aquiDe(new URL(location.href))) : `/plataforma/projetos-carteira/?q=${encodeURIComponent(item.projeto_id)}`;
     h3.append(a, document.createTextNode(' '), el('span', `(${item.projeto_id})`, 'muted'));
     const meta = el('p', `${item.orgao ?? 'Sem órgão'} · ${item.macroetapa}${item.prioridade ? ` · Prioridade ${item.prioridade}` : ''}`, 'ru-meta');
     const farol = el('p', undefined, 'ru-farol');

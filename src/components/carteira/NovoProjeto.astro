@@ -61,6 +61,8 @@ import { avisar, nomeEtapa } from '../../lib/carteira/simulacao.ts';
 import type { Projeto } from '../../lib/carteira/tipos.ts';
 import { validarLocalizacao } from '../../lib/mapa/geo.ts';
 import type { Localizacao } from '../../lib/mapa/tipos.ts';
+import { hrefFicha } from '../../lib/carteira/ficha.ts';
+import { aquiDe, comVolta } from '../../lib/navegacao/volta.ts';
 
 const SEI = /^\d{2}\.\d{1,2}\.\d{9}-\d$/;
 const reduzMovimento = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -266,8 +268,8 @@ document.addEventListener('astro:page-load', () => {
         lista.append(li);
       }
       ok.querySelector<HTMLElement>('[data-np-ok-pendencias]')!.hidden = lista.children.length === 0;
-      ok.querySelector<HTMLAnchorElement>('[data-np-ok-pagina]')!.href = `/plataforma/projeto/${encodeURIComponent(r.projeto.id)}/`;
-      ok.querySelector<HTMLAnchorElement>('[data-np-ok-log]')!.href = `/plataforma/projetos-log/?projeto=${encodeURIComponent(r.projeto.id)}`;
+      ok.querySelector<HTMLAnchorElement>('[data-np-ok-pagina]')!.href = hrefFicha(r.projeto.id, aquiDe(new URL(location.href)));
+      ok.querySelector<HTMLAnchorElement>('[data-np-ok-log]')!.href = comVolta(`/plataforma/projetos-log/?projeto=${encodeURIComponent(r.projeto.id)}`, aquiDe(new URL(location.href)));
       form.reset();
       raiz.querySelector('#np-loc')?.dispatchEvent(new CustomEvent('localizacao-definir', { detail: null }));
       atualizarOutros();

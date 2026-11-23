@@ -25,10 +25,10 @@ test('ficha: aba inválida abre Cadastro', () => {
   assert.equal(abaValida('governanca'), 'governanca');
 });
 
-test('ficha: volta só aceita telas internas permitidas', () => {
+test('ficha: volta só aceita telas internas sob /plataforma/', () => {
   for (const ok of ['/plataforma/projetos-carteira/?orgao=SMS', '/plataforma/gestao/?sel=obra%3AP-905#mapa']) assert.equal(voltaSegura(ok, O), ok);
   for (const ruim of ['https://externo.example/', '//externo.example/plataforma/gestao/', '/\\externo.example/plataforma/gestao/', 'javascript:alert(1)',
-    '/plataforma/usuarios/', '/plataforma/gestao/../usuarios/', '/plataforma/projetos-carteira/\u0000', '/plataforma/gestao/' + 'x'.repeat(2000), '', null]) {
+    '/entrar/', '/plataforma/projeto/editar/P-1/', '/plataforma/projetos-carteira/\u0000', '/plataforma/gestao/' + 'x'.repeat(2000), '', null]) {
     assert.equal(voltaSegura(ruim, O), null, String(ruim));
   }
 });

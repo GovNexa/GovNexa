@@ -10,10 +10,15 @@ import { nomeEtapa } from '../../../lib/carteira/simulacao.ts';
 import { farol } from '../../../lib/carteira/visoes.ts';
 import { dataBr, indicadoresSala, pautaReuniao, textoPrazo } from '../../../lib/sala/visoes.ts';
 import { diasEntre } from '../../../lib/cronograma/visoes.ts';
+import Voltar from '../../../components/navegacao/Voltar.astro';
+import { aquiDe, comVolta, voltaSegura } from '../../../lib/navegacao/volta.ts';
+import { linkFicha } from '../../../lib/carteira/ficha.ts';
 
 export const prerender = false;
 const s = carregarSalas().salas.find(s => s.id === Astro.params.id);
 if (!s) return new Response('Página não encontrada', { status: 404 });
+const volta = voltaSegura(Astro.url.searchParams.get('volta'), Astro.url.origin);
+const aqui = aquiDe(Astro.url);
 const hoje = new Date().toISOString().slice(0, 10);
 const carteira = carregarCarteira();
 const cronogramas = carregarCronogramas().cronogramas;
@@ -45,10 +50,10 @@ const estaVencido = (i: ItemRaid) => (i.situacao === 'aberto' || i.situacao === 
 const ordenar = (l: ItemRaid[]) => [...l].sort((a, b) => (a.prazo ?? '9999') < (b.prazo ?? '9999') ? -1 : (a.prazo ?? '9999') > (b.prazo ?? '9999') ? 1 : 0);
 ---
 <Platform title={s.titulo} slug="projetos-sala">
+  <Voltar slot="contexto" volta={volta} padrao={{ href: '/plataforma/projetos-sala/', texto: 'Todas as salas de guerra' }} />
   <p class="pill">Dados de exemplo</p><div class="section-head">
     <div>
       <h1>{s.titulo}</h1>
-      <p class="muted"><a href="/plataforma/projetos-sala/">← Todas as salas de guerra</a></p>
     </div>
   </div>
   <div data-cart data-sala-pagina data-sala-id={s.id} data-projeto-id={s.projetos[0] ?? ''} data-projeto-nome={projetos[0]?.nome ?? ''} data-sala-titulo={s.titulo}>
@@ -75,8 +80,8 @@ const ordenar = (l: ItemRaid[]) => [...l].sort((a, b) => (a.prazo ?? '9999') < (
           <ul class="sl-lista-simples">
             {projetos.map((p) => (
               <li data-projeto-id={p.id}>
-                <a href={`/plataforma/projetos-carteira/?q=${encodeURIComponent(p.id)}`}>{p.id} · {p.nome}</a>
-                {p.cronogramas.map((c) => <> · <a href={`/plataforma/cronograma/${c.id}/`}>Cronograma</a></>)}
+                <a href={linkFicha(p.id, volta, aqui)}>{p.id} · {p.nome}</a>
+                {p.cronogramas.map((c) => <> · <a href={comVolta(`/plataforma/cronograma/${encodeURIComponent(c.id)}/`, aqui)}>Cronograma</a></>)}
               </li>
             ))}
           </ul>
@@ -276,6 +281,8 @@ const ordenar = (l: ItemRaid[]) => [...l].sort((a, b) => (a.prazo ?? '9999') < (
 </Platform>
 <script>
 import { avisar, mostrarErro } from '../../../lib/carteira/simulacao.ts';
+import { hrefFicha } from '../../../lib/carteira/ficha.ts';
+import { aquiDe } from '../../../lib/navegacao/volta.ts';
 import { incluirProjetoNaSala, registrarSimulacaoSala, retirarProjetoDaSala } from '../../../lib/sala/simulacao.ts';
 import { nomeEtapa } from '../../../lib/carteira/simulacao.ts';
 
@@ -477,7 +484,7 @@ document.addEventListener('astro:page-load', () => {
       const item = document.createElement('li');
       item.dataset.projetoId = id;
       const a = document.createElement('a');
-      a.href = `/plataforma/projetos-carteira/?q=${encodeURIComponent(id)}`;
+      a.href = hrefFicha(id, aquiDe(new URL(location.href)));
       a.textContent = `${id} · ${p?.nome ?? id}`;
       item.append(a);
       listaDl.append(item);

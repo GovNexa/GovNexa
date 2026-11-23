@@ -1,5 +1,12 @@
 # Changelog
 
+## E15 · Navegação: sempre poder voltar à tela de origem (23/11/2026)
+- Pedido do dono: "entro numa tela, dela vou pra outra, porém não consigo retornar para a tela que iniciei". Todo link de conteúdo que leva a outra tela carrega a origem (caminho e filtros) no parâmetro `volta`; a tela de destino mostra "← Voltar para [tela]" (componente `Voltar.astro`, automático no layout da plataforma).
+- Só telas sob `/plataforma/` valem como volta (módulo `src/lib/navegacao/volta.ts`); no máximo 2 níveis; avisos de ação concluída (`salvo`, `rf`, `r`) não voltam junto. Link externo, rota de gravação, arquivo ou CSV são ignorados.
+- A ficha guarda a origem nas idas a Documentos, Fotos, Edição, Cronograma, SEI e Histórico completo; o X fecha para a origem e, depois de gravar a edição, a aba continua a mesma. Os links fixos "← Todos os cronogramas" e "← Todas as salas de guerra" aparecem só quando a tela não recebe `volta`.
+- 13 caminhos corrigidos: ficha, cronograma, sala de guerra, documentos, SEI, histórico completo, diálogo de detalhes, prioritários, alertas, reunião, licitação em detalhe, localização, mapa, Novo projeto e Gantt (nome do projeto virou link para a ficha).
+- Não mudou: login, rotas de gravação (só o redirecionamento final dos documentos leva a volta, validada de novo no servidor), banco e migrações. Sem dependência nova.
+
 ## E11 · Menu nas três visões e Visão Convênios (22/11/2026)
 - Menu lateral em três visões (áudio 31): **Visão gerencial** (Projetos prioritários, Carteira, Mapa e painel, Kanban e Gantt), **Governança da execução** (Painel da equipe, Projetos · Início, Cronogramas, Onde está parado, Inconsistências, Pendências, Reunião, Sala de guerra, Histórico, Alertas e Processos no SEI) e **Convênios** (Visão Convênios e as guias da Captação). Depois vêm Licitações (demonstrativo, com os grupos de antes) e Conta (Usuários, Fluxo do sistema, WhatsApp, relatórios, perfil e configurações).
 - Nenhum endereço mudou: todas as telas abrem no mesmo lugar. A guia "Gestão · Painel" passou a se chamar "Mapa e painel" (mesmo endereço).

@@ -16,6 +16,8 @@
 
 ## Andamento · última atualização em 22/11/2026
 
+23/11/2026: E15 (navegação: "← Voltar para [tela de origem]" em toda tela de destino, com os filtros preservados) no código, aguardando portão e revisão.
+
 22/11/2026: os requisitos dos áudios de 20/11 (três visões: gerencial, governança da execução e convênios; tela do prefeito; carteira, ficha, Kanban, mapa por área e licitações) estão planejados em [plano-requisitos-audios.md](plano-requisitos-audios.md).
 
 22/11/2026: E1 a E7 e E10 mesclados na `main` (PRs #40, #41 e #44 a #49), sem publicação; E11 (menu nas três visões e Visão Convênios) no código, aguardando revisão. A situação de cada entrega fica na seção 3 de [plano-requisitos-audios.md](plano-requisitos-audios.md).
@@ -41,6 +43,7 @@ Percentuais mantidos até homologação do login próprio; Access continua padr�
 
 | Data | Entrega | PR |
 | --- | --- | --- |
+| 23/11 | E15: navegação, voltar sempre à tela de origem (13 caminhos corrigidos) | branch agente/codex/e15-navegacao, aguardando revisão |
 | 22/11 | E11: menu nas três visões (Gerencial, Governança da execução, Convênios) e Visão Convênios (em execução, em risco, CAUC); menu esconde o que o perfil não abre | a numerar |
 | 22/11 | E10: Painel da equipe e relatório de inconsistências (impressão e CSV) | GovNexa #49, mesclado |
 | 22/11 | E7: Kanban enxuto e mover gravando no banco (B3), com portão e motivo | GovNexa #48, mesclado |
@@ -274,6 +277,12 @@ Abas da ficha: Resumo · Valores e recursos · Cronograma (Kanban/Gantt) · Capt
 ### 5.6 Reunião semanal e ações
 
 O modo Reunião percorre os projetos por prioridade ou farol, mostra o que mudou desde a semana anterior e registra discussão, decisão e ações (responsável e prazo). Substitui a coluna "Reunião dd-mm" e a coluna "Providências" da planilha. Ideias soltas do rodapé da planilha viram itens de um backlog de demandas, conversíveis em projeto.
+
+### 5.7 Navegação: voltar à tela de origem (23/11/2026, E15)
+
+Regra do dono: de qualquer tela, quem entrou numa segunda tela consegue voltar à de origem, com os filtros que tinha. Todo link de conteúdo para outra tela leva a origem (`pathname + search`) no parâmetro `volta`; a tela de destino mostra "← Voltar para [nome da tela]". Só telas sob `/plataforma/` valem; no máximo 2 níveis; avisos de ação concluída não voltam junto. A ficha do projeto guarda a origem e o X fecha para ela.
+
+Contrato para as telas novas (E12 e E13): (1) links de conteúdo com `comVolta(href, aquiDe(Astro.url))` e, para a ficha, `hrefFicha(id, aquiDe(Astro.url), aba)`; (2) a tela não precisa fazer nada para mostrar o Voltar (o `Platform` mostra). Se usar o slot `contexto`, ponha `<Voltar />` dentro dele; (3) redirecionamento depois de POST: `comVolta(destino, voltaSegura(url.searchParams.get('volta'), url.origin))`; (4) não use `VOLTAS_PERMITIDAS`.
 
 ## 6. Módulo Captação
 

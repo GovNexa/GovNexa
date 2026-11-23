@@ -65,6 +65,8 @@ Situação hoje: **Atende**, **Parcial** ou **Não**. A coluna "Entrega" aponta 
 
 Quadro final: 34 pedidos (alguns áudios trazem mais de um). Hoje: 0 atendem por inteiro, 17 em parte, 17 não atendem.
 
+Pedido posterior do dono (23/11/2026): "entro numa tela, dela vou pra outra, porém não consigo retornar para a tela que iniciei" (princípio 3: toda tela permite voltar à de origem com os filtros preservados). Atendido na **E15** (navegação), com os 13 caminhos corrigidos: ficha → cronograma, diálogo de detalhes → cronograma, sala de guerra → cronograma e ficha, ficha → documentos (envio e volta), ficha → SEI, ficha → histórico completo, prioritários → ficha, alertas e reunião → ficha, obras sem localização → ficha, mapa → localização, Novo projeto → ficha, licitação em detalhe → ficha e Gantt → ficha.
+
 ## 3. Entregas, ordem e quem faz
 
 Regras que valem para todas as entregas:

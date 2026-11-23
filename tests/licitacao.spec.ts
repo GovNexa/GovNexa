@@ -26,7 +26,7 @@ test('licitação em detalhe: carregar a página salva, ligar ao projeto, lembra
  await expect(page.locator('[data-ld-status]')).toContainText('Processo 26.18.000001001-1 carregado');
  const r=page.locator('[data-ld-resultado]');
  await expect(r.getByRole('heading',{name:'Processo 26.18.000001001-1'})).toBeVisible();
- await expect(r.getByRole('link',{name:'Ponte Exemplo B'})).toHaveAttribute('href','/plataforma/projetos-carteira/?q=P-901');
+ await expect(r.getByRole('link',{name:'Ponte Exemplo B'})).toHaveAttribute('href',/^\/plataforma\/projeto\/P-901\/\?volta=%2Fplataforma%2Flicitacoes-detalhe%2F/);
  await expect(r).not.toContainText('Pessoa Fictícia');
  await page.reload();
  await expect(page.locator('[data-ld-lista]')).toHaveValue('0');
