@@ -1,6 +1,9 @@
 # Changelog
 
 
+## E12 · ajustes da revisão (23/11/2026)
+- Gestão das licitações: botões de envio ficam desabilitados até a resposta (marcos, mudança de etapa e remoção), evitando clique duplo; ao editar um campo no painel só os detalhes do próprio campo são refeitos, e `aguardando`/`valor_*` recarregam a página para atualizar selos e % pago; "Avançar" não envia mais data do navegador (o servidor usa a data de hoje em Brasília).
+
 ## Junção E12 + E13 + E15 (23/11/2026)
 - As três entregas foram juntadas na branch da E13: E12 Gestão das licitações (migração 0010), E13 Cronograma como processo e painel Responsáveis (migração 0009) e E15 Navegação. Cada uma tem código, testes, revisão independente e prévia aprovada pelo dono (~90%); aguardam merge (PR #54 E15, PR #55 E12 que contém a E15, e o PR da E13 que conterá as três) e publicação.
 - Na junção, os links da E13 passaram a usar o mecanismo da E15 (`volta` na ficha, no cronograma e em Novo cronograma; Responsáveis aparece nos nomes de tela do "Voltar"). Menu: Responsáveis na Governança da execução e Gestão das licitações na Visão gerencial.
