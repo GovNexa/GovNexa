@@ -450,7 +450,9 @@ export function iniciarPainelDetalhes() {
       inicioToque = null;
       if (focoOriginal?.isConnected) focoOriginal.focus();
     });
-    dialogo.addEventListener('keydown', (evento) => {
+    // Ouve no documento: quando "Próximo"/"Anterior" fica desativado, o foco sai da janela e as setas deixariam de funcionar.
+    document.addEventListener('keydown', (evento) => {
+      if (!dialogo.open) return;
       if (evento.key === 'ArrowLeft' && indice > 0) {
         evento.preventDefault();
         mostrarRegistro(indice - 1);
