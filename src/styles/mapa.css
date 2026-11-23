@@ -148,6 +148,16 @@ html[data-theme="dark"] .mp-marcador-caixa:focus-visible,html[data-theme="dark"]
 .mp-ok{padding:.6rem .8rem;border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:6px;background:var(--soft);color:var(--text)}
 .mp-busca{display:flex;flex-wrap:wrap;gap:.75rem;align-items:end}
 .mp-busca label{flex:1 1 280px;min-width:0}
+/* busca de endereço no editor (E8) */
+.mp-ed-busca{display:grid;gap:.6rem;padding:.8rem;border:1px solid var(--line);border-radius:8px;background:var(--surface);min-width:0}
+.mp-ed-busca h3{margin:0;font-size:1rem}
+.mp-resultados{display:grid;gap:.4rem;margin:0;padding:0;list-style:none;min-width:0}
+.mp-resultado{width:100%;justify-content:flex-start;text-align:left;font-weight:500;white-space:normal;overflow-wrap:anywhere}
+.mp-resultado[aria-pressed="true"]{border-color:var(--accent);border-width:2px;font-weight:700}
+.mp-confirmar{display:grid;gap:.5rem;padding:.6rem .8rem;border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:6px;background:var(--soft);color:var(--text);min-width:0}
+.mp-confirmar p{margin:0;overflow-wrap:anywhere}
+.mp-confirmar .mp-acoes{display:flex;flex-wrap:wrap;gap:.5rem}
+.mp-btn-usar{border-color:var(--accent);border-width:2px}
 .mp-ficha{display:grid;gap:.2rem;padding:.8rem;border:1px solid var(--line);border-radius:8px;background:var(--soft)}
 .mp-ficha p{margin:0;max-width:none}
 @media (max-width:700px){
