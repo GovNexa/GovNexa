@@ -56,7 +56,7 @@ test('homologação e contrato: fim da contratação previsto vencido = vermelho
   // 16 a 28/11: sem fins de semana e sem o feriado de 20/11 (Consciência Negra) = 9 dias úteis
   assert.equal(p910.diasUteis, 9);
   assert.equal(p910.orgao, 'SEINFRA');
-  assert.match(p910.link, /^\/plataforma\/projetos-carteira\/\?q=/);
+  assert.match(p910.link, /^\/plataforma\/projeto\/P-910\/$/);
 });
 
 test('início de obra: projeto em contratação ou mobilização com início previsto vencido = vermelho', () => {

@@ -6,6 +6,7 @@ import '../../styles/dashboard.css';
 import { dataHoraBr, dataOuDataHoraBr } from '../../lib/datas.ts';
 import { carregarCarteira } from '../../lib/carteira/carga.ts';
 import { hrefFicha } from '../../lib/carteira/ficha.ts';
+import { aquiDe, comVolta } from '../../lib/navegacao/volta.ts';
 import { carregarCronogramas } from '../../lib/cronograma/carga.ts';
 import { dados } from '../../lib/dados/index.ts';
 import { avaliarFontes } from '../../lib/dados/qualidade.ts';
@@ -37,7 +38,7 @@ const rota = (cartao?: IdCartao) => urlCom(filtros, cartao, undefined, ROTA);
 const cartaoSelecionado = dashboard.cartoes.find((cartao) => cartao.id === cartaoId);
 const limparPainel = rota();
 // A ficha volta para este painel com os mesmos filtros e o mesmo detalhe aberto.
-const voltaFicha = `${Astro.url.pathname}${Astro.url.search}`;
+const voltaFicha = aquiDe(Astro.url);
 const valorFicha = (id: string) => hrefFicha(id, voltaFicha);
 // Alertas da central (toda a prefeitura), com a mesma montagem da guia Gestão › Alertas.
 const central = montarCentral({
@@ -103,7 +104,7 @@ const formatResumo = (chave: string, valor: number | null) =>
       : inteiro(valor);
 const escala = (valor: number, maximo: number) => `${maximo > 0 ? valor / maximo * 100 : 0}%`;
 const linkItem = (item: { id: string; link: string }, cartao: Cartao) =>
-  cartao.abrangencia === 'municipio' ? item.link : valorFicha(item.id);
+  cartao.abrangencia === 'municipio' ? comVolta(item.link, voltaFicha) : valorFicha(item.id);
 const barra = (quebras: Quebra[]) => Math.max(0, ...quebras.map((quebra) => quebra.valor ?? 0));
 const filtrosAtivos = (chave: keyof Filtros) => filtros[chave] ?? '';
 // Conservador: gravidade vem apenas dos cartões críticos; sem inferir novos alertas.
@@ -263,7 +264,7 @@ const linkEtapa = '/plataforma/projetos-kanban/';
     {alertasTopo.length
       ? <ul class="pd-lista">
           {alertasTopo.map((alerta) => (
-            <li><a href={alerta.link}>{textoBR(alerta.titulo)}</a><span>{alerta.gravidade === 'vermelho' ? 'Vermelho' : 'Amarelo'} · {textoBR(alerta.detalhe)}</span></li>
+            <li><a href={comVolta(alerta.link, voltaFicha)}>{textoBR(alerta.titulo)}</a><span>{alerta.gravidade === 'vermelho' ? 'Vermelho' : 'Amarelo'} · {textoBR(alerta.detalhe)}</span></li>
           ))}
         </ul>
       : <p class="pd-vazio">Nenhum alerta hoje.</p>}

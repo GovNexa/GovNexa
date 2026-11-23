@@ -1,6 +1,7 @@
 ---
 import Base from './Base.astro';
 import Icon from '../components/Icon.astro';
+import Voltar from '../components/navegacao/Voltar.astro';
 import modules from '../data/modules.json';
 import { municipioAtivo } from '../lib/municipio-ativo.ts';
 import { FORA_DO_MENU, catalogoCompleto, menuPorModulo } from '../lib/govnexa/catalogo.ts';
@@ -121,6 +122,7 @@ const menu = menuPorModulo(catalogoCompleto(modules), (acao) => usuarioPode(usua
 // E2: o padrão visual das telas de Projetos (fundo claro e neutro) continua valendo para as mesmas telas, agora espalhadas pelas visões.
 const padraoProjetos = catalogoCompleto(modules).some((item) => item.group === 'Projetos' && !FORA_DO_MENU.includes(item.slug) && itemIsCurrent(item));
 const muni = municipioAtivo();
+const temContexto = Astro.slots.has('contexto');
 ---
 <Base platform title={title} origemDados={origemDados} description={`Explore ${title} com dados fictícios de ${muni.nome}.`} userName={userName} userInitials={userInitials} userRole={userRole}>
   <form slot="saida" data-astro-reload method="post" action="/sair" style="margin:0"><button type="submit"><Icon name="log-out"/>Sair</button></form>
@@ -242,7 +244,7 @@ const muni = municipioAtivo();
       ))}
     </div>
     <div class="workspace" data-current-module={menu.find((mod) => mod.current)?.id} data-padrao={padraoProjetos ? 'projetos' : undefined}>
-      <slot name="contexto" />
+      {temContexto ? <slot name="contexto" /> : <Voltar />}
       <p class="notice"><span>{avisoDados}</span><span>Dados de exemplo nos módulos demonstrativos, salas, reuniões, WhatsApp e mapa por bairro.</span></p>
       <slot />
     </div>

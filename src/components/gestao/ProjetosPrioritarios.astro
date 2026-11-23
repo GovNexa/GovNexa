@@ -6,6 +6,8 @@ import '../../styles/prioritarios.css';
 import { carregarCarteira } from '../../lib/carteira/carga.ts';
 import { AREAS_PADRAO, areasDaPrefeitura, type Area } from '../../lib/carteira/area.ts';
 import { dataBr, dataHoraBr } from '../../lib/datas.ts';
+import { hrefFicha } from '../../lib/carteira/ficha.ts';
+import { aquiDe, comVolta } from '../../lib/navegacao/volta.ts';
 import { municipioAtivo } from '../../lib/municipio-ativo.ts';
 import { hojeEmBrasilia } from '../../lib/whatsapp/farol.ts';
 import {
@@ -65,7 +67,8 @@ const segmentos = (porSerie: number[]) => {
   }).filter((s) => s.h > 0);
 };
 const corSerie = (cor: number | null, id: string) => (cor ? `pp-cor-${cor}` : id === SEM_AREA ? 'pp-cor-sem' : 'pp-cor-outros');
-const linkProjeto = (id: string) => `/plataforma/projeto/${encodeURIComponent(id)}/`;
+const aqui = aquiDe(Astro.url);
+const linkProjeto = (id: string) => hrefFicha(id, aqui);
 const primeiroMes = linha.meses[0]?.rotulo ?? rotuloMes(hoje.slice(0, 7));
 const descricaoLinha = linha.total
   ? `Linha do tempo: ${plural(linha.total, 'entrega prevista', 'entregas previstas')} de ${primeiroMes} a ${rotuloMes(FIM_LINHA_TEMPO)}`
@@ -226,7 +229,7 @@ const fora = [
                   </li>
                 ))}
               </ol>
-              {proximas.total > proximas.itens.length && <p class="pp-nota">Mostrando {inteiro(proximas.itens.length)} de {inteiro(proximas.total)}. <a href="/plataforma/projetos-carteira/">Ver todas na Carteira</a></p>}
+              {proximas.total > proximas.itens.length && <p class="pp-nota">Mostrando {inteiro(proximas.itens.length)} de {inteiro(proximas.total)}. <a href={comVolta('/plataforma/projetos-carteira/', aqui)}>Ver todas na Carteira</a></p>}
             </>
           ) : <p class="pp-vazio">Nenhuma entrega prevista a partir de hoje para estes filtros.</p>}
         </section>

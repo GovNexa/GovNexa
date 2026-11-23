@@ -4,11 +4,16 @@ import { usuarioPode } from '../../../../lib/usuarios/index.ts';
 import { MENSAGENS } from '../../../../lib/documentos/mensagens.ts';
 import { ID_PROJETO, EXTENSOES_ACEITAS } from '../../../../lib/documentos/regras.ts';
 import { dataHoraBr } from '../../../../lib/datas.ts';
+import Voltar from '../../../../components/navegacao/Voltar.astro';
+import { aquiDe, comVolta, voltaSegura } from '../../../../lib/navegacao/volta.ts';
+import { linkFicha } from '../../../../lib/carteira/ficha.ts';
 export const prerender = false;
 const id = String(Astro.params.id ?? '');
 const repo = Astro.locals.repositorio;
 const projeto = ID_PROJETO.test(id) ? await repo.obterProjeto(id) : null;
 if (!projeto) return new Response('Página não encontrada', { status: 404 });
+const volta = voltaSegura(Astro.url.searchParams.get('volta'), Astro.url.origin);
+const aqui = aquiDe(Astro.url);
 const documentos = repo.documentos ? await repo.documentos.listar(id) : [];
 const podeEnviar = usuarioPode(Astro.locals.usuario, 'enviar_documento') && !!repo.documentos;
 const tipos = repo.documentos ? await repo.documentos.listarTipos() : [];
@@ -22,13 +27,13 @@ const r = MENSAGENS[Astro.url.searchParams.get('r') ?? ''];
 const tam = (n: number) => (n >= 1048576 ? `${(n / 1048576).toFixed(1).replace('.', ',')} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 ---
 <Platform title="Documentos do projeto" slug="projetos-carteira">
-  <p slot="contexto" class="muted doc-contexto"><a href="/plataforma/documentos-projeto/">← Escolher outro projeto</a> · <a href={`/plataforma/projeto/${encodeURIComponent(projeto.id)}/`}>{projeto.id} · {projeto.nome}</a></p>
+  <div slot="contexto"><Voltar volta={volta} /><p class="muted doc-contexto"><a href="/plataforma/documentos-projeto/">← Escolher outro projeto</a> · <a href={linkFicha(projeto.id, volta, aqui, 'documentos')}>{projeto.id} · {projeto.nome}</a></p></div>
   <div class="section-head"><div>
     <h1>Documentos do projeto</h1>
   </div></div>
   {r && <p class={r.ok ? 'doc-ok' : 'doc-erro'} role="status">{r.texto}</p>}
   {podeEnviar ? (
-    <form class="doc-envio" method="post" action="/plataforma/documentos-projeto/enviar/" enctype="multipart/form-data">
+    <form class="doc-envio" method="post" action={comVolta('/plataforma/documentos-projeto/enviar/', volta)} enctype="multipart/form-data">
       <input type="hidden" name="projeto" value={projeto.id} />
       <label for="doc-arquivo">Enviar documento</label>
       <input id="doc-arquivo" name="arquivo" type="file" required accept={EXTENSOES_ACEITAS.map((e) => `.${e}`).join(',')} />
@@ -50,7 +55,7 @@ const tam = (n: number) => (n >= 1048576 ? `${(n / 1048576).toFixed(1).replace('
           <small class="muted"> · {tam(d.tamanho_bytes)} · enviado em {dataHoraBr(d.enviado_em)} · <span class="doc-tipo">{nomeTipo(d.tipo_codigo)}</span></small></div>
           {podeEnviar && (
             <div class="doc-acoes">
-              <form class="doc-classificar" method="post" action={`/plataforma/documentos-projeto/classificar/${d.id}/`}>
+              <form class="doc-classificar" method="post" action={comVolta(`/plataforma/documentos-projeto/classificar/${d.id}/`, volta)}>
                 <input type="hidden" name="projeto" value={projeto.id} />
                 <select name="tipo" aria-label={`Tipo do documento ${d.nome_original}`}>
                   <option value="" selected={!d.tipo_codigo}>Sem tipo</option>
@@ -59,7 +64,7 @@ const tam = (n: number) => (n >= 1048576 ? `${(n / 1048576).toFixed(1).replace('
                 </select>
                 <button class="button secondary" type="submit">Salvar tipo</button>
               </form>
-              <form method="post" action={`/plataforma/documentos-projeto/remover/${d.id}/`} onsubmit="return confirm('Remover este documento da lista? O arquivo fica guardado para auditoria.')">
+              <form method="post" action={comVolta(`/plataforma/documentos-projeto/remover/${d.id}/`, volta)} onsubmit="return confirm('Remover este documento da lista? O arquivo fica guardado para auditoria.')">
                 <input type="hidden" name="projeto" value={projeto.id} />
                 <button class="button secondary" type="submit">Remover</button>
               </form>

@@ -78,6 +78,8 @@ Pontos de atenção da conferência:
 - **A31 (controle de recursos):** foi citado de passagem ("como controlo os recursos"); não há entrega que o cubra. Entra como pendência a planejar (README, seção 8).
 - **A35 e A37 (modelo da planilha):** a transcrição diz que o acompanhamento das licitações hoje vive em outro arquivo e que a ideia é ter esses campos nos dados do projeto. Isso confirma o princípio 11: o modelo de planilha, quando chegar, só serve para a carga inicial.
 
+Pedido posterior do dono (23/11/2026): "entro numa tela, dela vou pra outra, porém não consigo retornar para a tela que iniciei" (princípio 3: toda tela permite voltar à de origem com os filtros preservados). Atendido na **E15** (navegação), com os 13 caminhos corrigidos: ficha → cronograma, diálogo de detalhes → cronograma, sala de guerra → cronograma e ficha, ficha → documentos (envio e volta), ficha → SEI, ficha → histórico completo, prioritários → ficha, alertas e reunião → ficha, obras sem localização → ficha, mapa → localização, Novo projeto → ficha, licitação em detalhe → ficha e Gantt → ficha.
+
 ## 3. Entregas, ordem e quem faz
 
 Regras que valem para todas as entregas:

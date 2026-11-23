@@ -5,6 +5,7 @@
 import type { Carteira, Projeto } from '../carteira/tipos.ts';
 import { fimDaMacroetapaAtual, saldoSemFonte } from '../carteira/visoes.ts';
 import { nomeMacroetapa } from '../carteira/macroetapas.ts';
+import { hrefFicha } from '../carteira/ficha.ts';
 import type { Cronograma } from '../cronograma/tipos.ts';
 import { diasEntre, itensParados } from '../cronograma/visoes.ts';
 import { adicionarDias, diasUteisEntre, formatarData } from '../prazos/calendario.ts';
@@ -137,7 +138,7 @@ const URL = {
   log: '/plataforma/projetos-log/',
   prazos: '/plataforma/licitacoes-prazos/',
 };
-const linkProjeto = (p: Projeto): string => `${URL.carteira}?q=${encodeURIComponent(p.nome)}`;
+const linkProjeto = (p: Projeto): string => hrefFicha(p.id);
 
 /** 'dd/mm/aaaa' → ISO; ISO passa direto; outro formato → null. */
 export function paraIso(v: string | null | undefined): string | null {

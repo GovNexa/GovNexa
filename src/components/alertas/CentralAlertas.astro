@@ -9,6 +9,7 @@ import { dados } from '../../lib/dados/index.ts';
 import { avaliarFontes } from '../../lib/dados/qualidade.ts';
 import { municipioAtivo } from '../../lib/municipio-ativo.ts';
 import { formatarData } from '../../lib/prazos/calendario.ts';
+import { aquiDe, comVolta } from '../../lib/navegacao/volta.ts';
 import { montarCentral, nomeTipo, SEM_ORGAO, textoDias, type ConvenioEntrada, type TipoAlerta } from '../../lib/alertas/central.ts';
 
 const municipio = municipioAtivo().codigo_ibge;
@@ -35,7 +36,8 @@ const TELAS: Record<string, string> = {
   '/plataforma/projetos-log/': 'Ver no Histórico de alterações',
   '/plataforma/licitacoes-prazos/': 'Ver em Prazos da Lei 14.133',
 };
-const rotuloLink = (link: string) => TELAS[link.split('?')[0]] ?? 'Ver na tela de origem';
+const aqui = aquiDe(Astro.url);
+const rotuloLink = (link: string) => link.startsWith('/plataforma/projeto/') ? 'Abrir a ficha do projeto' : TELAS[link.split('?')[0]] ?? 'Ver na tela de origem';
 // Tipos que só existem na seção "Ainda sem fonte" (homologação e cláusula têm alerta parcial, com indício ou previsão).
 const semFonteSo = new Set<TipoAlerta>(central.semFonte.map((s) => s.tipo).filter((t) => t !== 'homologacao' && t !== 'clausula'));
 const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um : varios}`;
@@ -119,7 +121,7 @@ const prazoTexto = (a: (typeof central.alertas)[number]) =>
             <summary>Por que este alerta</summary>
             <p>{a.regra}</p>
           </details>
-          <p class="al-link"><a href={a.link}>{rotuloLink(a.link)}<span class="sr-only">: {a.titulo}</span> →</a></p>
+          <p class="al-link"><a href={comVolta(a.link, aqui)}>{rotuloLink(a.link)}<span class="sr-only">: {a.titulo}</span> →</a></p>
         </li>
       ))}
     </ul>

@@ -8,6 +8,7 @@ export const TRANSVERSAL = [
   'src/lib/govnexa/catalogo.ts', 'src/lib/marca.ts', 'src/lib/municipio-ativo.ts', 'src/pages/plataforma/[...module].astro',
   'worker/**', 'wrangler.jsonc', 'public/_headers', 'astro.config.*', 'package.json',
   'src/middleware.ts', 'src/lib/repositorio/cache.ts', // lê o banco e entrega os dados a todas as telas da plataforma
+  'src/lib/navegacao/**', 'src/components/navegacao/**', // volta à tela de origem (E15): todas as telas
   'src/lib/usuarios/**', 'src/pages/plataforma/usuarios/**', // acesso e perfis valem para o sistema inteiro
   'scripts/db-local.mjs', // banco local de exemplo, usado pelos testes de interface
 ];
