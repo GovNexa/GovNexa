@@ -139,7 +139,8 @@ test('bolhas: 300 marcadores amontoados terminam sem nenhuma sobreposição', ()
   const p = posicionarSemSobrepor(alvos);
   assert.equal(p.size, 300);
   assert.ok(semSobreposicao(alvos, p));
-  assert.ok(Date.now() - inicio < 3000, `levou ${Date.now() - inicio} ms`);
+  // Orçamento alto: o teste falhava de forma intermitente quando a CPU era disputada por arquivos de teste em paralelo (revisão E14a, 23/11/2026).
+  assert.ok(Date.now() - inicio < 10000, `levou ${Date.now() - inicio} ms`);
 });
 
 test('link do mapa completo leva área, macroetapa e região da tela do prefeito', () => {

@@ -175,6 +175,17 @@ export function criarRepositorioContratacoes(db: BancoD1, prefeituraId: number):
           'UPDATE contratacao SET removida_em = ?, removida_por = ? WHERE prefeitura_id = ? AND id = ? AND revisao = ? AND removida_em IS NULL',
         ).bind(emIso, autor, prefeituraId, id, revisao),
         db.prepare(eventoSql('removida', ', motivo', ', ?')).bind(crypto.randomUUID(), prefeituraId, id, autor, emIso, motivo),
+        // E14a: remover a contratação desliga o vínculo com o PNCP no mesmo lote (só se a remoção acima valeu) e registra no Histórico do PNCP.
+        db.prepare(
+          `UPDATE contratacao_pncp SET desvinculado_em = ?, desvinculado_por = ?
+            WHERE prefeitura_id = ? AND contratacao_id = ? AND desvinculado_em IS NULL
+              AND EXISTS (SELECT 1 FROM contratacao WHERE prefeitura_id = ? AND id = ? AND removida_em = ? AND removida_por = ?)`,
+        ).bind(emIso, autor, prefeituraId, id, prefeituraId, id, emIso, autor),
+        db.prepare(
+          `INSERT INTO evento_pncp (id, prefeitura_id, tipo, contratacao_id, vinculo_id, autor, em, descricao)
+           SELECT ?, prefeitura_id, 'desvinculo', contratacao_id, id, ?, ?, 'Contratação removida'
+             FROM contratacao_pncp WHERE prefeitura_id = ? AND contratacao_id = ? AND desvinculado_em = ? AND desvinculado_por = ? AND changes() = 1`,
+        ).bind(crypto.randomUUID(), autor, emIso, prefeituraId, id, emIso, autor),
       ]);
       return finalizar(r, id);
     },

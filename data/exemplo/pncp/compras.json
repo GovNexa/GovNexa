@@ -1,0 +1,133 @@
+{
+  "fonte": "exemplo fictício",
+  "compras": {
+    "90000001000129/2026/1": {
+      "compra": {
+        "orgaoEntidade": { "cnpj": "90000001000129" }, "unidadeOrgao": { "codigoIbge": "5208707" }, "anoCompra": 2026, "sequencialCompra": 1,
+        "objetoCompra": "EXECUÇÃO DE PAVIMENTAÇÃO ASFÁLTICA EM VIAS DO BAIRRO EXEMPLO",
+        "modalidadeId": 4, "modalidadeNome": "Concorrência - Eletrônica", "amparoLegal": { "codigo": 2, "nome": "Lei 14.133/2021, Art. 28, II" },
+        "situacaoCompraId": 1, "situacaoCompraNome": "Divulgada no PNCP", "existeResultado": true, "srp": false,
+        "numeroCompra": "1/2026", "processo": "PROC-EX-0001/2026",
+        "valorTotalEstimado": 1500000.00, "valorTotalHomologado": 1380000.00,
+        "dataPublicacaoPncp": "2026-03-10T09:00:00", "dataAberturaProposta": "2026-04-02T09:00:00", "dataEncerramentoProposta": "2026-04-02T18:00:00", "dataAtualizacaoGlobal": "2026-09-15T10:30:00"
+      },
+      "itens": [
+        { "numeroItem": 1, "descricao": "Pavimentação asfáltica em CBUQ", "materialOuServico": "M", "itemCategoriaId": 3, "itemCategoriaNome": "Não se aplica", "criterioJulgamentoNome": "Menor preço", "situacaoCompraItem": 2, "situacaoCompraItemNome": "Homologado", "temResultado": true, "valorTotal": 1500000.00 }
+      ],
+      "resultados": {
+        "1": [
+          { "sequencialResultado": 1, "numeroItem": 1, "tipoPessoa": "PJ", "niFornecedor": "90000003000118", "nomeRazaoSocialFornecedor": "Construtora Exemplo Alfa Ltda", "ordemClassificacaoSrp": null, "situacaoCompraItemResultadoId": 1, "situacaoCompraItemResultadoNome": "Informado", "valorTotalHomologado": 1380000.00, "dataResultado": "2026-09-15" }
+        ]
+      }
+    },
+    "90000001000129/2026/2": {
+      "compra": {
+        "orgaoEntidade": { "cnpj": "90000001000129" }, "anoCompra": 2026, "sequencialCompra": 2,
+        "objetoCompra": "REGISTRO DE PREÇOS PARA SERVIÇOS DE MANUTENÇÃO PREDIAL (CONTATO 000.000.001-91)",
+        "modalidadeId": 6, "modalidadeNome": "Pregão - Eletrônico", "amparoLegal": { "codigo": 1, "nome": "Lei 14.133/2021, Art. 28, I" },
+        "situacaoCompraId": 1, "situacaoCompraNome": "Divulgada no PNCP", "existeResultado": true, "srp": true,
+        "numeroCompra": "2/2026", "processo": "PROC-EX-0002/2026",
+        "valorTotalEstimado": 800000.00, "valorTotalHomologado": 760000.00,
+        "dataPublicacaoPncp": "2026-04-01T09:00:00", "dataAtualizacaoGlobal": "2026-08-01T10:00:00"
+      },
+      "itens": [
+        { "numeroItem": 1, "descricao": "Serviço de manutenção predial, responsável 00000000191", "materialOuServico": "S", "itemCategoriaId": 3, "itemCategoriaNome": "Não se aplica", "criterioJulgamentoNome": "Menor preço", "situacaoCompraItem": 2, "situacaoCompraItemNome": "Homologado", "temResultado": true, "valorTotal": 800000.00 }
+      ],
+      "resultados": {
+        "1": [
+          { "sequencialResultado": 1, "numeroItem": 1, "tipoPessoa": "PJ", "niFornecedor": "90000002000173", "nomeRazaoSocialFornecedor": "Engenharia Exemplo Beta Ltda", "ordemClassificacaoSrp": 1, "situacaoCompraItemResultadoId": 1, "situacaoCompraItemResultadoNome": "Informado", "valorTotalHomologado": 400000.00, "dataResultado": "2026-07-20" },
+          { "sequencialResultado": 2, "numeroItem": 1, "tipoPessoa": "PF", "niFornecedor": "00000000191", "nomeRazaoSocialFornecedor": "Fornecedor Exemplo Pessoa Física", "ordemClassificacaoSrp": 2, "situacaoCompraItemResultadoId": 3, "situacaoCompraItemResultadoNome": "Informado cadastro de reserva", "valorTotalHomologado": 380000.00, "dataResultado": "2026-07-20" },
+          { "sequencialResultado": 3, "numeroItem": 1, "tipoPessoa": "PE", "nomeRazaoSocialFornecedor": "Fornecedor Exemplo Estrangeiro", "ordemClassificacaoSrp": 3, "situacaoCompraItemResultadoId": 3, "situacaoCompraItemResultadoNome": "Informado cadastro de reserva", "valorTotalHomologado": 360000.00, "dataResultado": "2026-07-20" },
+          { "sequencialResultado": 4, "numeroItem": 1, "tipoPessoa": "PJ", "niFornecedor": "90000003000118", "nomeRazaoSocialFornecedor": "Fornecedor Exemplo MEI 000.000.001-91", "ordemClassificacaoSrp": 4, "motivoCancelamento": "Desistência informada por 000.000.001-91", "situacaoCompraItemResultadoId": 3, "situacaoCompraItemResultadoNome": "Informado cadastro de reserva", "valorTotalHomologado": 340000.00, "dataResultado": "2026-07-20" }
+        ]
+      }
+    },
+    "90000001000129/2026/3": {
+      "compra": {
+        "orgaoEntidade": { "cnpj": "90000001000129" }, "unidadeOrgao": { "codigoIbge": "5300108" }, "anoCompra": 2026, "sequencialCompra": 3,
+        "objetoCompra": "REFORMA DA ESCOLA MUNICIPAL EXEMPLO",
+        "modalidadeId": 4, "modalidadeNome": "Concorrência - Eletrônica", "amparoLegal": { "codigo": 2, "nome": "Lei 14.133/2021, Art. 28, II" },
+        "situacaoCompraId": 1, "situacaoCompraNome": "Divulgada no PNCP", "existeResultado": false, "srp": false,
+        "numeroCompra": "3/2026", "processo": "PROC-EX-0003/2026", "valorTotalEstimado": 950000.00,
+        "dataPublicacaoPncp": "2026-10-01T09:00:00", "dataAtualizacaoGlobal": "2026-10-01T09:00:00"
+      },
+      "itens": [
+        { "numeroItem": 1, "descricao": "Reforma da escola", "materialOuServico": "S", "situacaoCompraItem": 1, "situacaoCompraItemNome": "Em andamento", "temResultado": false, "valorTotal": 950000.00 }
+      ],
+      "resultados": {}
+    },
+    "90000001000129/2026/4": {
+      "compra": {
+        "orgaoEntidade": { "cnpj": "90000001000129" }, "anoCompra": 2026, "sequencialCompra": 4,
+        "objetoCompra": "CONSTRUÇÃO DE PRAÇA EXEMPLO",
+        "modalidadeId": 4, "modalidadeNome": "Concorrência - Eletrônica",
+        "situacaoCompraId": 4, "situacaoCompraNome": "Suspensa", "existeResultado": false, "srp": false,
+        "numeroCompra": "4/2026", "valorTotalEstimado": 400000.00
+      },
+      "itens": [
+        { "numeroItem": 1, "descricao": "Construção de praça", "materialOuServico": "S", "situacaoCompraItem": 4, "situacaoCompraItemNome": "Deserto", "temResultado": false, "valorTotal": 400000.00 }
+      ],
+      "resultados": {}
+    },
+    "90000001000129/2026/5": {
+      "compra": {
+        "orgaoEntidade": { "cnpj": "90000001000129" }, "anoCompra": 2026, "sequencialCompra": 5,
+        "objetoCompra": "<img src=x onerror=alert(1)> Obra de drenagem exemplo",
+        "modalidadeId": 6, "modalidadeNome": "Pregão - Eletrônico",
+        "situacaoCompraId": 1, "situacaoCompraNome": "Divulgada no PNCP", "existeResultado": false, "srp": false,
+        "numeroCompra": "5/2026",
+        "processo": "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+        "valorTotalEstimado": 1000000000000000.00
+      },
+      "itens": [],
+      "resultados": {}
+    },
+    "90000001000129/2026/6": {
+      "compra": {
+        "orgaoEntidade": { "cnpj": "90000001000129" }, "anoCompra": 2026, "sequencialCompra": 999,
+        "objetoCompra": "COMPRA COM IDENTIDADE ERRADA", "situacaoCompraId": 1
+      },
+      "itens": [],
+      "resultados": {}
+    },
+    "90000001000129/2026/9": {
+      "compra": {
+        "orgaoEntidade": { "cnpj": "90000001000129" }, "anoCompra": 2026, "sequencialCompra": 9,
+        "objetoCompra": "AQUISIÇÃO DE PAPEL A4 PARA AS ESCOLAS",
+        "modalidadeId": 6, "modalidadeNome": "Pregão - Eletrônico", "amparoLegal": { "codigo": 1, "nome": "Lei 14.133/2021, Art. 28, I" },
+        "situacaoCompraId": 1, "situacaoCompraNome": "Divulgada no PNCP", "existeResultado": false, "srp": false,
+        "numeroCompra": "9/2026", "valorTotalEstimado": 30000.00
+      },
+      "itens": [
+        { "numeroItem": 1, "descricao": "Papel A4", "materialOuServico": "M", "situacaoCompraItem": 1, "situacaoCompraItemNome": "Em andamento", "temResultado": false, "valorTotal": 30000.00 }
+      ],
+      "resultados": {}
+    },
+    "90000001000129/2026/10": {
+      "compra": {
+        "orgaoEntidade": { "cnpj": "90000001000129" }, "anoCompra": 2026, "sequencialCompra": 10,
+        "objetoCompra": "SERVIÇO DE PINTURA",
+        "modalidadeId": 8, "modalidadeNome": "Dispensa", "amparoLegal": { "codigo": 18, "nome": "Lei 14.133/2021, Art. 75, I" },
+        "situacaoCompraId": 1, "situacaoCompraNome": "Divulgada no PNCP", "existeResultado": false, "srp": false,
+        "numeroCompra": "10/2026", "valorTotalEstimado": 90000.00
+      },
+      "itens": [
+        { "numeroItem": 1, "descricao": "Pintura", "materialOuServico": "S", "situacaoCompraItem": 1, "situacaoCompraItemNome": "Em andamento", "temResultado": false, "valorTotal": 90000.00 }
+      ],
+      "resultados": {}
+    },
+    "12ABC34501DE35/2026/1": {
+      "compra": {
+        "orgaoEntidade": { "cnpj": "12ABC34501DE35" }, "anoCompra": 2026, "sequencialCompra": 1,
+        "objetoCompra": "OBRA DE DRENAGEM DO FUNDO EXEMPLO",
+        "modalidadeId": 4, "modalidadeNome": "Concorrência - Eletrônica",
+        "situacaoCompraId": 1, "situacaoCompraNome": "Divulgada no PNCP", "existeResultado": false, "srp": false,
+        "numeroCompra": "1/2026", "valorTotalEstimado": 200000.00
+      },
+      "itens": [
+        { "numeroItem": 1, "descricao": "Drenagem", "materialOuServico": "S", "situacaoCompraItem": 1, "situacaoCompraItemNome": "Em andamento", "temResultado": false, "valorTotal": 200000.00 }
+      ],
+      "resultados": {}
+    }
+  }
+}

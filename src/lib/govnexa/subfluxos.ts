@@ -48,6 +48,8 @@ const T = {
   sala: { rotulo: 'Sala de guerra', url: '/plataforma/projetos-sala/' },
   parado: { rotulo: 'Onde está parado', url: '/plataforma/projetos-parado/' },
   responsaveis: { rotulo: 'Responsáveis', url: '/plataforma/gestao-responsaveis/' },
+  licitacoes: { rotulo: 'Gestão das licitações', url: '/plataforma/gestao-licitacoes/' },
+  secretariasPncp: { rotulo: 'Secretarias compradoras (PNCP)', url: '/plataforma/gestao-licitacoes/secretarias/' },
 } satisfies Record<string, Tela>;
 
 const EXC = 'Exceção aceita e registrada';
@@ -224,7 +226,7 @@ export const SUBFLUXOS: Subfluxo[] = [
       { id: 'l-proximo', raia: 'licitantes', linha: 7, tipo: 'tarefa', titulo: 'Chamar o próximo colocado', oQue: 'Inabilitado: chama o seguinte (já houve caso de chegar ao 7º); cada tentativa fica registrada.', valida: ['Motivo da inabilitação'], quem: 'Agente de contratação', situacao: 'planejado', fase: 'Fase 4', telas: [T.processos] },
       { id: 'l-recurso', raia: 'autoridade', linha: 8, tipo: 'decisao', titulo: 'Houve recurso?', oQue: 'Intenção, razões e contrarrazões (3 + 3 dias úteis); decisão em até 10 dias úteis.', valida: ['Prazos legais (teto) e metas internas menores'], quem: 'Autoridade; PGM', situacao: 'planejado', fase: 'Fase 4', telas: [T.parado] },
       { id: 'l-anula', raia: 'autoridade', linha: 9, tipo: 'excecao', titulo: 'Anular ou revogar', oQue: 'Vício insanável (anulação) ou interesse público superveniente (revogação).', valida: ['Fundamentação'], quem: 'Autoridade competente', situacao: 'planejado', fase: 'Fase 4', telas: [T.excecoes], excecao: { aceitaQuando: 'Há vício insanável ou razão de interesse público, com fundamentação.', registro: `${EXC}: ato, fundamento, quem decidiu e quando; o projeto volta para 02 – Preparatório.` } },
-      { id: 'l-homol', raia: 'autoridade', linha: 10, tipo: 'tarefa', titulo: 'Homologar e adjudicar', oQue: 'Resultado final; economia = estimado − contratado.', valida: ['Valor homologado'], quem: 'Autoridade competente', situacao: 'planejado', fase: 'Fase 4', telas: [T.processos] },
+      { id: 'l-homol', raia: 'autoridade', linha: 10, tipo: 'tarefa', titulo: 'Homologar e adjudicar', oQue: 'Resultado final; economia = estimado − contratado. Vencedor e valor homologado podem ser lidos do PNCP (E14a).', valida: ['Valor homologado'], quem: 'Autoridade competente', situacao: 'planejado', fase: 'Fase 4', telas: [T.processos, T.licitacoes] },
       { id: 'l-fim', raia: 'autoridade', linha: 11, tipo: 'fim', titulo: 'Fim: segue para mobilização', oQue: 'Garantia, contrato, publicação no PNCP e ordem de serviço.', valida: [], quem: 'SECAP', situacao: 'planejado', fase: 'Fase 4', telas: [T.kanban] },
     ],
     ligacoes: [
@@ -274,6 +276,35 @@ export const SUBFLUXOS: Subfluxo[] = [
       { de: 's-resolvido', para: 's-reuniao', rotulo: 'não' },
       { de: 's-resolvido', para: 's-encerra', rotulo: 'sim' },
       { de: 's-encerra', para: 's-fim' },
+    ],
+  },
+  // 6) INTEGRAÇÃO COM O PNCP (E14a)
+  {
+    id: 'pncp', no: 'pncp', titulo: 'Integração com o PNCP (E14a)',
+    resumo: 'Da secretaria compradora cadastrada ao quadro Dados do PNCP na contratação; o PNCP fora do ar não apaga o último retrato.',
+    raias: [
+      { id: 'admin', nome: 'Administrador', descricao: 'Cadastra as secretarias compradoras.' },
+      { id: 'equipe', nome: 'Equipe de licitações', descricao: 'Liga e atualiza as contratações.' },
+      { id: 'sistema', nome: 'Sistema', descricao: 'Consulta o PNCP e guarda o retrato.' },
+    ],
+    nos: [
+      { id: 'p-inicio', raia: 'admin', linha: 1, tipo: 'inicio', titulo: 'Secretaria compradora cadastrada', oQue: 'Cada secretaria ou órgão que publica compras no PNCP é cadastrada pelo CNPJ. Cadastro, edição e desativação ficam no Histórico da secretaria, com autor e data.', valida: ['CNPJ válido e único na prefeitura', 'Permissão gerenciar secretarias compradoras'], quem: 'Quem tem a permissão de gerenciar secretarias compradoras (hoje, o administrador)', situacao: 'disponivel', fase: 'E14a', telas: [T.secretariasPncp] },
+      { id: 'p-ligar', raia: 'equipe', linha: 2, tipo: 'tarefa', titulo: 'Ligar a contratação ao PNCP', oQue: 'Colar o número de controle ou o link da compra, conferir a prévia e confirmar.', valida: ['Compra de uma secretaria cadastrada e ativa', 'Compra ainda não ligada a outra contratação'], quem: 'Editor, gestor ou administrador', situacao: 'disponivel', fase: 'E14a', telas: [T.licitacoes] },
+      { id: 'p-obra', raia: 'equipe', linha: 3, tipo: 'decisao', titulo: 'É obra ou serviço de engenharia?', oQue: 'Sim ou provável: segue. Não identificada: exige a confirmação de que é a compra certa.', valida: ['Amparo legal, modalidade e texto do objeto'], quem: 'Editor, gestor ou administrador', situacao: 'disponivel', fase: 'E14a', telas: [T.licitacoes] },
+      { id: 'p-coleta', raia: 'sistema', linha: 4, tipo: 'tarefa', titulo: 'Atualizar agora', oQue: 'Por contratação ou por secretaria; traz a compra, os itens e os resultados. Trava de 10 minutos por contratação.', valida: ['Limites por pessoa e por prefeitura', 'Compra do mesmo órgão', 'Nenhum CPF gravado'], quem: 'Sistema', situacao: 'disponivel', fase: 'E14a', telas: [T.licitacoes, T.secretariasPncp] },
+      { id: 'p-falha', raia: 'sistema', linha: 5, tipo: 'excecao', titulo: 'PNCP fora do ar ou formato inesperado', oQue: 'O PNCP não responde, recusa ou devolve dados fora do formato; o último retrato continua na tela.', valida: ['Última coleta boa preservada'], quem: 'Sistema', situacao: 'disponivel', fase: 'E14a', telas: [T.licitacoes], excecao: { aceitaQuando: 'O PNCP não responde, recusa por excesso ou devolve dados fora do formato.', registro: 'Histórico do PNCP: falha com o motivo, quem pediu e quando; o último retrato continua na tela com a data.' } },
+      { id: 'p-quadro', raia: 'sistema', linha: 6, tipo: 'tarefa', titulo: 'Quadro Dados do PNCP', oQue: 'Situação, itens, vencedores, valores e classificação quando houver; leitura para todos os perfis.', valida: ['Texto do PNCP mostrado só como texto', 'Datas no padrão brasileiro'], quem: 'Todos os perfis', situacao: 'disponivel', fase: 'E14a', telas: [T.licitacoes] },
+      { id: 'p-fim', raia: 'equipe', linha: 7, tipo: 'fim', titulo: 'Segue para julgamento e homologação na contratação', oQue: 'A equipe usa os dados do PNCP para conferir o julgamento e a homologação.', valida: [], quem: 'Equipe de licitações', situacao: 'disponivel', fase: 'E14a', telas: [T.licitacoes] },
+    ],
+    ligacoes: [
+      { de: 'p-inicio', para: 'p-ligar' },
+      { de: 'p-ligar', para: 'p-obra' },
+      { de: 'p-obra', para: 'p-coleta', rotulo: 'sim' },
+      { de: 'p-obra', para: 'p-ligar', rotulo: 'não: cancelar' },
+      { de: 'p-coleta', para: 'p-quadro' },
+      { de: 'p-coleta', para: 'p-falha', rotulo: 'falhou' },
+      { de: 'p-falha', para: 'p-quadro' },
+      { de: 'p-quadro', para: 'p-fim' },
     ],
   },
 ];

@@ -11,6 +11,7 @@ import {
   proximaEtapa, reaisCompleto, type CampoEditavel,
 } from '../../../lib/contratacoes/regras.ts';
 import { podeGravarNaTela } from '../../../lib/contratacoes/servico.ts';
+import DadosPncp from '../../../components/licitacao/DadosPncp.astro';
 
 export const prerender = false;
 const repo = Astro.locals.repositorio;
@@ -65,6 +66,8 @@ const eco = economia(c);
         <div data-ct-calculado="pago"><dt>% pago</dt><dd>{pct === null ? '—' : `${String(pct).replace('.', ',')}%`}</dd></div>
       </dl>
     </section>
+
+    <DadosPncp contratacao={c} podeEditar={podeEditar} aqui={aqui} />
 
     {podeEditar && (
       <section class="ct-bloco" aria-labelledby="ct-etapa-t">
@@ -144,3 +147,4 @@ const eco = economia(c);
   </div>
 </Platform>
 <script>import '../../../scripts/contratacoes.ts';</script>
+<script>import '../../../scripts/pncp.ts';</script>

@@ -3,7 +3,7 @@ import type { Acao, Perfil, Prefeitura, Usuario } from './tipos.ts';
 export type { Acao, Perfil, Prefeitura, Usuario } from './tipos.ts';
 
 const permissoes: Record<Perfil, readonly Acao[]> = {
- admin: ['ver', 'editar_projeto', 'aprovar_etapa', 'enviar_documento', 'gerenciar_usuarios', 'importar', 'dispensar_2fa'],
+ admin: ['ver', 'editar_projeto', 'aprovar_etapa', 'enviar_documento', 'gerenciar_usuarios', 'importar', 'gerenciar_secretarias_compradoras', 'dispensar_2fa'],
  gestor: ['ver', 'editar_projeto', 'aprovar_etapa', 'enviar_documento'],
  editor: ['ver', 'editar_projeto', 'enviar_documento'],
  leitura: ['ver'],

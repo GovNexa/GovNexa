@@ -10,7 +10,7 @@ export const PARAMETROS_PASSAGEIROS = ['salvo', 'rf', 'r'] as const;
 const CONTROLE = /[\u0000-\u001f\u007f]/;
 const ID_PROJETO_TELA = /^P-[A-Za-z0-9_-]{1,40}$/;
 /** Rotas que não são telas (gravação, arquivo, CSV, agenda): nunca são destino de volta. */
-const NAO_E_TELA = /^\/plataforma\/(?:documentos-projeto\/(?:arquivo|classificar|enviar|remover)\/|fotos-projeto\/|projeto\/(?:criar|editar|localizacao|mover)\/|localizacao\/buscar\/|usuarios\/acao\/|gestao-inconsistencias\/csv\/|gestao-licitacoes\/(?:gravar|csv)\/|agenda\.ics)/;
+const NAO_E_TELA = /^\/plataforma\/(?:documentos-projeto\/(?:arquivo|classificar|enviar|remover)\/|fotos-projeto\/|projeto\/(?:criar|editar|localizacao|mover)\/|localizacao\/buscar\/|usuarios\/acao\/|gestao-inconsistencias\/csv\/|gestao-licitacoes\/(?:gravar|csv|pncp|secretarias\/gravar)\/|agenda\.ics)/;
 
 /** Caminho interno seguro (pathname + search + hash) ou null. `niveis` limita a volta dentro da volta. */
 export function voltaSegura(candidato: string | null | undefined, origem: string, niveis: number = NIVEIS_VOLTA): string | null {
@@ -69,6 +69,7 @@ const NOMES_TELA: Record<string, string> = {
   '/plataforma/projetos/': 'Projetos · Início',
   '/plataforma/projetos-carteira/': 'Carteira de projetos',
   '/plataforma/gestao/': 'Mapa e painel',
+  '/plataforma/gestao-licitacoes/secretarias/': 'Secretarias compradoras (PNCP)',
   '/plataforma/projetos-kanban/': 'Kanban por macroetapa',
   '/plataforma/projetos-gantt/': 'Gantt geral',
   '/plataforma/gestao-equipe/': 'Painel da equipe',

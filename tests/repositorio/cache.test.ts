@@ -8,6 +8,13 @@ import { modulosComDadosReais } from '../../src/lib/dados/captacao.ts';
 
 beforeEach(() => invalidarCache());
 
+/** Espera uma CONDIÇÃO (até 2 s) em vez de um tempo fixo. */
+async function esperarCondicao(cond: () => boolean): Promise<void> {
+  const fim = Date.now() + 2000;
+  while (!cond() && Date.now() < fim) await new Promise((r) => setTimeout(r, 1));
+  assert.ok(cond(), 'condição não atingida em 2 s');
+}
+
 test('cache: só a primeira leitura vai ao banco dentro do prazo; depois do prazo, lê de novo', async () => {
   let leituras = 0;
   const carregar = async () => ({ n: ++leituras });
@@ -30,12 +37,17 @@ test('cache: cada prefeitura tem o seu (isolamento)', async () => {
 
 test('cache: nunca guarda leitura em andamento (cada acesso simultâneo faz a sua); depois do 1º resultado, os outros reaproveitam', async () => {
   let leituras = 0;
+  let liberar!: () => void;
+  const portao = new Promise<void>((r) => { liberar = r; });
   const carregar = async () => {
     leituras++;
-    await new Promise((r) => setTimeout(r, 10));
+    await portao;
     return leituras;
   };
-  await Promise.all([lerComCache(1, carregar, 0), lerComCache(1, carregar, 0), lerComCache(1, carregar, 0)]);
+  const todas = Promise.all([lerComCache(1, carregar, 0), lerComCache(1, carregar, 0), lerComCache(1, carregar, 0)]);
+  await esperarCondicao(() => leituras === 3); // as três leituras estão em andamento ao mesmo tempo
+  liberar();
+  await todas;
   assert.equal(leituras, 3); // Workers: esperar a promessa de outro acesso pode travar se ele for cancelado
   await lerComCache(1, carregar, 1);
   assert.equal(leituras, 3); // já com resultado guardado
@@ -43,15 +55,20 @@ test('cache: nunca guarda leitura em andamento (cada acesso simultâneo faz a su
 
 test('cache: leitura que termina depois de uma gravação não guarda dado velho', async () => {
   let versao = 'antiga';
+  let iniciadas = 0;
+  let abrir!: () => void;
+  const portao = new Promise<void>((r) => { abrir = r; });
   const lenta = async () => {
+    iniciadas++;
     const lida = versao;
-    await new Promise((r) => setTimeout(r, 20));
+    await portao;
     return lida;
   };
   const emAndamento = lerComCache(1, lenta, 0);
-  await new Promise((r) => setTimeout(r, 5));
+  await esperarCondicao(() => iniciadas === 1);
   versao = 'nova';
   invalidarCache(1); // gravação aconteceu enquanto a leitura estava em andamento
+  abrir();
   assert.equal(await emAndamento, 'antiga'); // quem estava lendo recebe o que leu
   assert.equal(await lerComCache(1, async () => versao, 1), 'nova'); // mas o cache não guardou o dado velho
   invalidarCache();

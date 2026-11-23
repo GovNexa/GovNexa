@@ -111,3 +111,23 @@ test('(f) etapasAfetadas: etapas, transversal, Fluxo atualizado e arquivos sem m
   assert.equal(r2.fluxoAtualizado, true);
   assert.deepEqual(etapasAfetadas(['README.md']), { etapas: [], transversal: [], fluxoAtualizado: false, semMapa: [] });
 });
+
+test('(g) E14a: o nó PNCP, o subfluxo pncp e o mapa de impacto', () => {
+  const no = NOS.find((n) => n.id === 'pncp')!;
+  assert.equal(no.situacao, 'disponivel');
+  assert.ok(no.telas.some((t) => t.url === '/plataforma/gestao-licitacoes/secretarias/'));
+  assert.ok(LIGACOES.some((l) => l.de === 'pncp' && l.para === 'julgamento' && l.tipo === 'apoio'));
+  assert.ok(LIGACOES.some((l) => l.de === 'pncp' && l.para === 'homologacao' && l.tipo === 'apoio'));
+  const sub = SUBFLUXOS.find((s) => s.id === 'pncp')!;
+  assert.equal(sub.no, 'pncp');
+  assert.equal(sub.nos.length, 7);
+  assert.equal(sub.nos.filter((n) => n.excecao).length, 1);
+  assert.equal(sub.nos.find((n) => n.id === 'p-falha')!.excecao!.registro.includes('último retrato'), true);
+  const inicio = sub.nos.find((n) => n.id === 'p-inicio')!;
+  assert.equal(inicio.quem, 'Quem tem a permissão de gerenciar secretarias compradoras (hoje, o administrador)');
+  assert.ok(inicio.oQue.includes('Cadastro, edição e desativação ficam no Histórico da secretaria, com autor e data.'));
+  assert.ok(inicio.valida.includes('Permissão gerenciar secretarias compradoras'));
+  const afetadas = etapasAfetadas(['src/lib/pncp/cliente.ts']).etapas;
+  for (const e of ['pncp', 'julgamento', 'homologacao']) assert.ok(afetadas.includes(e), e);
+  assert.deepEqual(etapasAfetadas(['db/d1/prefeitura/0011_pncp.sql']).semMapa, []);
+});

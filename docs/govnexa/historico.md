@@ -163,6 +163,7 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 
 ## 6. Lições técnicas (para não repetir erros)
 
+23/11/2026 (E14a): a "categoria do item" do PNCP não identifica obra (obras vieram como "Não se aplica"); usar amparo legal, modalidade e texto do objeto. Regras do dono: P1 (secretarias com CNPJ próprio, foco em obras e serviços de engenharia), P5 (trazer toda a classificação que o PNCP oferecer e avisar quando não houver) e P6 (só por botão nesta fatia). Limites e trava devem ser conferidos ANTES de gastar a trava (um 429 não pode deixar a contratação sem coleta).
 23/11/2026 (E16): exceção de segurança mora no banco com prazo e autor, não em segredo do Worker; a regra vale a cada pedido (sessão aberta sem código cai quando a dispensa acaba) e falha fechada (apagar a dispensa antes de mudar perfil ou desativar).
 
 23/11/2026 (E12): processo da contratação 100% na tela; a carga da planilha nunca sobrescreve o que foi editado. Decisões E12-P1=A e E12-P2=A: projeto opcional na contratação e Histórico próprio.

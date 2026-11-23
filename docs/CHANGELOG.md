@@ -1,5 +1,12 @@
 # Changelog
 
+## E14a · Integração com o PNCP, por botão (23/11/2026)
+- Migração 0011: secretarias compradoras (`pncp_orgao`), vínculo contratação ↔ compra (`contratacao_pncp`), retrato da compra, itens e resultados, e Histórico do PNCP imutável (`evento_pncp`). O banco recusa CPF de fornecedor e compra de órgão não cadastrado.
+- Telas: quadro "Dados do PNCP" na página da contratação (prévia e confirmação, "Atualizar agora" com trava de 10 minutos, desligar com motivo, itens, vencedores, valores, classificação de obra) e tela "Secretarias compradoras (PNCP)" (cadastro, edição, desativação, Histórico com autor e data, atualização por secretaria).
+- Permissão nova `gerenciar_secretarias_compradoras` (hoje só administrador). CPF dentro de textos do PNCP é mascarado (`***`) antes de gravar e de mostrar. A prévia avisa quando a compra é de outro município (código IBGE), sem bloquear.
+- Remover uma contratação ligada desliga o vínculo e registra no Histórico do PNCP. Limites: 10 pedidos por minuto por pessoa, 60 por minuto por instância e 120 coletas por hora por prefeitura; os limites são conferidos antes da trava de 10 minutos.
+- Riscos aceitos: ver README, seção 7. **Não mudou:** login, `wrangler.jsonc`, agendamentos (nenhum nesta fatia). Fluxo: nó PNCP disponível e subfluxo "Integração com o PNCP".
+- Testes: estabilizados três testes intermitentes (espera por condição em vez de tempo fixo).
 ## E16 · Dispensa temporária da 2ª etapa e conta de consulta (23/11/2026)
 - Nova ação da guia Usuários, "Dispensar a 2ª etapa por um prazo": só outro administrador, de 1 a 60 dias, com motivo; a pessoa entra só com e-mail e senha até o fim do prazo e a situação aparece na lista. "Retirar a dispensa" encerra na hora. Retirar, vencer, mudar o perfil ou desativar derruba as sessões abertas sem código; quem está dispensado não concede dispensa.
 - Banco central: migração `0003_excecao_2fa.sql` (tabela `excecao_2fa`, coluna `sessao.via_excecao`). Cada concessão, retirada e entrada sem código fica em `evento_acesso`. Conta de consulta: perfil Leitura, cadastrada pela guia Usuários, que define a própria senha pelo convite; as ações de Usuários passam a ter o limite de requisições por pessoa.
