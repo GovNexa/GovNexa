@@ -110,6 +110,7 @@ A % de cada entrega é atualizada no README (seção 2) a cada PR. Situação de
 | E14 | **Integração PNCP e Compras.gov** (resultado, colocação, homologação) | A37 | E12 | — | Plano Opus próprio | 0% (evolução futura) |
 | E15 | **Navegação: sempre poder voltar** (princípio 12). Corrige 13 caminhos que perdiam a tela de origem; o botão "← Voltar para …" aparece automaticamente quando a tela foi aberta a partir de outra; função `voltaSegura` aceita qualquer tela dentro de `/plataforma/` e mantém os filtros | pedido do dono de 23/11 (sem áudio) | E2 | — | Sonnet (substituindo o Codex, que no Windows não roda node) + revisão Opus | 90%: código, testes, revisão independente e prévia aprovada pelo dono; PR #54; aguardando merge e publicação |
 | E17 | **Fluxo legível na impressão**: o PDF do Fluxo sai em partes, uma folha A4 paisagem por faixa de linhas, com mapa geral antes, cabeçalho das raias repetido e "Parte N de M" | pedido do dono de 23/11 (sem áudio) | — | — | Sonnet (substituindo o Codex) + revisão Opus | 90%: código e testes prontos; aguardando revisão |
+| E18 | **Ícone de tema claro/escuro** visível no topo da plataforma: pedido do dono de 23/11/2026, sem áudio. Alterna claro/escuro, lembra a escolha e é alcançável por teclado |
 
 ### Ordem e paralelismo
 - **1ª rodada:** E1 e E2 ao mesmo tempo. Não tocam os mesmos arquivos.

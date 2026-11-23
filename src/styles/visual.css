@@ -2,14 +2,14 @@
 @media(max-width:1049px){.header .brand-name{font-size:.8rem}.header{gap:.6rem}.header nav{font-size:.9rem}.hero{gap:1.5rem}}
 @media(max-width:700px){.platform,.platform.collapsed{display:block}.workspace{padding:1.2rem}.appbar{height:64px;min-height:64px}.app-org{display:none}.sidebar,.collapsed .sidebar{position:fixed;top:0;left:0;margin:0;border-radius:0 24px 24px 0;width:min(300px,85vw);height:100dvh;padding:16px;transform:translateX(-105%);display:block;visibility:hidden;transition:transform 220ms,visibility 220ms;overflow:auto;box-shadow:none}.sidebar.drawer-open{transform:none;visibility:visible;box-shadow:0 0 0 100vmax #0008}.collapsed .sidebar-top img{display:block}.collapsed .side-label{display:inline}.collapsed .sidebar h2{display:block}.collapsed .sidebar a{justify-content:flex-start}.collapsed .side-links{height:auto}.collapsed .sidebar .badge{display:inline-grid}.collapsed .side-tooltip{display:none!important}.appbar .global-search{border-radius:0}.header .brand-name{max-width:70px;white-space:normal;padding-left:.5rem}.municipal-logo{width:110px;height:auto}.login-layout{grid-template-columns:1fr;margin:1rem;border-radius:16px}.login-intro,.login-form{padding:1.5rem}.login-intro h2{margin-top:1.5rem}.pagination{font-size:.75rem}.pagination button{padding:.5rem}.hero h1{font-size:2rem}.workspace .grid{gap:.7rem}.appbar .mark{background:var(--navy);color:white}.appbar .global-search.search-open{align-items:center}.page-numbers{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}::view-transition-old(root),::view-transition-new(root){animation:none!important}}
-.sidebar .eyebrow{color:var(--sidebar-muted)}.tabs:has([data-tab="Pesquisa"]) button[aria-pressed=true]{background:var(--navy);transition:background 200ms}.header #theme{background:var(--surface-2);color:var(--text);border-color:var(--line)}.hero .stamp small{color:var(--muted)}.workspace:before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23002E47'/%3E%3C/svg%3E");height:250px}.sidebar-top img{flex:1;min-width:0}.collapsed .sidebar-help small{display:none}.grid>.card>.eyebrow{display:block;margin-top:.6rem}.login-layout button[aria-pressed=true]{background:var(--surface-2);color:var(--text)}
+.sidebar .eyebrow{color:var(--sidebar-muted)}.tabs:has([data-tab="Pesquisa"]) button[aria-pressed=true]{background:var(--navy);transition:background 200ms}.header [data-tema-alternar]{background:var(--surface-2);color:var(--text);border-color:var(--line)}.hero .stamp small{color:var(--muted)}.workspace:before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23002E47'/%3E%3C/svg%3E");height:250px}.sidebar-top img{flex:1;min-width:0}.collapsed .sidebar-help small{display:none}.grid>.card>.eyebrow{display:block;margin-top:.6rem}.login-layout button[aria-pressed=true]{background:var(--surface-2);color:var(--text)}
 .tabs:has([data-tab="Pesquisa"]) button[aria-pressed=true]{background:transparent}
 /* Rodada 5 */
 .primary,.button:not(.secondary){background:var(--orange-strong);color:#fff;border-color:transparent}
 .primary:hover,.button:not(.secondary):hover{background:var(--orange-hover);color:#fff}
-#theme{background:var(--surface-2);color:var(--text);border-color:var(--line)}
-#theme svg:first-of-type{display:none}#theme svg:last-of-type{display:block}
-:root[data-theme=dark] #theme svg:first-of-type{display:block}:root[data-theme=dark] #theme svg:last-of-type{display:none}
+[data-tema-alternar]{background:var(--surface-2);color:var(--text);border-color:var(--line)}
+[data-tema-alternar] svg:first-of-type{display:none}[data-tema-alternar] svg:last-of-type{display:block}
+:root[data-theme=dark] [data-tema-alternar] svg:first-of-type{display:block}:root[data-theme=dark] [data-tema-alternar] svg:last-of-type{display:none}
 .footer-grid h2{font-size:1rem;font-weight:600}.footer-grid .logo-card{max-height:48px;width:auto}
 body:before{position:static}body>footer{position:relative}
 .workspace>.notice{max-width:none;font-size:.8rem;padding:.6rem .85rem;margin:0 0 1.5rem}
@@ -225,7 +225,7 @@ body:has(.platform)>.app-footer{flex:none;margin-top:auto}
   .header .brand-name{max-width:58px;padding-left:.35rem;font-size:.68rem}
   .municipal-logo{width:clamp(72px,23vw,90px);height:auto}
   .header #menu-toggle{flex:none;margin:0;padding:.45rem .55rem;white-space:nowrap;font-size:.85rem}
-  .header #theme{flex:none}
+  .header [data-tema-alternar]{flex:none}
   .workspace .tabs{width:max-content;max-width:100%;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;overscroll-behavior-x:contain}
   .workspace .tabs button{flex:0 0 auto;white-space:nowrap}
   .workspace .cr-abas .tabs{width:100%}
@@ -293,4 +293,8 @@ body:has(.platform)>.app-footer{flex:none;margin-top:auto}
 @media(min-width:701px) and (max-width:1100px){.appbar .user-name{display:none}}
 /* Alvos de toque: trilha "Início" com pelo menos 24 px e botões do topo do site com 44 px em telas de toque. */
 .breadcrumb a{display:inline-block;padding:.3rem 0}
-@media(pointer:coarse){.header #menu-toggle,.header #theme{min-height:44px;min-width:44px}}
+@media(pointer:coarse){.header #menu-toggle,.header [data-tema-alternar]{min-height:44px;min-width:44px}}
+.appbar .tema-alternar{display:inline-flex;align-items:center;justify-content:center;flex:none;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;border:1px solid var(--line);border-radius:10px;cursor:pointer;margin-left:auto}
+.appbar .tema-alternar:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+.appbar .tema-alternar+.app-notifications{margin-left:0}
+.appbar .tema-alternar~.app-user{margin-left:0}

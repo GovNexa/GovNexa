@@ -8,7 +8,10 @@ toggle.addEventListener('click',()=>{const open=toggle.getAttribute('aria-expand
 document.addEventListener('keydown',e=>{if(toggle.getAttribute('aria-expanded')!=='true')return;if(e.key==='Escape'){closeMenu();toggle.focus();}if(e.key==='Tab'){const nodes=[toggle,...nav.querySelectorAll<HTMLElement>('a,summary')].filter(n=>n.getClientRects().length>0);const index=nodes.indexOf(document.activeElement as HTMLElement);e.preventDefault();nodes[(index+(e.shiftKey?-1:1)+nodes.length)%nodes.length].focus();}},{signal:lifecycle.signal});
 matchMedia('(min-width: 1050px)').addEventListener('change',closeMenu,{signal:lifecycle.signal});
 }
-const theme=document.querySelector<HTMLButtonElement>('#theme');if(theme)theme.onclick=()=>{const next=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=next;try{localStorage.setItem('govnexa-theme',next)}catch{}};
+const temaBotoes=document.querySelectorAll<HTMLButtonElement>('[data-tema-alternar]');
+const rotularTema=()=>{const escuro=document.documentElement.dataset.theme==='dark';const texto=escuro?'Mudar para o modo claro':'Mudar para o modo escuro';temaBotoes.forEach(b=>{b.setAttribute('aria-pressed',String(escuro));b.setAttribute('aria-label',texto);b.setAttribute('title',texto)})};
+rotularTema();
+temaBotoes.forEach(b=>{b.onclick=()=>{const next=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=next;try{localStorage.setItem('govnexa-theme',next)}catch{}rotularTema();document.dispatchEvent(new CustomEvent('govnexa:tema',{detail:next}))}});
 
 const searchToggle=document.querySelector<HTMLButtonElement>('#search-toggle');if(searchToggle)searchToggle.onclick=()=>{const open=searchToggle.getAttribute('aria-expanded')!=='true';searchToggle.setAttribute('aria-expanded',String(open));document.querySelector('#platform-search')?.classList.toggle('search-open',open);if(open)document.querySelector<HTMLInputElement>('#global-search')?.focus();};
 

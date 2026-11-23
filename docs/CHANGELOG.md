@@ -1,5 +1,10 @@
 # Changelog
 
+## E18 · Ícone de tema claro/escuro (23/11/2026)
+- Botão-ícone no topo da plataforma, antes do sino: mostra o sol no tema escuro e a lua no claro; alterna, lembra a escolha e funciona por teclado (Tab e Enter), com rótulo e `aria-pressed` atualizados. O botão antigo do menu do avatar foi removido; o site público mantém o botão "Tema" com o mesmo comportamento.
+- Conferência do modo claro (Axe de contraste e fundo claro) em nove telas da plataforma, sem correção de cor necessária.
+- **Não mudou:** modo escuro, login, `wrangler.jsonc`, banco. Fluxo: mudança transversal, sem etapa afetada.
+
 ## E17 · Fluxo legível na impressão (23/11/2026)
 - O PDF do Fluxo do sistema sai em partes: uma folha A4 paisagem por faixa de linhas, na escala de leitura, com o cabeçalho das raias repetido, "Parte N de M" e "Continua na parte N+1". Antes das partes vai uma folha de mapa geral com a numeração das partes. A tela não mudou. Teste: `tests/fluxo-impressao.spec.ts`.
 
