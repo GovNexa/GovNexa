@@ -1,5 +1,8 @@
 # Changelog
 
+## Publicação 23/11/2026
+- Em produção: E18 (ícone de tema), E14a (PNCP por botão) e E16 (dispensa da 2ª etapa e conta de consulta), na versão do Worker 6e5fd492-3904-46ab-94cb-cbf76cb3da16. Migrações 0011 (banco da prefeitura) e 0003 (banco central) aplicadas antes do código, com ponto de restauração anotado antes. No mesmo dia, antes dessa versão, já estavam no ar E8, E9, E11, E12 (com ajustes), E13, E15 e E17.
+
 ## E14a · Integração com o PNCP, por botão (23/11/2026)
 - Migração 0011: secretarias compradoras (`pncp_orgao`), vínculo contratação ↔ compra (`contratacao_pncp`), retrato da compra, itens e resultados, e Histórico do PNCP imutável (`evento_pncp`). O banco recusa CPF de fornecedor e compra de órgão não cadastrado.
 - Telas: quadro "Dados do PNCP" na página da contratação (prévia e confirmação, "Atualizar agora" com trava de 10 minutos, desligar com motivo, itens, vencedores, valores, classificação de obra) e tela "Secretarias compradoras (PNCP)" (cadastro, edição, desativação, Histórico com autor e data, atualização por secretaria).

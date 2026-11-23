@@ -202,11 +202,13 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 
 ### 7.1 Repositório novo (`GovNexa/GovNexa`)
 
-23/11/2026 — E13, cronograma como processo e painel Responsáveis: PR a abrir (migração 0009; a branch contém também a E12 e a E15 juntadas; ~90%, aguardando merge e publicação).
+23/11/2026 — Publicação em produção de E18 (ícone de tema ao lado do sino), E14a (PNCP por botão; migração 0011 do banco da prefeitura) e E16 (dispensa temporária da 2ª etapa e conta de consulta; migração central 0003): versão do Worker 6e5fd492-3904-46ab-94cb-cbf76cb3da16, com as migrações aplicadas antes do código e pontos de restauração anotados antes. Antes, no mesmo dia, já estavam no ar E8, E9, E11, E12 (com ajustes), E13, E15 e E17. Aguardam o teste do dono.
 
-23/11/2026 — E12, Gestão das licitações: PR #55 (migração 0010, módulo de contratações, telas, ficha e Fluxo; contém a E15; revisão independente e prévia aprovada pelo dono; ~90%, aguardando merge e publicação).
+23/11/2026 — E13, cronograma como processo e painel Responsáveis: migração 0009; juntada com a E12 e a E15 e publicada em 23/11/2026 (100%).
 
-23/11/2026 — E15, navegação (sempre poder voltar à tela de origem): PR #54 (revisão independente e prévia aprovada pelo dono; ~90%, aguardando merge e publicação).
+23/11/2026 — E12, Gestão das licitações: PR #55 (migração 0010, módulo de contratações, telas, ficha e Fluxo; contém a E15; revisão independente e prévia aprovada pelo dono); publicada em 23/11/2026 (100%).
+
+23/11/2026 — E15, navegação (sempre poder voltar à tela de origem): PR #54 (revisão independente e prévia aprovada pelo dono); publicada em 23/11/2026 (100%).
 
 17/11/2026 — Login próprio e usuários, sem PR/publicação nesta entrega: migração central, senha com pepper, TOTP cifrado, convites, recuperação, sessões, limites, Turnstile e administração isolada por prefeitura. Validação: astro check sem erros, 316 testes Node passando, build concluído e impacto conferido com Fluxo atualizado. Testes de navegador escritos e listados para execução externa. Percentuais anteriores mantidos até homologação.
 
