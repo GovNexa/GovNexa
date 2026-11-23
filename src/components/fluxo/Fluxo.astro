@@ -147,6 +147,18 @@ function canal(y: number): number {
 }
 const topoLinha = (linha: number) => TOPO + (linha - 1) * LIN;
 
+// Impressão em partes: faixas de linhas, cortadas sempre na fronteira de uma linha (nunca no meio de uma forma).
+const PAGINA_RAZAO = 0.62; // altura/largura útil de A4 paisagem com margens 8mm e cabeçalho
+const ALTURA_FAIXA_MAX = LARGURA * PAGINA_RAZAO - TOPO;
+interface Faixa { n: number; y0: number; y1: number; linhaIni: number; linhaFim: number }
+const faixas: Faixa[] = [];
+for (let l = 1; l <= MAX_LINHA; ) {
+  let l2 = l;
+  while (l2 < MAX_LINHA && topoLinha(l2 + 2) - topoLinha(l) <= ALTURA_FAIXA_MAX) l2++;
+  faixas.push({ n: faixas.length + 1, y0: topoLinha(l), y1: l2 >= MAX_LINHA ? ALTURA : topoLinha(l2 + 1), linhaIni: l, linhaFim: l2 });
+  l = l2 + 1;
+}
+
 // Portas laterais: quando duas ligações usam o mesmo lado de uma forma, a segunda desloca um pouco a linha
 const portas = new Map<string, number>();
 const DESL = [0, 14, -14, 28];
@@ -303,7 +315,17 @@ const hex = (g: Geo, m: number) => {
       <defs>
         <marker id={`${idPrefixo}-m-fluxo`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 Z" class="fx-seta-fluxo"/></marker>
         <marker id={`${idPrefixo}-m-apoio`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 Z" class="fx-seta-apoio"/></marker>
+        <g id={`${idPrefixo}-cab-raias`}>
+          {RAIAS.map((r, i) => (
+            <>
+              <rect x={i * COL} y="0" width={COL} height={TOPO} class={`fx-raia ${i % 2 ? 'fx-raia-b' : 'fx-raia-a'}`}/>
+              <text x={(i + 0.5) * COL} y={TOPO / 2 + 5} text-anchor="middle" class="fx-raia-nome">{r.nome}</text>
+            </>
+          ))}
+          <line x1="0" y1={TOPO} x2={LARGURA} y2={TOPO} class="fx-raia-linha"/>
+        </g>
       </defs>
+      <g id={`${idPrefixo}-desenho`}>
       {RAIAS.map((r, i) => (
         <g>
           <rect x={i * COL} y="0" width={COL} height={ALTURA} class={`fx-raia ${i % 2 ? 'fx-raia-b' : 'fx-raia-a'}`}/>
@@ -348,8 +370,27 @@ const hex = (g: Geo, m: number) => {
           </g>
         );
       })}
+      </g>
+      {faixas.length > 1 && faixas.map((f) => (
+        <g class="fx-so-impressao-svg" aria-hidden="true">
+          <rect x="4" y={f.y0 + 2} width={LARGURA - 8} height={f.y1 - f.y0 - 4} class="fx-parte-moldura"/>
+          <text x="10" y={f.y0 + 16} class="fx-parte-num">Parte {f.n}</text>
+        </g>
+      ))}
     </svg>
   </div>
+  {faixas.length > 1 && (
+    <section class="fx-so-impressao fx-partes" aria-hidden="true" data-fx-partes={faixas.length}>
+      {faixas.map((f) => (
+        <div class="fx-parte" data-fx-parte={f.n}>
+          <p class="fx-parte-cab">{tituloDiagrama} · Parte {f.n} de {faixas.length} · linhas {f.linhaIni} a {f.linhaFim}</p>
+          <svg class="fx-parte-raias" viewBox={`0 0 ${LARGURA} ${TOPO}`} preserveAspectRatio="xMidYMin meet"><use href={`#${idPrefixo}-cab-raias`}/></svg>
+          <svg class="fx-parte-svg" viewBox={`0 ${f.y0.toFixed(0)} ${LARGURA} ${(f.y1 - f.y0).toFixed(0)}`} preserveAspectRatio="xMidYMin meet"><use href={`#${idPrefixo}-desenho`}/></svg>
+          {f.n < faixas.length && <p class="fx-parte-rodape">Continua na parte {f.n + 1}</p>}
+        </div>
+      ))}
+    </section>
+  )}
 
   <section class="fx-lista" aria-labelledby={`${idPrefixo}-lista-t`}>
     <h2 id={`${idPrefixo}-lista-t`}>Lista das etapas</h2>

@@ -1,5 +1,8 @@
 # Changelog
 
+## E17 · Fluxo legível na impressão (23/11/2026)
+- O PDF do Fluxo do sistema sai em partes: uma folha A4 paisagem por faixa de linhas, na escala de leitura, com o cabeçalho das raias repetido, "Parte N de M" e "Continua na parte N+1". Antes das partes vai uma folha de mapa geral com a numeração das partes. A tela não mudou. Teste: `tests/fluxo-impressao.spec.ts`.
+
 
 ## E12 · ajustes da revisão (23/11/2026)
 - Gestão das licitações: botões de envio ficam desabilitados até a resposta (marcos, mudança de etapa e remoção), evitando clique duplo; ao editar um campo no painel só os detalhes do próprio campo são refeitos, e `aguardando`/`valor_*` recarregam a página para atualizar selos e % pago; "Avançar" não envia mais data do navegador (o servidor usa a data de hoje em Brasília).
