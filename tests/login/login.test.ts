@@ -107,7 +107,7 @@ test('admin: próprio acesso, último administrador, isolamento por prefeitura e
  }finally{b.sqlite.close();}
 });
 test('migração: só ADD/CREATE, sem padrões D1 acima de 50 bytes',()=>{
- const sql=readFileSync('db/d1/central/0002_login.sql','utf8');assert.doesNotMatch(sql,/\b(DROP|DELETE|UPDATE)\b/i);for(const m of sql.matchAll(/\b(?:GLOB|LIKE)\s+'([^']*)'/gi))assert.ok(Buffer.byteLength(m[1])<=50);
+ for(const arq of ['0002_login.sql','0003_excecao_2fa.sql']){const sql=readFileSync('db/d1/central/'+arq,'utf8').replace(/--.*$/gm,'');assert.doesNotMatch(sql,/\b(DROP|DELETE|UPDATE)\b/i);for(const m of sql.matchAll(/\b(?:GLOB|LIKE)\s+'([^']*)'/gi))assert.ok(Buffer.byteLength(m[1])<=50);}
 });
 
 test('Worker senha: protege plataforma, completa exige 2FA, revoga inativo e mantém cabeçalhos',async()=>{
@@ -308,5 +308,119 @@ test('correção 5: administrador aguarda e recebe falha de e-mail preservando c
  assert.equal(b.sqlite.prepare('SELECT totp_ativo FROM usuario WHERE id=?').get(id)!.totp_ativo,0);
  assert.equal(tarefas.length,0);
  assert.equal(b.sqlite.prepare("SELECT count(*) n FROM evento_acesso WHERE tipo='envio_email_falhou'").get()!.n,2);
+ }finally{b.sqlite.close();}
+});
+
+test('dispensa da 2ª etapa: concessão, login, vencimento, retirada e abusos',async()=>{
+ const b=await preparar(),municipal=bancoTeste();try{
+ const senha='Montanhas!azuis-7264',h=await hashSenha(senha,pepper),agora=Date.now(),dia=86400000;
+ b.sqlite.exec("INSERT INTO prefeitura VALUES(1100015,1100015,'Outra','RO','DB_PREFEITURA_1100015',1)");
+ for(const [id,perfil,pref] of [['dani','admin',5208707],['consulta','leitura',5208707],['gestor1','gestor',5208707],['fora','admin',1100015],['conc','admin',5208707],['conc2','admin',5208707],['ben1','leitura',5208707],['ben2','leitura',5208707],['wk','admin',5208707]] as const)
+  b.sqlite.prepare('INSERT INTO usuario(id,email,nome,perfil,prefeitura_id,senha_hash,senha_definida_em) VALUES(?,?,?,?,?,?,?)').run(id,id+'@exemplo.invalid',id==='dani'?'Dani fictícia':id,perfil,pref,h,new Date(agora).toISOString());
+ const U=async(id:string)=>(await b.db.prepare('SELECT * FROM usuario WHERE id = ?').bind(id).first<any>())!;
+ const n=(sql:string,...v:any[])=>Number(b.sqlite.prepare(sql).get(...v)!.n);
+ const motivo=async(p:Promise<unknown>)=>{try{await p;return 'ok';}catch(e){return (e as {codigo?:string}).codigo??(e as Error).message;}};
+ const linhas=()=>n('SELECT count(*) n FROM excecao_2fa');
+ const gestor=await U('gestor1'),fora=await U('fora');
+ // abusos: nada é gravado
+ assert.equal(await motivo(b.servico.dispensarSegundaEtapa(b.u,'admin','5','Teste')),'proprio');
+ for(const dias of ['0','61','1.5','abc','','060'])assert.equal(await motivo(b.servico.dispensarSegundaEtapa(b.u,'dani',dias,'Teste')),'prazo');
+ for(const m of ['','ab','x'.repeat(201),'Teste\u0007'])assert.equal(await motivo(b.servico.dispensarSegundaEtapa(b.u,'dani','5',m)),'prazo');
+ assert.match(await motivo(b.servico.dispensarSegundaEtapa(gestor,'dani','5','Teste')),/Sem permissão/);
+ assert.match(await motivo(b.servico.dispensarSegundaEtapa(b.u,'fora','5','Teste')),/Pessoa não encontrada/);
+ assert.match(await motivo(b.servico.dispensarSegundaEtapa(fora,'dani','5','Teste')),/Pessoa não encontrada/);
+ b.sqlite.exec("UPDATE usuario SET ativo = 0 WHERE id = 'consulta'");
+ assert.equal(await motivo(b.servico.dispensarSegundaEtapa(b.u,'consulta','5','Teste')),'dados');
+ b.sqlite.exec("UPDATE usuario SET ativo = 1 WHERE id = 'consulta'");
+ assert.equal(linhas(),0);assert.equal(n("SELECT count(*) n FROM evento_acesso WHERE tipo = '2fa_dispensado'"),0);
+ // 1. concessão e login sem código
+ const ate=await b.servico.dispensarSegundaEtapa(b.u,'dani','60','Avaliação do sistema');
+ assert.ok(Date.parse(ate)>agora+59*dia);
+ const l=await b.servico.iniciarLogin('dani@exemplo.invalid',senha);assert.equal(l.etapa,'completa');
+ assert.equal(n('SELECT via_excecao n FROM sessao WHERE id_hash = ?',await hash(l.valor)),1);
+ assert.equal((await b.servico.usuarioDaSessao(l.valor))?.id,'dani');
+ assert.equal(n("SELECT count(*) n FROM evento_acesso WHERE tipo = 'login_sem_2fa' AND detalhe = 'excecao_sem_2fa'"),1);
+ assert.equal(n("SELECT count(*) n FROM evento_acesso WHERE tipo = '2fa_dispensado'"),1);
+ const detalhe=String(b.sqlite.prepare("SELECT detalhe FROM evento_acesso WHERE tipo = '2fa_dispensado'").get()!.detalhe);
+ assert.ok(!detalhe.includes(senha));assert.equal(JSON.parse(detalhe).por,'admin');
+ // quem está dispensado não concede
+ assert.equal(await motivo(b.servico.dispensarSegundaEtapa(await U('dani'),'consulta','5','Teste')),'dispensado');assert.equal(linhas(),1);
+ // 3. senha errada e bloqueio continuam valendo
+ await assert.rejects(b.servico.iniciarLogin('dani@exemplo.invalid','errada'),{message:ERRO_LOGIN});
+ assert.ok(n("SELECT falhas_login n FROM usuario WHERE id = 'dani'")>=1);
+ b.sqlite.prepare("UPDATE usuario SET bloqueado_ate = ? WHERE id = 'dani'").run(new Date(agora+dia).toISOString());
+ await assert.rejects(b.servico.iniciarLogin('dani@exemplo.invalid',senha),{message:ERRO_LOGIN});
+ b.sqlite.exec("UPDATE usuario SET bloqueado_ate = NULL WHERE id = 'dani'");b.sqlite.exec('DELETE FROM limite_tentativa');
+ // 4. vencimento derruba a sessão sem código
+ b.sqlite.prepare("UPDATE excecao_2fa SET concedido_em = ?, ate = ? WHERE usuario_id = 'dani'").run(new Date(agora-3*dia).toISOString(),new Date(agora-dia).toISOString());
+ assert.equal(await b.servico.usuarioDaSessao(l.valor),null);
+ assert.ok(b.sqlite.prepare('SELECT revogada_em FROM sessao WHERE id_hash = ?').get(await hash(l.valor))!.revogada_em);
+ assert.equal((await b.servico.iniciarLogin('dani@exemplo.invalid',senha)).etapa,'configurar_2fa');
+ // com a dispensa vencida ela volta a poder conceder
+ assert.equal(await motivo(b.servico.dispensarSegundaEtapa(await U('dani'),'consulta','30','Consulta fictícia')),'ok');
+ // 5. retirar: sessão revogada, 1 evento, repetir não duplica
+ await b.servico.dispensarSegundaEtapa(b.u,'consulta','30','Consulta fictícia');
+ const lc=await b.servico.iniciarLogin('consulta@exemplo.invalid',senha);assert.equal(lc.etapa,'completa');assert.ok(await b.servico.usuarioDaSessao(lc.valor));
+ await b.servico.retirarDispensa(b.u,'consulta');await b.servico.retirarDispensa(b.u,'consulta');
+ assert.equal(await b.servico.usuarioDaSessao(lc.valor),null);
+ assert.equal(n("SELECT count(*) n FROM evento_acesso WHERE tipo = '2fa_dispensa_retirada' AND usuario_id = 'consulta'"),1);
+ await assert.rejects(b.servico.retirarDispensa(gestor,'consulta'),/Sem permissão/);
+ await b.servico.dispensarSegundaEtapa(await U('dani'),'admin','5','Dispensa de teste');
+ const propria=await criarSessao(b.db,'admin','completa','',true);assert.equal((await b.servico.usuarioDaSessao(propria))?.id,'admin');
+ await b.servico.retirarDispensa(b.u,'admin');assert.equal(await b.servico.usuarioDaSessao(propria),null);assert.equal(linhas(),1);
+ // 6. com aplicativo configurado: a dispensa pula o código; a chave fica guardada
+ b.sqlite.prepare("UPDATE usuario SET totp_ativo = 1, totp_segredo_cifrado = ? WHERE id = 'consulta'").run(await cifrarSegredo(base32(new Uint8Array(20).fill(5)),chave,'consulta'));
+ await b.servico.dispensarSegundaEtapa(b.u,'consulta','30','Consulta fictícia');
+ assert.equal((await b.servico.iniciarLogin('consulta@exemplo.invalid',senha)).etapa,'completa');
+ await b.servico.retirarDispensa(b.u,'consulta');
+ assert.equal((await b.servico.iniciarLogin('consulta@exemplo.invalid',senha)).etapa,'segundo_fator');
+ assert.ok(b.sqlite.prepare("SELECT totp_segredo_cifrado s FROM usuario WHERE id = 'consulta'").get()!.s);
+ b.sqlite.exec('DELETE FROM limite_tentativa');
+ // 9. listar mostra a dispensa só enquanto vale
+ await b.servico.dispensarSegundaEtapa(b.u,'consulta','30','Consulta fictícia');
+ let lista=await b.servico.listar(b.u),c=lista.find(x=>x.id==='consulta')!;
+ assert.ok(c.sem_2fa_ate&&Date.parse(c.sem_2fa_ate)>agora);assert.equal(c.sem_2fa_por,'Administrador local');
+ assert.equal(lista.find(x=>x.id==='ben1')!.sem_2fa_ate,null);
+ b.sqlite.prepare("UPDATE excecao_2fa SET concedido_em = ?, ate = ? WHERE usuario_id = 'consulta'").run(new Date(agora-3*dia).toISOString(),new Date(agora-dia).toISOString());
+ lista=await b.servico.listar(b.u);c=lista.find(x=>x.id==='consulta')!;assert.equal(c.sem_2fa_ate,null);assert.equal(c.sem_2fa_por,null);
+ // 7. perfil e desativação retiram a dispensa
+ await b.servico.dispensarSegundaEtapa(b.u,'consulta','30','Consulta fictícia');
+ await b.servico.alterarPerfil(b.u,'consulta','leitura');assert.equal(n("SELECT count(*) n FROM excecao_2fa WHERE usuario_id = 'consulta'"),1);
+ await b.servico.alterarPerfil(b.u,'consulta','editor');assert.equal(n("SELECT count(*) n FROM excecao_2fa WHERE usuario_id = 'consulta'"),0);
+ await b.servico.dispensarSegundaEtapa(b.u,'consulta','30','Consulta fictícia');
+ await b.servico.desativarUsuario(b.u,'consulta');assert.equal(n("SELECT count(*) n FROM excecao_2fa WHERE usuario_id = 'consulta'"),0);
+ assert.ok(n("SELECT count(*) n FROM evento_acesso WHERE tipo = '2fa_dispensa_retirada' AND detalhe LIKE '%perfil%'")>=1);
+ // 7b. desativar a concedente apaga as dispensas dela, com um evento por beneficiário
+ const conc=await U('conc');await b.servico.dispensarSegundaEtapa(conc,'ben1','10','Teste');await b.servico.dispensarSegundaEtapa(conc,'ben2','10','Teste');
+ await b.servico.desativarUsuario(b.u,'conc');assert.equal(n('SELECT count(*) n FROM excecao_2fa WHERE concedido_por = ?','conc'),0);
+ assert.equal(n("SELECT count(*) n FROM evento_acesso WHERE tipo = '2fa_dispensa_retirada' AND detalhe LIKE '%desativacao_concedente%'"),2);
+ // 7c. rebaixar a concedente apaga as dispensas dela, com evento perfil_concedente
+ await b.servico.dispensarSegundaEtapa(await U('conc2'),'ben1','10','Teste');
+ await b.servico.alterarPerfil(b.u,'conc2','editor');assert.equal(n('SELECT count(*) n FROM excecao_2fa WHERE concedido_por = ?','conc2'),0);
+ assert.equal(n("SELECT count(*) n FROM evento_acesso WHERE tipo = '2fa_dispensa_retirada' AND usuario_id = 'ben1' AND detalhe LIKE '%perfil_concedente%'"),1);
+ // 8. convite com dispensa ativa não abre a configuração do aplicativo
+ const convite=async(email:string)=>{const id=await b.servico.convidar(b.u,{nome:'Equipe de teste',email,cargo:'Teste',perfil:'leitura'});return {id,token:new URL(emailsLocais(request,b.env)!.at(-1)!.texto.match(/http:\/\/\S+/)![0]).searchParams.get('token')!};};
+ const com=await convite('com@exemplo.invalid'),sem=await convite('sem@exemplo.invalid');
+ await b.servico.dispensarSegundaEtapa(b.u,com.id,'10','Teste de convite');
+ assert.equal(await b.servico.definirSenhaComToken(com.token,'convite',senha),null);assert.equal(n("SELECT count(*) n FROM sessao WHERE usuario_id = ? AND etapa = 'configurar_2fa'",com.id),0);
+ const nova=await b.servico.definirSenhaComToken(sem.token,'convite',senha);assert.equal((await obterSessao(b.db,nova!))?.etapa,'configurar_2fa');
+ // 10. Worker: sessão sem código abre a plataforma e cai quando a dispensa é retirada
+ const {atender}=await import('../../worker/index.ts');
+ const env={...b.env,LOGIN_MODO:'senha',DB_PREFEITURA_5208707:municipal.db,ACCESS_TEAM_DOMAIN:'',ACCESS_AUD:'',ASSETS:{async fetch(){return new Response('ok');}}};
+ const chamar=(cookie:string)=>atender(new Request('http://localhost/plataforma/',{headers:{cookie}}),env,async()=>new Response('ok'));
+ await b.servico.dispensarSegundaEtapa(b.u,'wk','10','Teste do Worker');
+ const wk=await b.servico.iniciarLogin('wk@exemplo.invalid',senha);assert.equal(wk.etapa,'completa');
+ assert.equal((await chamar(`govnexa_local=${wk.valor}`)).status,200);
+ await b.servico.retirarDispensa(b.u,'wk');
+ const caiu=await chamar(`govnexa_local=${wk.valor}`);assert.equal(caiu.status,302);assert.match(caiu.headers.get('Location')!,/^\/entrar\//);
+ }finally{b.sqlite.close();municipal.sqlite.close();}
+});
+test('dispensa da 2ª etapa: falha ao rebaixar o único administrador não deixa a dispensa',async()=>{
+ const b=await preparar();try{
+ b.sqlite.exec("INSERT INTO usuario(id,email,nome,perfil,prefeitura_id) VALUES('x','x@exemplo.invalid','Outra pessoa','leitura',5208707)");
+ b.sqlite.prepare("INSERT INTO excecao_2fa(usuario_id,ate,motivo,concedido_por,concedido_em) VALUES('admin',?,'Teste','x',?)").run(new Date(Date.now()+10*86400000).toISOString(),new Date().toISOString());
+ await assert.rejects(b.servico.alterarPerfil(b.u,'admin','editor'),(e:unknown)=>e instanceof Error&&'codigo' in e&&e.codigo==='ultimo_admin');
+ assert.equal(b.sqlite.prepare('SELECT count(*) n FROM excecao_2fa').get()!.n,0);
+ assert.equal(b.sqlite.prepare("SELECT perfil FROM usuario WHERE id = 'admin'").get()!.perfil,'admin');
  }finally{b.sqlite.close();}
 });

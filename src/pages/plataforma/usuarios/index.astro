@@ -9,10 +9,11 @@ export const prerender = false;
 const lista = usuarioPode(Astro.locals.usuario,'gerenciar_usuarios') ? await servicoLogin(env as unknown as EnvLogin,Astro.request).listar(Astro.locals.usuario) : null;
 if (!lista) Astro.response.status = 403;
 const dia = dataBr;
-const mensagens:Record<string,string>={concluida:'Solicitação concluída.',ultimo_admin:'Mantenha ao menos um administrador ativo.',email_existente:'Este e-mail já está cadastrado.',proprio:'Você não pode fazer isto com a sua própria conta.',email_falhou:'Não foi possível enviar o e-mail. Tente reenviar o convite.',dados:'Confira os dados informados.',falha:'Não foi possível concluir. Confira os dados e a confirmação e tente novamente.'};
+const eu = Astro.locals.usuario?.id;
+const mensagens:Record<string,string>={concluida:'Solicitação concluída.',ultimo_admin:'Mantenha ao menos um administrador ativo.',email_existente:'Este e-mail já está cadastrado.',proprio:'Você não pode fazer isto com a sua própria conta.',email_falhou:'Não foi possível enviar o e-mail. Tente reenviar o convite.',dados:'Confira os dados informados.',prazo:'Informe um prazo de 1 a 60 dias e um motivo de 3 a 200 caracteres.',limite:'Muitas alterações em pouco tempo. Aguarde um minuto e tente de novo.',dispensado:'Quem está com a 2ª etapa dispensada não pode dispensar outra pessoa.',falha:'Não foi possível concluir. Confira os dados e a confirmação e tente novamente.'};
 const ok=Astro.url.searchParams.get('ok')==='concluida'?mensagens.concluida:'';
 const codigoErro=Astro.url.searchParams.get('erro')??'';
-const erro=['ultimo_admin','email_existente','proprio','email_falhou','dados','falha'].includes(codigoErro)?mensagens[codigoErro]:'';
+const erro=['ultimo_admin','email_existente','proprio','email_falhou','dados','prazo','limite','dispensado','falha'].includes(codigoErro)?mensagens[codigoErro]:'';
 
 ---
 <Platform title="Usuários" slug="usuarios">
@@ -43,14 +44,16 @@ const erro=['ultimo_admin','email_existente','proprio','email_falhou','dados','f
               <td data-label="E-mail">{u.email}</td>
               <td data-label="Cargo">{u.cargo || '—'}</td>
               <td data-label="Perfil">{ROTULO_PERFIL[u.perfil] ?? u.perfil}</td>
-              <td data-label="Situação">{u.bloqueado_ate&&u.bloqueado_ate>new Date().toISOString()?'Bloqueado até '+dataHoraBr(u.bloqueado_ate):!u.ativo?'Desativado':u.totp_ativo?'Verificação em 2 etapas configurada':u.senha_definida_em?'Ativo':u.convite_em?'Convite enviado em '+dataHoraBr(u.convite_em):'Ativo'}</td>
+              <td data-label="Situação">{u.bloqueado_ate&&u.bloqueado_ate>new Date().toISOString()?'Bloqueado até '+dataHoraBr(u.bloqueado_ate):!u.ativo?'Desativado':u.totp_ativo?'Verificação em 2 etapas configurada':u.senha_definida_em?'Ativo':u.convite_em?'Convite enviado em '+dataHoraBr(u.convite_em):'Ativo'}{u.sem_2fa_ate&&<span class="usr-dispensa">Sem 2ª etapa até {dataHoraBr(u.sem_2fa_ate)}, concedido por {u.sem_2fa_por ?? '—'}</span>}</td>
               <td data-label="Desde">{dia(u.criado_em)}</td>
               <td data-label="Ações"><details><summary>Gerenciar acesso</summary>
                 <form data-astro-reload method="post" action="/plataforma/usuarios/acao/">
                   <input type="hidden" name="id" value={u.id} />
-                  <div><label for={`usuario-${u.id}-acao`}>Ação</label><select id={`usuario-${u.id}-acao`} name="acao"><option value="perfil">Alterar perfil</option>{!u.senha_definida_em&&u.ativo&&<option value="reenviar">Reenviar convite</option>}<option value={u.ativo?'desativar':'reativar'}>{u.ativo?'Desativar':'Reativar'}</option><option value="desbloquear">Desbloquear acesso</option><option value="2fa">Redefinir verificação em 2 etapas</option></select></div>
+                  <div><label for={`usuario-${u.id}-acao`}>Ação</label><select id={`usuario-${u.id}-acao`} name="acao"><option value="perfil">Alterar perfil</option>{!u.senha_definida_em&&u.ativo&&<option value="reenviar">Reenviar convite</option>}<option value={u.ativo?'desativar':'reativar'}>{u.ativo?'Desativar':'Reativar'}</option><option value="desbloquear">Desbloquear acesso</option><option value="2fa">Redefinir verificação em 2 etapas</option>{u.id!==eu&&!!u.ativo&&<option value="dispensar_2fa">Dispensar a 2ª etapa por um prazo</option>}{!!u.sem_2fa_ate&&<option value="retirar_dispensa">Retirar a dispensa da 2ª etapa</option>}</select></div>
                   <div><label for={`usuario-${u.id}-perfil`}>Novo perfil</label><select id={`usuario-${u.id}-perfil`} name="perfil">{Object.entries(ROTULO_PERFIL).map(([valor,rotulo])=><option value={valor} selected={valor===u.perfil}>{rotulo}</option>)}</select></div>
-                  <p>Desativar encerra as sessões. Redefinir a verificação exige configurar o aplicativo novamente.</p>
+                  {u.id!==eu&&!!u.ativo&&<><div><label for={`usuario-${u.id}-dias`}>Prazo da dispensa, em dias (1 a 60)</label><input id={`usuario-${u.id}-dias`} name="dias" type="number" min="1" max="60" step="1" value="60" inputmode="numeric" /></div>
+                  <div><label for={`usuario-${u.id}-motivo`}>Motivo da dispensa</label><input id={`usuario-${u.id}-motivo`} name="motivo" maxlength="200" /></div></>}
+                  <p>Desativar encerra as sessões. Redefinir a verificação exige configurar o aplicativo novamente. Dispensar a 2ª etapa deixa a pessoa entrar só com e-mail e senha até o fim do prazo (máximo 60 dias). Use só quando necessário; tudo fica registrado. Não escreva dados pessoais no motivo.</p>
                   <div class="usr-confirmar"><input id={`usuario-${u.id}-confirmar`} type="checkbox" name="confirmar" value="sim" required /><label for={`usuario-${u.id}-confirmar`}>Confirmo a ação para {u.email}.</label></div>
                   <button>Aplicar alteração</button>
                 </form></details></td>
@@ -66,6 +69,7 @@ const erro=['ultimo_admin','email_existente','proprio','email_falhou','dados','f
   form,form>div{grid-template-columns:minmax(0,1fr)}
   form,label,summary{overflow-wrap:anywhere}
   form,form>div,label{display:grid;gap:.5rem}form{gap:.8rem;margin:1rem 0;max-width:34rem}input,select,button,summary{min-height:44px;box-sizing:border-box;max-width:100%}input,select{width:100%;padding:.5rem;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:6px}summary{cursor:pointer;padding:.6rem}.usr-confirmar{display:flex;align-items:center}.usr-confirmar input{width:22px;flex-shrink:0}button{padding:.5rem}.usr-tabela details{min-width:0}.usr-cadastro{margin-bottom:1rem}
+  .usr-dispensa{display:block;color:var(--muted);margin-top:.25rem}
   .usr-aviso{padding:.6rem .9rem;border-radius:8px;border:1px solid #b3261e;max-width:42rem}
   .usr-tabela td{max-width:22rem}
   .usr-tabela td>details{flex:1;min-width:0}

@@ -6,6 +6,7 @@ A versão integral do histórico é privada e fica fora do repositório público
 
 | Data | Regra |
 | --- | --- |
+| 23/11/2026 | Dispensa temporária da 2ª etapa até 60 dias, só por outro administrador, com motivo e registro; conta de consulta = perfil Leitura com convite por e-mail. |
 | 17/11/2026 | Conferir o repositório durante o trabalho, e não só ao abrir a sessão: antes de tarefa nova, branch, commit, PR e publicação, buscar as novidades e atualizar a pasta sempre que possível. Vale para todos os desenvolvedores (`CLAUDE.md`, seção 1.1). |
 | 17/11/2026 | Login próprio com senha e aplicativo autenticador obrigatório; convite pelo administrador. Access segue padrão até troca expressa. Redefinir senha encerra sessões e exige login; redefinir 2FA exige novo aplicativo. |
 | 09/11/2026 | Manter a arquitetura atual (Astro + TypeScript, JSON); coletores em Node/TypeScript; GitHub Actions como agendador; banco futuro PostgreSQL; multimunicípio (Goiânia só como configuração); portável para outro servidor. |
@@ -161,6 +162,8 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 6. **Visibilidade:** se o repositório novo for privado, a carga real da planilha deixa de ficar exposta.
 
 ## 6. Lições técnicas (para não repetir erros)
+
+23/11/2026 (E16): exceção de segurança mora no banco com prazo e autor, não em segredo do Worker; a regra vale a cada pedido (sessão aberta sem código cai quando a dispensa acaba) e falha fechada (apagar a dispensa antes de mudar perfil ou desativar).
 
 23/11/2026 (E12): processo da contratação 100% na tela; a carga da planilha nunca sobrescreve o que foi editado. Decisões E12-P1=A e E12-P2=A: projeto opcional na contratação e Histórico próprio.
 
