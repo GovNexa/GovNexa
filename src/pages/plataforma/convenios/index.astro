@@ -79,7 +79,7 @@ const estadoCauc = { regular: 'Regular', com_pendencia: 'Com pendência', sem_da
 
     <section class="cv-bloco" id="cv-risco" data-cv-bloco="risco" aria-labelledby="cv-risco-titulo">
       <h2 id="cv-risco-titulo">Convênios em risco</h2>
-      <p class="cv-regra">Em execução e sem nenhum desembolso há mais de 180 dias (indício de cláusula suspensiva), ou com a vigência terminando em até {DIAS_RISCO_VIGENCIA} dias. É a mesma regra do Painel da equipe e da central de alertas.</p>
+      <p class="cv-regra">Em execução e sem nenhum desembolso há mais de 180 dias (indício de cláusula suspensiva), ou com a vigência terminando em até {DIAS_RISCO_VIGENCIA} dias ou já encerrada. É a mesma regra do Painel da equipe e da central de alertas.</p>
       {!risco.disponivel
         ? <p class="cv-vazio" data-cv-vazio>A coleta do Transferegov ainda não foi feita.</p>
         : risco.lista.length === 0
