@@ -1,5 +1,13 @@
 # Changelog
 
+## E5 · Carteira de projetos (22/11/2026)
+- Grandes números no topo (total de projetos e de valor), que seguem os filtros. A soma é feita em centavos; projeto sem valor conta na quantidade e aparece avisado.
+- Colunas: ID (só o número, discreto), Órgão, Projeto (em destaque), Valor, Macroetapa, Peças técnicas, Fim da contratação, Dias de obra e Entrega. Sem farol na lista.
+- Filtros padrão da E2 mais "Só prioritários" (D1). A busca também aceita o código (P-901, 901), para os links antigos.
+- Agrupada por macroetapa e, em cada uma, da entrega mais próxima para a mais distante (sem data por último). No celular, cada projeto vira um cartão.
+- Impressão no formato do relatório por órgão: cabeçalho com totais e filtros, grupos por macroetapa, preto no branco.
+- A guia "Visão por órgão" saiu do menu; o endereço antigo leva à Carteira com o filtro de órgão. A ficha (Ver detalhes) não mudou.
+
 ## E3 · Tela do prefeito "Projetos prioritários" (22/11/2026)
 - A tela inicial (`/plataforma/`) passa a ser "Projetos prioritários": obras por área (barras por quantidade), quantidade e valor por etapa (Execução, Contratação, Preparatório, Planejamento, Estruturação; Concluídas e Sem macroetapa quando houver), linha do tempo de entregas empilhada por área até dez/2028, próximas entregas e principais obras.
 - Todo número é clicável e vira filtro (etapa, área, mês da entrega); o filtro fica no endereço e o "voltar" do navegador restaura. Filtros "Só prioritários", órgão e região (opcional).

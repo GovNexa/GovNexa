@@ -8,15 +8,17 @@ interface Props {
   opcoes: OpcoesFiltros;
   avisos?: string[];
   rotulo?: string;
+  /** Filtro próprio da tela (ex.: "Só prioritários" da Carteira) ligado: mostra "Limpar filtros". */
+  ativosExtra?: boolean;
 }
-const { filtros, opcoes, avisos = [], rotulo = 'Filtros dos projetos' } = Astro.props;
+const { filtros, opcoes, avisos = [], rotulo = 'Filtros dos projetos', ativosExtra = false } = Astro.props;
 const acao = Astro.url.pathname;
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const [deAno = '', deMes = ''] = filtros.de ? filtros.de.split('-') : [];
 const [ateAno = '', ateMes = ''] = filtros.ate ? filtros.ate.split('-') : [];
 const anos = [...new Set([...opcoes.anos, ...[deAno, ateAno].filter(Boolean).map(Number)])].sort((a, b) => a - b);
 const temArea = (opcoes.areas?.length ?? 0) > 0;
-const ativos = filtrosAtivos(filtros);
+const ativos = filtrosAtivos(filtros) || ativosExtra;
 const mesValor = (i: number) => String(i + 1).padStart(2, '0');
 ---
 <form class="fp" method="get" action={acao} role="search" aria-label={rotulo} autocomplete="off" data-filtros-projetos data-astro-reload>
@@ -63,6 +65,7 @@ const mesValor = (i: number) => String(i + 1).padStart(2, '0');
         <select name="ate_ano"><option value="">Qualquer</option>{anos.map((a) => <option value={String(a)} selected={String(a) === ateAno}>{a}</option>)}</select>
       </label>
     </fieldset>
+    <slot name="extra" />
   </div>
   <div class="fp-acoes">
     <button type="submit" class="primary">Aplicar filtros</button>

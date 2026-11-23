@@ -1,9 +1,9 @@
 import { test, expect, type Locator, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-test('visão por órgão: impressão no tema escuro sai com texto escuro', async ({ page }) => {
+test('carteira: impressão no tema escuro sai com texto escuro', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('govnexa-theme', 'dark'));
-  await page.goto('/plataforma/projetos-orgaos/');
+  await page.goto('/plataforma/projetos-carteira/');
   await page.emulateMedia({ media: 'print' });
   await expect(page.locator('.workspace')).toHaveCSS('color', 'rgb(0, 0, 0)');
 });

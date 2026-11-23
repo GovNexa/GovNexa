@@ -123,6 +123,7 @@ São módulos independentes que conversam entre si:
 
 ### Entregas recentes
 
+- 22/11/2026: E5, Carteira de projetos com grandes números, colunas do relatório, filtros com "Só prioritários", grupos por macroetapa e impressão; a Visão por órgão foi incorporada (branch agente/codex/e5-carteira; aguardando revisão).
 - 22/11/2026: E2, padrão visual das telas de Projetos (fundo claro e neutro nos dois temas) e filtros padrão, aplicados no Gantt geral (branch agente/codex/e2-filtros; aguardando revisão).
 - 22/11/2026: E3, tela inicial do prefeito "Projetos prioritários": obras por área, quantidade e valor por etapa, linha do tempo de entregas até dez/2028, próximas entregas e principais obras; todo número vira filtro no endereço; sem farol, prazos, decisões e convênios (branch agente/codex/e3-prefeito; aguardando prévia do dono e revisão).
 
@@ -195,12 +196,12 @@ O tema claro usa menu lateral branco, texto e ícones azul-escuros, destaques az
 | Projetos · Início | Resumo da carteira por macroetapa: quantidade, valor e farol de prazo | Disponível | `src/lib/carteira/` |
 | Fluxo do sistema | Diagrama em raias com etapas, validações, responsáveis e links para as telas; inclui fluxos detalhados e zoom | Disponível | `src/lib/govnexa/fluxo.ts`, `subfluxos.ts`, `src/components/fluxo/` |
 | Novo projeto | Cadastro com área e marca de prioritário. Grava na macroetapa 00, usa códigos a partir de P-9000 e registra no Histórico | Disponível no código (B2 e E1) | `src/components/carteira/NovoProjeto.astro` |
-| Carteira de projetos | Projetos, busca e ficha completa com valores, recursos, datas e histórico | Disponível | `src/lib/carteira/` |
+| Carteira de projetos | Grandes números que seguem os filtros, colunas do relatório por órgão, filtros padrão com "Só prioritários", grupos por macroetapa da entrega mais próxima à mais distante, impressão e ficha completa | Disponível (E5) | `src/components/carteira/CarteiraProjetos.astro`, `src/lib/carteira/lista.ts` |
 | Página do projeto | Resumo com área e marca de prioritário, valores, recursos, datas, localização, documentos, cronograma e Histórico. Edição de campos por quem tem permissão, com controle de revisão | Leitura disponível (B1). Edição disponível no código (E1) | `src/pages/plataforma/projeto/[id].astro` |
 | Localização e fotos | Ponto ou trecho da obra no mapa e lista de obras sem localização | Localização grava no banco e entra no Histórico; aceita a cidade e o entorno (cerca de 10 km) (entrega B1, no ar desde 18/11/2026); fotos numa próxima entrega | `src/lib/mapa/`, `src/components/mapa/`, `src/pages/plataforma/projeto/localizacao/` |
 | Kanban por macroetapa | Colunas com quantidade e valor; mover com portões e motivo | Simulação | `src/components/carteira/Kanban.astro`, `src/lib/carteira/movimentacao.ts` |
 | Gantt geral | Linha do tempo prevista por macroetapa, da entrega mais próxima à mais distante; filtros por nome, órgão, macroetapa e período de entrega (mês e ano), guardados no endereço | Disponível | `src/components/carteira/Gantt.astro`, `src/components/carteira/FiltrosProjetos.astro`, `src/lib/carteira/filtros.ts` |
-| Visão por órgão | Obras por órgão e macroetapa; pronta para imprimir | Disponível | `src/components/carteira/VisaoOrgaos.astro` |
+| Visão por órgão | Incorporada à Carteira (E5): o endereço antigo abre a Carteira filtrada pelo órgão | Substituída | `src/lib/carteira/lista.ts` |
 | Cronogramas | Fase atual, realizado × previsto, linha do tempo, tarefas, dependências e pendências de dado | Disponível | `src/lib/cronograma/`, `src/pages/plataforma/cronograma/[id].astro` |
 | Onde está parado | Etapas vencidas por unidade e responsável | Disponível | `src/components/cronograma/Parado.astro` |
 | Pendências de etapa | Aprovar avança; reprovar volta pela mesma regra do Kanban | Simulação | `src/components/carteira/PendenciasEtapa.astro` |
