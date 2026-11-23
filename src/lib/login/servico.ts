@@ -16,6 +16,7 @@ export class ErroAdmin extends Error {
 }
 export const ERRO_LOGIN='E-mail ou senha incorretos.';
 export const RESPOSTA_ESQUECI='Se o e-mail estiver cadastrado, enviaremos um link em instantes.';
+const MSG_DISPENSADO='Quem está com a 2ª etapa dispensada não pode fazer esta ação.';
 const ERRO_CODIGO='Código inválido ou expirado. Aguarde e tente novamente.';
 export function servicoLogin(env:EnvLogin, request:Request, waitUntil?: (tarefa:Promise<unknown>)=>void) {
  const db=env.DB_CENTRAL, ip=request.headers.get('CF-Connecting-IP') ?? 'sem-ip';
@@ -46,7 +47,7 @@ export function servicoLogin(env:EnvLogin, request:Request, waitUntil?: (tarefa:
   await despacharEmail({para:u.email,...modeloLink(tipo,url.href,t.expira,u.nome)},u.id,'envio_email_falhou',autor!==null);
   await evento(tipo,u.id);
  }
- async function sessao(valor:string,etapa?:string) {const s=await obterSessao(db,valor);if(!s || (etapa && s.etapa!==etapa))return null;const u=await usuario(s.usuario_id);if(!u?.ativo){if(u)await revogarSessoes(db,u.id);return null;}if(s.via_excecao===1&&!await dispensaValida(u.id)){await gravar(db,'UPDATE sessao SET revogada_em = ? WHERE id_hash = ? AND revogada_em IS NULL',iso(),s.id_hash);return null;}return {s,u};}
+ async function sessao(valor:string,etapa?:string) {const s=await obterSessao(db,valor);if(!s || (etapa && s.etapa!==etapa))return null;const u=await usuario(s.usuario_id);if(!u?.ativo){if(u)await revogarSessoes(db,u.id);return null;}if(s.via_excecao!==0&&!await dispensaValida(u.id)){await gravar(db,'UPDATE sessao SET revogada_em = ? WHERE id_hash = ? AND revogada_em IS NULL',iso(),s.id_hash);return null;}return {s,u};}
  async function tentativa(valor:string,etapa:string) {
   const par=await sessao(valor,etapa);if(!par)throw new Error(ERRO_CODIGO);
   if(par.u.bloqueado_ate&&par.u.bloqueado_ate>iso())throw new Error(ERRO_CODIGO);
@@ -85,7 +86,7 @@ export function servicoLogin(env:EnvLogin, request:Request, waitUntil?: (tarefa:
  }
  return {
   async convidar(a:Usuario,d:{nome:string;email:string;cargo:string;perfil:Perfil}) {
-   await administrador(a);const email=normalEmail(d.email),nome=d.nome.trim();
+   await administrador(a);if(d.perfil==='admin'&&await dispensaValida(a.id))throw new ErroAdmin('dispensado',MSG_DISPENSADO);const email=normalEmail(d.email),nome=d.nome.trim();
    if(!/^[\x21-\x7e]+$/.test(email)||!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)||email.length>254||!nome||nome.length>120||d.cargo.length>120||!['admin','gestor','editor','leitura'].includes(d.perfil))throw new ErroAdmin('dados','Confira nome, e-mail, cargo e perfil.');
    if(await stmt('SELECT id FROM usuario WHERE email = ?',email).first())throw new ErroAdmin('email_existente','Não foi possível cadastrar este e-mail.');
    const id=crypto.randomUUID();await gravar(db,'INSERT INTO usuario(id,email,nome,cargo,perfil,prefeitura_id) VALUES(?,?,?,?,?,?)',id,email,nome,d.cargo.trim(),d.perfil,a.prefeitura_id);
@@ -170,8 +171,8 @@ export function servicoLogin(env:EnvLogin, request:Request, waitUntil?: (tarefa:
   async desativarUsuario(a:Usuario,id:string) {
    const u=await alvo(a,id);if(a.id===id)throw new ErroAdmin('proprio','Você não pode desativar seu próprio acesso.');
    await db.batch([
-    stmt("INSERT INTO evento_acesso(usuario_id,tipo,ip,detalhe) SELECT usuario_id,'2fa_dispensa_retirada',?,CASE WHEN usuario_id = ? THEN '{\"motivo\":\"desativacao\"}' ELSE '{\"motivo\":\"desativacao_concedente\"}' END FROM excecao_2fa WHERE usuario_id = ? OR concedido_por = ?",ip,id,id,id),
-    stmt('DELETE FROM excecao_2fa WHERE usuario_id = ? OR concedido_por = ?',id,id)
+    stmt("INSERT INTO evento_acesso(usuario_id,tipo,ip,detalhe) SELECT usuario_id,'2fa_dispensa_retirada',?,CASE WHEN usuario_id = ? THEN '{\"motivo\":\"desativacao\"}' ELSE '{\"motivo\":\"desativacao_concedente\"}' END FROM excecao_2fa WHERE usuario_id = ? OR (concedido_por = ? AND EXISTS (SELECT 1 FROM usuario WHERE id = excecao_2fa.usuario_id AND prefeitura_id = ?))",ip,id,id,id,a.prefeitura_id),
+    stmt('DELETE FROM excecao_2fa WHERE usuario_id = ? OR (concedido_por = ? AND EXISTS (SELECT 1 FROM usuario WHERE id = excecao_2fa.usuario_id AND prefeitura_id = ?))',id,id,a.prefeitura_id)
    ]);
    const r=await gravar(db,"UPDATE usuario SET ativo = 0 WHERE id = ? AND prefeitura_id = ? AND (perfil <> 'admin' OR ativo = 0 OR (SELECT count(*) FROM usuario WHERE prefeitura_id = ? AND perfil = 'admin' AND ativo = 1) > 1)",u.id,a.prefeitura_id,a.prefeitura_id);
    if(r.meta?.changes!==1)throw new ErroAdmin('ultimo_admin','Mantenha ao menos um administrador ativo.');await revogarSessoes(db,id);await gravar(db,'UPDATE token_email SET usado_em = ? WHERE usuario_id = ? AND usado_em IS NULL',iso(),id);await evento('usuario_desativado',id);
@@ -179,15 +180,16 @@ export function servicoLogin(env:EnvLogin, request:Request, waitUntil?: (tarefa:
   async reativarUsuario(a:Usuario,id:string) {await alvo(a,id);await gravar(db,'UPDATE usuario SET ativo = 1 WHERE id = ? AND prefeitura_id = ?',id,a.prefeitura_id);await evento('usuario_reativado',id);},
   async alterarPerfil(a:Usuario,id:string,perfil:Perfil) {
    const antes=await alvo(a,id);if(!['admin','gestor','editor','leitura'].includes(perfil))throw new ErroAdmin('dados','Perfil inválido.');
+   if(perfil==='admin'&&await dispensaValida(a.id))throw new ErroAdmin('dispensado',MSG_DISPENSADO);
    if(antes.perfil!==perfil)await db.batch([
-    stmt("INSERT INTO evento_acesso(usuario_id,tipo,ip,detalhe) SELECT usuario_id,'2fa_dispensa_retirada',?,CASE WHEN usuario_id = ? THEN '{\"motivo\":\"perfil\"}' ELSE '{\"motivo\":\"perfil_concedente\"}' END FROM excecao_2fa WHERE usuario_id = ? OR (concedido_por = ? AND ? <> 'admin')",ip,id,id,id,perfil),
-    stmt("DELETE FROM excecao_2fa WHERE usuario_id = ? OR (concedido_por = ? AND ? <> 'admin')",id,id,perfil)
+    stmt("INSERT INTO evento_acesso(usuario_id,tipo,ip,detalhe) SELECT usuario_id,'2fa_dispensa_retirada',?,CASE WHEN usuario_id = ? THEN '{\"motivo\":\"perfil\"}' ELSE '{\"motivo\":\"perfil_concedente\"}' END FROM excecao_2fa WHERE usuario_id = ? OR (concedido_por = ? AND ? <> 'admin' AND EXISTS (SELECT 1 FROM usuario WHERE id = excecao_2fa.usuario_id AND prefeitura_id = ?))",ip,id,id,id,perfil,a.prefeitura_id),
+    stmt("DELETE FROM excecao_2fa WHERE usuario_id = ? OR (concedido_por = ? AND ? <> 'admin' AND EXISTS (SELECT 1 FROM usuario WHERE id = excecao_2fa.usuario_id AND prefeitura_id = ?))",id,id,perfil,a.prefeitura_id)
    ]);
    const r=await gravar(db,"UPDATE usuario SET perfil = ? WHERE id = ? AND prefeitura_id = ? AND (? = 'admin' OR perfil <> 'admin' OR ativo = 0 OR (SELECT count(*) FROM usuario WHERE prefeitura_id = ? AND perfil = 'admin' AND ativo = 1) > 1)",perfil,id,a.prefeitura_id,perfil,a.prefeitura_id);
    if(r.meta?.changes!==1)throw new ErroAdmin('ultimo_admin','Mantenha ao menos um administrador ativo.');await evento('perfil_alterado',id);
   },
   async redefinirSegundoFator(a:Usuario,id:string) {
-   const u=await alvo(a,id);await db.batch([stmt('UPDATE usuario SET totp_ativo = 0, totp_segredo_cifrado = NULL, totp_ultimo_passo = NULL WHERE id = ? AND prefeitura_id = ?',id,a.prefeitura_id),stmt('DELETE FROM codigo_recuperacao WHERE usuario_id = ?',id),stmt('UPDATE sessao SET revogada_em = ? WHERE usuario_id = ?',iso(),id)]);
+   const u=await alvo(a,id);if(id!==a.id&&await dispensaValida(a.id))throw new ErroAdmin('dispensado',MSG_DISPENSADO);await db.batch([stmt('UPDATE usuario SET totp_ativo = 0, totp_segredo_cifrado = NULL, totp_ultimo_passo = NULL WHERE id = ? AND prefeitura_id = ?',id,a.prefeitura_id),stmt('DELETE FROM codigo_recuperacao WHERE usuario_id = ?',id),stmt('UPDATE sessao SET revogada_em = ? WHERE usuario_id = ?',iso(),id)]);
    await despacharEmail({para:u.email,...modeloAviso('2fa')},u.id,'aviso_email_falhou',true);await evento('2fa_redefinido',id);
   },
   async desbloquearAcesso(a:Usuario,id:string) {const u=await alvo(a,id);await limparFalhas(u);await evento('acesso_desbloqueado',id);},
@@ -197,9 +199,10 @@ export function servicoLogin(env:EnvLogin, request:Request, waitUntil?: (tarefa:
    const u=await alvo(a,id);if(!u.ativo)throw new ErroAdmin('dados','Pessoa desativada.');
    const m=motivo.replace(/\s+/g,' ').trim(), n=Number(dias);
    if(!/^\d{1,2}$/.test(dias)||n<1||n>60||m.length<3||m.length>200||/[\u0000-\u001f\u007f]/.test(m))throw new ErroAdmin('prazo','Informe de 1 a 60 dias e o motivo.');
-   if(await dispensaValida(a.id))throw new ErroAdmin('dispensado','Quem está com a 2ª etapa dispensada não pode dispensar outra pessoa.');
+   if(await dispensaValida(a.id))throw new ErroAdmin('dispensado',MSG_DISPENSADO);
    const em=iso(), ate=new Date(Date.parse(em)+n*86400000).toISOString();
    const r=await db.batch([
+    stmt('UPDATE sessao SET revogada_em = ? WHERE usuario_id = ? AND via_excecao = 1 AND revogada_em IS NULL',em,id),
     stmt(`INSERT INTO excecao_2fa(usuario_id,ate,motivo,concedido_por,concedido_em) SELECT ?,?,?,?,?
      WHERE EXISTS (SELECT 1 FROM usuario WHERE id = ? AND prefeitura_id = ? AND ativo = 1)
      AND EXISTS (SELECT 1 FROM usuario WHERE id = ? AND prefeitura_id = ? AND perfil = 'admin' AND ativo = 1)
@@ -208,7 +211,7 @@ export function servicoLogin(env:EnvLogin, request:Request, waitUntil?: (tarefa:
      id,ate,m,a.id,em,id,a.prefeitura_id,a.id,a.prefeitura_id,a.id,em),
     stmt("INSERT INTO evento_acesso(usuario_id,tipo,ip,detalhe) SELECT ?,'2fa_dispensado',?,? WHERE changes() = 1",id,ip,JSON.stringify({por:a.id,ate,motivo:m}))
    ]);
-   if(r[0].meta?.changes!==1)throw new ErroAdmin('dados','Não foi possível conceder a dispensa.');
+   if(r[1].meta?.changes!==1)throw new ErroAdmin('dados','Não foi possível conceder a dispensa.');
    return ate;
   },
   async retirarDispensa(a:Usuario,id:string) {

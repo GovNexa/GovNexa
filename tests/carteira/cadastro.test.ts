@@ -79,7 +79,7 @@ test('normalizar: localização fora de Goiânia e do entorno é recusada; a vá
 });
 
 test('cadastrar: perfil de leitura é recusado (403) e nada é gravado', async () => {
-  const { banco, c } = montar('leitor' as Usuario['perfil']);
+  const { banco, c } = montar('leitura');
   const r = await cadastrarProjeto(c, BASE);
   assert.deepEqual(r, { ok: false, status: 403, erro: 'Seu perfil não permite cadastrar projetos.' });
   assert.equal(projetos(banco).length, 0);

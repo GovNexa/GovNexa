@@ -424,3 +424,65 @@ test('dispensa da 2ª etapa: falha ao rebaixar o único administrador não deixa
  assert.equal(b.sqlite.prepare("SELECT perfil FROM usuario WHERE id = 'admin'").get()!.perfil,'admin');
  }finally{b.sqlite.close();}
 });
+
+test('dispensa da 2ª etapa: endurecimento da revisão (sessão, renovação, corrida, ações de quem está dispensado, isolamento)',async()=>{
+ const b=await preparar();try{
+ const senha='Montanhas!azuis-7264',h=await hashSenha(senha,pepper),agora=Date.now(),dia=86400000;
+ b.sqlite.exec("INSERT INTO prefeitura VALUES(1100015,1100015,'Outra','RO','DB_PREFEITURA_1100015',1)");
+ for(const [id,perfil,pref] of [['dani','admin',5208707],['consulta','leitura',5208707],['conc','admin',5208707],['conc2','admin',5208707],['ben1','leitura',5208707],['alvo2','leitura',1100015],['alvo3','leitura',1100015]] as const)
+  b.sqlite.prepare('INSERT INTO usuario(id,email,nome,perfil,prefeitura_id,senha_hash,senha_definida_em) VALUES(?,?,?,?,?,?,?)').run(id,id+'@exemplo.invalid',id,perfil,pref,h,new Date(agora).toISOString());
+ const U=async(id:string)=>(await b.db.prepare('SELECT * FROM usuario WHERE id = ?').bind(id).first<any>())!;
+ const n=(sql:string,...v:any[])=>Number(b.sqlite.prepare(sql).get(...v)!.n);
+ const motivo=async(p:Promise<unknown>)=>{try{await p;return 'ok';}catch(e){return (e as {codigo?:string}).codigo??(e as Error).message;}};
+ const vencer=(id:string)=>b.sqlite.prepare('UPDATE excecao_2fa SET concedido_em = ?, ate = ? WHERE usuario_id = ?').run(new Date(agora-3*dia).toISOString(),new Date(agora-dia).toISOString(),id);
+ // M17: login com dispensa zera as falhas acumuladas
+ await b.servico.dispensarSegundaEtapa(b.u,'dani','30','Teste de falhas');
+ b.sqlite.exec("UPDATE usuario SET falhas_login = 3 WHERE id = 'dani'");
+ assert.equal((await b.servico.iniciarLogin('dani@exemplo.invalid',senha)).etapa,'completa');
+ assert.equal(n("SELECT falhas_login n FROM usuario WHERE id = 'dani'"),0);
+ // Item 1: sessão marcada como sem código, sem dispensa válida, é derrubada (inclusive com o valor em texto)
+ const solta=await criarSessao(b.db,'consulta','completa','',true);
+ b.sqlite.prepare("UPDATE sessao SET via_excecao = '1' WHERE id_hash = ?").run(await hash(solta));
+ assert.equal(await b.servico.usuarioDaSessao(solta),null);
+ assert.ok(b.sqlite.prepare('SELECT revogada_em FROM sessao WHERE id_hash = ?').get(await hash(solta))!.revogada_em);
+ // M8: depois de retirar, a sessão fica revogada no banco (sem passar por usuarioDaSessao)
+ await b.servico.dispensarSegundaEtapa(b.u,'consulta','30','Consulta fictícia');
+ const lc=await b.servico.iniciarLogin('consulta@exemplo.invalid',senha);
+ await b.servico.retirarDispensa(b.u,'consulta');
+ assert.ok(b.sqlite.prepare('SELECT revogada_em FROM sessao WHERE id_hash = ?').get(await hash(lc.valor))!.revogada_em);
+ // Item 4: renovar uma dispensa vencida não ressuscita a sessão antiga
+ await b.servico.dispensarSegundaEtapa(b.u,'consulta','30','Consulta fictícia');
+ const velha=await b.servico.iniciarLogin('consulta@exemplo.invalid',senha);
+ vencer('consulta');
+ await b.servico.dispensarSegundaEtapa(b.u,'consulta','30','Renovação');
+ assert.ok(b.sqlite.prepare('SELECT revogada_em FROM sessao WHERE id_hash = ?').get(await hash(velha.valor))!.revogada_em);
+ assert.equal(await b.servico.usuarioDaSessao(velha.valor),null);
+ await b.servico.retirarDispensa(b.u,'consulta');
+ // M10: concedente rebaixado entre a checagem e a gravação (objeto desatualizado e corrida simulada)
+ const concAntigo=await U('conc');
+ b.sqlite.exec("UPDATE usuario SET perfil = 'editor' WHERE id = 'conc'");
+ assert.match(await motivo(b.servico.dispensarSegundaEtapa(concAntigo,'ben1','10','Teste')),/Sem permissão/);
+ b.sqlite.exec("UPDATE usuario SET perfil = 'admin' WHERE id = 'conc'");
+ const original=b.db.batch.bind(b.db);
+ b.db.batch=async s=>{b.sqlite.exec("UPDATE usuario SET perfil = 'editor' WHERE id = 'conc'");b.db.batch=original;return original(s);};
+ assert.equal(await motivo(b.servico.dispensarSegundaEtapa(concAntigo,'ben1','10','Teste')),'dados');
+ assert.equal(n("SELECT count(*) n FROM excecao_2fa WHERE usuario_id = 'ben1'"),0);
+ b.sqlite.exec("UPDATE usuario SET perfil = 'admin' WHERE id = 'conc'");
+ // Item 5: quem está dispensado não cria nem promove administrador nem redefine a verificação de outra pessoa
+ const dani=await U('dani');
+ assert.equal(await motivo(b.servico.convidar(dani,{nome:'Nova admin',email:'nova@exemplo.invalid',cargo:'',perfil:'admin'})),'dispensado');
+ assert.equal(n("SELECT count(*) n FROM usuario WHERE email = 'nova@exemplo.invalid'"),0);
+ assert.equal(await motivo(b.servico.alterarPerfil(dani,'consulta','admin')),'dispensado');
+ assert.equal(String(b.sqlite.prepare("SELECT perfil FROM usuario WHERE id = 'consulta'").get()!.perfil),'leitura');
+ assert.equal(await motivo(b.servico.redefinirSegundoFator(dani,'consulta')),'dispensado');
+ // Item 6: a limpeza em cascata só alcança beneficiários da mesma prefeitura
+ const inserir=b.sqlite.prepare("INSERT INTO excecao_2fa(usuario_id,ate,motivo,concedido_por,concedido_em) VALUES(?,?,'Teste',?,?)");
+ const ate=new Date(agora+10*dia).toISOString(),em=new Date(agora).toISOString();
+ inserir.run('alvo2',ate,'conc',em);inserir.run('alvo3',ate,'conc2',em);inserir.run('ben1',ate,'conc',em);
+ await b.servico.alterarPerfil(b.u,'conc2','editor');
+ assert.equal(n("SELECT count(*) n FROM excecao_2fa WHERE usuario_id = 'alvo3'"),1);
+ await b.servico.desativarUsuario(b.u,'conc');
+ assert.equal(n("SELECT count(*) n FROM excecao_2fa WHERE usuario_id = 'alvo2'"),1);
+ assert.equal(n("SELECT count(*) n FROM excecao_2fa WHERE usuario_id = 'ben1'"),0);
+ }finally{b.sqlite.close();}
+});
