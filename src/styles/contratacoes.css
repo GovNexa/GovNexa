@@ -92,3 +92,42 @@
   .ct-tabela thead{display:table-header-group}
   .ct a{text-decoration:none}
 }
+
+/* PNCP (E14a): quadro "Dados do PNCP" na contratação e tela das secretarias compradoras. Prefixo pn-. */
+.pn{display:grid;gap:.9rem;min-width:0}
+.pn h3{margin:.4rem 0 0;font-size:1rem}
+.pn-resumo{display:flex;flex-wrap:wrap;gap:.3rem 1rem;align-items:center;margin:0;max-width:none}
+.pn-resumo>span:first-child{font-weight:700}
+.pn-resumo a{font-weight:650}
+.pn-aviso{margin:0;max-width:none}
+.pn-campos{grid-template-columns:repeat(auto-fit,minmax(14rem,1fr))}
+.pn-campos .pn-objeto{grid-column:1/-1}
+.pn-campos dd{display:block}
+.pn-campos details summary{cursor:pointer;font-weight:650}
+.pn-selo{white-space:normal;text-align:left;line-height:1.3}
+.pn-selo-aviso{border:2px solid var(--accent);font-weight:800}
+.pn-form{margin-top:0}
+.pn-previa{display:grid;gap:.75rem;padding:1rem;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
+.pn-previa .ct-campos>div{background:var(--surface)}
+.pn-confirma{display:flex;align-items:center;gap:.6rem;font-weight:650}
+.pn-confirma input{width:22px;height:22px;flex-shrink:0}
+.pn-acoes,.pn-acoes-linha{display:flex;flex-wrap:wrap;gap:.6rem;align-items:flex-start}
+.pn-acoes .ct-detalhes{flex:1 1 18rem}
+.pn-acoes-linha{flex-direction:column;align-items:stretch}
+.pn-acoes button,.pn-acoes-linha button,.pn-previa button{min-height:44px}
+.pn-mini{min-width:0}
+.pn-mini summary{min-height:44px;display:flex;align-items:center;font-weight:650}
+.pn-bloco{display:block;font-weight:400}
+.pn-tabela{width:100%;table-layout:fixed;border-collapse:collapse;font-size:.92rem;white-space:normal}
+.pn-tabela th,.pn-tabela td{padding:.5rem .55rem;white-space:normal;overflow-wrap:anywhere;vertical-align:top;text-align:left;background:transparent}
+.pn-tabela thead th{color:var(--muted)}
+.pn-tabela tbody tr{border-top:1px solid var(--line)}
+.pn-resultados{margin:0;padding:0;list-style:none;display:grid;gap:.35rem}
+@media (max-width:760px){
+  .pn-tabela thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+  .pn-tabela,.pn-tabela tbody,.pn-tabela tr,.pn-tabela th,.pn-tabela td{display:block;width:100%}
+  .pn-tabela tr{padding:.5rem 0;border-top:1px solid var(--line)}
+  .pn-tabela th,.pn-tabela td{padding:.2rem 0;border:0}
+  .pn-tabela [data-label]::before{content:attr(data-label);color:var(--muted);font-weight:600;font-size:.82rem;display:block}
+}
+@media print{[data-pn-link-secretarias],.pn-acoes,.pn-form,.pn-previa{display:none!important}}

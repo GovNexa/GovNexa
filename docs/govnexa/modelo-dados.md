@@ -106,3 +106,7 @@ Três tabelas novas, todas com `prefeitura_id` e chaves compostas `(prefeitura_i
 Travas no banco: sem DELETE nas 3 tabelas; sem UPDATE no Histórico; contratação e marco removidos não mudam; chave (prefeitura, id, autor e data de criação, origem) imutável; CHECKs de valores (inteiros ≥ 0), datas reais (2000 a 2100), enums e autores (1 a 254 caracteres).
 A tela vence a carga: `scripts/gerar-sql-carga.ts` lê `contratacoes.json` só no dialeto D1, valida tudo antes de gerar SQL e usa `ON CONFLICT DO NOTHING` (nunca sobrescreve o que foi editado na tela).
 Por que Histórico próprio: há contratações sem projeto (`evento_projeto` exige projeto), a FK composta garante evento só da mesma prefeitura e a leitura por contratação é por índice; não mistura no Histórico de alterações dos projetos.
+
+## PNCP (E14a, migração 0011)
+- `pncp_orgao` (secretaria compradora: CNPJ numérico ou alfanumérico, único por prefeitura, sem DELETE), `contratacao_pncp` (vínculo: um ativo por contratação e um por compra), `pncp_compra` (1 por vínculo), `pncp_item`, `pncp_resultado` (CPF recusado pelo banco) e `evento_pncp` (Histórico imutável: vínculo, desvínculo, coleta e eventos da secretaria).
+- Sugestões e candidatos ficam para a migração 0012 ou posterior. O código IBGE da unidade compradora não é gravado.

@@ -616,6 +616,42 @@ test('10c. o ciclo ligar, desligar e ligar de novo conta uma coleta por ligaçã
   assert.equal(!ultima.ok && ultima.status, 429);
 });
 
+test('10d. limite estourado em "atualizar" = 429 ANTES da trava: a próxima tentativa válida não fica bloqueada', async () => {
+  const m = montar('admin');
+  await secretaria(m.ctx);
+  const cid = await contratacao(m.ctx);
+  const d = mk(undefined, estadoLivre());
+  assert.equal(corpoDe(await ligar(m.ctx, d.deps, cid, 1)).status, 'ok');
+  const v = (await m.pncp.obterVinculoAtivo(cid))!;
+  avancar(600_001);
+  const iso = new Date(t - 300_000).toISOString();
+  for (let i = 0; i < 120; i++) m.banco.sqlite.prepare("INSERT INTO evento_pncp (id, prefeitura_id, tipo, contratacao_id, vinculo_id, autor, em) VALUES (?, ?, 'coleta_ok', ?, ?, 'x@y.z', ?)").run(`L-${i}`, PREF, cid, v.id, iso);
+  const antes = q(m.banco, 'SELECT ultima_tentativa_em, ultimo_status FROM contratacao_pncp WHERE id = ?', v.id);
+  const chamadas = d.esp.n;
+  const bloq = await exec(m.ctx, d.deps, { acao: 'atualizar', id: cid });
+  assert.equal(!bloq.ok && bloq.status, 429);
+  assert.equal(d.esp.n, chamadas);
+  assert.deepEqual(q(m.banco, 'SELECT ultima_tentativa_em, ultimo_status FROM contratacao_pncp WHERE id = ?', v.id), antes, 'a trava não foi gasta');
+  const orgaoId = (await m.pncp.listarOrgaos())[0]!.id;
+  const lote = await exec(m.ctx, d.deps, { acao: 'atualizar_orgao', orgao_id: orgaoId });
+  assert.equal(!lote.ok && lote.status, 429); // o lote também confere os limites antes da trava
+  assert.equal(d.esp.n, chamadas);
+  assert.deepEqual(q(m.banco, 'SELECT ultima_tentativa_em, ultimo_status FROM contratacao_pncp WHERE id = ?', v.id), antes, 'a trava do lote não foi gasta');
+  avancar(3_600_001); // a hora passa: os 120 eventos saem da janela
+  assert.equal(corpoDe(await exec(m.ctx, d.deps, { acao: 'atualizar', id: cid })).status, 'ok');
+  assert.ok(d.esp.n > chamadas);
+});
+
+test('10e. Histórico: no mesmo instante, "vinculo" vem antes de "coleta_*"', async () => {
+  const m = montar('admin');
+  await secretaria(m.ctx);
+  const cid = await contratacao(m.ctx);
+  const { deps } = mk(undefined, estadoLivre());
+  assert.equal(corpoDe(await ligar(m.ctx, deps, cid, 1)).status, 'ok'); // ligar grava vínculo e 1ª coleta no mesmo instante
+  const tipos = (await m.pncp.historico(cid, 20)).map((e) => e.tipo);
+  assert.deepEqual(tipos, ['vinculo', 'coleta_ok']);
+});
+
 test('11. HTTP: origem, perfil, formato, tamanho, JSON, chave extra e sem cache', async () => {
   const m = montar('admin');
   await secretaria(m.ctx);
@@ -708,6 +744,12 @@ test('13. contratação removida na E12: desliga o vínculo e registra; sem vín
   const velha = await executarAcao(ctxC, { acao: 'remover', id: cid, revisao: rev + 5, motivo: 'x' }, agora());
   assert.equal(velha.ok, false);
   assert.ok(await m.pncp.obterVinculoAtivo(cid));
+  // direto no repositório (o serviço recusa antes): o EXISTS do UPDATE do vínculo é que impede o desligamento
+  avancar(1000);
+  const direto = await m.ctx.repositorio.contratacoes!.remover(cid, rev + 5, 'x', 'admin@exemplo.invalid', agora().toISOString());
+  assert.equal(direto.r, 'conflito');
+  assert.ok(await m.pncp.obterVinculoAtivo(cid));
+  assert.equal(n(m.banco, "SELECT count(*) FROM evento_pncp WHERE tipo = 'desvinculo'"), 0);
   const eventosAntes = n(m.banco, 'SELECT count(*) FROM evento_pncp');
   avancar(1000);
   assert.ok((await executarAcao(ctxC, { acao: 'remover', id: livre, revisao: 0, motivo: 'x' }, agora())).ok);
@@ -761,14 +803,20 @@ test('14. vincular: confirmação de não-obra, campos inválidos, outro municí
   assert.equal(lerCompra(COMPRAS[`${A}/2026/3`]!.compra, { cnpj: A, ano: 2026, sequencial: 3 })!.codigoIbge, '5300108');
   // seq 2: nenhum CPF no banco, nos eventos, nem na resposta HTTP
   const c3 = await contratacao(m.ctx, 'SRP');
+  const previaSrp = corpoDe(await exec(m.ctx, deps, { acao: 'previa', id: c3, entrada: controle(2) })).previa;
+  assert.equal(previaSrp.objeto, 'REGISTRO DE PREÇOS PARA SERVIÇOS DE MANUTENÇÃO PREDIAL (CONTATO ***)');
   const resposta = corpoDe(await ligar(m.ctx, deps, c3, 2));
-  const todo = JSON.stringify(resposta) + JSON.stringify(q(m.banco, 'SELECT * FROM pncp_resultado')) + JSON.stringify(q(m.banco, 'SELECT * FROM pncp_item'))
+  const todo = JSON.stringify(previaSrp) + JSON.stringify(resposta) + JSON.stringify(q(m.banco, 'SELECT * FROM pncp_resultado')) + JSON.stringify(q(m.banco, 'SELECT * FROM pncp_item'))
     + JSON.stringify(q(m.banco, 'SELECT * FROM pncp_compra')) + JSON.stringify(q(m.banco, 'SELECT * FROM evento_pncp')) + JSON.stringify(q(m.banco, 'SELECT * FROM contratacao_pncp'));
   assert.ok(!todo.includes('00000000191') && !todo.includes('000.000.001-91'));
   const v = (await m.pncp.obterVinculoAtivo(c3))!;
   const res = (await m.pncp.obterRetrato(v.id)).resultados;
   assert.deepEqual(res.map((x) => x.ordem_classificacao), [1, 2, 3, 4]);
   assert.equal(res[3]!.fornecedor_nome, 'Fornecedor Exemplo MEI ***');
+  assert.equal(res[3]!.motivo_cancelamento, 'Desistência informada por ***');
+  const retratoSrp = await m.pncp.obterRetrato(v.id);
+  assert.equal(retratoSrp.compra!.objeto, 'REGISTRO DE PREÇOS PARA SERVIÇOS DE MANUTENÇÃO PREDIAL (CONTATO ***)');
+  assert.equal(retratoSrp.itens[0]!.descricao, 'Serviço de manutenção predial, responsável ***');
   assert.equal(res[1]!.fornecedor_ni, null);
   // seq 5: objeto como texto puro; seq 6 (identidade errada) = formato; seq 7 = erro; seq 99 = não encontrada
   const c4 = await contratacao(m.ctx, 'XSS');

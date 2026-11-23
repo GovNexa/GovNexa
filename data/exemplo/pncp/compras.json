@@ -23,7 +23,7 @@
     "90000001000129/2026/2": {
       "compra": {
         "orgaoEntidade": { "cnpj": "90000001000129" }, "anoCompra": 2026, "sequencialCompra": 2,
-        "objetoCompra": "REGISTRO DE PREÇOS PARA SERVIÇOS DE MANUTENÇÃO PREDIAL",
+        "objetoCompra": "REGISTRO DE PREÇOS PARA SERVIÇOS DE MANUTENÇÃO PREDIAL (CONTATO 000.000.001-91)",
         "modalidadeId": 6, "modalidadeNome": "Pregão - Eletrônico", "amparoLegal": { "codigo": 1, "nome": "Lei 14.133/2021, Art. 28, I" },
         "situacaoCompraId": 1, "situacaoCompraNome": "Divulgada no PNCP", "existeResultado": true, "srp": true,
         "numeroCompra": "2/2026", "processo": "PROC-EX-0002/2026",
@@ -31,14 +31,14 @@
         "dataPublicacaoPncp": "2026-04-01T09:00:00", "dataAtualizacaoGlobal": "2026-08-01T10:00:00"
       },
       "itens": [
-        { "numeroItem": 1, "descricao": "Serviço de manutenção predial", "materialOuServico": "S", "itemCategoriaId": 3, "itemCategoriaNome": "Não se aplica", "criterioJulgamentoNome": "Menor preço", "situacaoCompraItem": 2, "situacaoCompraItemNome": "Homologado", "temResultado": true, "valorTotal": 800000.00 }
+        { "numeroItem": 1, "descricao": "Serviço de manutenção predial, responsável 00000000191", "materialOuServico": "S", "itemCategoriaId": 3, "itemCategoriaNome": "Não se aplica", "criterioJulgamentoNome": "Menor preço", "situacaoCompraItem": 2, "situacaoCompraItemNome": "Homologado", "temResultado": true, "valorTotal": 800000.00 }
       ],
       "resultados": {
         "1": [
           { "sequencialResultado": 1, "numeroItem": 1, "tipoPessoa": "PJ", "niFornecedor": "90000002000173", "nomeRazaoSocialFornecedor": "Engenharia Exemplo Beta Ltda", "ordemClassificacaoSrp": 1, "situacaoCompraItemResultadoId": 1, "situacaoCompraItemResultadoNome": "Informado", "valorTotalHomologado": 400000.00, "dataResultado": "2026-07-20" },
           { "sequencialResultado": 2, "numeroItem": 1, "tipoPessoa": "PF", "niFornecedor": "00000000191", "nomeRazaoSocialFornecedor": "Fornecedor Exemplo Pessoa Física", "ordemClassificacaoSrp": 2, "situacaoCompraItemResultadoId": 3, "situacaoCompraItemResultadoNome": "Informado cadastro de reserva", "valorTotalHomologado": 380000.00, "dataResultado": "2026-07-20" },
           { "sequencialResultado": 3, "numeroItem": 1, "tipoPessoa": "PE", "nomeRazaoSocialFornecedor": "Fornecedor Exemplo Estrangeiro", "ordemClassificacaoSrp": 3, "situacaoCompraItemResultadoId": 3, "situacaoCompraItemResultadoNome": "Informado cadastro de reserva", "valorTotalHomologado": 360000.00, "dataResultado": "2026-07-20" },
-          { "sequencialResultado": 4, "numeroItem": 1, "tipoPessoa": "PJ", "niFornecedor": "90000003000118", "nomeRazaoSocialFornecedor": "Fornecedor Exemplo MEI 000.000.001-91", "ordemClassificacaoSrp": 4, "situacaoCompraItemResultadoId": 3, "situacaoCompraItemResultadoNome": "Informado cadastro de reserva", "valorTotalHomologado": 340000.00, "dataResultado": "2026-07-20" }
+          { "sequencialResultado": 4, "numeroItem": 1, "tipoPessoa": "PJ", "niFornecedor": "90000003000118", "nomeRazaoSocialFornecedor": "Fornecedor Exemplo MEI 000.000.001-91", "ordemClassificacaoSrp": 4, "motivoCancelamento": "Desistência informada por 000.000.001-91", "situacaoCompraItemResultadoId": 3, "situacaoCompraItemResultadoNome": "Informado cadastro de reserva", "valorTotalHomologado": 340000.00, "dataResultado": "2026-07-20" }
         ]
       }
     },

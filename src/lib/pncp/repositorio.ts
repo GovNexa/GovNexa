@@ -58,7 +58,7 @@ export interface RepositorioPncp {
 const mudou = (r: { meta?: { changes?: number } } | undefined): boolean => (r?.meta?.changes ?? 0) === 1;
 const b = (v: boolean): number => (v ? 1 : 0);
 const COLUNAS_ORGAO = `o.id, o.cnpj, o.nome, o.sigla, o.ativo, o.revisao, o.criado_por, o.criado_em, o.atualizado_em,
-  (SELECT count(*) FROM contratacao_pncp v WHERE v.prefeitura_id = o.prefeitura_id AND v.orgao_id = o.id AND v.desvinculado_em IS NULL) AS vinculos_ativos,
+  (SELECT count(*) FROM contratacao_pncp v JOIN contratacao ct ON ct.prefeitura_id = v.prefeitura_id AND ct.id = v.contratacao_id AND ct.removida_em IS NULL WHERE v.prefeitura_id = o.prefeitura_id AND v.orgao_id = o.id AND v.desvinculado_em IS NULL) AS vinculos_ativos,
   (SELECT max(v.ultima_coleta_em) FROM contratacao_pncp v WHERE v.prefeitura_id = o.prefeitura_id AND v.orgao_id = o.id) AS ultima_coleta_em`;
 const COLUNAS_VINCULO = `v.id, v.contratacao_id, v.orgao_id, o.nome AS orgao_nome, v.cnpj, v.ano, v.sequencial, v.numero_controle, v.modo, v.vinculado_por, v.vinculado_em,
   v.ultima_tentativa_em, v.ultima_coleta_em, v.ultimo_status, v.ultimo_erro`;
@@ -169,7 +169,7 @@ export function criarRepositorioPncp(db: BancoD1, prefeituraId: number): Reposit
     },
     async historico(contratacaoId, limite) {
       const r = await db.prepare(
-        'SELECT id, tipo, contratacao_id, orgao_id, vinculo_id, autor, em, descricao, detalhe FROM evento_pncp WHERE prefeitura_id = ? AND contratacao_id = ? ORDER BY em DESC, id DESC LIMIT ?',
+        `SELECT id, tipo, contratacao_id, orgao_id, vinculo_id, autor, em, descricao, detalhe FROM evento_pncp WHERE prefeitura_id = ? AND contratacao_id = ? ORDER BY em DESC, CASE WHEN tipo = 'vinculo' THEN 0 ELSE 1 END, id DESC LIMIT ?`,
       ).bind(prefeituraId, contratacaoId, limite).all();
       return r.results.map((x: any) => ({ ...x, detalhe: x.detalhe ? JSON.parse(String(x.detalhe)) : null })) as EventoPncp[];
     },

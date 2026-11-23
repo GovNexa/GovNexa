@@ -16,6 +16,8 @@
 
 ## Andamento · última atualização em 23/11/2026
 
+23/11/2026: E14a (integração com o PNCP por botão: secretarias compradoras, vínculo manual, quadro Dados do PNCP; migração 0011) no código, aguardando revisão, merge e publicação; E14b a E14e planejadas em [plano-e14-pncp.md](plano-e14-pncp.md).
+
 23/11/2026: **E1 a E11 estão no ar em produção** (E8, E9 e E11 publicadas em 23/11 com a migração 0008), aguardando o teste do dono. **E12** Gestão das licitações (migração 0010; cadastro e acompanhamento 100% no sistema), **E13** Governança da execução ampliada (cronograma completo no sistema, responsável, tempo na mão e painel Responsáveis; migração 0009) e **E15** Navegação (sempre poder voltar à tela de origem) estão com código, testes, revisões independentes e prévias aprovadas pelo dono, cerca de 90% cada, aguardando merge (PR #54 da E15, PR #55 da E12, que contém a E15, e o PR da E13, que conterá as três) e publicação; as migrações 0009 e 0010 são aplicadas antes do código, nessa ordem numérica. **E14** (PNCP e Compras.gov) é futura. A conferência de cada áudio contra o plano acrescentou seis pedidos (40 no total) e o dono fixou dois princípios novos: o sistema substitui a planilha, e sempre poder voltar. As linhas de 22/11 abaixo que dizem "aguardando revisão" ou "a numerar" foram escritas antes da publicação.
 
 23/11/2026: E13 (cronograma como processo na tela, responsável e tempo na mão, painel Responsáveis, migração 0009) no código, com revisão e prévia aprovada; aguardando merge e publicação; a Fase 2 (Cronograma e equipe) passa a 95%.

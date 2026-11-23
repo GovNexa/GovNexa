@@ -1,0 +1,110 @@
+---
+// Secretarias compradoras (PNCP) (E14a): cada secretaria ou órgão da prefeitura que publica compras no PNCP. Leitura para todos;
+// "Atualizar agora" para quem edita contratações; cadastro, edição e desativação só com a permissão `gerenciar_secretarias_compradoras`.
+import Platform from '../../../../layouts/Platform.astro';
+import Voltar from '../../../../components/navegacao/Voltar.astro';
+import '../../../../styles/contratacoes.css';
+import { dataHoraBr } from '../../../../lib/datas.ts';
+import { podeGravarNaTela } from '../../../../lib/contratacoes/servico.ts';
+import { ROTULO_EVENTO_ORGAO, formatarCnpj, mascararCpf } from '../../../../lib/pncp/regras.ts';
+import { usuarioPode } from '../../../../lib/usuarios/index.ts';
+
+export const prerender = false;
+const repo = Astro.locals.repositorio;
+const pncp = repo.pncp;
+const orgaos = pncp ? await pncp.listarOrgaos() : [];
+const historicos = new Map<string, Awaited<ReturnType<NonNullable<typeof pncp>['historicoOrgao']>>>();
+if (pncp) for (const o of orgaos) historicos.set(o.id, await pncp.historicoOrgao(o.id, 20));
+const podeAtualizar = !!pncp && podeGravarNaTela(Astro.locals.usuario, repo) === 'ok';
+const podeAdministrar = !!pncp && !!repo.podeGravar && usuarioPode(Astro.locals.usuario, 'gerenciar_secretarias_compradoras');
+---
+<Platform title="Secretarias compradoras (PNCP)" slug="gestao-licitacoes">
+  <Voltar slot="contexto" padrao={{ href: '/plataforma/gestao-licitacoes/', texto: 'Gestão das licitações' }} />
+  <div class="ct pn-secretarias" data-pn-secretarias data-pode-atualizar={podeAtualizar ? '1' : '0'} data-pode-administrar={podeAdministrar ? '1' : '0'}>
+    <div class="section-head"><div>
+      <h1>Secretarias compradoras (PNCP)</h1>
+      <p class="muted">Cadastre aqui cada secretaria ou órgão da prefeitura que publica compras no PNCP. Por enquanto o GovNexa acompanha as licitações de obras e serviços de engenharia.</p>
+    </div></div>
+
+    {!pncp && <p class="ct-aviso" role="status" data-pn-indisponivel>Indisponível no momento.</p>}
+
+    {pncp && (
+      <>
+        <p class="ct-msg" role="status" aria-live="polite" data-pn-msg></p>
+
+        {podeAdministrar && (
+          <details class="ct-nova" data-pn-cadastro>
+            <summary>Cadastrar secretaria</summary>
+            <form class="ct-form" data-pn-orgao-criar aria-label="Cadastrar secretaria">
+              <label>CNPJ
+                <input type="text" name="cnpj" maxlength="30" autocomplete="off" required />
+                <span class="ct-sub">14 dígitos; pode colar com pontos e barra.</span>
+              </label>
+              <label>Nome<input type="text" name="nome" maxlength="120" required /></label>
+              <label>Sigla<input type="text" name="sigla" maxlength="20" /></label>
+              <div class="ct-cheio"><button type="submit" class="primary">Cadastrar</button></div>
+            </form>
+          </details>
+        )}
+
+        {orgaos.length === 0 ? <p class="ct-vazio" data-pn-vazio>Nenhuma secretaria cadastrada ainda.</p> : (
+          <table class="pn-tabela" data-pn-orgaos>
+            <caption class="sr-only">Secretarias compradoras cadastradas</caption>
+            <thead><tr><th scope="col">Secretaria</th><th scope="col">CNPJ</th><th scope="col">Situação</th><th scope="col">Contratações ligadas</th><th scope="col">Última atualização</th><th scope="col">Ações</th></tr></thead>
+            <tbody>
+              {orgaos.map((o) => (
+                <tr data-pn-orgao={o.id}>
+                  <th scope="row" data-label="Secretaria">
+                    {o.nome}{o.sigla ? ` (${o.sigla})` : ''}
+                    <span class="ct-sub pn-bloco">Cadastrada por {o.criado_por} em {dataHoraBr(o.criado_em)}</span>
+                  </th>
+                  <td data-label="CNPJ">{formatarCnpj(o.cnpj)}</td>
+                  <td data-label="Situação">{o.ativo ? 'Ativa' : 'Desativada'}</td>
+                  <td data-label="Contratações ligadas">{o.vinculos_ativos}</td>
+                  <td data-label="Última atualização">{o.ultima_coleta_em ? dataHoraBr(o.ultima_coleta_em) : '—'}</td>
+                  <td data-label="Ações">
+                    <div class="pn-acoes-linha">
+                      {podeAtualizar && o.ativo && o.vinculos_ativos > 0 && (
+                        <button type="button" data-pn-orgao-atualizar data-orgao-id={o.id}>Atualizar agora as contratações desta secretaria</button>
+                      )}
+                      {podeAdministrar && (
+                        <>
+                          <details class="pn-mini">
+                            <summary>Editar</summary>
+                            <form class="ct-form" data-pn-orgao-editar data-orgao-id={o.id} data-revisao={o.revisao}>
+                              <label>Nome<input type="text" name="nome" maxlength="120" value={o.nome} required /></label>
+                              <label>Sigla<input type="text" name="sigla" maxlength="20" value={o.sigla ?? ''} /></label>
+                              <div class="ct-cheio"><button type="submit" class="primary">Salvar</button></div>
+                            </form>
+                          </details>
+                          <details class="pn-mini">
+                            <summary>{o.ativo ? 'Desativar' : 'Reativar'}</summary>
+                            <form class="ct-form" data-pn-orgao-ativo data-acao={o.ativo ? 'orgao_desativar' : 'orgao_reativar'} data-orgao-id={o.id} data-revisao={o.revisao}>
+                              <label class="pn-confirma"><input type="checkbox" required /><span>Confirmo {o.ativo ? 'desativar' : 'reativar'} {o.nome}.</span></label>
+                              <div class="ct-cheio"><button type="submit">{o.ativo ? 'Desativar' : 'Reativar'}</button></div>
+                            </form>
+                          </details>
+                        </>
+                      )}
+                      <details class="pn-mini" data-pn-historico-orgao>
+                        <summary>Histórico</summary>
+                        {(historicos.get(o.id) ?? []).length === 0 ? <p class="ct-vazio">Nenhum registro.</p> : (
+                          <ol class="ct-historico-lista">
+                            {(historicos.get(o.id) ?? []).map((e) => (
+                              <li>{dataHoraBr(e.em)} · <strong>{ROTULO_EVENTO_ORGAO[e.tipo] ?? e.tipo}</strong>{e.descricao ? ` · ${mascararCpf(e.descricao)}` : ''} <span class="muted">· por {e.autor}</span></li>
+                            ))}
+                          </ol>
+                        )}
+                      </details>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </>
+    )}
+  </div>
+</Platform>
+<script>import '../../../../scripts/pncp.ts';</script>

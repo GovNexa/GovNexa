@@ -186,3 +186,8 @@ Os gatilhos `cronograma_sem_delete_tela` e `etapa_cronograma_sem_delete_tela` im
 - Integridade: remoção só lógica; gatilhos proíbem DELETE e UPDATE do Histórico; `revisao` otimista no `WHERE`; evento gravado no MESMO `db.batch` com `WHERE changes() = 1`.
 - Limites: 5.000 contratações ativas e 20.000 no total por prefeitura; 50 marcos ativos por contratação; corpo de gravação até 16 KB; 30 gravações por minuto por pessoa.
 - Carga: arquivo JSON (`contratacoes.json`), idempotente, "a tela vence a planilha".
+
+## PNCP (E14a, migração 0011)
+- Estudo e projeto: vínculo manual das contratações às compras do PNCP, retrato regravado a cada coleta (DELETE e INSERT no mesmo lote, itens e resultados por `json_each` em pedaços de 500) e Histórico próprio e imutável. A migração só acrescenta tabelas.
+- Integridade: gatilhos recusam DELETE; chave e CNPJ imutáveis; vínculo só com órgão ativo do mesmo CNPJ e contratação não removida; escrita do retrato só com vínculo ativo; fornecedor só pessoa jurídica (CPF recusado); instantes e datas conferidos por `strftime`.
+- Limites: 50 secretarias por prefeitura; 200 itens e 50 resultados por item por coleta; teto de 120 coletas por hora contado em `evento_pncp` (índice `(prefeitura_id, tipo, em)`).

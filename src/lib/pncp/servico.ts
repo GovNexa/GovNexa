@@ -117,6 +117,8 @@ async function atualizarVinculo(c: ContextoPncp, deps: DepsPncp, agora: Date, v:
   const autor = c.usuario!.email;
   const emIso = agora.toISOString();
   const ms = agora.getTime();
+  // Limites ANTES da trava: um 429 não pode deixar a contratação travada sem ter coletado.
+  if (comLimites && (await limitesPrefeitura(c, deps, agora, true))) return { r: 'limite' };
   const reservou = await repo.reservarTentativa(v.id, emIso, new Date(ms - TRAVA_OK_MS).toISOString(), new Date(ms - TRAVA_ERRO_MS).toISOString());
   if (!reservou) {
     const atual = await repo.obterVinculoAtivo(v.contratacao_id);
@@ -124,7 +126,6 @@ async function atualizarVinculo(c: ContextoPncp, deps: DepsPncp, agora: Date, v:
     const base = atual.ultima_tentativa_em ? new Date(atual.ultima_tentativa_em).getTime() : ms;
     return { r: 'recente', liberaEm: new Date(base + (atual.ultimo_status === 'ok' ? TRAVA_OK_MS : TRAVA_ERRO_MS)).toISOString() };
   }
-  if (comLimites && (await limitesPrefeitura(c, deps, agora, true))) return { r: 'limite' };
   const coleta = await coletar({ cnpj: v.cnpj, ano: v.ano, sequencial: v.sequencial }, deps, Math.min(deps.agora() + TEMPO_PEDIDO_MS, prazoMax));
   const falhou = async (status: 'erro' | 'nao_encontrado' | 'formato', motivo: string): Promise<ResultadoVinculo> =>
     (await repo.gravarFalha(v, status, motivo, autor, emIso)) === 'ok' ? { r: 'feito', status } : { r: 'feito', status: 'desligado' };
