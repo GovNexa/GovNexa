@@ -153,7 +153,7 @@ test('cabeçalho público mantém logo, Menu e Tema na mesma linha no celular', 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/compradores/');
   const caixas = await Promise.all(
-    ['.header .brand', '.header #menu-toggle', '.header #theme'].map((selector) =>
+    ['.header .brand', '.header #menu-toggle', '.header [data-tema-alternar]'].map((selector) =>
       page.locator(selector).boundingBox(),
     ),
   );

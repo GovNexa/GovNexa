@@ -77,8 +77,8 @@ body:has(.login-layout)>.header .brand{gap:.5rem;font-size:1rem}
 body:has(.login-layout)>.header .brand-name{display:inline}
 body:has(.login-layout)>.header .municipal-logo{display:block;width:clamp(76px,8vw,104px);height:32px}
 body:has(.login-layout)>.header .brand-name{border-left:1px solid var(--line);padding-left:.5rem}
-body:has(.login-layout)>.header #theme{display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px;min-width:44px;min-height:44px;margin-left:auto;padding:0;font-size:0}
-body:has(.login-layout)>.header #theme svg{width:20px;height:20px}
+body:has(.login-layout)>.header [data-tema-alternar]{display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px;min-width:44px;min-height:44px;margin-left:auto;padding:0;font-size:0}
+body:has(.login-layout)>.header [data-tema-alternar] svg{width:20px;height:20px}
 body:has(.login-layout)>main{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;padding:clamp(6px,1.3dvh,14px) clamp(8px,1.7vw,22px);overflow:hidden}
 body:has(.login-layout)>.public-footer{display:block}body:has(.login-layout)>main>.breadcrumb{display:none}
 .login-layout{grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);width:min(1420px,100%);height:auto;max-height:100%;min-height:0;margin:0 auto;padding:0;border-radius:clamp(14px,1.5vw,24px)}

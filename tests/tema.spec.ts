@@ -59,3 +59,66 @@ for (const tema of ['light', 'dark']) {
     });
   }
 }
+
+const TELAS_E18 = ['/plataforma/', '/plataforma/projetos-carteira/', '/plataforma/gestao/', '/plataforma/projetos-kanban/', '/plataforma/gestao-licitacoes/', '/plataforma/gestao-responsaveis/', '/plataforma/convenios/', '/plataforma/projetos-fluxo/', '/plataforma/projeto/P-900/'];
+
+async function axeGraves(page: import('@playwright/test').Page) {
+  const r = await new AxeBuilder({ page }).withRules(['color-contrast']).analyze();
+  return r.violations.filter(v => ['serious', 'critical'].includes(v.impact || ''));
+}
+
+test.describe('E18: ícone do topo alterna o tema', () => {
+  for (const rota of TELAS_E18) {
+    test(`alternar claro e escuro em ${rota}`, async ({ page }) => {
+      await page.setViewportSize({ width: 1280, height: 900 });
+      await page.addInitScript(() => { if (!sessionStorage.getItem('e18')) { sessionStorage.setItem('e18', '1'); localStorage.setItem('govnexa-theme', 'dark'); } });
+      await page.goto(rota);
+      await page.waitForLoadState('networkidle');
+      const botao = page.locator('.appbar [data-tema-alternar]');
+      await expect(botao).toBeVisible();
+      await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+      await expect(botao).toHaveAttribute('aria-pressed', 'true');
+      await expect(botao).toHaveAttribute('aria-label', 'Mudar para o modo claro');
+      await botao.click();
+      await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+      await expect(botao).toHaveAttribute('aria-pressed', 'false');
+      await expect(botao).toHaveAttribute('aria-label', 'Mudar para o modo escuro');
+      expect((await cores(page.locator('body'))).bg).toBeGreaterThan(.8);
+      expect(await axeGraves(page), 'claro').toEqual([]);
+      await page.reload();
+      await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+      await page.locator('.appbar [data-tema-alternar]').click();
+      await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+      expect(await axeGraves(page), 'escuro').toEqual([]);
+    });
+  }
+
+  test('ícone alcançável por teclado e aciona com Enter', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.addInitScript(() => localStorage.setItem('govnexa-theme', 'dark'));
+    await page.goto('/plataforma/');
+    const botao = page.locator('.appbar [data-tema-alternar]');
+    const box = await botao.boundingBox();
+    expect(box!.width).toBeGreaterThanOrEqual(40);
+    expect(box!.height).toBeGreaterThanOrEqual(40);
+    await botao.focus();
+    await expect(botao).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+    await page.keyboard.press('Enter');
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    await page.keyboard.press('Shift+Tab');
+    let alcancou = false;
+    for (let i = 0; i < 30 && !alcancou; i++) { await page.keyboard.press('Tab'); alcancou = await botao.evaluate(el => el === document.activeElement); }
+    expect(alcancou).toBe(true);
+  });
+
+  test('captura da plataforma nos dois temas', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 900 });
+    for (const tema of ['light', 'dark']) {
+      await page.addInitScript(v => localStorage.setItem('govnexa-theme', v), tema);
+      await page.goto('/plataforma/');
+      await page.screenshot({ path: `.tmp/e18-plataforma-${tema}.png` });
+    }
+  });
+});
