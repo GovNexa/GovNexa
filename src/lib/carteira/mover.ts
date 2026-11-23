@@ -28,6 +28,7 @@ export const ERROS_MOVER = {
   invalido: 'Pedido de mudança inválido.',
   inexistente: 'Projeto não encontrado.',
   umaEtapa: 'Nas Pendências de etapa o projeto só avança ou volta uma etapa.',
+  primeiraEtapa: 'Projeto sem etapa começa em 00 – Em estruturação.',
 } as const;
 
 const ehObjeto = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
@@ -87,6 +88,8 @@ export async function moverProjeto(c: ContextoMover, projetoId: string, bruto: u
   const { pedido } = n;
   const daOrigem = podeMover(c, pedido.origem);
   if (!daOrigem.ok) return daOrigem;
+  // Projeto sem etapa só entra em 00, também pelo Kanban: pular direto para Execução ou Conclusão driblaria o portão sem ficar registrado como forçado.
+  if (pedido.de === null && pedido.para !== '00') return falha(400, ERROS_MOVER.primeiraEtapa);
   if (pedido.origem === 'pendencia' && !vizinha(pedido.de, pedido.para)) return falha(400, ERROS_MOVER.umaEtapa);
   const r = await c.repositorio.moverProjeto!(projetoId, pedido, c.usuario!.email);
   if (!r.ok) {

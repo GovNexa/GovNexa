@@ -236,6 +236,12 @@ test('mover: projeto de outra prefeitura ou id malformado é 404 e nada muda', a
   assert.equal(Number(banco.sqlite.prepare("SELECT count(*) AS n FROM evento_projeto WHERE projeto_id = 'P-2'").get()!.n), 0);
 });
 
+test('mover: projeto sem etapa só entra em 00, também pelo Kanban', async (t) => {
+  const { mover } = montar(t);
+  assert.deepEqual(await mover({ revisao: 0, de: null, para: '05', forcar: true, motivo: 'x', origem: 'kanban' }), { ok: false, status: 400, erro: ERROS_MOVER.primeiraEtapa });
+  assert.deepEqual(await mover({ revisao: 0, de: null, para: '06', motivo: 'x', origem: 'kanban' }), { ok: false, status: 400, erro: ERROS_MOVER.primeiraEtapa });
+});
+
 test('mover: Pendências só andam uma etapa e exigem aprovar_etapa', async (t) => {
   const { c, mover, eventos } = montar(t);
   assert.deepEqual(await mover({ revisao: 0, de: '00', para: '02', forcar: true, motivo: 'x', origem: 'pendencia' }), { ok: false, status: 400, erro: ERROS_MOVER.umaEtapa });
