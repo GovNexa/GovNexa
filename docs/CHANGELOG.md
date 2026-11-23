@@ -1,5 +1,13 @@
 # Changelog
 
+## E6 · Ficha única do projeto (22/11/2026)
+- A Carteira abre a ficha do projeto em página inteira; o X volta à lista com os mesmos filtros.
+- Topo com órgão, área, valor total, macroetapa, entrega prevista, localização e observação em destaque; abas Cadastro, Recurso, Entrega, Localização, Fotos (em breve), Documentos, Processos SEI, Cronograma, Histórico e Governança.
+- Saem da ficha: farol, valores por ano, tipo e órgão de contratação, situação e tipo do recurso.
+- A guia Localização e fotos saiu do menu: o endereço com projeto abre a aba Localização; sem projeto, lista as obras sem localização.
+- Sem rota de gravação nova; edição (E1) e localização continuam pelas mesmas rotas.
+- Corrigido: `test:dados` tinha a chave duplicada e deixava de rodar os testes de edição e de área.
+
 ## E5 · Carteira de projetos (22/11/2026)
 - Grandes números no topo (total de projetos e de valor), que seguem os filtros. A soma é feita em centavos; projeto sem valor conta na quantidade e aparece avisado.
 - Colunas: ID (só o número, discreto), Órgão, Projeto (em destaque), Valor, Macroetapa, Peças técnicas, Fim da contratação, Dias de obra e Entrega. Sem farol na lista.

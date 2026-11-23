@@ -1,14 +1,18 @@
 ---
-// Página do projeto (entrega B1): tudo o que o sistema sabe de UM projeto, lido direto do banco.
-// Leituras: o projeto, o histórico dele (por índice) e os documentos. Cronograma e origem vêm do contexto já carregado.
+// Ficha única do projeto (E6): a mesma tela abre pela Carteira (página inteira, X volta à lista com os filtros) e pelo endereço direto.
+// Leituras: o projeto (repositório da prefeitura da sessão), o Histórico e os documentos. Cronograma e origem vêm do contexto já carregado.
 import Platform from '../../../layouts/Platform.astro';
+import Icon from '../../../components/Icon.astro';
 import EditarProjeto from '../../../components/carteira/EditarProjeto.astro';
+import LocalizacaoFicha from '../../../components/carteira/ficha/LocalizacaoFicha.astro';
+import '../../../styles/ficha.css';
 import { areasDaPrefeitura } from '../../../lib/carteira/area.ts';
 import { carregarCarteira } from '../../../lib/carteira/carga.ts';
-import { detalheProjeto } from '../../../lib/carteira/modulos.ts';
-import { nomeMacroetapa } from '../../../lib/carteira/macroetapas.ts';
+import { ABAS, abaValida, podeEditarFicha, rotuloVolta, voltaSegura, VOLTA_PADRAO } from '../../../lib/carteira/ficha.ts';
+import { montarFicha } from '../../../lib/carteira/ficha-dados.ts';
+import { carregarCronogramas } from '../../../lib/cronograma/carga.ts';
 import { ID_PROJETO } from '../../../lib/documentos/regras.ts';
-import { dataHoraBr } from '../../../lib/datas.ts';
+import { dataBr, dataHoraBr } from '../../../lib/datas.ts';
 import { resumoRegistro, rotuloAcao, rotuloOrigem } from '../../../lib/log/visoes.ts';
 import type { RegistroLog } from '../../../lib/log/tipos.ts';
 import { validarLocalizacao } from '../../../lib/mapa/geo.ts';
@@ -16,7 +20,6 @@ import { carregarGeoBairros } from '../../../lib/mapa/obras.ts';
 import { resumoLocalizacao } from '../../../lib/mapa/servico.ts';
 import { usuarioPode } from '../../../lib/usuarios/index.ts';
 export const prerender = false;
-
 const id = String(Astro.params.id ?? '');
 const repo = Astro.locals.repositorio;
 const dados = ID_PROJETO.test(id)
@@ -24,97 +27,83 @@ const dados = ID_PROJETO.test(id)
   : null;
 if (!dados?.projeto) return new Response('Página não encontrada', { status: 404 });
 const { projeto, revisao } = dados;
-
 const { fonte, projetos } = carregarCarteira();
 const areas = repo.listarAreas || fonte.ficticio ? await areasDaPrefeitura(repo) : [];
 const todasAreas = repo.listarAreas ? await repo.listarAreas(true) : areas;
-const ficha = detalheProjeto(projeto, fonte.ficticio, fonte.arquivo, fonte.importado_em, todasAreas, areas);
 const unicos = (valores: (string | null | undefined)[]) =>
   [...new Set(valores.map((v) => (v ?? '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-const voltaCandidato = Astro.url.searchParams.get('volta');
-let voltaMapa: string | null = null;
-if (voltaCandidato?.startsWith('/plataforma/gestao/')) {
-  const destino = new URL(voltaCandidato, Astro.url.origin);
-  if (destino.origin === Astro.url.origin && destino.pathname.startsWith('/plataforma/gestao/')) voltaMapa = `${destino.pathname}${destino.search}${destino.hash}`;
-}
-// O histórico da ficha resumida vem do cache; aqui ele é lido do banco, completo, mais abaixo.
-const secoes = ficha.secoes.filter((s) => s.titulo !== 'Histórico').map((s) => ({
-  titulo: s.titulo,
-  itens: (s.itens ?? []).map((i) => {
-    const corte = i.indexOf(': ');
-    return corte > 0 ? { rotulo: i.slice(0, corte), valor: i.slice(corte + 2) } : { rotulo: '', valor: i };
-  }),
-}));
-const endereco = `/plataforma/projeto/${encodeURIComponent(projeto.id)}/`;
-const links = (ficha.links ?? []).filter((l) => l.url !== endereco && !l.url.startsWith('/plataforma/projetos-localizacao/'));
-
+const volta = voltaSegura(Astro.url.searchParams.get('volta'), Astro.url.origin);
+const aba = abaValida(Astro.url.searchParams.get('aba'));
 const local = projeto.localizacao && validarLocalizacao(projeto.localizacao).length === 0 ? projeto.localizacao : null;
 const bairroNoMapa = !!(projeto.bairro && carregarGeoBairros().bairros[projeto.bairro.trim()]?.encontrado);
 const situacaoLocal = local ? `Cadastrada: ${resumoLocalizacao(local)}` : bairroNoMapa ? `Aproximada pelo centro do bairro ${projeto.bairro}` : 'Sem localização no mapa';
+const localTopo = local ? 'Cadastrada no mapa' : bairroNoMapa ? `Aproximada pelo bairro ${projeto.bairro}` : 'Sem localização no mapa';
 const podeEditar = usuarioPode(Astro.locals.usuario, 'editar_projeto');
-const podeEditarCampos = podeEditar && repo.podeGravar && !!repo.editarProjeto && revisao !== null;
-
+const podeEditarCampos = podeEditarFicha({ podeEditar, podeGravar: !!repo.podeGravar, temEditar: !!repo.editarProjeto, revisao });
+const podeSalvarLocal = podeEditar && !!repo.definirLocalizacao;
+const ficha = montarFicha({ projeto, areas: todasAreas, areasAtivas: areas, cronogramas: carregarCronogramas().cronogramas, fonte, localizacao: localTopo });
 const documentos = repo.documentos ? await repo.documentos.listar(projeto.id) : [];
 const contagem: Record<string, number> = repo.documentos ? await repo.documentos.contarPorTipo(projeto.id) : {};
 const nomesTipos: Record<string, string> = repo.documentos ? await repo.documentos.nomesTipos() : {};
 const porTipo = Object.entries(contagem).map(([c, n]) => `${c ? nomesTipos[c] ?? c : 'Sem tipo'}: ${n}`);
-
 const LIMITE_HISTORICO = 50;
 const historico = (await repo.historico(projeto.id) as RegistroLog[]).slice().reverse();
 const visiveis = historico.slice(0, LIMITE_HISTORICO);
+const idEnc = encodeURIComponent(projeto.id);
 ---
 <Platform title="Projeto" slug="projetos-carteira">
-  <p slot="contexto" class="muted pj-contexto">{voltaMapa ? <a href={voltaMapa}>← Voltar ao mapa</a> : <a href="/plataforma/projetos-carteira/">← Carteira de projetos</a>}</p>
-  <div class="section-head"><div>
-    <h1 class="pj-titulo">{projeto.id} · {projeto.nome}</h1>
-    <p class="muted">{nomeMacroetapa(projeto.macroetapa)} · {projeto.orgao ?? 'Órgão não informado'}</p>
-  </div></div>
-
-  {Astro.url.searchParams.get('salvo') === '1' && <p class="cart-aviso" role="status" data-pj-salvo>Alterações salvas e registradas no Histórico.</p>}
-
-  <div class="pj-grade">
-    {secoes.map((s, n) => (
-      <section class="card pj-bloco" aria-labelledby={`pj-s${n}`}>
-        <h2 id={`pj-s${n}`}>{s.titulo}</h2>
-        {s.itens.some((i) => i.rotulo) ? (
-          <dl class="pj-lista">
-            {s.itens.map((i) => <div><dt>{i.rotulo}</dt><dd>{i.valor}</dd></div>)}
-          </dl>
-        ) : (
-          <ul class="pj-itens">{s.itens.map((i) => <li>{i.valor}</li>)}</ul>
-        )}
-      </section>
-    ))}
-
-    <section class="card pj-bloco" aria-labelledby="pj-local">
-      <h2 id="pj-local">Localização</h2>
-      <p data-pj-local>{situacaoLocal}</p>
-      {local?.tipo === 'trechos' && <ul class="pj-itens">{local.trechos.map((t) => <li>{t.rua}{t.de || t.ate ? ` (de ${t.de ?? 'início'} até ${t.ate ?? 'fim'})` : ''}</li>)}</ul>}
-      <p><a href={`/plataforma/projetos-localizacao/?id=${encodeURIComponent(projeto.id)}`}>{podeEditar ? 'Alterar a localização no mapa' : 'Ver no mapa'}</a></p>
-    </section>
-
-    <section class="card pj-bloco" aria-labelledby="pj-docs">
-      <h2 id="pj-docs">Documentos</h2>
-      <p data-pj-docs>{documentos.length === 0 ? 'Nenhum documento enviado.' : `${documentos.length} ${documentos.length === 1 ? 'documento' : 'documentos'} · ${porTipo.join(' · ')}`}</p>
-      <p><a href={`/plataforma/documentos-projeto/projeto/${encodeURIComponent(projeto.id)}/`}>Abrir os documentos do projeto</a></p>
-    </section>
-
-    {links.length > 0 && (
-      <section class="card pj-bloco" aria-labelledby="pj-links">
-        <h2 id="pj-links">Outras telas deste projeto</h2>
-        <ul class="pj-itens">{links.map((l) => <li><a href={l.url}>{l.rotulo}</a></li>)}</ul>
-      </section>
-    )}
-  </div>
-
-  {podeEditarCampos && revisao !== null && <EditarProjeto
-    projeto={projeto} revisao={revisao} areas={areas}
-    orgaos={unicos(projetos.map((p) => p.orgao))} regioes={unicos(projetos.map((p) => p.regiao))}
-    origensValor={unicos(projetos.map((p) => p.origem_valor))} detalhamentos={unicos(projetos.map((p) => p.detalhamento))}
-  />}
-
-  <section class="card pj-bloco pj-historico" aria-labelledby="pj-hist">
-    <h2 id="pj-hist">Histórico</h2>
+  <p slot="contexto" class="pj-contexto fp-contexto"><a class="fp-fechar" href={volta ?? VOLTA_PADRAO} data-ficha-fechar><Icon name="x" size={18} /><span>{rotuloVolta(volta)}</span></a></p>
+  <div class="fp-ficha" data-ficha-projeto data-id={projeto.id}>
+    <div class="fp-topo-cab">
+      <h1 class="pj-titulo"><span class="fp-id">{projeto.id}</span> · {projeto.nome}</h1>
+      {ficha.prioritario && <span class="fp-selo" data-fp-prioritario>Prioritário</span>}
+    </div>
+    {Astro.url.searchParams.get('salvo') === '1' && <p class="cart-aviso" role="status" data-pj-salvo>Alterações salvas e registradas no Histórico.</p>}
+    <dl class="fp-topo" data-fp-topo>
+      {ficha.topo.map((i) => <div class="fp-topo-item" data-fp-topo-item={i.chave}><dt>{i.rotulo}</dt><dd>{i.valor}</dd></div>)}
+    </dl>
+    <section class="fp-observacao" aria-labelledby="fp-obs-titulo">
+      <h2 id="fp-obs-titulo">Observação</h2>
+      <p data-fp-observacao>{ficha.observacao ?? 'Sem observação registrada.'}</p></section>
+    <div class="fp-abas" data-fp-abas>
+      <fieldset class="fp-abas-lista">
+        <legend class="sr-only">Partes da ficha do projeto</legend>
+        {ABAS.map((a) => <span class="fp-aba"><input class="fp-aba-radio" type="radio" name="fp-aba" id={`fp-aba-${a.id}`} value={a.id} checked={a.id === aba} /><label for={`fp-aba-${a.id}`}>{a.rotulo}</label></span>)}
+      </fieldset>
+      <section class="card pj-bloco fp-painel" id="fp-painel-cadastro" aria-labelledby="fp-t-cadastro"><h2 id="fp-t-cadastro">Resumo do cadastro</h2>
+        <dl class="pj-lista">{ficha.cadastro.map((l) => <div><dt>{l.rotulo}</dt><dd>{l.valor}</dd></div>)}</dl>
+        {podeEditarCampos && revisao !== null && <div class="pj-so-pagina"><EditarProjeto
+          projeto={projeto} revisao={revisao} areas={areas}
+          orgaos={unicos(projetos.map((p) => p.orgao))} regioes={unicos(projetos.map((p) => p.regiao))}
+          origensValor={unicos(projetos.map((p) => p.origem_valor))} detalhamentos={unicos(projetos.map((p) => p.detalhamento))}
+        /></div>}</section>
+      <section class="card pj-bloco fp-painel" id="fp-painel-recurso" aria-labelledby="fp-t-recurso"><h2 id="fp-t-recurso">Recurso</h2>
+        <dl class="pj-lista" data-fp-recurso>{ficha.recurso.map((l) => <div><dt>{l.rotulo}</dt><dd>{l.valor}</dd></div>)}</dl></section>
+      <section class="card pj-bloco fp-painel" id="fp-painel-entrega" aria-labelledby="fp-t-entrega"><h2 id="fp-t-entrega">Entrega</h2>
+        <p class="muted">Datas previstas de cada etapa, como na aba PIPELINE da planilha.</p>
+        <ol class="fp-etapas" data-fp-entrega>{ficha.entrega.map((l) => <li><span>{l.rotulo}</span><strong>{l.valor}</strong></li>)}</ol></section>
+      <section class="card pj-bloco fp-painel" id="fp-painel-localizacao" aria-labelledby="fp-t-localizacao"><h2 id="fp-t-localizacao">Localização</h2>
+        <p data-pj-local>{situacaoLocal}</p>
+        {local?.tipo === 'trechos' && <ul class="pj-itens">{local.trechos.map((t) => <li>{t.rua}{t.de || t.ate ? ` (de ${t.de ?? 'início'} até ${t.ate ?? 'fim'})` : ''}</li>)}</ul>}
+        <div class="pj-so-pagina"><LocalizacaoFicha id={projeto.id} bairro={projeto.bairro} inicial={local} podeSalvar={podeSalvarLocal} /></div></section>
+      <section class="card pj-bloco fp-painel" id="fp-painel-fotos" aria-labelledby="fp-t-fotos"><h2 id="fp-t-fotos">Fotos</h2>
+        <p data-fp-fotos>As fotos da obra chegam em breve: aqui você vai enviar, legendar e ver as fotos de cada etapa.</p></section>
+      <section class="card pj-bloco fp-painel" id="fp-painel-documentos" aria-labelledby="fp-t-documentos"><h2 id="fp-t-documentos">Documentos</h2>
+        <p data-pj-docs>{documentos.length === 0 ? 'Nenhum documento enviado.' : `${documentos.length} ${documentos.length === 1 ? 'documento' : 'documentos'} · ${porTipo.join(' · ')}`}</p>
+        {documentos.length > 0 && <ul class="pj-itens" data-fp-docs-lista>{documentos.slice(0, 5).map((d) => <li>{d.nome_original} · {d.tipo_codigo ? nomesTipos[d.tipo_codigo] ?? d.tipo_codigo : 'Sem tipo'} · {dataBr(d.enviado_em)}</li>)}</ul>}
+        <p><a href={`/plataforma/documentos-projeto/projeto/${idEnc}/`}>Abrir os documentos do projeto</a></p></section>
+      <section class="card pj-bloco fp-painel" id="fp-painel-sei" aria-labelledby="fp-t-sei"><h2 id="fp-t-sei">Processos SEI</h2>
+        {ficha.sei.length === 0 ? <p data-fp-sei-vazio>Nenhum processo do SEI vinculado a este projeto.</p> : <ul class="pj-itens" data-fp-sei>{ficha.sei.map((n) => <li>{n}</li>)}</ul>}
+        <p><a href="/plataforma/projetos-sei/">Abrir a tela Processos no SEI</a></p></section>
+      <section class="card pj-bloco fp-painel" id="fp-painel-cronograma" aria-labelledby="fp-t-cronograma"><h2 id="fp-t-cronograma">Cronograma</h2>
+        {ficha.cronogramas.length === 0 ? <p data-fp-cron-vazio>Este projeto ainda não tem cronograma detalhado.</p> : ficha.cronogramas.map((c) => (
+          <div class="fp-cron" data-fp-cron>
+            <h3>{c.titulo}</h3>
+            <dl class="pj-lista">{c.linhas.map((l) => <div><dt>{l.rotulo}</dt><dd>{l.valor}</dd></div>)}</dl>
+            <p><a href={`/plataforma/cronograma/${encodeURIComponent(c.id)}/`}>Abrir o cronograma detalhado</a></p>
+          </div>
+        ))}</section>
+      <section class="card pj-bloco fp-painel pj-historico" id="fp-painel-historico" aria-labelledby="pj-hist"><h2 id="pj-hist">Histórico</h2>
     {visiveis.length === 0 ? <p>Nenhuma alteração registrada ainda.</p> : (
       <ol class="pj-eventos" data-pj-historico>
         {visiveis.map((h) => (
@@ -127,27 +116,37 @@ const visiveis = historico.slice(0, LIMITE_HISTORICO);
       </ol>
     )}
     {historico.length > LIMITE_HISTORICO && <p class="muted">Mostrando os {LIMITE_HISTORICO} registros mais recentes de {historico.length}.</p>}
-  </section>
+        <p><a href={`/plataforma/projetos-log/?projeto=${idEnc}`}>Ver o histórico completo</a></p></section>
+      <section class="card pj-bloco fp-painel" id="fp-painel-governanca" aria-labelledby="fp-t-governanca"><h2 id="fp-t-governanca">Governança</h2>
+        <div class="fp-gov">
+          <section aria-labelledby="fp-g-origem"><h3 id="fp-g-origem">Origem do dado</h3><ul class="pj-itens">{ficha.governanca.origem.map((t) => <li>{t}</li>)}</ul></section>
+          <section aria-labelledby="fp-g-resp"><h3 id="fp-g-resp">Responsável pelo dado</h3><dl class="pj-lista">{ficha.governanca.responsavel.map((l) => <div><dt>{l.rotulo}</dt><dd>{l.valor}</dd></div>)}</dl></section>
+          <section aria-labelledby="fp-g-atencao"><h3 id="fp-g-atencao">Pontos de atenção</h3><ul class="pj-itens" data-fp-atencao>{ficha.governanca.atencao.map((t) => <li>{t}</li>)}</ul></section>
+          {ficha.governanca.acompanhamento.length > 0 && <section aria-labelledby="fp-g-acomp"><h3 id="fp-g-acomp">Acompanhamento da base operacional</h3><dl class="pj-lista">{ficha.governanca.acompanhamento.map((l) => <div><dt>{l.rotulo}</dt><dd>{l.valor}</dd></div>)}</dl></section>}
+          <section aria-labelledby="fp-g-sei"><h3 id="fp-g-sei">Processos SEI</h3><p>{ficha.governanca.sei}</p></section>
+          <section aria-labelledby="fp-g-dep"><h3 id="fp-g-dep">Dependências</h3><ul class="pj-itens" data-fp-dependencias>{ficha.governanca.dependencias.map((t) => <li>{t}</li>)}</ul></section>
+        </div></section>
+    </div>
+  </div>
 </Platform>
-<style>
-  .pj-contexto{margin:0 0 .75rem;overflow-wrap:anywhere}
-  .pj-titulo{overflow-wrap:anywhere}
-  .pj-grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr));gap:1rem;align-items:start;margin-bottom:1rem}
-  .pj-bloco{margin:0;min-width:0}
-  .pj-bloco h2{margin-top:0;font-size:1.05rem}
-  :global(.pj-editar){margin:0 0 1rem;min-width:0}
-  :global(.pj-editar summary h2){display:inline;margin:0;font-size:1.05rem}
-  .pj-lista{margin:0;display:grid;gap:.35rem}
-  .pj-lista div{display:flex;flex-wrap:wrap;gap:.15rem .6rem;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:.3rem}
-  .pj-lista div:last-child{border-bottom:0}
-  .pj-lista dt{color:var(--muted);min-width:0}
-  .pj-lista dd{margin:0;font-weight:600;text-align:right;min-width:0;overflow-wrap:anywhere}
-  .pj-itens{margin:0;padding-left:1.1rem;overflow-wrap:anywhere}
-  .pj-bloco p{overflow-wrap:anywhere}
-  .pj-eventos{list-style:none;margin:0;padding:0;display:grid;gap:.6rem}
-  .pj-eventos li{display:grid;grid-template-columns:9.5rem minmax(0,1fr);gap:.1rem .9rem;border-bottom:1px solid var(--line);padding-bottom:.6rem}
-  .pj-eventos li:last-child{border-bottom:0}
-  .pj-oque,.pj-quem{overflow-wrap:anywhere;min-width:0}
-  .pj-quem{grid-column:2}
-  @media(max-width:600px){.pj-eventos li{grid-template-columns:minmax(0,1fr)}.pj-quem{grid-column:1}.pj-lista dd{text-align:left}}
-</style>
+<script>
+import { ABA_PADRAO, abaValida } from '../../../lib/carteira/ficha.ts';
+// Só guarda a aba no endereço; as abas trocam por CSS (funcionam também na cópia da ficha dentro do mapa).
+function iniciarAbasFicha(): void {
+  const raiz = document.querySelector<HTMLElement>('[data-ficha-projeto]');
+  if (!raiz || raiz.dataset.abasProntas) return;
+  raiz.dataset.abasProntas = 'sim';
+  raiz.addEventListener('change', (evento) => {
+    const alvo = evento.target;
+    if (!(alvo instanceof HTMLInputElement) || alvo.name !== 'fp-aba') return;
+    const aba = abaValida(alvo.value);
+    const url = new URL(location.href);
+    if (aba === ABA_PADRAO) url.searchParams.delete('aba');
+    else url.searchParams.set('aba', aba);
+    url.searchParams.delete('salvo');
+    history.replaceState(history.state, '', url);
+    if (aba === 'localizacao') window.dispatchEvent(new Event('resize'));
+  });
+}
+document.addEventListener('astro:page-load', iniciarAbasFicha);
+</script>

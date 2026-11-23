@@ -46,7 +46,7 @@ const T = {
   log: { rotulo: 'Histórico de alterações', url: '/plataforma/projetos-log/' },
   sala: { rotulo: 'Sala de guerra', url: '/plataforma/projetos-sala/' },
   reuniao: { rotulo: 'Reunião semanal', url: '/plataforma/projetos-reuniao/' },
-  localizacao: { rotulo: 'Localização e fotos', url: '/plataforma/projetos-localizacao/' },
+  localizacao: { rotulo: 'Obras sem localização', url: '/plataforma/projetos-localizacao/' },
   capPrincipal: { rotulo: 'Captação · Principal', url: '/plataforma/captacao/' },
   oportunidades: { rotulo: 'Oportunidades', url: '/plataforma/captacao-oportunidades/' },
   acompanhamento: { rotulo: 'Acompanhamento de convênios', url: '/plataforma/captacao-acompanhamento/' },

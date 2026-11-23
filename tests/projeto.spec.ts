@@ -8,16 +8,15 @@ const ROTA = `/plataforma/projeto/localizacao/${PROJETO}/`;
 const PONTO = { tipo: 'ponto', ponto: { lat: -16.70123456, lng: -49.28123456 }, endereco: 'Praça de exemplo' };
 const semRolagem = (page: import('@playwright/test').Page) => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth);
 
-test('página do projeto: abre pela Carteira e mostra os blocos do projeto', async ({ page }) => {
+test('ficha do projeto: abre pelo endereço com as abas e o X volta à Carteira', async ({ page }) => {
   await page.goto(PAGINA);
   await expect(page.locator('h1')).toContainText(PROJETO);
   await expect(page.locator('[data-module-title]')).toHaveText('Projeto');
-  for (const titulo of ['Resumo', 'Valores e recursos', 'Datas previstas', 'Localização', 'Documentos', 'Histórico']) {
-    await expect(page.getByRole('heading', { level: 2, name: titulo, exact: true })).toBeVisible();
-  }
+  await expect(page.locator('.fp-aba label')).toHaveText(['Cadastro', 'Recurso', 'Entrega', 'Localização', 'Fotos', 'Documentos', 'Processos SEI', 'Cronograma', 'Histórico', 'Governança']);
+  await expect(page.getByRole('heading', { level: 2, name: 'Resumo do cadastro', exact: true })).toBeVisible();
   await expect(page.getByText('Modo simulação')).toHaveCount(0);
-  await expect(page.getByRole('link', { name: 'Abrir os documentos do projeto' })).toHaveAttribute('href', `/plataforma/documentos-projeto/projeto/${PROJETO}/`);
-  await page.getByRole('link', { name: '← Carteira de projetos' }).click();
+  await expect(page.locator('#fp-painel-documentos a', { hasText: 'Abrir os documentos do projeto' })).toHaveAttribute('href', `/plataforma/documentos-projeto/projeto/${PROJETO}/`);
+  await page.getByRole('link', { name: 'Fechar e voltar à Carteira' }).click();
   await expect(page).toHaveURL(/\/plataforma\/projetos-carteira\//);
   // A tela de documentos leva de volta à página do projeto.
   await page.goto(`/plataforma/documentos-projeto/projeto/${PROJETO}/`);
@@ -71,13 +70,12 @@ test('localização: salvar grava no banco, aparece na página do projeto e no H
   await page.goto(PAGINA);
   await expect(page.locator('[data-pj-local]')).toContainText('Cadastrada: ponto em latitude -16.701235, longitude -49.281235 (Praça de exemplo)');
   await expect(page.locator('[data-pj-historico] li').filter({ hasText: 'Localização cadastrada' })).toHaveCount(1);
-  // A tela de localização mostra o que está no banco, sem aviso de simulação.
-  await page.getByRole('link', { name: 'Alterar a localização no mapa' }).click();
-  await expect(page).toHaveURL(new RegExp(`/plataforma/projetos-localizacao/\\?id=${PROJETO}`));
+  // A aba Localização da ficha mostra o que está no banco, sem aviso de simulação.
+  await page.goto(`${PAGINA}?aba=localizacao`);
+  await expect(page.locator('#fp-aba-localizacao')).toBeChecked();
   await expect(page.locator('[data-lp-precisao]')).toHaveText('Localização atual: Cadastrada');
   await expect(page.getByText('Modo simulação')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Salvar localização', exact: true })).toBeVisible();
-  await expect(page.locator('[data-lp-pagina]')).toHaveAttribute('href', PAGINA);
 });
 
 test('página do projeto: sem rolagem horizontal e sem falhas de acessibilidade, nos dois temas', async ({ page }) => {

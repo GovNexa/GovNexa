@@ -72,8 +72,8 @@ test('govnexa: carteira, kanban, gantt e órgãos',async({page})=>{
  expect(await page.locator('.kb-card:visible').count()).toBeLessThan(todos);
  await page.goto('/plataforma/projetos-gantt/');expect(await page.locator('.gt-bar').count()).toBeGreaterThan(0);
  await page.goto('/plataforma/projetos-carteira/');
- await page.getByRole('button',{name:'Ver detalhes'}).first().click();
- await expect(page.locator('#record-body')).toContainText('Valores e recursos');
+ await Promise.all([page.waitForURL(/\/plataforma\/projeto\/[^/]+\//),page.getByRole('button',{name:'Ver detalhes'}).first().click()]);
+ await expect(page.locator('label[for=fp-aba-recurso]')).toBeVisible();
  for(const width of [375,1280]){await page.setViewportSize({width,height:900});for(const path of paginas){await page.goto(path);const sobra=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);expect(sobra,`${path} em ${width}px`).toBeLessThanOrEqual(0);}}
  await page.setViewportSize({width:1280,height:900});
  for(const theme of ['light','dark'])for(const path of ['/plataforma/projetos-kanban/','/plataforma/projetos-gantt/']){await page.goto(path);await page.evaluate(t=>{document.documentElement.dataset.theme=t},theme);const results=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa','wcag22aa']).analyze();expect(results.violations.filter(v=>['serious','critical'].includes(v.impact||'')),`${path} ${theme}: ${JSON.stringify(results.violations)}`).toEqual([]);}
@@ -681,9 +681,9 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  await tp.screenshot({path:'test-results/mapa-390.png'});
  await touch.close();
  // tela de localização: trocar para ruas e trechos, desenhar 2 pontos e salvar (grava no banco)
- await page.goto('/plataforma/projetos-localizacao/?id=P-905');
- await expect(page.locator('h1')).toHaveText('Localização e fotos');
- await expect(page.locator('#lp-enviar-fotos')).toBeDisabled();
+ await page.goto('/plataforma/projeto/P-905/?aba=localizacao');
+ await expect(page.locator('#fp-aba-localizacao')).toBeChecked();
+ await expect(page.locator('[data-fp-fotos]')).toContainText('em breve');
  await page.screenshot({path:'test-results/localizacao-1280.png'});
  const editor=page.locator('#lp-loc');
  await page.getByRole('radio',{name:/Um ponto/}).check();
@@ -733,18 +733,18 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  // sem rolagem horizontal e axe, claro e escuro
  for(const width of [1280,390]){
   await page.setViewportSize({width,height:900});
-  for(const caminho of ['/plataforma/gestao/','/plataforma/projetos-localizacao/?id=P-905']){
+  for(const caminho of ['/plataforma/gestao/','/plataforma/projeto/P-905/?aba=localizacao']){
    await page.goto(caminho);
    await expect(page.locator('.leaflet-container').first()).toBeVisible();
    expect(await semRolagem(),`${caminho} ${width}px`).toBeTruthy();
   }
  }
  await page.setViewportSize({width:390,height:844});
- await page.goto('/plataforma/projetos-localizacao/?id=P-905');
+ await page.goto('/plataforma/projeto/P-905/?aba=localizacao');
  await expect(page.locator('#lp-loc .leaflet-container')).toBeVisible();
  await page.screenshot({path:'test-results/localizacao-390.png'});
  await page.setViewportSize({width:1280,height:900});
- for(const caminho of ['/plataforma/gestao/','/plataforma/projetos-localizacao/?id=P-905']){
+ for(const caminho of ['/plataforma/gestao/','/plataforma/projeto/P-905/?aba=localizacao']){
   await page.goto(caminho);
   await expect(page.locator('.leaflet-container').first()).toBeVisible();
   for(const theme of ['light','dark']){

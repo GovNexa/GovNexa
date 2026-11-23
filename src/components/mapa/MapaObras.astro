@@ -533,7 +533,7 @@ document.addEventListener('astro:page-load', () => {
         if (!conteudo || [...document.head.querySelectorAll('style')].some((atual) => atual.textContent?.trim() === conteudo)) return;
         document.head.append(document.importNode(style, true));
       });
-      workspace.querySelectorAll('.pj-contexto, .pj-titulo, .notice').forEach((item) => item.remove());
+      workspace.querySelectorAll('.pj-contexto, .pj-titulo, .notice, .pj-so-pagina').forEach((item) => item.remove());
       workspace.querySelectorAll('script').forEach((script) => script.remove());
       const fragmento = document.createDocumentFragment();
       workspace.childNodes.forEach((no) => fragmento.append(document.importNode(no, true)));

@@ -71,7 +71,7 @@ test('mapa em modo TV ocupa a tela e oferece alvos de 56 px', async ({ page }) =
   await expect(ficha).toBeVisible();
   await expect(mapa.locator('[data-mp-ficha-titulo]')).not.toHaveText('Ficha do projeto');
   await expect(ficha.locator('.pj-contexto, .pj-titulo, .notice')).toHaveCount(0);
-  await expect(ficha.getByRole('link', { name: '← Carteira de projetos' })).toHaveCount(0);
+  await expect(ficha.getByRole('link', { name: 'Fechar e voltar à Carteira' })).toHaveCount(0);
   const resumo = ficha.locator('.pj-bloco').filter({ hasText: 'Resumo' });
   await expect(resumo).toBeVisible();
   const estiloResumo = await resumo.evaluate((element) => {
@@ -123,10 +123,10 @@ test('obra selecionada ganha destaque e perde ao voltar', async ({ page }) => {
   const abrirPagina = mapa.locator('[data-mp-ficha-pagina]');
   await expect(abrirPagina).toHaveAttribute('href', /volta=%2Fplataforma%2Fgestao%2F/);
   await abrirPagina.click();
-  await expect(page.locator('.pj-contexto a')).toHaveText('← Voltar ao mapa');
+  await expect(page.locator('.pj-contexto a')).toHaveText('Fechar e voltar ao mapa');
   const paginaProjeto = page.url().split('?')[0];
   await page.goto(`${paginaProjeto}?volta=https%3A%2F%2Fexterno.example`);
-  await expect(page.locator('.pj-contexto a')).toHaveText('← Carteira de projetos');
+  await expect(page.locator('.pj-contexto a')).toHaveText('Fechar e voltar à Carteira');
   await page.goto(estadoComSelecao);
   const mapaRestaurado = page.locator('[data-mapa-obras]');
   await mapaRestaurado.getByRole('link', { name: 'Abrir ficha completa' }).click();

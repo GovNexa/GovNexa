@@ -69,7 +69,7 @@ export const NOVOS_MODULOS = [
   },
   {
     slug: 'projetos-localizacao',
-    title: 'Localização e fotos',
+    title: 'Obras sem localização',
     group: 'Projetos',
     columns: [] as string[],
     rows: [] as (string | number)[][],
@@ -219,7 +219,7 @@ export function catalogoCompleto<T>(base: T[]): T[] {
 }
 
 /** Páginas que existem mas não aparecem no menu lateral (abertas por botão em outra tela). */
-export const FORA_DO_MENU = ['projetos-novo'];
+export const FORA_DO_MENU = ['projetos-novo', 'projetos-localizacao'];
 
 export function menuPorModulo<T extends { group: string; slug?: string }>(lista: T[]) {
   const resultado: { id: ModuloId; nome: string; grupos: { grupo: string; itens: T[] }[] }[] = [];

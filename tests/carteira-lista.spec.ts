@@ -141,9 +141,9 @@ test('carteira: nome com HTML vira texto; projeto novo sem valor e sem datas; a 
   await expect(linha).toHaveAttribute('data-centavos', '');
   await expect(page.locator('[data-cp-sem-valor]')).toBeVisible();
   await expect(page.locator('[data-cp-total-valor]')).toHaveAttribute('data-centavos', '0');
-  await linha.getByRole('button', { name: 'Ver detalhes' }).click();
-  await expect(page.locator('#record-title')).toHaveText(nome);
-  await expect(page.locator('#record-body')).toContainText('Valores e recursos');
+  // Desde a E6, "Ver detalhes" abre a ficha do projeto em página inteira.
+  await Promise.all([page.waitForURL(/\/plataforma\/projeto\/P-\d+\//), linha.getByRole('button', { name: 'Ver detalhes' }).click()]);
+  await expect(page.locator('h1.pj-titulo')).toContainText(nome);
   await expect(page.locator('img[src="x"]')).toHaveCount(0);
 });
 
@@ -191,8 +191,8 @@ test('carteira: em 390 px sem rolagem horizontal, cada projeto vira cartão e a 
   const id = await linha.locator('td.cp-id').boundingBox();
   const nome = await linha.locator('td.cp-nome').boundingBox();
   expect(id!.y).toBeLessThan(nome!.y);
-  await linha.getByRole('button', { name: 'Ver detalhes' }).click();
-  await expect(page.locator('#record-dialog')).toBeVisible();
+  await Promise.all([page.waitForURL(/\/plataforma\/projeto\/P-\d+\//), linha.getByRole('button', { name: 'Ver detalhes' }).click()]);
+  await expect(page.locator('h1.pj-titulo')).toBeVisible();
 });
 
 test('carteira: em 1280 px nenhum texto passa por cima da coluna vizinha', async ({ page }) => {
