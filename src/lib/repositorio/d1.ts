@@ -5,7 +5,7 @@ import type { Projeto } from '../carteira/tipos.ts';
 import type { Cronograma, EtapaCronograma, FaseCronograma } from '../cronograma/tipos.ts';
 import type { RegistroLog } from '../log/tipos.ts';
 import { criarRepositorioDocumentos } from '../documentos/repositorio.ts';
-import type { RepositorioProjetos, ResultadoAplicacao, ResultadoCriacaoProjeto, ResultadoEdicao } from './tipos.ts';
+import type { RepositorioProjetos, ResultadoAplicacao, ResultadoCriacaoProjeto, ResultadoEdicao, ResultadoMovimento } from './tipos.ts';
 
 export interface ResultadoD1 { results: any[]; success: boolean; meta?: { changes?: number }; }
 export interface StatementD1 {
@@ -174,6 +174,36 @@ export function criarRepositorioD1(db: BancoD1, prefeituraId: number): Repositor
         if (/Área inválida/.test(String(erro))) return { ok: false, codigo: 'invalido', erro: 'Área: valor não permitido.' };
         throw erro;
       }
+    },
+    async listarRevisoes() {
+      const { results } = await db.prepare('SELECT id, revisao FROM projeto WHERE prefeitura_id = ?').bind(prefeituraId).all();
+      return new Map(results.map((r) => [String(r.id), Number(r.revisao)]));
+    },
+    async moverProjeto(projetoId, pedido, autor): Promise<ResultadoMovimento> {
+      // E7/B3: lê com a revisão, confere a revisão E a etapa que a pessoa viu, aplica a regra única (portão e motivo) e grava
+      // a etapa e o evento no mesmo lote. O UPDATE só vale se a revisão e a etapa ainda forem as lidas; o evento só entra se o
+      // UPDATE mudou uma linha (changes() = 1). Duas pessoas ao mesmo tempo: só uma grava; a outra recebe conflito.
+      const CONFLITO = 'O projeto foi alterado por outra pessoa. Recarregue a página e tente de novo.';
+      const linha = await db.prepare(`SELECT ${LISTA_COLUNAS}, revisao FROM projeto WHERE prefeitura_id = ? AND id = ?`).bind(prefeituraId, projetoId).first();
+      if (!linha) return { ok: false, codigo: 'inexistente', erro: 'Projeto não encontrado.' };
+      const atual = linhaParaProjeto(linha);
+      if (Number(linha.revisao) !== pedido.revisao || atual.macroetapa !== pedido.de) return { ok: false, codigo: 'conflito', erro: CONFLITO };
+      const e: Evento = {
+        tipo: 'mover_macroetapa', projeto_id: projetoId, origem: pedido.origem, autor, em: new Date().toISOString(), para: pedido.para,
+        ...(pedido.motivo ? { motivo: pedido.motivo } : {}), ...(pedido.forcar ? { forcar: true } : {}),
+      };
+      const res = aplicarEvento(atual, e);
+      if (!res.ok) return { ok: false, codigo: 'regra', erro: res.erro, ...(res.faltando ? { faltando: res.faltando } : {}) };
+      const h = res.historico[0];
+      const [r] = await db.batch([
+        db.prepare("UPDATE projeto SET macroetapa = ?, revisao = revisao + 1, atualizado_em = (strftime('%Y-%m-%dT%H:%M:%fZ','now')) WHERE prefeitura_id = ? AND id = ? AND revisao = ? AND macroetapa IS ?")
+          .bind(pedido.para, prefeituraId, projetoId, pedido.revisao, pedido.de),
+        db.prepare(
+          "INSERT INTO evento_projeto (id, prefeitura_id, projeto_id, tipo, origem, autor, em, de, para, motivo, forcado) SELECT ?, ?, ?, 'mover_macroetapa', ?, ?, ?, ?, ?, ?, ? WHERE changes() = 1",
+        ).bind(crypto.randomUUID(), prefeituraId, projetoId, pedido.origem, autor, h.em, h.de ?? null, pedido.para, h.motivo ?? null, h.forcado ? 1 : 0),
+      ]);
+      if ((r?.meta?.changes ?? 0) !== 1) return { ok: false, codigo: 'conflito', erro: CONFLITO };
+      return { ok: true, revisao: pedido.revisao + 1, projeto: res.projeto, forcado: h.forcado === true };
     },
     historico: (projetoId) =>
       transacao(async (cliente) => {

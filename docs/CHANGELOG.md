@@ -1,5 +1,13 @@
 # Changelog
 
+## E7 · Kanban e Pendências gravando; filtros e saída do marco (22/11/2026)
+- Kanban com cards enxutos: nome, órgão e a previsão de saída da etapa (aba PIPELINE); sem valor e sem farol; mais cards por coluna.
+- Sem a coluna Conclusão: o quadro vai até Execução e informa quantos projetos estão concluídos (ficam na Carteira e no Histórico).
+- Filtros do padrão no Kanban: nome, órgão, área, macroetapa e período de entrega.
+- Mover no Kanban e aprovar ou reprovar nas Pendências de etapa gravam no banco (B3), com portão, motivo, forçar com motivo e controle de alteração simultânea; cada mudança entra no Histórico no mesmo lote.
+- Rota nova `POST /plataforma/projeto/mover/<id>/` com origem, perfil, formato, limite de requisições e tamanho conferidos antes de ler o pedido.
+- Sem migração nova.
+
 ## E6 · Ficha única do projeto (22/11/2026)
 - A Carteira abre a ficha do projeto em página inteira; o X volta à lista com os mesmos filtros.
 - Topo com órgão, área, valor total, macroetapa, entrega prevista, localização e observação em destaque; abas Cadastro, Recurso, Entrega, Localização, Fotos (em breve), Documentos, Processos SEI, Cronograma, Histórico e Governança.

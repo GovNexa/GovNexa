@@ -123,6 +123,7 @@ São módulos independentes que conversam entre si:
 
 ### Entregas recentes
 
+- 22/11/2026: E7, Kanban enxuto sem Conclusão, com saída do marco e filtros do padrão; mover no Kanban e nas Pendências de etapa grava no banco (B3) (branch agente/codex/e7-kanban; aguardando portão, prévia do dono e revisão).
 - 22/11/2026: E6, ficha única do projeto (página inteira aberta pela Carteira, abas, Governança no fim; guia Localização e fotos fora do menu) (branch agente/codex/e6-ficha; aguardando portão, prévia do dono e revisão).
 - 22/11/2026: E5, Carteira de projetos com grandes números, colunas do relatório, filtros com "Só prioritários", grupos por macroetapa e impressão; a Visão por órgão foi incorporada (branch agente/codex/e5-carteira; aguardando revisão).
 - 22/11/2026: E2, padrão visual das telas de Projetos (fundo claro e neutro nos dois temas) e filtros padrão, aplicados no Gantt geral (branch agente/codex/e2-filtros; aguardando revisão).
@@ -200,12 +201,12 @@ O tema claro usa menu lateral branco, texto e ícones azul-escuros, destaques az
 | Carteira de projetos | Grandes números que seguem os filtros, colunas do relatório por órgão, filtros padrão com "Só prioritários", grupos por macroetapa da entrega mais próxima à mais distante, impressão e ficha completa | Disponível (E5) | `src/components/carteira/CarteiraProjetos.astro`, `src/lib/carteira/lista.ts` |
 | Ficha do projeto | Uma só ficha, aberta pela Carteira ou pelo endereço: topo do prefeito (órgão, área, valor total, macroetapa, entrega prevista, localização, observação) e abas Cadastro, Recurso, Entrega, Localização, Fotos, Documentos, Processos SEI, Cronograma, Histórico e Governança. Edição (E1) por quem tem permissão | Disponível no código (E6); fotos em breve (E9) | `src/pages/plataforma/projeto/[id].astro`, `src/lib/carteira/ficha*.ts` |
 | Obras sem localização | Lista das obras que não aparecem no mapa (fora do menu); a localização é gravada na aba Localização da ficha | Disponível (E6) | `src/pages/plataforma/projetos-localizacao/`, `src/components/carteira/ficha/` |
-| Kanban por macroetapa | Colunas com quantidade e valor; mover com portões e motivo | Simulação | `src/components/carteira/Kanban.astro`, `src/lib/carteira/movimentacao.ts` |
+| Kanban por macroetapa | Colunas de Em estruturação até Execução, com a quantidade e a previsão de saída do marco; card com nome, órgão e data de saída; filtros do padrão; mover (botão ou arrastar) grava com portão, motivo e Histórico | Disponível no código (E7) | `src/components/carteira/Kanban.astro`, `src/lib/carteira/kanban.ts`, `src/lib/carteira/mover.ts` |
 | Gantt geral | Linha do tempo prevista por macroetapa, da entrega mais próxima à mais distante; filtros por nome, órgão, macroetapa e período de entrega (mês e ano), guardados no endereço | Disponível | `src/components/carteira/Gantt.astro`, `src/components/carteira/FiltrosProjetos.astro`, `src/lib/carteira/filtros.ts` |
 | Visão por órgão | Incorporada à Carteira (E5): o endereço antigo abre a Carteira filtrada pelo órgão | Substituída | `src/lib/carteira/lista.ts` |
 | Cronogramas | Fase atual, realizado × previsto, linha do tempo, tarefas, dependências e pendências de dado | Disponível | `src/lib/cronograma/`, `src/pages/plataforma/cronograma/[id].astro` |
 | Onde está parado | Etapas vencidas por unidade e responsável | Disponível | `src/components/cronograma/Parado.astro` |
-| Pendências de etapa | Aprovar avança; reprovar volta pela mesma regra do Kanban | Simulação | `src/components/carteira/PendenciasEtapa.astro` |
+| Pendências de etapa | Aprovar avança; reprovar volta uma etapa com motivo; grava no banco pela mesma regra do Kanban (perfis de gestão) | Disponível no código (E7) | `src/components/carteira/PendenciasEtapa.astro`, `src/pages/plataforma/projeto/mover/[id].ts` |
 | Reunião semanal | Pauta, decisões, ações e ata | Simulação | `src/lib/reuniao/` |
 | Sala de guerra | Missões com objetivo, prazo, responsável, riscos, ações, problemas e decisões | Simulação | `src/lib/sala/` |
 | Histórico de alterações | Log com o quê, quem, quando, origem, antes e depois; filtros e CSV | Disponível para carga; gravação de movimentos em integração | `src/lib/log/` |
@@ -277,7 +278,7 @@ Os pedidos vêm dos áudios do dono, da reunião com a equipe e das planilhas.
 | Ver de relance o que está em planejamento, contratação ou execução | Início de Projetos, Kanban | Feito |
 | Gantt por macroetapa | Gantt geral | Feito |
 | Macroetapas com nomes e datas finais da planilha | Carteira e cronogramas no D1 | Feito |
-| Kanban com valores no topo das colunas | Kanban | Feito em simulação |
+| Kanban com valores no topo das colunas | Kanban | Substituído pelos áudios de 20/11 (E7): card e coluna sem valor; a coluna mostra a previsão de saída do marco |
 | Cadastrar todos os projetos a partir da planilha | Importação da carteira | Carga inicial feita |
 | Telas simples, sem barra de rolagem, que funcionem no celular | Interface responsiva e testes | Feito |
 | Projeto nasce no cadastro e anda ou volta por qualquer caminho, com histórico | Motor de movimentação, Histórico | Regras prontas; gravações em integração |
@@ -310,7 +311,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Leitura real no D1:** carteira, cronogramas e histórico da carga inicial.
 - **Captação:** leitura de dados públicos.
 - **Gravam de verdade:** documentos do projeto, a localização da obra (entrega B1) e o cadastro de projeto novo (entrega B2, publicação depende de ordem do dono).
-- **Ainda é simulação:** Kanban, pendências, reunião, sala de guerra, SEI na interface e WhatsApp. Essas partes passam a gravar de verdade pelo roteiro B3 a B8 de `docs/govnexa/projeto-banco.md`.
+- **Ainda é simulação:** reunião, sala de guerra, SEI na interface e WhatsApp. Essas partes passam a gravar de verdade pelo roteiro B3 a B8 de `docs/govnexa/projeto-banco.md`. Kanban e Pendências de etapa gravam desde a E7 (B3).
 - A plataforma lê o D1 em produção desde 16/11/2026. A leitura foi otimizada (só a guia aberta é montada e a leitura do banco fica em cache de 30 s); a otimização foi publicada em 16/11/2026 às 19h35 (versão 2e1114fa do Worker).
 - Acesso à plataforma exige sessão do login próprio (senha + verificação em 2 etapas) e cadastro ativo no banco central. A prefeitura não é escolhida pela URL.
 
@@ -414,6 +415,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Animações do site (17/11/2026):** biblioteca `gsap` 3.13.0, empacotada no próprio site. A licença é a padrão da GSAP, gratuita para uso comercial, mas não é de código aberto.
 - **Ficha única do projeto (22/11/2026, E6):** a Carteira abre a ficha em página inteira (a política de segurança proíbe janela embutida) e o X volta à lista com os filtros; a localização e as fotos ficam dentro do projeto; o endereço antigo de localização virou a lista de obras sem localização.
 - **Tela do prefeito (22/11/2026, E3):** saem farol, prazos, "onde está parado", decisões pendentes, convênios, valores por região e o mapa compacto (volta por área na E4); Mobilização conta em Execução; Concluídas e Sem macroetapa aparecem como linha própria só quando existem; a área mostrada usa a sugestão pelo órgão quando o projeto não tem área gravada; Principais obras = prioritárias primeiro, depois as de maior valor; linha do tempo do mês atual até dez/2028, com 6 áreas em cor, "Outros" e "Sem área" em cinza.
+- **Kanban e Pendências (22/11/2026, E7):** o card mostra só nome, órgão e a previsão de saída da etapa atual; sem coluna Conclusão; mover grava no banco pela regra única, com motivo para voltar ou forçar; aprovar e reprovar nas Pendências é dos perfis de gestão (admin e gestor).
 
 ## 8. Pendências e próximos passos
 
@@ -443,6 +445,7 @@ Centros dos bairros: migração 0005 e carga publicadas em 18/11/2026. Parte dos
 8. Melhorias de segurança sem falha conhecida: retirar `'unsafe-inline'` da política de scripts (CSP) e redirecionar `www.govnexa.com.br` para o endereço sem www.
 9. E6: retirar o componente antigo `LocalizacaoProjeto.astro` e o link "Localização e fotos" de `detalheProjeto` depois da junção com a E5; fotos na aba Fotos (E9).
 10. **Depois da E3:** a E10 reativa os testes de tela do painel antigo (`tests/dashboard.spec.ts`, `dashboard-efeitos.spec.ts`, `dashboard-mapa.spec.ts`, pulados na E3) na rota do painel da equipe; a E4 traz o mapa por área para a tela inicial.
+11. E7: depois da publicação, conferir no painel de produção que mover no Kanban aparece no Histórico; avaliar mover pela ficha (origem "ficha") e pelo SEI (B7).
 
 ## 9. Como rodar no computador
 

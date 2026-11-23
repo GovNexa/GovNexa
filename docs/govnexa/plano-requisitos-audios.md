@@ -50,11 +50,11 @@ Situação hoje: **Atende**, **Parcial** ou **Não**. A coluna "Entrega" aponta 
 | A20 | Abas: cadastro, recurso, entrega; governança no fim (origem e responsável pelo dado, pontos de atenção); sem valores por ano | Parcial | E6 |
 | A21 | Ficha hierarquizada; recursos resumidos (total, fonte de captação, contrapartida); saem tipo e órgão de contratação, situação e tipo de recurso | Parcial | E6 |
 | A22 | Sem menu próprio de "Localização e fotos"; as duas ficam dentro do projeto, separadas | Parcial (localização já está no projeto; fotos não existem) | E6 + E9 |
-| A23 | Kanban: card só com nome, órgão e entrega prevista; sem valor e sem farol; mais cards por coluna | Não | E7 |
-| A24 | Kanban: filtros por órgão ou área e período de entrega; foco até Execução | Não | E7 |
-| A26 / A27 | Estruturação começa na chegada do projeto e do orçamento; cada coluna mostra a **previsão de saída do marco** da planilha | Parcial (as datas já estão no banco) | E7 |
-| A28 | Kanban sem a coluna Conclusão (fica no Histórico) | Não | E7 |
-| A29 | Gantt: busca por nome e filtros de órgão, macroetapa e período de entrega | Parcial | E7 |
+| A23 | Kanban: card só com nome, órgão e entrega prevista; sem valor e sem farol; mais cards por coluna | Sim no código (E7) | E7 |
+| A24 | Kanban: filtros por órgão ou área e período de entrega; foco até Execução | Sim no código (E7) | E7 |
+| A26 / A27 | Estruturação começa na chegada do projeto e do orçamento; cada coluna mostra a **previsão de saída do marco** da planilha | Sim no código (E7) | E7 |
+| A28 | Kanban sem a coluna Conclusão (fica no Histórico) | Sim no código (E7) | E7 |
+| A29 | Gantt: busca por nome e filtros de órgão, macroetapa e período de entrega | Sim no código (E7) | E7 |
 | A30 | Carteira com grandes números no topo (total de projetos e de valor) que mudam com os filtros; a "Visão por órgão" deixa de existir | Não | E5 |
 | A31 | Menu nas três visões; governança da execução com responsável e tempo na mão do responsável | Parcial (cronogramas existem) | E11 + E13 |
 | A32 | Processos do SEI listados dentro do projeto | Parcial (leitor existe, ligação em simulação) | E6 (+ B7 do banco) |
@@ -85,7 +85,7 @@ A % de cada entrega começa em 0 e é atualizada no README (seção 2) a cada PR
 | E4 | **Mapa por área**: legenda e filtro por área e macroetapa; região como filtro opcional; total de obras e valor por região; sem situação nem farol | A04, A05, A06, A14 | E1, E2 | — | Codex terra | 0% |
 | E5 | **Carteira de projetos**: grandes números que seguem os filtros; colunas ID (só número, discreto), órgão, projeto, valor, macroetapa, peças técnicas, fim da contratação, dias de obra, entrega; agrupada por macroetapa e ordenada por entrega; impressão no formato do relatório por órgão; "Visão por órgão" redireciona para a Carteira filtrada | A16, A30 | E2 | — | Codex terra | 80% (código e testes prontos, aguardando portão, prévia do dono e revisão) |
 | E6 | **Ficha única do projeto** (tela grande com X e a mesma página): topo do prefeito (o que é, órgão, área, valor, macroetapa, entrega prevista, observação, localização); abas Recurso (resumido), Entrega (datas das etapas), Localização, Fotos, Documentos, Processos SEI, Cronograma, Histórico e Governança (origem e responsável pelo dado, pontos de atenção, SEI, dependências); saem farol, valor por ano, tipo e órgão de contratação, situação e tipo do recurso; sai do menu a guia "Localização e fotos" | A17, A19, A20, A21, A22, A32 | E1 | — | Codex terra | 70% (código e testes escritos; aguardando portão, prévia do dono e revisão) |
-| E7 | **Kanban e Gantt**: cards com nome, órgão e entrega prevista; coluna mostra a previsão de saída do marco; sem Conclusão; filtros do padrão; mover grava no banco com portão e motivo (B3); Gantt com os mesmos filtros | A23, A24, A26, A27, A28, A29 | E2; B3 grava | Sem migração nova prevista (usa `evento_projeto`) | Codex sol (gravação) + revisão Opus | 0% |
+| E7 | **Kanban e Gantt**: cards com nome, órgão e entrega prevista; coluna mostra a previsão de saída do marco; sem Conclusão; filtros do padrão; mover grava no banco com portão e motivo (B3); Gantt com os mesmos filtros | A23, A24, A26, A27, A28, A29 | E2; B3 grava | Sem migração nova prevista (usa `evento_projeto`) | Codex sol (gravação) + revisão Opus | 70% (código e testes escritos; aguardando portão, prévia do dono e revisão) |
 | E8 | **Localização por endereço**: procurar rua, endereço ou bairro; mostrar o ponto; o usuário confirma; segue o limite da cidade e do entorno | A07 | D4 | — | Codex sol (serviço externo) + revisão Opus | 0% |
 | E9 | **Fotos da obra**: enviar, legendar e ver fotos na aba Fotos (R2, como os documentos); Histórico | A22 | E6 | Migração: tabela `foto_projeto` | Codex sol + revisão Opus | 0% |
 | E10 | **Painel de gestão (equipe)**: recebe o que saiu da tela do prefeito (farol, onde está parado, decisões pendentes, alertas); **relatório de inconsistências** por órgão ou geral (campo faltando, data fora de ordem, macroetapa vencida), com impressão e CSV | A13, A19 | E3 | — | Codex terra | 0% |

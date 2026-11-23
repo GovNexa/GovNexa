@@ -1,6 +1,6 @@
 // Contrato do repositório de dados: as telas e a API falam só com esta interface (JSON hoje, PostgreSQL depois).
 import type { Evento, RegistroHistorico } from '../carteira/movimentacao.ts';
-import type { Projeto } from '../carteira/tipos.ts';
+import type { CodigoMacroetapa, Projeto } from '../carteira/tipos.ts';
 import type { Cronograma } from '../cronograma/tipos.ts';
 import type { RegistroLog } from '../log/tipos.ts';
 
@@ -17,6 +17,19 @@ export type ResultadoEdicao =
   | { ok: true; mudou: boolean; historico: RegistroHistorico[] }
   | { ok: false; codigo: 'inexistente' | 'conflito' | 'invalido'; erro: string };
 
+/** Pedido de mudança de macroetapa (E7/B3): revisão e etapa que a pessoa viu, destino, motivo e se força. */
+export interface PedidoMovimento {
+  revisao: number;
+  de: CodigoMacroetapa | null;
+  para: CodigoMacroetapa;
+  motivo: string | null;
+  forcar: boolean;
+  origem: 'kanban' | 'pendencia';
+}
+export type ResultadoMovimento =
+  | { ok: true; revisao: number; projeto: Projeto; forcado: boolean }
+  | { ok: false; codigo: 'inexistente' | 'conflito' | 'regra'; erro: string; faltando?: string[] };
+
 export interface RepositorioProjetos {
   podeGravar: boolean;
   /** Prefeitura de que este repositório lê e grava (chave do cache; preenchida por `repositorioDoUsuario`). */
@@ -29,6 +42,10 @@ export interface RepositorioProjetos {
   obterProjetoComRevisao?(id: string): Promise<{ projeto: Projeto; revisao: number } | null>;
   listarAreas?(incluirInativas?: boolean): Promise<AreaCatalogo[]>;
   editarProjeto?(projetoId: string, revisao: number, campos: Record<string, unknown>, motivo: string | null, autor: string): Promise<ResultadoEdicao>;
+  /** Revisão atual de cada projeto da prefeitura (leitura direta, sem cache; só no D1). */
+  listarRevisoes?(): Promise<Map<string, number>>;
+  /** Muda a macroetapa pela regra única (portão e motivo) e grava o evento no Histórico no mesmo lote (só no D1). */
+  moverProjeto?(projetoId: string, pedido: PedidoMovimento, autor: string): Promise<ResultadoMovimento>;
   historico(projetoId: string): Promise<RegistroHistorico[]>;
   /** Todos os registros do histórico de alterações (inclui importações), mais recentes primeiro. */
   listarHistorico(): Promise<RegistroLog[]>;

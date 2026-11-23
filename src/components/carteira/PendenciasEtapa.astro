@@ -1,12 +1,18 @@
 ---
+// Pendências de etapa (E7/B3): aprovar avança e reprovar volta uma etapa, gravando no banco pela mesma regra do Kanban
+// (rota POST /plataforma/projeto/mover/<id>/, origem 'pendencia'). Exige os perfis editar_projeto e aprovar_etapa.
 import '../../styles/carteira.css';
 import { carregarCarteira } from '../../lib/carteira/carga.ts';
 import { MACROETAPAS } from '../../lib/carteira/macroetapas.ts';
 import { portaoPara } from '../../lib/carteira/movimentacao.ts';
-import { AVISO_SIMULACAO, etapaAnterior, nomeEtapa, proximaEtapa } from '../../lib/carteira/simulacao.ts';
+import { podeMoverNaTela } from '../../lib/carteira/mover.ts';
+import { etapaAnterior, nomeEtapa, proximaEtapa } from '../../lib/carteira/simulacao.ts';
 import type { Projeto } from '../../lib/carteira/tipos.ts';
 
 const carteira = carregarCarteira();
+const repo = Astro.locals.repositorio;
+const acesso = podeMoverNaTela(Astro.locals.usuario, repo, 'pendencia');
+const revisoes: Map<string, number> = acesso === 'ok' ? await repo.listarRevisoes!() : new Map();
 const abertos = carteira.projetos.filter((p) => p.macroetapa !== '06');
 const orgaos = [...new Set(abertos.map((p) => p.orgao ?? 'Sem órgão'))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
 const grupos = [
@@ -19,7 +25,8 @@ const situacao = (p: Projeto) => {
 };
 ---
 <div data-cart data-pendencias>
-  <p class="cart-aviso" role="note">{AVISO_SIMULACAO}</p>
+  {acesso === 'perfil' && <p class="cart-aviso" role="note" data-pd-so-leitura>Seu perfil permite só consultar as pendências. Aprovar e reprovar etapas é do perfil de gestão.</p>}
+  {acesso === 'indisponivel' && <p class="cart-aviso" role="note" data-pd-indisponivel>Gravação indisponível no momento: as pendências estão só para consulta.</p>}
   <div class="cart-filtros">
     <label>Órgão
       <select data-pd-orgao>
@@ -42,8 +49,10 @@ const situacao = (p: Projeto) => {
         {g.projetos.map((p) => {
           const s = situacao(p);
           const pronto = s.prox !== null && s.faltando.length === 0;
+          const rev = revisoes.get(p.id);
+          const acoes = acesso === 'ok' && rev !== undefined;
           return (
-            <li class="pd-linha" data-pd-linha data-projeto={JSON.stringify(p)} data-orgao={p.orgao ?? 'Sem órgão'}>
+            <li class="pd-linha" data-pd-linha data-id={p.id} data-nome={p.nome} data-macro={p.macroetapa ?? ''} data-revisao={rev ?? ''} data-orgao={p.orgao ?? 'Sem órgão'}>
               <div class="pd-nome">
                 <strong>{p.nome}</strong>
                 <span>{p.orgao ?? 'Sem órgão'}</span>
@@ -55,9 +64,9 @@ const situacao = (p: Projeto) => {
                 </span>
               </div>
               <div class="pd-acoes" data-pd-acoes>
-                {pronto && <button type="button" class="primary" data-pd-aprovar>Aprovar</button>}
-                {pronto && etapaAnterior(p.macroetapa) && <button type="button" class="secondary" data-pd-reprovar>Reprovar</button>}
-                {!pronto && s.prox && <button type="button" class="secondary" data-pd-forcar>Aprovar mesmo assim</button>}
+                {acoes && pronto && <button type="button" class="primary" data-pd-aprovar>Aprovar</button>}
+                {acoes && pronto && etapaAnterior(p.macroetapa) && <button type="button" class="secondary" data-pd-reprovar>Reprovar</button>}
+                {acoes && !pronto && s.prox && <button type="button" class="secondary" data-pd-forcar>Aprovar mesmo assim</button>}
               </div>
               <p class="pd-resultado" data-pd-resultado hidden></p>
             </li>
@@ -67,28 +76,30 @@ const situacao = (p: Projeto) => {
     </section>
   ))}
   <p class="cart-resumo" data-pd-vazio hidden>Nenhum projeto com esses filtros.</p>
-  <dialog id="pd-dialog" class="cart-dialogo" aria-labelledby="pd-dialog-titulo">
-    <form data-pd-form>
-      <h2 id="pd-dialog-titulo" data-pd-dlg-titulo>Confirmar</h2>
-      <p data-pd-dlg-projeto></p>
-      <p class="cart-aviso">{AVISO_SIMULACAO}</p>
-      <label>Motivo (obrigatório)
-        <textarea name="motivo" rows="2" data-pd-dlg-motivo></textarea>
-      </label>
-      <div class="cart-erro" role="alert" data-pd-dlg-erro hidden></div>
-      <label class="cart-forcar" data-pd-dlg-forcar-linha hidden>
-        <input type="checkbox" data-pd-dlg-forcar /> Forçar com motivo
-      </label>
-      <div class="actions">
-        <button type="submit" class="primary">Aplicar</button>
-        <button type="button" class="secondary" data-pd-dlg-cancelar>Cancelar</button>
-      </div>
-    </form>
-  </dialog>
+  {acesso === 'ok' && (
+    <dialog id="pd-dialog" class="cart-dialogo" aria-labelledby="pd-dialog-titulo">
+      <form data-pd-form>
+        <h2 id="pd-dialog-titulo" data-pd-dlg-titulo>Confirmar</h2>
+        <p data-pd-dlg-projeto></p>
+        <label>Motivo (obrigatório)
+          <textarea name="motivo" rows="2" maxlength="500" data-pd-dlg-motivo></textarea>
+        </label>
+        <div class="cart-erro" role="alert" data-pd-dlg-erro hidden></div>
+        <label class="cart-forcar" data-pd-dlg-forcar-linha hidden>
+          <input type="checkbox" data-pd-dlg-forcar /> Forçar com motivo
+        </label>
+        <div class="actions">
+          <button type="submit" class="primary" data-pd-dlg-aplicar>Aplicar</button>
+          <button type="button" class="secondary" data-pd-dlg-cancelar>Cancelar</button>
+        </div>
+      </form>
+    </dialog>
+  )}
 </div>
 <script>
-import { avisar, etapaAnterior, mostrarErro, nomeEtapa, proximaEtapa, simularMovimento } from '../../lib/carteira/simulacao.ts';
-import type { CodigoMacroetapa, Projeto } from '../../lib/carteira/tipos.ts';
+import { avisar, etapaAnterior, mostrarErro, nomeEtapa, proximaEtapa } from '../../lib/carteira/simulacao.ts';
+import { enviarMovimento, type RespostaMover } from '../../lib/carteira/mover-cliente.ts';
+import type { CodigoMacroetapa } from '../../lib/carteira/tipos.ts';
 
 document.addEventListener('astro:page-load', () => {
   const raiz = document.querySelector<HTMLElement>('[data-pendencias]');
@@ -118,75 +129,88 @@ document.addEventListener('astro:page-load', () => {
   selOrgao.addEventListener('change', filtrar);
   selMacro.addEventListener('change', filtrar);
 
-  const dlg = raiz.querySelector<HTMLDialogElement>('#pd-dialog')!;
+  const dlg = raiz.querySelector<HTMLDialogElement>('#pd-dialog');
+  if (!dlg) return; // só consulta
   const form = dlg.querySelector<HTMLFormElement>('[data-pd-form]')!;
   const campoMotivo = dlg.querySelector<HTMLTextAreaElement>('[data-pd-dlg-motivo]')!;
   const caixaErro = dlg.querySelector<HTMLElement>('[data-pd-dlg-erro]')!;
   const linhaForcar = dlg.querySelector<HTMLElement>('[data-pd-dlg-forcar-linha]')!;
   const campoForcar = dlg.querySelector<HTMLInputElement>('[data-pd-dlg-forcar]')!;
+  const botaoAplicar = dlg.querySelector<HTMLButtonElement>('[data-pd-dlg-aplicar]')!;
   let alvo: { linha: HTMLElement; para: CodigoMacroetapa; verbo: string } | null = null;
+  let ocupado = false;
 
-  const projetoDe = (l: HTMLElement) => JSON.parse(l.dataset.projeto!) as Projeto;
+  const macroDe = (l: HTMLElement) => (l.dataset.macro || null) as CodigoMacroetapa | null;
 
-  function abrir(linha: HTMLElement, para: CodigoMacroetapa, titulo: string, verbo: string, forcar: boolean, erro?: { erro: string; faltando?: string[] }) {
+  function abrir(linha: HTMLElement, para: CodigoMacroetapa, titulo: string, verbo: string, forcar: boolean, erro?: { erro: string; faltando?: string[]; forcavel?: boolean }) {
     alvo = { linha, para, verbo };
-    const p = projetoDe(linha);
-    dlg.querySelector('[data-pd-dlg-titulo]')!.textContent = titulo;
-    dlg.querySelector('[data-pd-dlg-projeto]')!.textContent = `${p.nome} · de ${nomeEtapa(p.macroetapa)} para ${nomeEtapa(para)}`;
+    dlg!.querySelector('[data-pd-dlg-titulo]')!.textContent = titulo;
+    dlg!.querySelector('[data-pd-dlg-projeto]')!.textContent = `${linha.dataset.nome ?? ''} · de ${nomeEtapa(macroDe(linha))} para ${nomeEtapa(para)}`;
     campoMotivo.value = '';
     campoForcar.checked = forcar;
     linhaForcar.hidden = !forcar;
     caixaErro.hidden = true;
     if (erro) {
       mostrarErro(caixaErro, erro.erro, erro.faltando);
-      linhaForcar.hidden = false;
+      linhaForcar.hidden = !erro.forcavel && !forcar;
     }
-    dlg.showModal();
+    if (!dlg!.open) dlg!.showModal();
     campoMotivo.focus();
   }
 
-  function concluir(linha: HTMLElement, novo: Projeto, verbo: string, de: string) {
-    linha.dataset.projeto = JSON.stringify(novo);
-    const texto = `Simulação: ${verbo} para ${nomeEtapa(novo.macroetapa)}`;
+  function concluir(linha: HTMLElement, r: Extract<RespostaMover, { ok: true }>, verbo: string) {
+    const de = nomeEtapa(macroDe(linha));
+    linha.dataset.macro = r.macroetapa;
+    linha.dataset.revisao = String(r.revisao);
     linha.querySelector('[data-pd-acoes]')!.replaceChildren();
     const res = linha.querySelector<HTMLElement>('[data-pd-resultado]')!;
-    res.textContent = `${texto}. Nada foi gravado.`;
+    res.textContent = `${verbo[0].toUpperCase()}${verbo.slice(1)} para ${nomeEtapa(r.macroetapa)}${r.forcado ? ' (forçado com motivo)' : ''}. Registrado no Histórico.`;
     res.hidden = false;
     const etapa = linha.querySelector('[data-pd-etapa]')!;
     etapa.replaceChildren();
     const span = document.createElement('span');
-    span.textContent = `Agora em ${nomeEtapa(novo.macroetapa)} (antes: ${de})`;
+    span.textContent = `Agora em ${nomeEtapa(r.macroetapa)} (antes: ${de})`;
     etapa.append(span);
-    avisar(`${texto}: ${novo.nome}. Nada foi gravado.`);
+    avisar(`${linha.dataset.nome ?? ''} ${verbo} para ${nomeEtapa(r.macroetapa)}. Registrado no Histórico.`);
   }
 
-  function resolver(linha: HTMLElement, para: CodigoMacroetapa, motivo: string, forcar: boolean) {
-    const p = projetoDe(linha);
-    const r = simularMovimento(p, para, 'pendencia', motivo, forcar);
-    return { r, de: nomeEtapa(p.macroetapa) };
+  async function enviar(linha: HTMLElement, para: CodigoMacroetapa, motivo: string, forcar: boolean): Promise<RespostaMover | null> {
+    const revisao = Number(linha.dataset.revisao);
+    if (ocupado || linha.dataset.revisao === '' || !Number.isSafeInteger(revisao)) return null;
+    ocupado = true;
+    botaoAplicar.disabled = true;
+    linha.querySelectorAll<HTMLButtonElement>('[data-pd-acoes] button').forEach((b) => { b.disabled = true; });
+    try {
+      return await enviarMovimento({ id: linha.dataset.id ?? '', revisao, de: macroDe(linha), para, motivo, forcar, origem: 'pendencia' });
+    } finally {
+      ocupado = false;
+      botaoAplicar.disabled = false;
+      linha.querySelectorAll<HTMLButtonElement>('[data-pd-acoes] button').forEach((b) => { b.disabled = false; });
+    }
   }
 
-  raiz.addEventListener('click', (e) => {
+  raiz.addEventListener('click', async (e) => {
     const botao = (e.target as HTMLElement).closest<HTMLElement>('[data-pd-aprovar],[data-pd-reprovar],[data-pd-forcar]');
     if (!botao) return;
     const linha = botao.closest<HTMLElement>('[data-pd-linha]')!;
-    const p = projetoDe(linha);
+    const atual = macroDe(linha);
     if (botao.hasAttribute('data-pd-reprovar')) {
-      const ant = etapaAnterior(p.macroetapa);
+      const ant = etapaAnterior(atual);
       if (ant) abrir(linha, ant, 'Reprovar etapa (voltar uma etapa)', 'voltou', false);
     } else if (botao.hasAttribute('data-pd-forcar')) {
-      const prox = proximaEtapa(p.macroetapa);
+      const prox = proximaEtapa(atual);
       if (prox) abrir(linha, prox, 'Aprovar mesmo assim (forçar com motivo)', 'avançou', true);
     } else {
-      const prox = proximaEtapa(p.macroetapa);
+      const prox = proximaEtapa(atual);
       if (!prox) return;
-      const { r, de } = resolver(linha, prox, '', false);
-      if (r.ok) concluir(linha, r.projeto, 'avançou', de);
-      else abrir(linha, prox, 'Aprovar etapa', 'avançou', false, { erro: r.erro, faltando: r.faltando });
+      const r = await enviar(linha, prox, '', false);
+      if (!r) return;
+      if (r.ok) concluir(linha, r, 'avançou');
+      else abrir(linha, prox, 'Aprovar etapa', 'avançou', false, { erro: r.erro, faltando: r.faltando, forcavel: r.forcavel });
     }
   });
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!alvo) return;
     const motivo = campoMotivo.value.trim();
@@ -196,16 +220,17 @@ document.addEventListener('astro:page-load', () => {
       return;
     }
     const { linha, para, verbo } = alvo;
-    const { r, de } = resolver(linha, para, motivo, campoForcar.checked);
+    const r = await enviar(linha, para, motivo, campoForcar.checked);
+    if (!r) return;
     if (r.ok) {
       dlg.close();
-      concluir(linha, r.projeto, verbo, de);
+      concluir(linha, r, verbo);
       const res = linha.querySelector<HTMLElement>('[data-pd-resultado]')!;
       res.tabIndex = -1;
       res.focus();
     } else {
       mostrarErro(caixaErro, r.erro, r.faltando);
-      linhaForcar.hidden = false;
+      linhaForcar.hidden = !r.forcavel && !campoForcar.checked;
       campoMotivo.focus();
     }
   });

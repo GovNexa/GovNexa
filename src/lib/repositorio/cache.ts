@@ -68,6 +68,15 @@ export function comInvalidacao(repo: RepositorioProjetos, prefeituraId: number):
         }
       },
     } : {}),
+    ...(repo.moverProjeto ? {
+      moverProjeto: async (projetoId, pedido, autor) => {
+        try {
+          return await repo.moverProjeto!(projetoId, pedido, autor);
+        } finally {
+          invalidarCache(prefeituraId);
+        }
+      },
+    } : {}),
     aplicar: async (evento) => {
       try {
         return await repo.aplicar(evento);
