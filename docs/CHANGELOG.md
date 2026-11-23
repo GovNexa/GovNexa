@@ -1,5 +1,13 @@
 # Changelog
 
+## E7 · Kanban e Pendências gravando; filtros e saída do marco (22/11/2026)
+- Kanban com cards enxutos: nome, órgão e a previsão de saída da etapa (aba PIPELINE); sem valor e sem farol; mais cards por coluna.
+- Sem a coluna Conclusão: o quadro vai até Execução e informa quantos projetos estão concluídos (ficam na Carteira e no Histórico).
+- Filtros do padrão no Kanban: nome, órgão, área, macroetapa e período de entrega.
+- Mover no Kanban e aprovar ou reprovar nas Pendências de etapa gravam no banco (B3), com portão, motivo, forçar com motivo e controle de alteração simultânea; cada mudança entra no Histórico no mesmo lote.
+- Rota nova `POST /plataforma/projeto/mover/<id>/` com origem, perfil, formato, limite de requisições e tamanho conferidos antes de ler o pedido.
+- Sem migração nova.
+
 ## E4 · Mapa das obras por área (22/11/2026)
 - Legenda, cor e filtro por área (saúde, educação, assistência social, drenagem, parques e lazer, cultura…), com as mesmas cores da tela do prefeito; a área sugerida pelo órgão vale até a área ser gravada.
 - Filtros só por macroetapa (a mesma divisão da tela do prefeito) e área, mais a região como filtro opcional; estado no endereço da Gestão (`etapas`, `areas`, `regiao`).

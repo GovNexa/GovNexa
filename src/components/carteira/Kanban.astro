@@ -1,132 +1,130 @@
 ---
+// Kanban por macroetapa (E7). Cards enxutos (nome, órgão e saída prevista do marco), colunas de 00 a 05, filtros do padrão (E2).
+// Mover grava no banco (B3) pela rota POST /plataforma/projeto/mover/<id>/, com a regra única (portão e motivo) e o Histórico.
 import '../../styles/carteira.css';
+import '../../styles/kanban.css';
+import FiltrosProjetos from './FiltrosProjetos.astro';
 import { carregarCarteira } from '../../lib/carteira/carga.ts';
-import { resumoPorMacroetapa, valorProjeto, farol } from '../../lib/carteira/visoes.ts';
-import { MACROETAPAS } from '../../lib/carteira/macroetapas.ts';
-import { AVISO_SIMULACAO } from '../../lib/carteira/simulacao.ts';
-import { br, reais } from '../../lib/dados/formato.ts';
+import { lerFiltros, opcoesFiltros } from '../../lib/carteira/filtros.ts';
+import { hrefFicha } from '../../lib/carteira/ficha.ts';
+import { DESTINOS_MOVER, montarKanban, textoSaida } from '../../lib/carteira/kanban.ts';
+import { podeMoverNaTela } from '../../lib/carteira/mover.ts';
+import { dataBr } from '../../lib/datas.ts';
 
 const carteira = carregarCarteira();
-const hoje = new Date().toISOString().slice(0, 10);
-const colunas = resumoPorMacroetapa(carteira);
-const orgaos = [...new Set(carteira.projetos.map((p) => p.orgao ?? 'Sem órgão'))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-const rotuloFarol = { vermelho: 'Vermelho', amarelo: 'Amarelo', verde: 'Verde' } as const;
+const hojeIso = new Date().toISOString().slice(0, 10);
+const opcoes = opcoesFiltros(carteira.projetos, hojeIso);
+const { filtros, avisos } = lerFiltros(Astro.url.searchParams, opcoes);
+const repo = Astro.locals.repositorio;
+const acesso = podeMoverNaTela(Astro.locals.usuario, repo, 'kanban');
+const revisoes: Map<string, number> = acesso === 'ok' ? await repo.listarRevisoes!() : new Map();
+const quadro = montarKanban(carteira.projetos, filtros);
+const emAndamento = carteira.projetos.filter((p) => p.macroetapa !== '06').length;
+const volta = `${Astro.url.pathname}${Astro.url.search}`;
 const plural = (n: number) => `${n} projeto${n === 1 ? '' : 's'}`;
 ---
-<div data-cart data-kanban>
-  <div class="cart-filtros">
-    <label>Órgão
-      <select data-kb-orgao>
-        <option value="">Todos</option>
-        {orgaos.map((o) => <option value={o}>{o}</option>)}
-      </select>
-    </label>
-  </div>
-  <p class="cart-aviso" role="note">{AVISO_SIMULACAO}</p>
-  <p class="cart-resumo" role="status" data-kb-resumo>Mostrando {carteira.projetos.length} de {carteira.projetos.length} projetos.</p>
-  <div class="cart-scroll" tabindex="0" role="region" aria-label="Quadro Kanban por macroetapa">
-    <div class="kb-quadro">
-      {colunas.map((c) => (
-        <section class="kb-col" data-kb-col data-codigo={c.codigo} style={`--cor:var(--mc-${c.codigo === 'sem' ? '00' : c.codigo})`} aria-labelledby={`kb-${c.codigo}`}>
+<div data-cart data-kanban data-kb-total={emAndamento}>
+  <FiltrosProjetos filtros={filtros} opcoes={opcoes} avisos={avisos} rotulo="Filtros do Kanban" />
+  {acesso === 'perfil' && <p class="cart-aviso" role="note" data-kb-so-leitura>Seu perfil permite só consultar o Kanban. Para mover projetos, peça o perfil de edição.</p>}
+  {acesso === 'indisponivel' && <p class="cart-aviso" role="note" data-kb-indisponivel>Gravação indisponível no momento: o Kanban está só para consulta.</p>}
+  {filtros.macro === '06' && <p class="cart-aviso" role="note" data-kb-aviso-conclusao>A coluna Conclusão não aparece no Kanban. Os projetos concluídos estão na <a href="/plataforma/projetos-carteira/?macro=06">Carteira</a> e no Histórico.</p>}
+  <p class="cart-resumo" role="status" tabindex="-1" data-kb-resumo>Mostrando {plural(quadro.total)} de {emAndamento} em andamento.</p>
+  {quadro.concluidos > 0 && <p class="kq-concluidos" data-kb-concluidos>{plural(quadro.concluidos)} em Conclusão não aparece{quadro.concluidos === 1 ? '' : 'm'} no Kanban (ficam na Carteira e no Histórico).</p>}
+  <div class="kq-scroll" tabindex="0" role="region" aria-label="Quadro Kanban por macroetapa">
+    <div class="kq-quadro">
+      {quadro.colunas.map((c) => (
+        <section class="kq-col" data-kb-col data-codigo={c.codigo} style={`--cor:var(--mc-${c.codigo === 'sem' ? '00' : c.codigo})`} aria-labelledby={`kb-${c.codigo}`}>
           <header>
             <h2 id={`kb-${c.codigo}`}>{c.nome}</h2>
-            <p><span data-kb-qtd>{plural(c.qtd)}</span> · <span data-kb-valor>{reais(c.valor)}</span></p>
+            <p class="kq-qtd" data-kb-qtd>{plural(c.cards.length)}</p>
+            <p class="kq-marco" data-kb-marco>{c.marco}</p>
           </header>
-          <div class="kb-lista">
-            {c.projetos.map((p) => {
-              const f = farol(p, hoje);
-              const v = valorProjeto(p);
+          <div class="kq-lista">
+            {c.cards.map((k) => {
+              const rev = revisoes.get(k.id);
+              const movel = acesso === 'ok' && rev !== undefined;
               return (
-                <div class="kb-card" data-kb-card draggable="true" data-projeto={JSON.stringify(p)} data-orgao={p.orgao ?? 'Sem órgão'} data-valor={v ?? 0}>
-                  <a class="kb-link" draggable="false" href={`/plataforma/projetos-carteira/?q=${encodeURIComponent(p.id)}`}>
-                    <strong>{p.nome}</strong>
-                    <span>{p.orgao ?? 'Sem órgão'}</span>
-                    <span>{v === null ? 'Valor: —' : reais(v)}</span>
-                    <span>Entrega: {br(p.datas.encerramento)}</span>
-                    <span class="kb-farol"><i class={`cart-ponto ${f.cor}`} aria-hidden="true" data-kb-ponto></i><span data-kb-farol>{rotuloFarol[f.cor]} · {f.motivo}</span></span>
-                  </a>
-                  <button type="button" class="secondary kb-mover" data-kb-mover aria-label={`Mover ${p.nome}`}>Mover</button>
-                </div>
+                <article class="kq-card" data-kb-card data-id={k.id} data-nome={k.nome} data-macro={k.macro ?? ''} data-revisao={rev ?? ''} draggable={movel ? 'true' : 'false'}>
+                  <a class="kq-nome" draggable="false" href={hrefFicha(k.id, volta)}>{k.nome}</a>
+                  <span class="kq-orgao">{k.orgao}</span>
+                  <span class="kq-saida" data-kb-saida>{textoSaida(k.saida, dataBr)}</span>
+                  {movel && <button type="button" class="secondary kq-mover" data-kb-mover aria-label={`Mover ${k.nome}`}>Mover</button>}
+                </article>
               );
             })}
-            <p class="kb-vazio" data-kb-vazio hidden={c.qtd > 0}>Nenhum projeto</p>
+            <p class="kq-vazio" data-kb-vazio hidden={c.cards.length > 0}>Nenhum projeto</p>
           </div>
         </section>
       ))}
     </div>
   </div>
-  <dialog id="kb-dialog" class="cart-dialogo" aria-labelledby="kb-dialog-titulo">
-    <form data-kb-form>
-      <h2 id="kb-dialog-titulo">Mover projeto</h2>
-      <p data-kb-dlg-projeto></p>
-      <p class="cart-aviso">{AVISO_SIMULACAO}</p>
-      <label>Para a etapa
-        <select name="para" data-kb-dlg-para>
-          {MACROETAPAS.map((m) => <option value={m.codigo}>{m.nome}</option>)}
-        </select>
-      </label>
-      <label>Motivo (opcional)
-        <textarea name="motivo" rows="2" data-kb-dlg-motivo></textarea>
-      </label>
-      <div class="cart-erro" role="alert" data-kb-dlg-erro hidden></div>
-      <label class="cart-forcar" data-kb-dlg-forcar-linha hidden>
-        <input type="checkbox" data-kb-dlg-forcar /> Forçar com motivo (o motivo passa a ser obrigatório)
-      </label>
-      <div class="actions">
-        <button type="submit" class="primary">Aplicar</button>
-        <button type="button" class="secondary" data-kb-dlg-cancelar>Cancelar</button>
-      </div>
-    </form>
-  </dialog>
+  {acesso === 'ok' && (
+    <dialog id="kb-dialog" class="cart-dialogo" aria-labelledby="kb-dialog-titulo">
+      <form data-kb-form>
+        <h2 id="kb-dialog-titulo">Mover projeto</h2>
+        <p data-kb-dlg-projeto></p>
+        <label>Para a etapa
+          <select name="para" data-kb-dlg-para>
+            {DESTINOS_MOVER.map((d) => <option value={d.codigo}>{d.rotulo}</option>)}
+          </select>
+        </label>
+        <label>Motivo (obrigatório para voltar, pular etapa ou forçar)
+          <textarea name="motivo" rows="2" maxlength="500" data-kb-dlg-motivo></textarea>
+        </label>
+        <div class="cart-erro" role="alert" data-kb-dlg-erro hidden></div>
+        <label class="cart-forcar" data-kb-dlg-forcar-linha hidden>
+          <input type="checkbox" data-kb-dlg-forcar /> Forçar com motivo (o motivo passa a ser obrigatório)
+        </label>
+        <div class="actions">
+          <button type="submit" class="primary" data-kb-dlg-aplicar>Aplicar</button>
+          <button type="button" class="secondary" data-kb-dlg-cancelar>Cancelar</button>
+        </div>
+      </form>
+    </dialog>
+  )}
 </div>
 <script>
-import { farol } from '../../lib/carteira/visoes.ts';
-import { avisar, mostrarErro, nomeEtapa, proximaEtapa, simularMovimento } from '../../lib/carteira/simulacao.ts';
-import type { CodigoMacroetapa, Projeto } from '../../lib/carteira/tipos.ts';
+import { avisar, mostrarErro, nomeEtapa, proximaEtapa } from '../../lib/carteira/simulacao.ts';
+import { textoSaida } from '../../lib/carteira/kanban.ts';
+import { enviarMovimento, type RespostaMover } from '../../lib/carteira/mover-cliente.ts';
+import { dataBr } from '../../lib/datas.ts';
+import type { CodigoMacroetapa } from '../../lib/carteira/tipos.ts';
 
 document.addEventListener('astro:page-load', () => {
   const raiz = document.querySelector<HTMLElement>('[data-kanban]');
-  const sel = raiz?.querySelector<HTMLSelectElement>('[data-kb-orgao]');
-  if (!raiz || !sel) return;
-  const fmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
-  const total = raiz.querySelectorAll('[data-kb-card]').length;
-  const aplicar = () => {
-    let visiveis = 0;
-    raiz.querySelectorAll<HTMLElement>('[data-kb-col]').forEach((col) => {
-      let qtd = 0;
-      let valor = 0;
-      col.querySelectorAll<HTMLElement>('[data-kb-card]').forEach((card) => {
-        const ok = !sel.value || card.dataset.orgao === sel.value;
-        card.hidden = !ok;
-        if (ok) { qtd++; valor += Number(card.dataset.valor) || 0; }
-      });
-      visiveis += qtd;
-      col.querySelector('[data-kb-qtd]')!.textContent = `${qtd} projeto${qtd === 1 ? '' : 's'}`;
-      col.querySelector('[data-kb-valor]')!.textContent = fmt.format(valor);
-      col.querySelector<HTMLElement>('[data-kb-vazio]')!.hidden = qtd > 0;
-    });
-    raiz.querySelector('[data-kb-resumo]')!.textContent = `Mostrando ${visiveis} de ${total} projetos.`;
-  };
-  sel.addEventListener('change', aplicar);
-
-  // Movimentação em modo simulação: arrastar e soltar ou botão "Mover"; as regras vêm de aplicarEvento.
-  const dlg = raiz.querySelector<HTMLDialogElement>('#kb-dialog')!;
+  if (!raiz || raiz.dataset.kbPronto === '1') return;
+  raiz.dataset.kbPronto = '1';
+  const dlg = raiz.querySelector<HTMLDialogElement>('#kb-dialog');
+  if (!dlg) return; // só consulta: sem diálogo, sem arrastar
   const form = dlg.querySelector<HTMLFormElement>('[data-kb-form]')!;
   const campoPara = dlg.querySelector<HTMLSelectElement>('[data-kb-dlg-para]')!;
   const campoMotivo = dlg.querySelector<HTMLTextAreaElement>('[data-kb-dlg-motivo]')!;
   const caixaErro = dlg.querySelector<HTMLElement>('[data-kb-dlg-erro]')!;
   const linhaForcar = dlg.querySelector<HTMLElement>('[data-kb-dlg-forcar-linha]')!;
   const campoForcar = dlg.querySelector<HTMLInputElement>('[data-kb-dlg-forcar]')!;
+  const botaoAplicar = dlg.querySelector<HTMLButtonElement>('[data-kb-dlg-aplicar]')!;
+  let total = Number(raiz.dataset.kbTotal) || 0;
   let cartao: HTMLElement | null = null;
   let abridor: HTMLElement | null = null;
+  let ocupado = false;
 
-  const projetoDe = (c: HTMLElement) => JSON.parse(c.dataset.projeto!) as Projeto;
-  const nomeCol = (cod: string) => nomeEtapa((cod || null) as CodigoMacroetapa | null);
+  const macroDe = (c: HTMLElement) => (c.dataset.macro || null) as CodigoMacroetapa | null;
+  const plural = (n: number) => `${n} projeto${n === 1 ? '' : 's'}`;
 
-  function abrir(c: HTMLElement, destino: string, erro?: { erro: string; faltando?: string[] }) {
+  function contar() {
+    let n = 0;
+    raiz!.querySelectorAll<HTMLElement>('[data-kb-col]').forEach((col) => {
+      const qtd = col.querySelectorAll('[data-kb-card]').length;
+      n += qtd;
+      col.querySelector('[data-kb-qtd]')!.textContent = plural(qtd);
+      col.querySelector<HTMLElement>('[data-kb-vazio]')!.hidden = qtd > 0;
+    });
+    raiz!.querySelector('[data-kb-resumo]')!.textContent = `Mostrando ${plural(n)} de ${total} em andamento.`;
+  }
+
+  function abrir(c: HTMLElement, destino: string, erro?: { erro: string; faltando?: string[]; forcar?: boolean }) {
     cartao = c;
-    const p = projetoDe(c);
-    dlg.querySelector('[data-kb-dlg-projeto]')!.textContent = `${p.nome} · etapa atual: ${nomeEtapa(p.macroetapa)}`;
+    dlg!.querySelector('[data-kb-dlg-projeto]')!.textContent = `${c.dataset.nome ?? ''} · etapa atual: ${nomeEtapa(macroDe(c))}`;
     campoPara.value = destino;
     campoMotivo.value = '';
     campoForcar.checked = false;
@@ -134,34 +132,56 @@ document.addEventListener('astro:page-load', () => {
     caixaErro.hidden = true;
     if (erro) {
       mostrarErro(caixaErro, erro.erro, erro.faltando);
-      linhaForcar.hidden = false;
+      linhaForcar.hidden = erro.forcar !== true;
     }
-    dlg.showModal();
+    if (!dlg!.open) dlg!.showModal();
     (erro ? campoMotivo : campoPara).focus();
   }
 
-  function concluir(c: HTMLElement, novo: Projeto, de: string) {
-    c.dataset.projeto = JSON.stringify(novo);
-    const col = [...raiz!.querySelectorAll<HTMLElement>('[data-kb-col]')].find((x) => x.dataset.codigo === novo.macroetapa);
-    if (col) {
-      const lista = col.querySelector('.kb-lista')!;
-      lista.insertBefore(c, lista.querySelector('[data-kb-vazio]'));
+  function concluir(c: HTMLElement, r: Extract<RespostaMover, { ok: true }>) {
+    const de = macroDe(c);
+    const nome = c.dataset.nome ?? '';
+    if (r.macroetapa === '06') {
+      c.remove();
+      total = Math.max(0, total - 1);
+      contar();
+      avisar(`${nome} foi de ${nomeEtapa(de)} para Conclusão e saiu do Kanban. Registrado no Histórico.`);
+      return;
     }
-    const f = farol(novo);
-    const ponto = c.querySelector<HTMLElement>('[data-kb-ponto]');
-    if (ponto) ponto.className = `cart-ponto ${f.cor}`;
-    const rotulo = c.querySelector('[data-kb-farol]');
-    if (rotulo) rotulo.textContent = `${f.cor.charAt(0).toUpperCase()}${f.cor.slice(1)} · ${f.motivo}`;
-    aplicar();
-    avisar(`Simulação: ${novo.nome} foi de ${nomeCol(de)} para ${nomeEtapa(novo.macroetapa)}. Nada foi gravado.`);
+    c.dataset.macro = r.macroetapa;
+    c.dataset.revisao = String(r.revisao);
+    const saida = c.querySelector('[data-kb-saida]');
+    if (saida) saida.textContent = textoSaida(r.saida, dataBr);
+    const col = [...raiz!.querySelectorAll<HTMLElement>('[data-kb-col]')].find((x) => x.dataset.codigo === r.macroetapa);
+    if (col) {
+      const lista = col.querySelector('.kq-lista')!;
+      lista.insertBefore(c, lista.querySelector('[data-kb-vazio]'));
+    } else {
+      c.remove(); // a coluna de destino não está no quadro
+    }
+    contar();
+    avisar(`${nome} foi de ${nomeEtapa(de)} para ${nomeEtapa(r.macroetapa)}${r.forcado ? ' (forçado com motivo)' : ''}. Registrado no Histórico.`);
   }
 
-  // Tentativa direta (arrastar e soltar): aplica se a regra deixar; senão abre o diálogo com o destino preenchido.
-  function tentar(c: HTMLElement, destino: string) {
-    const p = projetoDe(c);
-    const r = simularMovimento(p, destino as CodigoMacroetapa, 'kanban');
-    if (r.ok) concluir(c, r.projeto, p.macroetapa ?? '');
-    else abrir(c, destino, { erro: r.erro, faltando: r.faltando });
+  async function enviar(c: HTMLElement, para: CodigoMacroetapa, motivo: string, forcar: boolean): Promise<RespostaMover | null> {
+    const revisao = Number(c.dataset.revisao);
+    if (ocupado || c.dataset.revisao === '' || !Number.isSafeInteger(revisao)) return null;
+    ocupado = true;
+    botaoAplicar.disabled = true;
+    try {
+      return await enviarMovimento({ id: c.dataset.id ?? '', revisao, de: macroDe(c), para, motivo, forcar, origem: 'kanban' });
+    } finally {
+      ocupado = false;
+      botaoAplicar.disabled = false;
+    }
+  }
+
+  // Arrastar e soltar: tenta direto; se a regra pedir motivo ou faltar requisito, abre o diálogo com o destino e o erro.
+  async function tentar(c: HTMLElement, destino: CodigoMacroetapa) {
+    const r = await enviar(c, destino, '', false);
+    if (!r) return;
+    if (r.ok) concluir(c, r);
+    else abrir(c, destino, { erro: r.erro, faltando: r.faltando, forcar: r.forcavel });
   }
 
   raiz.addEventListener('click', (e) => {
@@ -169,24 +189,28 @@ document.addEventListener('astro:page-load', () => {
     if (!botao) return;
     abridor = botao;
     const c = botao.closest<HTMLElement>('[data-kb-card]')!;
-    const atual = projetoDe(c).macroetapa;
+    const atual = macroDe(c);
     abrir(c, proximaEtapa(atual) ?? atual ?? '00');
   });
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!cartao) return;
-    const p = projetoDe(cartao);
+    const c = cartao;
+    const para = campoPara.value as CodigoMacroetapa;
+    const motivo = campoMotivo.value.trim();
     const forcar = campoForcar.checked;
-    const r = simularMovimento(p, campoPara.value as CodigoMacroetapa, 'kanban', campoMotivo.value, forcar);
+    if (para === macroDe(c)) { mostrarErro(caixaErro, 'O projeto já está nesta etapa. Escolha outra.'); campoPara.focus(); return; }
+    if (forcar && !motivo) { mostrarErro(caixaErro, 'Informe o motivo para forçar.'); linhaForcar.hidden = false; campoMotivo.focus(); return; }
+    const r = await enviar(c, para, motivo, forcar);
+    if (!r) return;
     if (r.ok) {
-      const c = cartao;
       dlg.close();
-      concluir(c, r.projeto, p.macroetapa ?? '');
-      (abridor && document.contains(abridor) ? abridor : c.querySelector<HTMLElement>('a'))?.focus();
+      concluir(c, r);
+      (abridor && document.contains(abridor) ? abridor : raiz.querySelector<HTMLElement>('[data-kb-resumo]'))?.focus();
     } else {
-      mostrarErro(caixaErro, forcar && !campoMotivo.value.trim() ? 'Informe o motivo para forçar.' : r.erro, r.faltando);
-      linhaForcar.hidden = false;
+      mostrarErro(caixaErro, r.erro, r.faltando);
+      linhaForcar.hidden = !r.forcavel && !campoForcar.checked;
       campoMotivo.focus();
     }
   });
@@ -194,22 +218,22 @@ document.addEventListener('astro:page-load', () => {
 
   let arrastado: HTMLElement | null = null;
   raiz.addEventListener('dragstart', (e) => {
-    const c = (e.target as HTMLElement).closest<HTMLElement>('[data-kb-card]');
+    const c = (e.target as HTMLElement).closest<HTMLElement>('[data-kb-card][draggable="true"]');
     if (!c) return;
     arrastado = c;
-    e.dataTransfer?.setData('text/plain', projetoDe(c).id);
+    e.dataTransfer?.setData('text/plain', c.dataset.id ?? '');
     if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
   });
   raiz.addEventListener('dragend', () => {
     arrastado = null;
-    raiz.querySelectorAll('.kb-alvo').forEach((x) => x.classList.remove('kb-alvo'));
+    raiz.querySelectorAll('.kq-alvo').forEach((x) => x.classList.remove('kq-alvo'));
   });
   raiz.addEventListener('dragover', (e) => {
     const col = (e.target as HTMLElement).closest<HTMLElement>('[data-kb-col]');
     if (!arrastado || !col || col.dataset.codigo === 'sem') return;
     e.preventDefault();
-    raiz.querySelectorAll('.kb-alvo').forEach((x) => x !== col && x.classList.remove('kb-alvo'));
-    col.classList.add('kb-alvo');
+    raiz.querySelectorAll('.kq-alvo').forEach((x) => x !== col && x.classList.remove('kq-alvo'));
+    col.classList.add('kq-alvo');
   });
   raiz.addEventListener('drop', (e) => {
     const col = (e.target as HTMLElement).closest<HTMLElement>('[data-kb-col]');
@@ -217,10 +241,10 @@ document.addEventListener('astro:page-load', () => {
     e.preventDefault();
     const c = arrastado;
     arrastado = null;
-    col.classList.remove('kb-alvo');
-    if (projetoDe(c).macroetapa === col.dataset.codigo) return;
+    col.classList.remove('kq-alvo');
+    if (macroDe(c) === col.dataset.codigo) return; // mesma coluna: nada muda
     abridor = null;
-    tentar(c, col.dataset.codigo!);
+    void tentar(c, col.dataset.codigo as CodigoMacroetapa);
   });
 });
 </script>

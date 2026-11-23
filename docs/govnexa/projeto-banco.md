@@ -137,7 +137,7 @@ Cada linha é um PR pequeno, com migração (se houver), rota, tela, testes, atu
 | B1 (feita; no ar desde 18/11/2026) | Página do projeto (leitura) e Localização gravando | Migração 0004: índices do histórico por projeto |
 | B2a (feita no código em 18/11/2026) | Novo projeto gravando (código único, histórico junto, repetição quando dois cadastros calculam o mesmo número) | Migração 0006: índice único do código |
 | B2b (feita no código na E1) | Edição dos campos por revisão, com antes e depois no Histórico. Área e marca de prioritário também no Novo projeto e na importação | Migração 0007 a aplicar |
-| B3 | Kanban e Pendências de etapa gravando (movimentar, portão, motivo) | — |
+| B3 | Kanban e Pendências de etapa gravando (movimentar, portão, motivo) | E7: sem migração (usa `projeto.macroetapa`, `projeto.revisao` e `evento_projeto`) |
 | B4 | Catálogos de órgão, região e tipo | 4.2 |
 | B5 | Reunião semanal e ações | `reuniao`, `reuniao_item`, `acao` |
 | B6 | Sala de guerra | Tabelas `sala…` |
