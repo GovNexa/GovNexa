@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-// E3 (22/11/2026): a tela inicial virou "Projetos prioritários". O painel antigo (farol, prazos, convênios) continua no código
-// (src/components/dashboard/DashboardPrefeito.astro e src/lib/gestao/dashboard.ts) e volta no painel da equipe na E10,
-// que reativa estes testes apontando para a nova rota. Os testes unitários de dashboard.ts continuam no test:dados.
-test.skip(() => true, 'Painel antigo fora da tela inicial desde a E3; reativar na E10 (painel da equipe).');
+// E3 (22/11/2026): a tela inicial virou "Projetos prioritários" e o mapa compacto saiu dela.
+// E10 (22/11/2026): o Painel da equipe (/plataforma/gestao-equipe/) recebeu o painel antigo SEM o mapa. O mapa compacto por área
+// é da E4: estes testes continuam pausados até a E4 definir onde ele fica e reapontar os endereços.
+test.skip(() => true, 'Mapa compacto por área é da E4; o Painel da equipe (E10) não tem mapa.');
 
 const emTelaCheia = (mapa: import('@playwright/test').Locator) => mapa.evaluate((element) => element.matches(':fullscreen'));
 

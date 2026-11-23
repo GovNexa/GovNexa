@@ -1,5 +1,11 @@
 # Changelog
 
+## E10 · Painel da equipe e relatório de inconsistências (22/11/2026)
+- Novo Painel da equipe (Gestão): recebe o que saiu da tela do prefeito na E3 (indicadores com farol e situação, prazos da Lei, entregas, onde está parado, decisões pendentes, convênios e valores por região) e os 5 primeiros alertas da central. Sem mapa: o mapa por área é da E4.
+- Novo relatório Inconsistências de dados, por órgão ou geral: 10 regras (sem órgão, sem área, sem valor, sem macroetapa, datas previstas faltando, datas fora de ordem, macroetapa vencida, SEI inválido, sem localização e outras pendências da carga), contagem por regra e por órgão, link para a aba Governança da ficha, impressão em A4 e CSV protegido contra fórmula.
+- As duas telas são só leitura e só para administrador, gestor e editor; o perfil leitura vê "Sem permissão".
+- Os testes de tela do painel antigo (pausados na E3) voltaram, apontando para o Painel da equipe; os do mapa compacto continuam pausados para a E4.
+
 ## E7 · Kanban e Pendências gravando; filtros e saída do marco (22/11/2026)
 - Kanban com cards enxutos: nome, órgão e a previsão de saída da etapa (aba PIPELINE); sem valor e sem farol; mais cards por coluna.
 - Sem a coluna Conclusão: o quadro vai até Execução e informa quantos projetos estão concluídos (ficam na Carteira e no Histórico).

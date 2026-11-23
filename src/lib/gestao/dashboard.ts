@@ -62,12 +62,12 @@ export function parametrosDaUrl(url: URL, validos: ValoresValidos): { filtros: F
   const cartao = url.searchParams.get('cartao'); const projeto = url.searchParams.get('projeto');
   return { filtros, ...(IDS_CARTOES.includes(cartao as IdCartao) ? { cartao: cartao as IdCartao } : {}), ...(projeto && validos.projetos?.includes(projeto) ? { projeto } : {}) };
 }
-export function urlCom(filtros: Filtros, cartao?: IdCartao, projeto?: string): string {
+export function urlCom(filtros: Filtros, cartao?: IdCartao, projeto?: string, base = '/plataforma/'): string {
   const q = new URLSearchParams();
   for (const k of ['regiao', 'orgao', 'prioridade', 'compromisso'] as const) if (filtros[k]) q.set(k, filtros[k]);
   if (cartao && IDS_CARTOES.includes(cartao)) q.set('cartao', cartao);
   if (projeto) q.set('projeto', projeto);
-  return `/plataforma/${q.size ? `?${q}` : ''}`;
+  return `${base}${q.size ? `?${q}` : ''}`;
 }
 const cobertura = (l: (number | null)[]): Cobertura => ({ comValor: l.filter(v => v !== null).length, total: l.length });
 const soma = (l: (number | null)[]): number | null => {

@@ -1,10 +1,8 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-// E3 (22/11/2026): a tela inicial virou "Projetos prioritários". O painel antigo (farol, prazos, convênios) continua no código
-// (src/components/dashboard/DashboardPrefeito.astro e src/lib/gestao/dashboard.ts) e volta no painel da equipe na E10,
-// que reativa estes testes apontando para a nova rota. Os testes unitários de dashboard.ts continuam no test:dados.
-test.skip(() => true, 'Painel antigo fora da tela inicial desde a E3; reativar na E10 (painel da equipe).');
+// E10 (22/11/2026): o painel que saiu da tela do prefeito na E3 é o Painel da equipe (Gestão), sem o mapa (mapa por área: E4).
+const PAINEL = '/plataforma/gestao-equipe/';
 
 const tamanhos = [
   [1280, 720], [1366, 768], [1920, 1080], [2560, 1440], [3840, 2160],
@@ -12,11 +10,11 @@ const tamanhos = [
 ];
 
 test('dashboard apresenta os dez indicadores calculados', async ({ page }) => {
-  await page.goto('/plataforma/');
+  await page.goto(PAINEL);
   const cartoes = page.locator('[data-cartao]');
   await expect(cartoes).toHaveCount(10);
   for (const cartao of await cartoes.all()) {
-    await expect(cartao.locator('.pd-numero')).toHaveText(/^(Regular|Com pendência|—|(?:R\$\s*)?\d[\d.,]*(?:\s*(?:mil|mi|bi))?%?)$/);
+    await expect(cartao.locator('.pd-numero')).toHaveText(/^(Regular|Com pend\u00eancia|\u2014|(?:R\$\s*)?\d[\d.,]*(?:\s*(?:mil|mi|bi))?%?)$/);
     await expect(cartao.locator('.pd-situacao')).toBeVisible();
   }
 });
@@ -24,7 +22,7 @@ test('dashboard apresenta os dez indicadores calculados', async ({ page }) => {
 test('correção visual: valores em uma linha, grade ampla e cartões dentro da janela', async ({ page }) => {
   for (const [width, height] of [[1366, 768], [1920, 1080], [3840, 2160]]) {
     await page.setViewportSize({ width, height });
-    await page.goto('/plataforma/');
+    await page.goto(PAINEL);
     await page.evaluate(() => document.querySelector('.platform')?.classList.add('collapsed'));
     const medidas = await page.locator('.pd-cartoes').evaluate((grade) => ({
       largura: grade.getBoundingClientRect().width,
@@ -51,7 +49,7 @@ test('correção visual: valores em uma linha, grade ampla e cartões dentro da 
 test('textos brasileiros e quebras do painel sem sobreposição', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 1080 });
   for (const id of ['carteira', 'execucao', 'contratacao', 'entregas', 'atencao', 'falta_financiar', 'convenios', 'convenios_risco', 'cauc', 'oportunidades']) {
-    await page.goto(`/plataforma/?cartao=${id}`);
+    await page.goto(`${PAINEL}?cartao=${id}`);
     expect(await page.locator('.prefeito-dashboard').innerText()).not.toMatch(/\d+\.\d+%|\d{4}-\d{2}-\d{2}/);
     for (const linha of await page.locator('.pd-barras-painel>li').all()) {
       const label = await linha.locator('.pd-barra-label').boundingBox();
@@ -64,7 +62,7 @@ test('textos brasileiros e quebras do painel sem sobreposição', async ({ page 
 });
 
 test('filtro de região atualiza sem recarregar e mantém o foco', async ({ page }) => {
-  await page.goto('/plataforma/');
+  await page.goto(PAINEL);
   await page.evaluate(() => { (window as Window & { __semRecarregar?: number }).__semRecarregar = 1; });
   const opcoes = await page.locator('select[name="regiao"] option').evaluateAll((items) =>
     items.map((item) => (item as HTMLOptionElement).value).filter(Boolean),
@@ -84,7 +82,7 @@ test('filtro de região atualiza sem recarregar e mantém o foco', async ({ page
       mudou = true;
       const numero = page.locator('[data-cartao="carteira"] .pd-numero');
       await expect(numero).toHaveClass(/pd-mudou/);
-      await expect(numero).toHaveAttribute('data-direcao', /^(↑|↓)$/);
+      await expect(numero).toHaveAttribute('data-direcao', /^(\u2191|\u2193)$/);
       break;
     }
   }
@@ -98,7 +96,7 @@ test('filtro de região atualiza sem recarregar e mantém o foco', async ({ page
 });
 
 test('trocas rápidas de região mantêm apenas o último filtro', async ({ page }) => {
-  await page.goto('/plataforma/');
+  await page.goto(PAINEL);
   const regioes = await page.locator('select[name="regiao"] option').evaluateAll((items) =>
     items.map((item) => (item as HTMLOptionElement).value).filter(Boolean),
   );
@@ -113,7 +111,7 @@ test('trocas rápidas de região mantêm apenas o último filtro', async ({ page
 });
 
 test('painel abre por URL e fecha com Escape, botão e voltar do navegador', async ({ page }) => {
-  await page.goto('/plataforma/');
+  await page.goto(PAINEL);
   await page.locator('[data-cartao="carteira"]').click();
   await expect(page).toHaveURL(/cartao=carteira/);
   await expect(page.getByRole('dialog')).toBeVisible();
@@ -126,9 +124,9 @@ test('painel abre por URL e fecha com Escape, botão e voltar do navegador', asy
   await page.getByRole('button', { name: 'Fechar' }).click();
   await expect(page).not.toHaveURL(/cartao=/);
 
-  await page.goto('/plataforma/');
+  await page.goto(PAINEL);
   const regiao = await page.locator('select[name="regiao"] option').nth(1).getAttribute('value');
-  await page.goto(`/plataforma/?regiao=${encodeURIComponent(regiao || '')}`);
+  await page.goto(`${PAINEL}?regiao=${encodeURIComponent(regiao || '')}`);
   await page.locator('[data-cartao="carteira"]').click();
   await expect(page).toHaveURL(/cartao=carteira/);
   await expect(page.getByRole('dialog')).toBeVisible();
@@ -141,14 +139,14 @@ test('painel abre por URL e fecha com Escape, botão e voltar do navegador', asy
 });
 
 test('item da carteira abre a ficha e voltar preserva filtros e cartão', async ({ page }) => {
-  await page.goto('/plataforma/');
+  await page.goto(PAINEL);
   const regiao = await page.locator('select[name="regiao"] option').nth(1).getAttribute('value');
-  await page.goto(`/plataforma/?regiao=${encodeURIComponent(regiao || '')}`);
+  await page.goto(`${PAINEL}?regiao=${encodeURIComponent(regiao || '')}`);
   await page.locator('[data-cartao="carteira"]').click();
   const ficha = page.locator('.pd-itens a').first();
   await expect(ficha).toBeVisible();
   await ficha.click();
-  await expect(page).toHaveURL(/\/plataforma\/projetos-carteira\/\?q=/);
+  await expect(page).toHaveURL(/\/plataforma\/projeto\/P-[A-Za-z0-9_-]+\/\?volta=/);
   await page.goBack();
   const retorno = new URL(page.url());
   expect(retorno.searchParams.get('regiao')).toBe(regiao);
@@ -159,7 +157,7 @@ test('item da carteira abre a ficha e voltar preserva filtros e cartão', async 
 test('dashboard é responsivo, sem rolagem horizontal e com alvos de toque adequados', async ({ page }) => {
   for (const [width, height] of tamanhos) {
     await page.setViewportSize({ width, height });
-    await page.goto('/plataforma/');
+    await page.goto(PAINEL);
     const cartoes = page.locator('[data-cartao]');
     await expect(cartoes).toHaveCount(10);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${width}x${height}`).toBeTruthy();
@@ -171,7 +169,7 @@ test('dashboard é responsivo, sem rolagem horizontal e com alvos de toque adequ
 });
 
 test('dashboard mantém acessibilidade WCAG 2.2 AA nos temas claro e escuro', async ({ page }) => {
-  await page.goto('/plataforma/');
+  await page.goto(PAINEL);
   for (const tema of ['light', 'dark']) {
     await page.evaluate((value) => { document.documentElement.dataset.theme = value; }, tema);
     const resultados = await new AxeBuilder({ page })
@@ -182,4 +180,32 @@ test('dashboard mantém acessibilidade WCAG 2.2 AA nos temas claro e escuro', as
       `dashboard ${tema}: ${JSON.stringify(resultados.violations)}`,
     ).toEqual([]);
   }
+});
+
+test('painel da equipe: farol, onde está parado, decisões pendentes e alertas, sem mapa', async ({ page }) => {
+  await page.goto(PAINEL);
+  await expect(page.locator('h1')).toHaveText('Painel da equipe');
+  await expect(page.locator('.side-links a[href="/plataforma/gestao-equipe/"]')).toHaveAttribute('aria-current', 'page');
+  await expect(page.locator('[data-cartao="atencao"] .pd-situacao')).toBeVisible();
+  for (const secao of ['pd-parado', 'pd-decisoes', 'pd-alertas-central']) {
+    await expect(page.locator(`#${secao}`)).toBeVisible();
+    await expect(page.locator(`section:has(> #${secao}) :is(.pd-lista li, .pd-vazio)`).first()).toBeVisible();
+  }
+  await expect(page.locator('[data-pd-alertas] a[href="/plataforma/gestao-alertas/"]')).toHaveText('Abrir a central de alertas');
+  await expect(page.locator('[data-mapa-obras]')).toHaveCount(0);
+  await expect(page.locator('form.pd-filtros')).toHaveAttribute('action', PAINEL);
+});
+
+test('painel da equipe: decisão pendente abre a ficha e o X volta ao painel', async ({ page }) => {
+  await page.goto(PAINEL);
+  const decisao = page.locator('section:has(> #pd-decisoes) .pd-lista a').first();
+  await expect(decisao).toBeVisible();
+  await decisao.click();
+  await page.waitForURL((u) => /^\/plataforma\/projeto\/P-[A-Za-z0-9_-]+\/$/.test(u.pathname));
+  const fechar = page.locator('.pj-contexto a');
+  await expect(fechar).toHaveText('Fechar e voltar ao painel da equipe');
+  await expect(fechar).toHaveAttribute('href', PAINEL);
+  await fechar.click();
+  await page.waitForURL((u) => u.pathname === PAINEL);
+  await expect(page.locator('h1')).toHaveText('Painel da equipe');
 });

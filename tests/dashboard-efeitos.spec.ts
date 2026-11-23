@@ -1,15 +1,13 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
-// E3 (22/11/2026): a tela inicial virou "Projetos prioritários". O painel antigo (farol, prazos, convênios) continua no código
-// (src/components/dashboard/DashboardPrefeito.astro e src/lib/gestao/dashboard.ts) e volta no painel da equipe na E10,
-// que reativa estes testes apontando para a nova rota. Os testes unitários de dashboard.ts continuam no test:dados.
-test.skip(() => true, 'Painel antigo fora da tela inicial desde a E3; reativar na E10 (painel da equipe).');
+// E10 (22/11/2026): o painel que saiu da tela do prefeito na E3 é o Painel da equipe (Gestão), sem o mapa (mapa por área: E4).
+const PAINEL = '/plataforma/gestao-equipe/';
 
 for (const reducedMotion of ['reduce', 'no-preference'] as const) {
   test(`valores finais com movimento ${reducedMotion}`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion });
-    await page.goto('/plataforma/');
+    await page.goto(PAINEL);
     if (reducedMotion === 'no-preference') await page.waitForTimeout(1500);
     for (const numero of await page.locator('.pd-numero').all()) {
       await expect(numero).toHaveText((await numero.getAttribute('data-final'))!);
@@ -17,7 +15,7 @@ for (const reducedMotion of ['reduce', 'no-preference'] as const) {
   });
 }
 test('alerta abre painel e cálculo aparece no hover e detalhe', async ({ page }) => {
-  await page.goto('/plataforma/');
+  await page.goto(PAINEL);
   const critico = page.locator('.pd-cartao.pd-situacao-critico').first();
   await expect(critico.locator('[data-indicador="critico"]')).toBeVisible();
   await critico.hover();
@@ -28,12 +26,12 @@ test('alerta abre painel e cálculo aparece no hover e detalhe', async ({ page }
   await expect(page.getByRole('dialog').getByRole('heading', { name: 'Como é calculado' })).toBeVisible();
 });
 test('atualização destaca mudança e mantém dados na falha', async ({ page }) => {
-  await page.goto('/plataforma/');
+  await page.goto(PAINEL);
   await page.waitForTimeout(1500);
   const numero = page.locator('[data-cartao="carteira"] .pd-numero');
   const anterior = Number(await numero.getAttribute('data-valor'));
   // Resposta sintética restrita ao teste: nunca gravada como dado de exemplo.
-  await page.route('**/plataforma/', async route => {
+  await page.route('**/plataforma/gestao-equipe/', async route => {
     const response = await route.fetch();
     const html = await response.text();
     const alterado = await page.evaluate(({ html, valor }) => {
@@ -48,14 +46,14 @@ test('atualização destaca mudança e mantém dados na falha', async ({ page })
   await expect(numero).toHaveText(String(anterior + 1));
   await expect(numero).toHaveClass(/pd-mudou/);
   await expect(numero).toHaveAttribute('data-direcao', '↑');
-  await page.unroute('**/plataforma/');
-  await page.route('**/plataforma/', route => route.abort());
+  await page.unroute('**/plataforma/gestao-equipe/');
+  await page.route('**/plataforma/gestao-equipe/', route => route.abort());
   await page.getByRole('button', { name: 'Atualizar agora' }).click();
   await expect(page.locator('[data-atualizacao]')).toHaveText('Sem conexão, tentando de novo');
   await expect(numero).toHaveText(String(anterior + 1));
 });
 test('axe nos dois temas', async ({ page }) => {
-  await page.goto('/plataforma/');
+  await page.goto(PAINEL);
   for (const theme of ['light', 'dark']) {
     await page.evaluate(t => document.documentElement.dataset.theme = t, theme);
     const resultado = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
@@ -66,7 +64,7 @@ for (const tv of [{ width: 3840, height: 2160, scale: 1 }, { width: 1920, height
   test(`TV ${tv.width} escala ${tv.scale}`, async ({ browser }) => {
     const context = await browser.newContext({ viewport: tv, deviceScaleFactor: tv.scale });
     const page = await context.newPage();
-    await page.goto('http://127.0.0.1:' + (process.env.PLAYWRIGHT_PORT || '4321') + '/plataforma/');
+    await page.goto('http://127.0.0.1:' + (process.env.PLAYWRIGHT_PORT || '4321') + PAINEL);
     await page.getByRole('button', { name: 'Apresentar', exact: true }).click();
     await expect.poll(() => page.evaluate(() => !!document.fullscreenElement)).toBeTruthy();
     const sair = page.getByRole('button', { name: 'Sair da apresentação', exact: true });
