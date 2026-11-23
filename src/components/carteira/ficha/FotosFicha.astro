@@ -1,0 +1,86 @@
+---
+// Aba Fotos da ficha (E9): enviar (perfil com editar_projeto), ver em grade com ampliação e remover (lógica). Separada da Localização.
+// Gravações pelas rotas /plataforma/fotos-projeto/ (envio e remoção entram no Histórico). Sem JavaScript, a miniatura abre a foto.
+import '../../../styles/fotos.css';
+import { dataBr, dataHoraBr } from '../../../lib/datas.ts';
+import { DATA_MINIMA, LIMITE_LEGENDA } from '../../../lib/fotos/regras.ts';
+import { mensagemFoto } from '../../../lib/fotos/mensagens.ts';
+import type { Foto } from '../../../lib/fotos/repositorio.ts';
+interface Props { projetoId: string; fotos: Foto[]; total: number; podeGerir: boolean; aviso: string | null; codigo: string | null; volta: string | null; hoje: string }
+const { projetoId, fotos, total, podeGerir, aviso, codigo, volta, hoje } = Astro.props;
+const msg = mensagemFoto(codigo);
+const q = new URLSearchParams({ projeto: projetoId });
+if (volta) q.set('volta', volta);
+const acaoEnviar = `/plataforma/fotos-projeto/enviar/?${q}`;
+const acaoRemover = (id: string) => `/plataforma/fotos-projeto/remover/${id}/?${q}`;
+const urlFoto = (id: string) => `/plataforma/fotos-projeto/foto/${id}/`;
+const texto = (f: Foto) => f.legenda ?? 'Foto sem legenda';
+const resumo = total === 0 ? 'Nenhuma foto enviada.' : `${total} ${total === 1 ? 'foto' : 'fotos'}${total > fotos.length ? ` · mostrando as ${fotos.length} mais recentes` : ''}`;
+---
+<div class="ft" data-fotos-ficha>
+  <p data-fp-fotos>{resumo}</p>
+  {msg && <p class={msg.ok ? 'ft-ok' : 'ft-erro'} role="status" data-ft-mensagem>{msg.texto}</p>}
+  <div class="pj-so-pagina">
+    {podeGerir ? (
+      <form class="ft-envio" method="post" action={acaoEnviar} enctype="multipart/form-data" data-ft-envio>
+        <div class="ft-campo"><label for="ft-arquivo">Foto da obra</label>
+          <input id="ft-arquivo" name="foto" type="file" required accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" /></div>
+        <div class="ft-campo"><label for="ft-legenda">Legenda</label>
+          <input id="ft-legenda" name="legenda" type="text" maxlength={LIMITE_LEGENDA} placeholder="Ex.: fundação concluída" /></div>
+        <div class="ft-campo ft-campo-data"><label for="ft-data">Data da foto</label>
+          <input id="ft-data" name="data" type="date" required min={DATA_MINIMA} max={hoje} value={hoje} /></div>
+        <button class="button primary" type="submit">Enviar foto</button>
+        <small class="muted">JPG, PNG ou WEBP, até 10 MB, uma foto por envio. A foto pode guardar o local onde foi tirada (GPS do celular): envie só fotos da obra.</small>
+      </form>
+    ) : <p class="muted" data-ft-so-ver>{aviso}</p>}
+  </div>
+  {fotos.length > 0 && (
+    <ul class="ft-grade" data-ft-grade>
+      {fotos.map((f) => (
+        <li class="ft-item" data-ft-item data-foto={f.id}>
+          <a class="ft-ampliar" href={urlFoto(f.id)} data-ft-ampliar data-legenda={texto(f)} data-data={f.tirada_em ? dataBr(f.tirada_em) : ''}>
+            <img src={urlFoto(f.id)} alt={texto(f)} loading="lazy" decoding="async" width="320" height="240" />
+          </a>
+          <div class="ft-legenda"><strong data-ft-legenda>{texto(f)}</strong>
+            <small class="muted" data-ft-data>{f.tirada_em ? `Foto de ${dataBr(f.tirada_em)}` : 'Sem data'} · enviada em {dataHoraBr(f.enviada_em)}</small></div>
+          {podeGerir && <form class="pj-so-pagina" method="post" action={acaoRemover(f.id)} data-ft-remover>
+            <button class="button secondary" type="submit" aria-label={`Remover a foto: ${texto(f)}`}>Remover</button></form>}
+        </li>
+      ))}
+    </ul>
+  )}
+  <dialog class="ft-dialogo pj-so-pagina" data-ft-dialogo aria-labelledby="ft-dialogo-titulo">
+    <figure><img data-ft-dialogo-img alt="" /><figcaption><strong id="ft-dialogo-titulo" data-ft-dialogo-legenda></strong> <span data-ft-dialogo-data></span></figcaption></figure>
+    <form method="dialog"><button class="button secondary" type="submit" data-ft-fechar>Fechar</button></form>
+  </dialog>
+</div>
+<script>
+// Ampliação num diálogo do navegador e confirmação antes de remover. Textos só por textContent (nada vira HTML).
+function iniciarFotosFicha(): void {
+  const raiz = document.querySelector<HTMLElement>('[data-fotos-ficha]');
+  if (!raiz || raiz.dataset.fotosProntas) return;
+  raiz.dataset.fotosProntas = 'sim';
+  const dialogo = raiz.querySelector<HTMLDialogElement>('[data-ft-dialogo]');
+  const img = dialogo?.querySelector<HTMLImageElement>('[data-ft-dialogo-img]');
+  const legenda = dialogo?.querySelector<HTMLElement>('[data-ft-dialogo-legenda]');
+  const data = dialogo?.querySelector<HTMLElement>('[data-ft-dialogo-data]');
+  raiz.addEventListener('click', (evento) => {
+    const link = evento.target instanceof Element ? evento.target.closest<HTMLAnchorElement>('a[data-ft-ampliar]') : null;
+    if (!link || !dialogo || !img || !legenda || !data || typeof dialogo.showModal !== 'function') return;
+    if (evento.button !== 0 || evento.metaKey || evento.ctrlKey || evento.shiftKey || evento.altKey) return;
+    evento.preventDefault();
+    img.src = link.getAttribute('href') ?? '';
+    img.alt = link.dataset.legenda ?? '';
+    legenda.textContent = link.dataset.legenda ?? '';
+    data.textContent = link.dataset.data ? `· Foto de ${link.dataset.data}` : '';
+    dialogo.showModal();
+  });
+  dialogo?.addEventListener('click', (evento) => { if (evento.target === dialogo) dialogo.close(); });
+  dialogo?.addEventListener('close', () => img?.removeAttribute('src'));
+  raiz.addEventListener('submit', (evento) => {
+    const form = evento.target;
+    if (form instanceof HTMLFormElement && form.matches('[data-ft-remover]') && !confirm('Remover esta foto da ficha? O arquivo fica guardado para auditoria.')) evento.preventDefault();
+  });
+}
+document.addEventListener('astro:page-load', iniciarFotosFicha);
+</script>

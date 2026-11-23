@@ -8,6 +8,20 @@
 - Pendências das revisões: o mapa da Gestão usa os nomes de área do catálogo da prefeitura; os atalhos de localização vão para a aba Localização da ficha (rótulo "Localização"); saiu o componente antigo `LocalizacaoProjeto.astro`; o CSV protege também o sinal de fórmula depois de espaços; teste do 403 do CSV pela própria rota; `tests/dashboard-mapa.spec.ts` saiu (o mapa compacto está na tela do prefeito e já é testado em `tests/mapa-area.spec.ts`).
 - Testes de interface ganharam um servidor local com um usuário fictício de perfil leitura (projeto `leitura` do Playwright).
 
+## E9 · Fotos da obra na ficha do projeto (22/11/2026)
+- Aba Fotos da ficha: enviar uma foto por vez (JPG, PNG ou WEBP, até 10 MB) com legenda e data da foto, ver em grade com ampliação e remover (remoção lógica: o arquivo fica guardado).
+- Envio e remoção entram no Histórico do projeto no mesmo lote da gravação.
+- Mesmo padrão de segurança dos documentos: chave do R2 gerada pelo sistema com prefixo próprio por prefeitura e projeto, tipo conferido pelo conteúdo (SVG recusado), origem, perfil, tamanho e limite de requisições antes de ler o pedido; até 60 fotos por hora por pessoa e 200 por projeto.
+- Envio e remoção: administrador, gestor e editor; o perfil leitura só vê.
+- Migração 0008: acrescenta `removida_por`, `sha256` e índices à tabela `projeto_foto` (criada vazia na 0001); não altera linha existente.
+
+## E8 · Busca de endereço na localização (22/11/2026)
+- Na aba Localização da ficha e no Novo projeto, quem pode gravar procura por rua, endereço completo ou só bairro; os resultados aparecem no mapa e numa lista.
+- Escolher um resultado só mostra o local; "Usar este local" coloca o ponto (com o endereço preenchido) e só o botão Salvar grava, pela mesma rota da B1, com o Histórico. "Descartar" não muda nada.
+- Busca pelo servidor no OpenStreetMap (Nominatim, decisão D4): endereço fixo, Brasil e caixa de Goiânia mais o entorno, até 5 resultados, tempo-limite de 5 s, 1 pedido por segundo, cache e limite por pessoa; resultado fora da área aceita é descartado; o texto da busca não vai a log.
+- Rota nova `POST /plataforma/localizacao/buscar/` (só administrador, gestor e editor) com origem, perfil, formato, limite e tamanho conferidos antes de ler o pedido. Não grava nada.
+- Na máquina local, respostas fictícias: os testes nunca chamam o serviço real. Sem migração e sem mudança no `wrangler.jsonc` e no `_headers`.
+
 ## E10 · Painel da equipe e relatório de inconsistências (22/11/2026)
 - Novo Painel da equipe (Gestão): recebe o que saiu da tela do prefeito na E3 (indicadores com farol e situação, prazos da Lei, entregas, onde está parado, decisões pendentes, convênios e valores por região) e os 5 primeiros alertas da central. Sem mapa: o mapa por área é da E4.
 - Novo relatório Inconsistências de dados, por órgão ou geral: 10 regras (sem órgão, sem área, sem valor, sem macroetapa, datas previstas faltando, datas fora de ordem, macroetapa vencida, SEI inválido, sem localização e outras pendências da carga), contagem por regra e por órgão, link para a aba Governança da ficha, impressão em A4 e CSV protegido contra fórmula.

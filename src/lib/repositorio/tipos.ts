@@ -65,4 +65,6 @@ export interface RepositorioProjetos {
   ): Promise<'ok' | 'igual' | 'inexistente' | 'conflito'>;
   /** Documentos de projeto (só no D1; ausente nos demais repositórios). */
   documentos?: import('../documentos/repositorio.ts').RepositorioDocumentos;
+  /** Fotos da obra (E9; só no D1; ausente nos demais repositórios). */
+  fotos?: import('../fotos/repositorio.ts').RepositorioFotos;
 }
