@@ -4,6 +4,7 @@
 import { spawnSync } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
+import { resumirErro } from './lib/resumir-erro.ts';
 
 const [nome, script, ...args] = process.argv.slice(2);
 if (!nome || !script) {
@@ -24,14 +25,8 @@ for (let i = 1; i <= TENTATIVAS && !ok; i++) {
   if (r.status === 0) ok = true;
   else {
     const saida = `${r.stderr ?? ''}${r.error ? String(r.error) : ''}`.trim();
-    // Guarda só o essencial do erro: a linha "Error: ..." (ou as últimas linhas), sem caminhos longos nem segredos
-    const linhas = saida.split('\n').map((l) => l.trim()).filter(Boolean);
-    const bruta = linhas.find((l) => /error|erro|timeout|HTTP \d{3}/i.test(l)) ?? linhas.slice(-1)[0] ?? `saiu com código ${r.status}`;
-    // Não grava caminhos de disco (nem do computador, nem do servidor): só o motivo
-    erro = bruta
-      .replace(/[A-Za-z]:\\[^'"\s]*/g, '<caminho>')
-      .replace(/\/(home|Users|tmp|opt)\/[^'"\s]*/g, '<caminho>')
-      .slice(0, 400);
+    // Guarda só o essencial do erro (a linha "Error: ...", nunca o trecho de código que o Node imprime antes), sem caminhos nem segredos.
+    erro = resumirErro(saida, r.status);
     console.error(`[${nome}] tentativa ${i}/${TENTATIVAS} falhou: ${erro}`);
     if (i < TENTATIVAS) await new Promise((fim) => setTimeout(fim, ESPERA_S * 1000));
   }

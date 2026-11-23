@@ -2,10 +2,10 @@
  "proveniencia": {
   "fonte": "Tesouro Nacional — CAUC (Tesouro Transparente, CSV aberto de municípios)",
   "url_origem": "https://www.tesourotransparente.gov.br/ckan/dataset/72b5f371-0c35-4613-8076-c99c821a6410/resource/07af297a-5e59-494a-a88a-55ddfd2f4b01/download/relatorio-situacao-de-varios-entes---municipios---uf-todas---abrangencia-1.csv",
-  "data_referencia": "09/11/2026",
-  "data_coleta": "2026-11-10T00:17:32.038Z",
-  "id_carga": "cauc-2026-11-09",
-  "hash_arquivo": "1c4de7d5946ceda2fc9f2e14e650833a6a348ce4d1e3e7cec25445282829c6aa"
+  "data_referencia": "19/11/2026",
+  "data_coleta": "2026-11-23T19:03:52.176Z",
+  "id_carga": "cauc-2026-11-19",
+  "hash_arquivo": "2cd722aab106ad67996e60daa8c6aaee9eef1271b67372974aa211fd9200702e"
  },
  "municipio": {
   "codigo_ibge": 5208707,
@@ -17,37 +17,37 @@
   {
    "item": "1.1",
    "descricao": "Regularidade quanto a Tributos, a Contribuições Previdenciárias Federais e à Dívida Ativa da União",
-   "valor_original": "Desabilitado",
-   "situacao": "indisponivel",
-   "validade": null
+   "valor_original": "28/11/26",
+   "situacao": "regular",
+   "validade": "2026-11-28"
   },
   {
    "item": "1.2",
    "descricao": "Regularidade no pagamento de precatórios judiciais",
-   "valor_original": "09/11/26",
+   "valor_original": "19/11/26",
    "situacao": "regular",
-   "validade": "2026-11-09"
+   "validade": "2026-11-19"
   },
   {
    "item": "1.3",
    "descricao": "Regularidade quanto a Contribuições para o FGTS",
-   "valor_original": "09/11/26",
+   "valor_original": "19/11/26",
    "situacao": "regular",
-   "validade": "2026-11-09"
+   "validade": "2026-11-19"
   },
   {
    "item": "1.4",
    "descricao": "Regularidade em relação à Adimplência Financeira em Empréstimos e Financiamentos concedidos pela União",
-   "valor_original": "09/11/26",
+   "valor_original": "19/11/26",
    "situacao": "regular",
-   "validade": "2026-11-09"
+   "validade": "2026-11-19"
   },
   {
    "item": "1.5",
    "descricao": "Regularidade perante o Poder Público Federal",
-   "valor_original": "09/11/26",
+   "valor_original": "19/11/26",
    "situacao": "regular",
-   "validade": "2026-11-09"
+   "validade": "2026-11-19"
   },
   {
    "item": "2.1.1",
@@ -115,23 +115,23 @@
   {
    "item": "3.4.1",
    "descricao": "Encaminhamento da Matriz de Saldos Contábeis – Encaminhamento da Matriz de Saldos Contábeis Mensal",
-   "valor_original": "09/11/26",
+   "valor_original": "19/11/26",
    "situacao": "regular",
-   "validade": "2026-11-09"
+   "validade": "2026-11-19"
   },
   {
    "item": "3.4.2",
    "descricao": "Encaminhamento da Matriz de Saldos Contábeis – Encaminhamento da Matriz de Saldos Contábeis de Encerramento",
-   "valor_original": "09/11/26",
+   "valor_original": "19/11/26",
    "situacao": "regular",
-   "validade": "2026-11-09"
+   "validade": "2026-11-19"
   },
   {
    "item": "3.5",
    "descricao": "Encaminhamento de Informações para o Cadastro da Dívida Pública - CDP",
-   "valor_original": "09/11/26",
+   "valor_original": "19/11/26",
    "situacao": "regular",
-   "validade": "2026-11-09"
+   "validade": "2026-11-19"
   },
   {
    "item": "3.6",
@@ -157,9 +157,9 @@
   {
    "item": "4.2",
    "descricao": "Regularidade Previdenciária",
-   "valor_original": "09/11/26",
+   "valor_original": "19/11/26",
    "situacao": "regular",
-   "validade": "2026-11-09"
+   "validade": "2026-11-19"
   },
   {
    "item": "5.1",
