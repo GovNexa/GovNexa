@@ -61,7 +61,7 @@ const idEnc = encodeURIComponent(projeto.id);
 const consultaFicha = new URLSearchParams(Astro.url.searchParams);
 consultaFicha.set('aba', 'cronograma');
 const aquiFicha = `${Astro.url.pathname}?${consultaFicha.toString()}`;
-const podeCriarCronograma = usuarioPode(Astro.locals.usuario, 'editar_projeto') && !!repo.criarCronograma;
+const podeCriarCronograma = usuarioPode(Astro.locals.usuario, 'editar_projeto') && !!repo.criarCronograma && !!repo.podeGravar;
 ---
 <Platform title="Projeto" slug="projetos-carteira">
   <p slot="contexto" class="pj-contexto fp-contexto"><a class="fp-fechar" href={volta ?? VOLTA_PADRAO} data-ficha-fechar><Icon name="x" size={18} /><span>{rotuloVolta(volta)}</span></a></p>

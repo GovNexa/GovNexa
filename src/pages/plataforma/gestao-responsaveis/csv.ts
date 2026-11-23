@@ -17,7 +17,7 @@ export const GET: APIRoute = ({ locals, url }) => {
   const nomes = new Map(carregarCarteira().projetos.map((p) => [p.id, p.nome]));
   const painel = montarPainel(carregarCronogramas().cronogramas, hoje, nomes, url.searchParams);
   // A marca inicial (BOM) faz o Excel abrir o arquivo em UTF-8; o código-fonte continua sem BOM.
-  return new Response(`﻿${paraCsvResponsaveis(painel.lista)}`, {
+  return new Response(`\uFEFF${paraCsvResponsaveis(painel.lista)}`, {
     headers: {
       ...SEM_CACHE,
       'Content-Type': 'text/csv; charset=utf-8',

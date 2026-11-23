@@ -145,6 +145,6 @@ test('CSV do painel: 200, text/csv e o cabeçalho certo', async ({ request }) =>
   const r = await request.get('/plataforma/gestao-responsaveis/csv/');
   expect(r.status()).toBe(200);
   expect(r.headers()['content-type']).toContain('text/csv');
-  const texto = (await r.text()).replace(/^﻿/, '');
+  const texto = (await r.text()).replace(/^\uFEFF/, '');
   expect(texto.split('\r\n')[0]).toBe(HEADER_CSV.split(';').map((c) => `"${c}"`).join(';'));
 });

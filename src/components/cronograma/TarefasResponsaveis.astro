@@ -222,6 +222,8 @@ document.addEventListener('astro:page-load', () => {
       if (dialogo!.open) {
         botaoSalvar.hidden = true;
         botaoRecarregar.hidden = false;
+        // Revisão E13: se a pessoa cancelar o diálogo depois do conflito, a página volta a aceitar cliques.
+        dialogo!.addEventListener('close', () => travar(false), { once: true });
         return;
       }
     }

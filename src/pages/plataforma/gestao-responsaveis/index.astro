@@ -7,6 +7,7 @@ import { carregarCarteira } from '../../../lib/carteira/carga.ts';
 import { carregarCronogramas } from '../../../lib/cronograma/carga.ts';
 import { ROTA_RESPONSAVEIS, urlCronograma } from '../../../lib/cronograma/navegacao.ts';
 import { montarPainel, ROTULO_SEM_AREA, ROTULO_SEM_PESSOA, SEM, situacaoDoItem, urlCsvResponsaveis, urlPainel } from '../../../lib/cronograma/painel-responsaveis.ts';
+import { chaveNome } from '../../../lib/cronograma/responsaveis.ts';
 import { dataBr } from '../../../lib/datas.ts';
 import { municipioAtivo } from '../../../lib/municipio-ativo.ts';
 import { usuarioPode } from '../../../lib/usuarios/index.ts';
@@ -27,7 +28,7 @@ const escopo = painel
   : '';
 const volta = painel ? urlPainel(painel.filtros) : ROTA_RESPONSAVEIS;
 const comAlerta = painel ? painel.lista.filter((i) => i.alerta !== null).length : 0;
-const nPessoas = painel ? new Set(painel.lista.map((i) => (i.responsavel ?? SEM).toLocaleLowerCase('pt-BR'))).size : 0;
+const nPessoas = painel ? new Set(painel.lista.map((i) => chaveNome(i.responsavel) || SEM)).size : 0;
 const dias = (n: number) => `${n} ${n === 1 ? 'dia' : 'dias'}`;
 ---
 <Platform title="Responsáveis" slug="gestao-responsaveis">

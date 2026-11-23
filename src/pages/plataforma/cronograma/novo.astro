@@ -12,7 +12,7 @@ import { usuarioPode } from '../../../lib/usuarios/index.ts';
 export const prerender = false;
 const pode = usuarioPode(Astro.locals.usuario, 'editar_projeto');
 if (!pode) Astro.response.status = 403;
-const gravacaoOk = !!Astro.locals.repositorio?.criarCronograma;
+const gravacaoOk = !!Astro.locals.repositorio?.criarCronograma && !!Astro.locals.repositorio?.podeGravar;
 const volta = voltaCronograma(Astro.url.searchParams.get('volta'), Astro.url.origin);
 const cronogramas = carregarCronogramas().cronogramas;
 const comCronograma = new Set(cronogramas.map((c) => c.projeto_id).filter(Boolean));
@@ -90,7 +90,7 @@ document.addEventListener('astro:page-load', () => {
     erro.textContent = r.erro;
     if (r.status === 409 && r.existente && /^C-[A-Za-z0-9_-]{1,80}$/.test(r.existente)) {
       const a = document.createElement('a');
-      a.href = `/plataforma/cronograma/${encodeURIComponent(r.existente)}/?aba=tarefas`;
+      a.href = `/plataforma/cronograma/${encodeURIComponent(r.existente)}/?aba=tarefas${form.dataset.volta ? `&volta=${encodeURIComponent(form.dataset.volta)}` : ''}`;
       a.textContent = 'Abrir o cronograma existente';
       erro.append(' ', a);
     }
