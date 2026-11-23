@@ -535,7 +535,6 @@ Centros dos bairros: migração 0005 e carga publicadas em 18/11/2026. Parte dos
 14. (Feito na E11) O mapa da Gestão usa os nomes de área do catálogo da prefeitura. `tests/dashboard-mapa.spec.ts` saiu: o mapa compacto está na tela do prefeito e é testado em `tests/mapa-area.spec.ts`.
 15. (Feito na E11) Saíram o componente antigo `LocalizacaoProjeto.astro` e o link "Localização e fotos"; os atalhos de localização abrem a aba Localização da ficha. Fotos na aba Fotos (E9).
 16. **Depois da E11 (23/11/2026):** E8, E9 e E11 publicadas junto com a migração 0008. Em andamento: E12 (licitações), E13 (responsável, tempo na mão e cronograma no sistema) e E15 (navegação). Depois: E14.
-16. **Depois da E11:** menu nas três visões no código. Próximas: E8 (localização por endereço), E9 (fotos), E12 (Licitações na Visão gerencial) e E13 (responsável e tempo na mão de cada um, na Governança da execução).
 17. **Depois da E15:** links internos do Fluxo e das tabelas genéricas ainda sem `volta` (a regra e o contrato para as telas novas estão em `docs/govnexa/plano.md`).
 
 ## 9. Como rodar no computador
