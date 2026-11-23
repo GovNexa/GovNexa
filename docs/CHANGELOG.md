@@ -1,5 +1,8 @@
 # Changelog
 
+## Coletores: motivo da falha legível (23/11/2026)
+- A tela "Qualidade dos dados" mostrava como motivo da falha um trecho de código (ex.: `if (tentativa === 3) throw new Error(...)`), porque o Node imprime o código da linha que falhou antes da mensagem e o resumo pegava a primeira linha com "error". Novo `coletores/lib/resumir-erro.ts`: pega a linha `Error: ...` de verdade, nunca trecho de código, e continua sem gravar caminhos de disco. Teste novo `tests/coletores/resumir-erro.test.ts`. Só o registro das próximas falhas muda; nenhuma coleta, tela ou banco.
+
 ## Publicação 23/11/2026
 - Em produção: E18 (ícone de tema), E14a (PNCP por botão) e E16 (dispensa da 2ª etapa e conta de consulta), na versão do Worker 6e5fd492-3904-46ab-94cb-cbf76cb3da16. Migrações 0011 (banco da prefeitura) e 0003 (banco central) aplicadas antes do código, com ponto de restauração anotado antes. No mesmo dia, antes dessa versão, já estavam no ar E8, E9, E11, E12 (com ajustes), E13, E15 e E17.
 
