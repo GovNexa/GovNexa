@@ -37,6 +37,9 @@ A versão integral do histórico é privada e fica fora do repositório público
 | 17/11/2026 | Login próprio do GovNexa (senha + verificação em 2 etapas obrigatória) substitui o Cloudflare Access na plataforma; cadastro e convites pela guia Usuários; e-mails do sistema saem de nao-responda@govnexa.com.br. |
 | 18/11/2026 | Copilot CLI sai do fluxo (consumo alto): executores passam a ser só o Codex; o Claude assume o que for pequeno ou quando o Codex estiver sem cota. |
 | 22/11/2026 | Três visões no sistema (áudio 31): Gerencial (o que o prefeito vê), Governança da execução (o trabalho da equipe) e Convênios (captação e repasses). A tela do prefeito mostra grandes números, mapa, linha do tempo e principais obras; farol, prazos, "onde está parado", decisões pendentes e convênios vão para a equipe. |
+| 23/11/2026 | O sistema substitui a planilha: a planilha é só orientação e carga inicial; a continuidade é só no sistema; todo processo com início, meio e fim na tela (criar, editar, avançar, concluir, Histórico); depois da carga, a tela vence a planilha. Varredura pendente do que ainda depende de planilha. |
+| 23/11/2026 | Sempre poder voltar: toda tela aberta a partir de outra oferece voltar à origem, com os filtros; conferido em toda entrega, com teste. |
+| 23/11/2026 | Plano de E12 e E13 aprovado com o padrão: tempo na mão por pessoa e por área, relógio a partir do início real, atenção acima da duração prevista e urgente acima do dobro; licitações em 6 etapas; editor ou acima edita e o prefeito só vê. O modelo de planilha das licitações deixou de ser bloqueio (só carga inicial). |
 | 22/11/2026 | Decisões D1 a D6 dos áudios: carteira inteira com marca de prioritário; áreas sugeridas pelo órgão até a lista oficial; códigos da tela a partir de 9000; busca de endereço gratuita (OpenStreetMap) com confirmação; modelo das licitações a enviar; "próximo marco aguardando" só no detalhe. |
 | 18/11/2026 | Modelos do Codex atualizados: `gpt-6.2-sol` (complexa ou sensível), `gpt-6.1-terra` (média) e `gpt-6-luna` (simples). |
 | 17/11/2026 | Datas no padrão brasileiro: `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` (horário de Brasília). Função única em `src/lib/datas.ts`. |
@@ -159,11 +162,14 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 
 ## 6. Lições técnicas (para não repetir erros)
 
+23/11/2026 (E12): processo da contratação 100% na tela; a carga da planilha nunca sobrescreve o que foi editado. Decisões E12-P1=A e E12-P2=A: projeto opcional na contratação e Histórico próprio.
+
 17/11/2026: D1 exige operações condicionais e atômicas para consumo de token/código. Não consumir links no GET. Workers limita PBKDF2 a 100000 iterações. Cookie __Host exige HTTPS; exceção local deve verificar host e ausência de cf-ray. Astro ignora arquivos iniciados por sublinhado: a rota local de e-mails usa um endpoint dinâmico que aceita apenas `_emails-locais`.
 
 | Situação | O que aprendemos |
 | --- | --- |
 | Reordenar tarefas com a posição como chave (23/11, E13) | Posição não é chave: reordenar com a chave na posição colide. Usar chave estável (`id`) e posição única só entre as tarefas ativas, gravada em duas passadas (negativos e depois positivos) no mesmo lote. |
+| Volta dentro de volta e ciclo ao voltar (23/11, E15) | Volta dentro de volta fica limitada a 2 níveis e sem avisos passageiros (`salvo`, `rf`, `r`); link para a ficha, a partir de uma tela aberta pela própria ficha, devolve a volta em vez de criar um ciclo; a volta é validada de novo no servidor antes de entrar num redirecionamento. |
 | Página nova com o nome de uma guia que já existia (16/11, novo #10) | A pasta `documentos/` das rotas da etapa 3.4 sobrescreveu a guia de demonstração "Documentos" e derrubou um teste antigo. As rotas passaram a ficar em `documentos-projeto/`. Antes de criar rota nova sob `/plataforma/`, conferir `src/data/modules.json` e o catálogo. |
 | Revisão independente reprovou a 1ª versão da 3.4 (16/11, novo #10) | Achados: arquivo copiado duas vezes na memória do Worker, rota de remoção lendo corpo sem limite, perfil conferido só depois de ler o arquivo, teste de origem que passava mesmo sem a trava, e corrida entre dois envios iguais. Tudo corrigido (leitura em fluxo, conferências antes do corpo, índice único, testes mais rígidos). Regra: em rota que grava, conferir origem, perfil e tamanho antes de abrir o corpo. |
 | Reimportar a planilha pode apagar o que foi feito no sistema (16/11, novo #9) | A revisão independente achou que o upsert da planilha sobrescreveria colunas que o sistema também grava (etapa, datas, localização, compromisso) e que um código reaproveitado pela planilha poderia virar outro projeto. A rotina agora preserva localização e compromisso, **pula** o projeto já alterado no sistema e **para tudo** se um código mudar de órgão. Antes de a gravação de verdade existir no sistema (3.3 em diante), revisar de novo quem manda em cada coluna. |
@@ -191,6 +197,12 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 ## 7. Todos os PRs (descrição completa)
 
 ### 7.1 Repositório novo (`GovNexa/GovNexa`)
+
+23/11/2026 — E13, cronograma como processo e painel Responsáveis: PR a abrir (migração 0009; a branch contém também a E12 e a E15 juntadas; ~90%, aguardando merge e publicação).
+
+23/11/2026 — E12, Gestão das licitações: PR #55 (migração 0010, módulo de contratações, telas, ficha e Fluxo; contém a E15; revisão independente e prévia aprovada pelo dono; ~90%, aguardando merge e publicação).
+
+23/11/2026 — E15, navegação (sempre poder voltar à tela de origem): PR #54 (revisão independente e prévia aprovada pelo dono; ~90%, aguardando merge e publicação).
 
 17/11/2026 — Login próprio e usuários, sem PR/publicação nesta entrega: migração central, senha com pepper, TOTP cifrado, convites, recuperação, sessões, limites, Turnstile e administração isolada por prefeitura. Validação: astro check sem erros, 316 testes Node passando, build concluído e impacto conferido com Fluxo atualizado. Testes de navegador escritos e listados para execução externa. Percentuais anteriores mantidos até homologação.
 

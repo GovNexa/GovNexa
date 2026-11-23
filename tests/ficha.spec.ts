@@ -4,8 +4,8 @@ import AxeBuilder from '@axe-core/playwright';
 // Ficha única do projeto (E6). Usa P-900, P-901 e P-905 (dados de exemplo) e cria projetos novos só para si.
 const FICHA = '/plataforma/projeto/P-900/';
 const CARTEIRA = '/plataforma/projetos-carteira/';
-const ROTULOS = ['Cadastro', 'Recurso', 'Entrega', 'Localização', 'Fotos', 'Documentos', 'Processos SEI', 'Cronograma', 'Histórico', 'Governança'];
-const IDS = ['cadastro', 'recurso', 'entrega', 'localizacao', 'fotos', 'documentos', 'sei', 'cronograma', 'historico', 'governanca'];
+const ROTULOS = ['Cadastro', 'Recurso', 'Entrega', 'Localização', 'Fotos', 'Documentos', 'Processos SEI', 'Contratações', 'Cronograma', 'Histórico', 'Governança'];
+const IDS = ['cadastro', 'recurso', 'entrega', 'localizacao', 'fotos', 'documentos', 'sei', 'contratacoes', 'cronograma', 'historico', 'governanca'];
 const semRolagem = (page: import('@playwright/test').Page) => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth);
 const PROIBIDOS = /Valores por ano|Tipo de contratação|Órgão da contratação|Situação do recurso|Tipo do recurso|Vermelho|Amarelo|\bVerde\b|[Ff]arol/;
 
@@ -92,7 +92,7 @@ test('ficha: processos SEI, cronograma e projeto sem dados', async ({ page, requ
   await expect(page.locator('[data-fp-sei] li')).toHaveText(['26.18.000001001-1']);
   await page.goto(FICHA + '?aba=cronograma');
   await expect(page.locator('[data-fp-cron]')).toHaveCount(1);
-  await expect(page.locator('[data-fp-cron] a')).toHaveAttribute('href', /^\/plataforma\/cronograma\/C-exemplo-001\/\?volta=/);
+  await expect(page.locator('[data-fp-cron] a')).toHaveAttribute('href', /^\/plataforma\/cronograma\/C-exemplo-001\/\?volta=%2Fplataforma%2Fprojeto%2FP-900%2F/);
   const origin = new URL(page.url()).origin;
   const criado = await request.post('/plataforma/projeto/criar/', { headers: { 'content-type': 'application/json', origin }, data: { nome: 'Projeto E6 sem dados', orgao: 'SMS' } });
   expect(criado.status()).toBe(201);
@@ -117,7 +117,7 @@ test('ficha: guia Localização e fotos sai do menu e o endereço antigo leva à
   await page.goto('/plataforma/projetos-localizacao/');
   await expect(page.locator('h1')).toHaveText('Obras sem localização');
   await page.locator('[data-lp-pendentes] summary').click();
-  await expect(page.getByRole('link', { name: /Cadastrar localização de/ }).first()).toHaveAttribute('href', /\/plataforma\/projeto\/P-[A-Za-z0-9_-]+\/\?aba=localizacao$/);
+  await expect(page.getByRole('link', { name: /Cadastrar localização de/ }).first()).toHaveAttribute('href', /\/plataforma\/projeto\/P-[A-Za-z0-9_-]+\/\?aba=localizacao&volta=%2Fplataforma%2Fprojetos-localizacao%2F$/);
 });
 
 test('ficha: edição da E1 continua dentro da ficha e mantém a volta', async ({ page, request }) => {

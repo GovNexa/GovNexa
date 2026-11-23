@@ -7,16 +7,18 @@ import QuadroTarefas from '../../../components/cronograma/QuadroTarefas.astro';
 import Dependencias from '../../../components/cronograma/Dependencias.astro';
 import TarefasResponsaveis from '../../../components/cronograma/TarefasResponsaveis.astro';
 import { carregarCarteira } from '../../../lib/carteira/carga.ts';
-import { hrefFicha } from '../../../lib/carteira/ficha.ts';
 import { carregarCronogramas } from '../../../lib/cronograma/carga.ts';
 import { analisarDependencias, cascataDoProjeto } from '../../../lib/cronograma/dependencias.ts';
 import { ID_CRONOGRAMA } from '../../../lib/cronograma/edicao.ts';
-import { abaCronograma, ROTA_CRONOGRAMAS, rotuloVoltaCronograma, voltaCronograma } from '../../../lib/cronograma/navegacao.ts';
+import { abaCronograma, voltaCronograma } from '../../../lib/cronograma/navegacao.ts';
 import { chaveNome, tempoNaMao } from '../../../lib/cronograma/responsaveis.ts';
 import { etapasDoCronograma, resumoCronograma, rotuloRitmo } from '../../../lib/cronograma/visoes.ts';
 import { br } from '../../../lib/dados/formato.ts';
 import { usuarioPode } from '../../../lib/usuarios/index.ts';
 import { hojeEmBrasilia } from '../../../lib/whatsapp/farol.ts';
+import Voltar from '../../../components/navegacao/Voltar.astro';
+import { aquiDe } from '../../../lib/navegacao/volta.ts';
+import { linkFicha } from '../../../lib/carteira/ficha.ts';
 
 export const prerender = false;
 const id = String(Astro.params.id ?? '');
@@ -29,7 +31,7 @@ if (!c) return new Response('Página não encontrada', { status: 404 });
 const hoje = hojeEmBrasilia();
 const podeEditar = usuarioPode(Astro.locals.usuario, 'editar_projeto') && !!repo?.podeGravar && !!repo?.gravarCronograma && revisao !== null;
 const volta = voltaCronograma(Astro.url.searchParams.get('volta'), Astro.url.origin);
-const aqui = Astro.url.pathname + Astro.url.search;
+const aqui = aquiDe(Astro.url);
 const r = resumoCronograma(c, hoje);
 const vazio = etapasDoCronograma(c).length === 0;
 const aba = vazio ? 'tarefas' : abaCronograma(Astro.url.searchParams.get('aba'));
@@ -58,10 +60,11 @@ const sugestoes = {
 const escondido = (n: string) => aba !== n;
 ---
 <Platform title={c.titulo} slug="projetos-cronogramas">
+  <Voltar slot="contexto" volta={volta} padrao={{ href: '/plataforma/projetos-cronogramas/', texto: 'Todos os cronogramas' }} />
   <div class="section-head">
     <div>
       <h1>{c.titulo}</h1>
-      <p class="muted"><a href={volta ?? ROTA_CRONOGRAMAS} data-voltar>{rotuloVoltaCronograma(volta)}</a>{c.endereco ? ` · ${c.endereco}` : ''}</p>
+      {c.endereco && <p class="muted">{c.endereco}</p>}
     </div>
   </div>
   <p class="cr-resumo" data-cart>
@@ -70,7 +73,7 @@ const escondido = (n: string) => aba !== n;
     <span><strong>Ritmo:</strong> {rotuloRitmo(r.ritmo)}</span>
     <span><strong>Entrega prevista:</strong> {br(r.entregaPrevista)}</span>
     <span><strong>Tarefas com alerta:</strong> {comAlerta}</span>
-    <span><strong>Projeto da carteira:</strong> {projeto ? <a href={hrefFicha(projeto.id, aqui, 'cronograma')}>{projeto.id} · {projeto.nome}</a> : 'sem correspondência'}</span>
+    <span><strong>Projeto da carteira:</strong> {projeto ? <a href={linkFicha(projeto.id, volta, aqui, 'cronograma')}>{projeto.id} · {projeto.nome}</a> : 'sem correspondência'}</span>
   </p>
   {cascata && <p class="cr-cascata" data-cart data-cr-cascata>
     {cascata.diasDeAtraso === null ? (

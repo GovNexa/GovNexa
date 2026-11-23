@@ -1,0 +1,213 @@
+---
+// Gestão das licitações (E12): situação de cada contratação, da finalização do projeto ao contrato. Leitura para todos os perfis;
+// edição em linha e cadastro só para editor ou acima (a rota de gravação recusa os demais com 403).
+import Platform from '../../../layouts/Platform.astro';
+import '../../../styles/contratacoes.css';
+import { carregarCarteira } from '../../../lib/carteira/carga.ts';
+import { dataBr } from '../../../lib/datas.ts';
+import { municipioAtivo } from '../../../lib/municipio-ativo.ts';
+import { hrefContratacao } from '../../../lib/contratacoes/navegacao.ts';
+import { ROTA_LICITACOES, lerFiltros, montarPainel, subtituloBloco, urlCsvPainel, urlPainel } from '../../../lib/contratacoes/painel.ts';
+import {
+  CAMPOS, ID_PROJETO_LIGADO, MODALIDADES, ORDEM_TELA, ROTULO_AGUARDANDO, ROTULO_ETAPA, ROTULO_MODALIDADE,
+  formatarCampo, hojeBrasilia, percentualPago, reaisResumido, type CampoEditavel, type Etapa,
+} from '../../../lib/contratacoes/regras.ts';
+import { podeGravarNaTela } from '../../../lib/contratacoes/servico.ts';
+
+export const prerender = false;
+const repo = Astro.locals.repositorio;
+const disponivel = !!repo.contratacoes;
+const lista = disponivel ? await repo.contratacoes!.listar() : [];
+const pendentes = disponivel ? await repo.contratacoes!.listarMarcosPendentes(200) : [];
+const datasPendentes = disponivel ? await repo.contratacoes!.datasMarcosPendentes() : undefined;
+const orgaos = [...new Set(lista.map((c) => c.orgao).filter((o): o is string => !!o))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+const { filtros, avisos } = lerFiltros(Astro.url.searchParams, orgaos);
+const hoje = hojeBrasilia();
+const painel = montarPainel(lista, pendentes, filtros, hoje, datasPendentes);
+const podeEditar = podeGravarNaTela(Astro.locals.usuario, repo) === 'ok';
+const aqui = urlPainel(filtros);
+const projetos = carregarCarteira().projetos.map((p) => ({ id: p.id, nome: p.nome }));
+const projetoPedido = Astro.url.searchParams.get('projeto');
+const projetoInicial = projetoPedido && ID_PROJETO_LIGADO.test(projetoPedido) && projetos.some((p) => p.id === projetoPedido) ? projetoPedido : '';
+const abrirNova = Astro.url.searchParams.get('novo') === '1';
+const escopo = [
+  filtros.orgao ? `órgão ${filtros.orgao}` : 'todos os órgãos',
+  filtros.etapa ? `etapa ${ROTULO_ETAPA[filtros.etapa]}` : null,
+  filtros.aguardando ? (filtros.aguardando === 'qualquer' ? 'aguardando alguém' : ROTULO_AGUARDANDO[filtros.aguardando]) : null,
+  filtros.de || filtros.ate ? `período ${filtros.de ? dataBr(filtros.de) : 'início'} a ${filtros.ate ? dataBr(filtros.ate) : 'hoje'}` : null,
+].filter(Boolean).join(' · ');
+const COLUNAS: Record<Etapa, CampoEditavel[]> = {
+  concluida: ['marco', 'data_marco', 'valor_contratado', 'valor_pago', 'empresa', 'colocacao', 'onde_esta', 'situacao'],
+  julgamento: ['data_abertura', 'valor_proposta', 'empresa', 'colocacao', 'onde_esta', 'situacao'],
+  publicada: ['data_abertura', 'valor_estimado'],
+  ajustes: ['valor_estimado', 'onde_esta', 'situacao', 'data_publicacao_prevista'],
+  preparacao: ['valor_estimado', 'onde_esta', 'situacao'],
+  finalizacao: ['valor_estimado', 'onde_esta', 'situacao'],
+};
+const def = (campo: CampoEditavel) => CAMPOS.find((d) => d.campo === campo)!;
+const dois = (n: number) => String(n).padStart(2, '0');
+const mod = (m: string | null) => (m && m !== 'licitacao' ? ROTULO_MODALIDADE[m as keyof typeof ROTULO_MODALIDADE] ?? m : null);
+---
+<Platform title="Gestão das licitações" slug="gestao-licitacoes">
+  <div class="ct" data-ct data-pode-editar={podeEditar ? '1' : '0'} data-volta={aqui}>
+    <div class="section-head"><div>
+      <h1>Gestão das licitações</h1>
+      <p class="muted">Situação de cada contratação, da finalização do projeto ao contrato. Clique num número para ver só aquela etapa.</p>
+    </div></div>
+    <p class="ct-impressao" data-ct-impressao>{municipioAtivo().nomeExibicao} · Situação das licitações · {dataBr(hoje)} · {escopo}</p>
+
+    {!disponivel && <p class="ct-aviso" role="status" data-ct-indisponivel>A gestão das licitações precisa do banco da prefeitura. Neste ambiente ela não está disponível.</p>}
+
+    {disponivel && (
+      <>
+        {avisos.map((a) => <p class="ct-aviso" role="status" data-ct-aviso>{a}</p>)}
+        {podeEditar && <p class="ct-msg" role="status" aria-live="polite" data-ct-msg></p>}
+
+        <section aria-labelledby="ct-numeros">
+          <h2 id="ct-numeros" class="sr-only">Grandes números</h2>
+          <p class="ct-total" data-ct-total>{painel.total.qtd} {painel.total.qtd === 1 ? 'contratação' : 'contratações'} · {reaisResumido(painel.total.valor)} · valor total (contratado + propostas + estimado)</p>
+          <ul class="ct-cartoes">
+            {painel.etapas.map((b) => (
+              <li>
+                <a href={urlPainel({ ...filtros, etapa: filtros.etapa === b.etapa ? null : b.etapa })} aria-current={filtros.etapa === b.etapa ? 'true' : undefined} data-ct-cartao={b.etapa} data-qtd={b.qtd}>
+                  <span class="ct-numero">{dois(b.qtd)}</span>
+                  <span class="ct-rotulo">{b.rotulo}</span>
+                  <span class="ct-valor">{reaisResumido(b.valor)}</span>
+                  <span class="ct-sub">{subtituloBloco(b)}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section class="ct-duas" aria-labelledby="ct-marcos">
+          <div class="ct-bloco">
+            <h2 id="ct-marcos">Próximos marcos</h2>
+            {painel.proximosMarcos.length === 0 ? <p class="ct-vazio">Nenhum marco pendente.</p> : (
+              <ol data-ct-marcos>
+                {painel.proximosMarcos.map((m) => (
+                  <li>{dataBr(m.data)} · <a href={hrefContratacao(m.contratacaoId, aqui)}>{m.nome}</a> · {m.descricao}{m.atrasado && <> <span class="ct-selo ct-atrasado">Atrasado</span></>}</li>
+                ))}
+              </ol>
+            )}
+          </div>
+          <div class="ct-bloco">
+            <h2>Aguardando</h2>
+            <h3>Aguardando PGM</h3>
+            {painel.aguardandoPgm.length === 0 ? <p class="ct-vazio">Nenhuma.</p> : (
+              <ul data-ct-aguardando="pgm">
+                {painel.aguardandoPgm.map((c) => <li><a href={hrefContratacao(c.id, aqui)}>{c.nome}</a>{c.situacao ? ` · ${c.situacao}` : ''}{c.aguardando_quem ? ` (${c.aguardando_quem})` : ''}</li>)}
+              </ul>
+            )}
+            <h3>Aguardando outras áreas e empresas</h3>
+            {painel.aguardandoOutras.length === 0 ? <p class="ct-vazio">Nenhuma.</p> : (
+              <ul data-ct-aguardando="outras_areas">
+                {painel.aguardandoOutras.map((c) => <li><a href={hrefContratacao(c.id, aqui)}>{c.nome}</a>{c.situacao ? ` · ${c.situacao}` : ''}{c.aguardando_quem ? ` (${c.aguardando_quem})` : ''}</li>)}
+              </ul>
+            )}
+          </div>
+        </section>
+
+        <form class="ct-filtros" method="get" action={ROTA_LICITACOES} data-ct-filtros aria-label="Filtros">
+          <label>Órgão
+            <select name="orgao">
+              <option value="">Todos</option>
+              {orgaos.map((o) => <option value={o} selected={filtros.orgao === o}>{o}</option>)}
+            </select>
+          </label>
+          <label>Etapa
+            <select name="etapa">
+              <option value="">Todas</option>
+              {ORDEM_TELA.map((e) => <option value={e} selected={filtros.etapa === e}>{ROTULO_ETAPA[e]}</option>)}
+            </select>
+          </label>
+          <label>Aguardando
+            <select name="aguardando">
+              <option value="">Todas</option>
+              <option value="pgm" selected={filtros.aguardando === 'pgm'}>Aguardando PGM</option>
+              <option value="outras_areas" selected={filtros.aguardando === 'outras_areas'}>Aguardando outras áreas ou empresas</option>
+              <option value="qualquer" selected={filtros.aguardando === 'qualquer'}>Aguardando alguém</option>
+            </select>
+          </label>
+          <label>Período (abertura, publicação ou marco) — de
+            <input type="date" name="de" value={filtros.de ?? ''} />
+          </label>
+          <label>Período (abertura, publicação ou marco) — até
+            <input type="date" name="ate" value={filtros.ate ?? ''} />
+          </label>
+          <button class="primary" type="submit">Aplicar filtros</button>
+          <a class="ct-botao" href={ROTA_LICITACOES}>Limpar</a>
+        </form>
+
+        <div class="ct-acoes">
+          <button type="button" class="ct-botao" data-ct-imprimir>Imprimir</button>
+          <a class="ct-botao" href={urlCsvPainel(filtros)} download data-ct-csv>Baixar CSV</a>
+          {podeEditar && <a href="#ct-nova" class="primary">Nova contratação</a>}
+        </div>
+
+        {lista.length === 0 && <p class="ct-vazio" data-ct-vazio>Nenhuma contratação cadastrada ainda.{podeEditar ? ' Use Nova contratação para começar.' : ''}</p>}
+        {lista.length > 0 && painel.filtradas.length === 0 && <p class="ct-vazio" data-ct-vazio>Nenhuma contratação com estes filtros.</p>}
+
+        {painel.etapas.filter((b) => b.itens.length > 0).map((b) => (
+          <section class="ct-etapa" data-ct-etapa={b.etapa} aria-labelledby={`ct-et-${b.etapa}`}>
+            <h2 id={`ct-et-${b.etapa}`}>{dois(b.itens.length)} {b.rotulo}</h2>
+            <table class="ct-tabela">
+              <caption class="sr-only">{b.rotulo}</caption>
+              <thead><tr><th scope="col">Contratação</th>{COLUNAS[b.etapa].map((campo) => <th scope="col">{def(campo).rotulo}</th>)}</tr></thead>
+              <tbody>
+                {b.itens.map((c) => (
+                  <tr data-ct-linha data-id={c.id} data-revisao={c.revisao} data-nome={c.nome}>
+                    <td data-rotulo="Contratação">
+                      <a href={hrefContratacao(c.id, aqui)}>{c.nome}</a>
+                      <span class="muted">{[c.orgao, c.grupo, mod(c.modalidade), c.projeto_id ? `Projeto ${c.projeto_id}` : null].filter(Boolean).join(' · ')}</span>
+                      {c.aguardando !== 'nao' && <span class="ct-selo">{ROTULO_AGUARDANDO[c.aguardando as keyof typeof ROTULO_AGUARDANDO] ?? c.aguardando}</span>}
+                    </td>
+                    {COLUNAS[b.etapa].map((campo) => {
+                      const valor = c[campo];
+                      const pct = campo === 'valor_pago' ? percentualPago(c) : null;
+                      return (
+                        <td data-rotulo={def(campo).rotulo} data-ct-campo={campo} data-valor={valor === null || valor === undefined ? '' : String(valor)} data-tipo={def(campo).tipo}>
+                          <span data-ct-texto>{formatarCampo(campo, valor)}</span>
+                          {pct !== null && <span class="muted" data-ct-extra> · {String(pct).replace('.', ',')}% pago</span>}
+                          {campo === 'data_publicacao_prevista' && c.publicacao_prevista_texto && <span class="muted" data-ct-extra>{c.publicacao_prevista_texto}</span>}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        ))}
+
+        {podeEditar && (
+          <details class="ct-nova" id="ct-nova" data-ct-nova open={abrirNova}>
+            <summary>Nova contratação</summary>
+            <form class="ct-form" data-ct-form-nova>
+              <label class="ct-cheio">Contratação *<input type="text" name="nome" maxlength="200" required /></label>
+              <label>Etapa *
+                <select name="etapa">{ORDEM_TELA.map((e) => <option value={e} selected={e === 'finalizacao'}>{ROTULO_ETAPA[e]}</option>)}</select>
+              </label>
+              <label>Data da etapa<input type="date" name="etapa_desde" value={hoje} max={hoje} /></label>
+              <label>Órgão<input type="text" name="orgao" maxlength="120" list="ct-orgaos" /></label>
+              <datalist id="ct-orgaos">{orgaos.map((o) => <option value={o}></option>)}</datalist>
+              <label>Projeto da carteira
+                <select name="projeto_id">
+                  <option value="">Sem projeto</option>
+                  {projetos.map((p) => <option value={p.id} selected={p.id === projetoInicial}>{p.id} · {p.nome}</option>)}
+                </select>
+              </label>
+              <label>Modalidade
+                <select name="modalidade">{MODALIDADES.map((m) => <option value={m} selected={m === 'licitacao'}>{ROTULO_MODALIDADE[m]}</option>)}</select>
+              </label>
+              <label>Valor estimado<input type="text" name="valor_estimado" inputmode="decimal" placeholder="Ex.: 1.250.000,00" /></label>
+              <label class="ct-cheio">Objeto<textarea name="objeto" rows="3" maxlength="2000"></textarea></label>
+              <div class="ct-cheio"><button type="submit" class="primary">Cadastrar</button></div>
+            </form>
+          </details>
+        )}
+      </>
+    )}
+  </div>
+</Platform>
+<script>import '../../../scripts/contratacoes.ts';</script>

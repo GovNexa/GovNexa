@@ -5,7 +5,7 @@ import AxeBuilder from '@axe-core/playwright';
 // A Captação usa as coletas públicas do repositório (Transferegov e CAUC): as conferências são relativas (cartão = linhas da tabela).
 const CONVENIOS = '/plataforma/convenios/';
 const VISOES = [
-  { nome: 'Visão gerencial', links: ['/plataforma/', '/plataforma/projetos-carteira/', '/plataforma/gestao/', '/plataforma/projetos-kanban/', '/plataforma/projetos-gantt/'] },
+  { nome: 'Visão gerencial', links: ['/plataforma/', '/plataforma/projetos-carteira/', '/plataforma/gestao/', '/plataforma/gestao-licitacoes/', '/plataforma/projetos-kanban/', '/plataforma/projetos-gantt/'] },
   { nome: 'Governança da execução', links: ['/plataforma/gestao-equipe/', '/plataforma/projetos/', '/plataforma/projetos-cronogramas/', '/plataforma/gestao-responsaveis/', '/plataforma/projetos-parado/', '/plataforma/gestao-inconsistencias/', '/plataforma/projetos-pendencias/', '/plataforma/projetos-reuniao/', '/plataforma/projetos-sala/', '/plataforma/projetos-log/', '/plataforma/gestao-alertas/', '/plataforma/projetos-sei/'] },
   { nome: 'Convênios', links: ['/plataforma/convenios/', '/plataforma/captacao/', '/plataforma/captacao-acompanhamento/', '/plataforma/captacao-alertas/', '/plataforma/captacao-oportunidades/', '/plataforma/captacao-projetos/', '/plataforma/captacao-comparativo/', '/plataforma/captacao-qualidade/'] },
 ];

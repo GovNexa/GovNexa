@@ -179,3 +179,10 @@ Consequências no projeto: gravações em lote dividem os parâmetros em blocos;
 A 0009 troca a chave da tarefa (de `cronograma_id + ordem` para um código estável `id`; as tarefas já carregadas ficam com `cronograma#ordem`), cria `troca_responsavel` e acrescenta colunas em `cronograma` e `etapa_cronograma`. Posição (`ordem`) menor ou igual a zero, ou código com mais de 120 caracteres, faz a migração falhar inteira sem mudar nada; a checagem só de leitura `checagens/0009-pre.sql` lista tudo isso antes. **A migração 0009 está a aplicar em produção** (procedimento no README, seção 8).
 
 Os gatilhos `cronograma_sem_delete_tela` e `etapa_cronograma_sem_delete_tela` impedem apagar cronograma ou tarefa editados na tela, e `troca_responsavel` e o histórico são imutáveis. Isso impede também a limpeza administrativa (por exemplo, apagar uma prefeitura de teste): ela exige uma migração própria que recrie esses gatilhos. A 0009 sanea dado antigo inválido (data impossível, duração negativa, término antes do início) para NULL e registra o motivo na coluna `pendencias` da tarefa; a lista prévia está em `db/d1/prefeitura/checagens/0009-pre.sql`.
+
+## Contratações (E12, migração 0010)
+- Estudo e projeto: gestão das licitações como processo 100% no sistema (áudios A34 a A37); `contratacao` (1 por processo), `contratacao_marco` (N por contratação) e `evento_contratacao` (Histórico imutável). A migração só acrescenta tabelas; nada existente muda e não depende da 0009. Mesmo assim, em produção a ordem é numérica: aplicar a 0009 (E13) e depois a 0010 (E12), as duas antes do código.
+- Isolamento: toda consulta filtra `prefeitura_id` da sessão; FKs compostas; id de outra prefeitura = 404.
+- Integridade: remoção só lógica; gatilhos proíbem DELETE e UPDATE do Histórico; `revisao` otimista no `WHERE`; evento gravado no MESMO `db.batch` com `WHERE changes() = 1`.
+- Limites: 5.000 contratações ativas e 20.000 no total por prefeitura; 50 marcos ativos por contratação; corpo de gravação até 16 KB; 30 gravações por minuto por pessoa.
+- Carga: arquivo JSON (`contratacoes.json`), idempotente, "a tela vence a planilha".

@@ -1,6 +1,11 @@
 # Changelog
 
 
+## Junção E12 + E13 + E15 (23/11/2026)
+- As três entregas foram juntadas na branch da E13: E12 Gestão das licitações (migração 0010), E13 Cronograma como processo e painel Responsáveis (migração 0009) e E15 Navegação. Cada uma tem código, testes, revisão independente e prévia aprovada pelo dono (~90%); aguardam merge (PR #54 E15, PR #55 E12 que contém a E15, e o PR da E13 que conterá as três) e publicação.
+- Na junção, os links da E13 passaram a usar o mecanismo da E15 (`volta` na ficha, no cronograma e em Novo cronograma; Responsáveis aparece nos nomes de tela do "Voltar"). Menu: Responsáveis na Governança da execução e Gestão das licitações na Visão gerencial.
+- Ordem de publicação: migração 0009, depois 0010 (ordem numérica), antes do código. Nada foi aplicado em produção.
+
 ## E13 · Cronograma como processo e painel Responsáveis (23/11/2026)
 
 **O que mudou**
@@ -11,6 +16,24 @@
 - Fluxo atualizado (Planejamento e Onde está parado).
 
 **O que NÃO mudou:** login, publicação na Cloudflare, `wrangler.jsonc`, Postgres legado (só comentário), dependências do projeto. Nada foi aplicado em produção.
+
+## E12 · Gestão das licitações (23/11/2026)
+- **Parte B (telas):** guia Gestão das licitações na Visão gerencial (depois de Mapa e painel): grandes números por etapa, listas com os campos do relatório, próximos marcos, aguardando PGM e outras áreas, filtros, impressão em A4 e CSV; edição em linha, cadastro, mudança de etapa, marcos e remoção para editor ou acima (o prefeito só vê); página da contratação com Histórico; aba Contratações na ficha do projeto; Fluxo atualizado.
+- **Não mudou:** login, protótipo do SEI (módulo Licitações), Histórico dos projetos, painel do prefeito.
+- **Parte A:** banco, regras, gravação e carga. Teto de valor de R$ 10 bilhões por campo; carga valida `concluido_em` e o limite de marcos.
+- Migração D1 `0010_contratacao.sql` (contratação, marcos e Histórico próprio), módulo `src/lib/contratacoes/`, rota `POST /plataforma/gestao-licitacoes/gravar/` e carga de exemplo. Telas na Parte B.
+- **Riscos aceitos:** o Histórico (`evento_contratacao`) cresce sem limite próprio; o freio é o limite de 30 gravações por minuto por pessoa e o teto de 20.000 contratações (ativas e removidas) por prefeitura.
+
+## E15 · Navegação: sempre poder voltar à tela de origem (23/11/2026)
+- Pedido do dono: "entro numa tela, dela vou pra outra, porém não consigo retornar para a tela que iniciei". Todo link de conteúdo que leva a outra tela carrega a origem (caminho e filtros) no parâmetro `volta`; a tela de destino mostra "← Voltar para [tela]" (componente `Voltar.astro`, automático no layout da plataforma).
+- Só telas sob `/plataforma/` valem como volta (módulo `src/lib/navegacao/volta.ts`); no máximo 2 níveis; avisos de ação concluída (`salvo`, `rf`, `r`) não voltam junto. Link externo, rota de gravação, arquivo ou CSV são ignorados.
+- A ficha guarda a origem nas idas a Documentos, Fotos, Edição, Cronograma, SEI e Histórico completo; o X fecha para a origem e, depois de gravar a edição, a aba continua a mesma. Os links fixos "← Todos os cronogramas" e "← Todas as salas de guerra" aparecem só quando a tela não recebe `volta`.
+- 13 caminhos corrigidos: ficha, cronograma, sala de guerra, documentos, SEI, histórico completo, diálogo de detalhes, prioritários, alertas, reunião, licitação em detalhe, localização, mapa, Novo projeto e Gantt (nome do projeto virou link para a ficha).
+- Não mudou: login, rotas de gravação (só o redirecionamento final dos documentos leva a volta, validada de novo no servidor), banco e migrações. Sem dependência nova.
+## Documentação: rastreabilidade dos áudios e princípios de 23/11 (23/11/2026)
+- Cada um dos 31 áudios foi conferido contra a tabela de requisitos: seis pedidos acrescentados (40 no total) e a situação real de cada um (E1 a E11 no ar; E12, E13 e E15 em andamento; E14 futura).
+- Dois princípios novos do dono entram no plano, no README e no histórico: o sistema substitui a planilha, e sempre poder voltar à tela de origem.
+- Decisões de E12 e E13 (tempo na mão por pessoa e por área, relógio no início real, atenção e urgente, 6 etapas, quem edita) registradas; README com pendências e próximos passos atualizados. Sem mudança de código.
 
 ## E11 · Menu nas três visões e Visão Convênios (22/11/2026)
 - Menu lateral em três visões (áudio 31): **Visão gerencial** (Projetos prioritários, Carteira, Mapa e painel, Kanban e Gantt), **Governança da execução** (Painel da equipe, Projetos · Início, Cronogramas, Onde está parado, Inconsistências, Pendências, Reunião, Sala de guerra, Histórico, Alertas e Processos no SEI) e **Convênios** (Visão Convênios e as guias da Captação). Depois vêm Licitações (demonstrativo, com os grupos de antes) e Conta (Usuários, Fluxo do sistema, WhatsApp, relatórios, perfil e configurações).

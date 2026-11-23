@@ -7,6 +7,7 @@ import type { Cronograma, EtapaCronograma, FaseCronograma, TrocaResponsavel } fr
 import { statusNaData } from '../cronograma/visoes.ts';
 import type { RegistroLog } from '../log/tipos.ts';
 import { criarRepositorioDocumentos } from '../documentos/repositorio.ts';
+import { criarRepositorioContratacoes } from '../contratacoes/repositorio.ts';
 import { criarRepositorioFotos } from '../fotos/repositorio.ts';
 import type { RepositorioProjetos, ResultadoAplicacao, ResultadoCriacaoCronograma, ResultadoCriacaoProjeto, ResultadoEdicao, ResultadoGravacaoCronograma, ResultadoMovimento } from './tipos.ts';
 
@@ -185,6 +186,7 @@ export function criarRepositorioD1(db: BancoD1, prefeituraId: number): Repositor
     },
     documentos: criarRepositorioDocumentos(db, prefeituraId),
     fotos: criarRepositorioFotos(db, prefeituraId),
+    contratacoes: criarRepositorioContratacoes(db, prefeituraId),
     listarProjetos: () =>
       transacao(async (cliente) => {
         const r = await cliente.query(`SELECT ${LISTA_COLUNAS} FROM projeto WHERE prefeitura_id = ? ORDER BY codigo_legado, id`, [prefeituraId]);

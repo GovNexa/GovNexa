@@ -1,0 +1,16 @@
+---
+// Link único "← Voltar para [tela]" (E15). Sem `volta` válido, mostra o link padrão da tela (ex.: "← Todos os cronogramas"), se houver.
+import { nomeTela, voltaSegura } from '../../lib/navegacao/volta.ts';
+interface Props { volta?: string | null; padrao?: { href: string; texto: string } | null }
+const volta = Astro.props.volta !== undefined ? Astro.props.volta : voltaSegura(Astro.url.searchParams.get('volta'), Astro.url.origin);
+const padrao = Astro.props.padrao ?? null;
+---
+{volta ? (
+  <p class="nv-voltar" data-voltar><a href={volta} data-voltar-link><span aria-hidden="true">← </span>Voltar para {nomeTela(volta)}</a></p>
+) : padrao ? (
+  <p class="nv-voltar" data-voltar><a href={padrao.href} data-voltar-padrao><span aria-hidden="true">← </span>{padrao.texto}</a></p>
+) : null}
+<style>
+  .nv-voltar { margin: 0 0 .75rem; overflow-wrap: anywhere; }
+  .nv-voltar a { display: inline-flex; align-items: center; min-height: 2.75rem; font-weight: 600; }
+</style>

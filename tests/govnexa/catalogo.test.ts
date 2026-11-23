@@ -40,7 +40,7 @@ test('cada visão tem as telas combinadas, nesta ordem, numa lista simples', () 
     assert.deepEqual(mod.grupos[0].itens.map((i) => i.slug), [...ITENS_DA_VISAO[id]], id);
   }
   const gerencial = menu.find((m) => m.id === 'gerencial')!.grupos[0].itens;
-  assert.deepEqual(gerencial.map((i) => i.title), ['Projetos prioritários', 'Carteira de projetos', 'Mapa e painel', 'Kanban por macroetapa', 'Gantt geral']);
+  assert.deepEqual(gerencial.map((i) => i.title), ['Projetos prioritários', 'Carteira de projetos', 'Mapa e painel', 'Gestão das licitações', 'Kanban por macroetapa', 'Gantt geral']);
   const governanca = menu.find((m) => m.id === 'governanca')!.grupos[0].itens.map((i) => i.title);
   for (const t of ['Painel da equipe', 'Cronogramas', 'Responsáveis', 'Onde está parado', 'Inconsistências de dados', 'Pendências de etapa', 'Reunião semanal', 'Sala de guerra', 'Histórico de alterações']) assert.ok(governanca.includes(t), t);
   assert.equal(menu.find((m) => m.id === 'convenios')!.grupos[0].itens[0].title, 'Visão Convênios');

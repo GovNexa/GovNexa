@@ -8,6 +8,7 @@ export const TRANSVERSAL = [
   'src/lib/govnexa/catalogo.ts', 'src/lib/marca.ts', 'src/lib/municipio-ativo.ts', 'src/pages/plataforma/[...module].astro',
   'worker/**', 'wrangler.jsonc', 'public/_headers', 'astro.config.*', 'package.json',
   'src/middleware.ts', 'src/lib/repositorio/cache.ts', // lê o banco e entrega os dados a todas as telas da plataforma
+  'src/lib/navegacao/**', 'src/components/navegacao/**', // volta à tela de origem (E15): todas as telas
   'src/lib/usuarios/**', 'src/pages/plataforma/usuarios/**', // acesso e perfis valem para o sistema inteiro
   'scripts/db-local.mjs', // banco local de exemplo, usado pelos testes de interface
 ];
@@ -33,11 +34,11 @@ export const COMPONENTES: Record<string, string[]> = {
   preparatorio: ['src/lib/carteira/macroetapas.ts', 'src/lib/cronograma/**'],
   juridico: ['src/lib/cronograma/visoes.ts', 'src/components/cronograma/Parado.astro'],
   sei: ['scripts/importar-cronogramas.ts', 'scripts/sei-ler.ts', 'src/lib/sei/**', 'src/components/sei/**'],
-  publicacao: ['src/data/modules.json', 'src/lib/licitacao/**', 'src/components/licitacao/**', 'src/lib/prazos/**', 'src/components/prazos/**', 'data/config/feriados.json', 'data/config/prazos-internos.json'],
+  publicacao: ['src/data/modules.json', 'src/lib/licitacao/**', 'src/components/licitacao/**', 'src/lib/prazos/**', 'src/components/prazos/**', 'data/config/feriados.json', 'data/config/prazos-internos.json', 'src/lib/contratacoes/**', 'src/pages/plataforma/gestao-licitacoes/**', 'src/scripts/contratacoes.ts', 'src/styles/contratacoes.css', 'db/d1/prefeitura/0010_*'],
   pncp: [],
-  julgamento: ['src/data/modules.json', 'src/lib/licitacao/**', 'src/components/licitacao/**'],
+  julgamento: ['src/data/modules.json', 'src/lib/licitacao/**', 'src/components/licitacao/**', 'src/lib/contratacoes/**', 'src/pages/plataforma/gestao-licitacoes/**', 'src/scripts/contratacoes.ts', 'src/styles/contratacoes.css', 'db/d1/prefeitura/0010_*'],
   habilitado: ['src/data/modules.json'],
-  homologacao: ['src/data/modules.json', 'src/lib/licitacao/**', 'src/components/licitacao/**', 'src/lib/prazos/**', 'src/components/prazos/**', 'data/config/feriados.json', 'data/config/prazos-internos.json'],
+  homologacao: ['src/data/modules.json', 'src/lib/licitacao/**', 'src/components/licitacao/**', 'src/lib/prazos/**', 'src/components/prazos/**', 'data/config/feriados.json', 'data/config/prazos-internos.json', 'src/lib/contratacoes/**', 'src/pages/plataforma/gestao-licitacoes/**', 'src/scripts/contratacoes.ts', 'src/styles/contratacoes.css', 'db/d1/prefeitura/0010_*'],
   mobilizacao: ['src/lib/carteira/macroetapas.ts', 'src/components/carteira/Kanban.astro'],
   execucao: ['src/lib/carteira/macroetapas.ts', 'src/components/carteira/Gantt.astro', 'src/components/carteira/FiltrosProjetos.astro', 'src/lib/carteira/filtros.ts'],
   conclusao: ['src/lib/carteira/macroetapas.ts'],
@@ -47,7 +48,7 @@ export const COMPONENTES: Record<string, string[]> = {
   alertas: ['src/lib/alertas/**', 'src/components/alertas/**', 'src/lib/dados/alertas.ts', 'src/lib/carteira/visoes.ts', 'src/lib/cronograma/visoes.ts', 'src/lib/dados/qualidade.ts', 'src/lib/prazos/**', 'src/components/prazos/**', 'data/config/feriados.json', 'data/config/prazos-internos.json'],
   parado: ['src/lib/cronograma/visoes.ts', 'src/lib/cronograma/dependencias.ts', 'src/components/cronograma/Parado.astro', 'src/lib/cronograma/responsaveis.ts', 'src/lib/cronograma/painel-responsaveis.ts', 'src/pages/plataforma/gestao-responsaveis/**', 'src/styles/responsaveis.css'],
   sala: ['src/lib/sala/**', 'src/components/sala/**', 'src/pages/plataforma/sala-de-guerra/**'],
-  painel: ['src/components/carteira/VisaoOrgaos.astro', 'src/lib/govnexa/catalogo.ts', 'src/lib/gestao/**', 'src/components/gestao/**', 'src/pages/plataforma/index.astro', 'src/styles/prioritarios.css', ...MAPA],
+  painel: ['src/components/carteira/VisaoOrgaos.astro', 'src/lib/govnexa/catalogo.ts', 'src/lib/gestao/**', 'src/components/gestao/**', 'src/pages/plataforma/index.astro', 'src/styles/prioritarios.css', 'src/pages/plataforma/gestao-licitacoes/**', ...MAPA],
   log: ['src/lib/log/**', 'src/components/log/**', 'db/migracoes/002_*'],
   equipe: ['src/lib/gestao/equipe.ts', 'src/lib/gestao/inconsistencias*.ts', 'src/lib/gestao/dashboard.ts', 'src/components/dashboard/**', 'src/styles/dashboard.css', 'src/styles/inconsistencias.css', 'src/pages/plataforma/gestao-equipe/**', 'src/pages/plataforma/gestao-inconsistencias/**', 'src/lib/alertas/central.ts'],
   whatsapp: ['src/lib/whatsapp/**', 'src/components/whatsapp/**', 'src/lib/gestao/painel.ts', 'src/lib/carteira/visoes.ts'],

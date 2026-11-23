@@ -16,7 +16,11 @@
 
 ## Andamento · última atualização em 23/11/2026
 
-23/11/2026: E13 (cronograma como processo na tela, responsável e tempo na mão, painel Responsáveis, migração 0009) concluída no código, aguardando revisão e publicação; a Fase 2 (Cronograma e equipe) passa a 95%.
+23/11/2026: **E1 a E11 estão no ar em produção** (E8, E9 e E11 publicadas em 23/11 com a migração 0008), aguardando o teste do dono. **E12** Gestão das licitações (migração 0010; cadastro e acompanhamento 100% no sistema), **E13** Governança da execução ampliada (cronograma completo no sistema, responsável, tempo na mão e painel Responsáveis; migração 0009) e **E15** Navegação (sempre poder voltar à tela de origem) estão com código, testes, revisões independentes e prévias aprovadas pelo dono, cerca de 90% cada, aguardando merge (PR #54 da E15, PR #55 da E12, que contém a E15, e o PR da E13, que conterá as três) e publicação; as migrações 0009 e 0010 são aplicadas antes do código, nessa ordem numérica. **E14** (PNCP e Compras.gov) é futura. A conferência de cada áudio contra o plano acrescentou seis pedidos (40 no total) e o dono fixou dois princípios novos: o sistema substitui a planilha, e sempre poder voltar. As linhas de 22/11 abaixo que dizem "aguardando revisão" ou "a numerar" foram escritas antes da publicação.
+
+23/11/2026: E13 (cronograma como processo na tela, responsável e tempo na mão, painel Responsáveis, migração 0009) no código, com revisão e prévia aprovada; aguardando merge e publicação; a Fase 2 (Cronograma e equipe) passa a 95%.
+23/11/2026: E12 (Gestão das licitações) entregue no código: guia na Visão gerencial, edição em linha, página da contratação, aba Contratações na ficha, impressão e CSV; carga da planilha modelo aguarda D5; integração PNCP e Compras.gov na E14.
+23/11/2026: E15 (navegação: "← Voltar para [tela de origem]" em toda tela de destino, com os filtros preservados) no código, com revisão e prévia aprovada; aguardando merge e publicação.
 
 22/11/2026: os requisitos dos áudios de 20/11 (três visões: gerencial, governança da execução e convênios; tela do prefeito; carteira, ficha, Kanban, mapa por área e licitações) estão planejados em [plano-requisitos-audios.md](plano-requisitos-audios.md).
 
@@ -31,7 +35,7 @@ Regra de apresentação (17/11/2026): datas sempre no padrão brasileiro, `DD/MM
 | Planejamento | Plano, decisões, rastreabilidade, Fluxo, fluxos detalhados, mapa de impacto | Fluxos detalhados e mapa de impacto publicados; caixas do Fluxo cabem na raia; zoom no Fluxo | 97% |
 | 0 · Base e identidade | Marca GovNexa, menu por módulos, tema estável, paginação compacta | Publicada; menu lateral com blocos que abrem e fecham (começam fechados). Menu nas três visões (Gerencial, Governança da execução, Convênios) no código desde a E11 | 100% |
 | 1 · Carteira de Projetos | Carga real, Carteira, ficha, Kanban, Gantt, Visão por órgão, celular | Publicada com dados reais | 100% |
-| 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, edição na ficha, Kanban e Pendências (simulação), Histórico, Sala de guerra | E1 em 70% com edição, área, marca de prioritário e faixa 9000 disponíveis no código. Aguardando revisão, migração 0007 e publicação | 95% |
+| 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, edição na ficha, Kanban e Pendências (simulação), Histórico, Sala de guerra | E1 no ar (edição, área, marca de prioritário e faixa 9000; migração 0007), aguardando teste do dono | 100% |
 | 2 · Cronograma e equipe | Cronogramas, quadro de tarefas, Onde está parado | Publicada com a Reunião semanal e as dependências entre etapas (atraso em cascata); leitura do SEI em simulação (a leitura diária depende do banco) | 90% |
 | 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis, isolamento por prefeitura | Tabelas em produção e carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas no ar e gravada em 16/11 (3.5). Documentos (3.4) publicados em 17/11. Usuários: lista publicada; cadastro, convites e login próprio com 2FA implementados, aguardando revisão e publicação | 92% |
 | 4 · Contratação, convênios e Gestão | Lei 14.133, cláusula suspensiva, alertas, painel do prefeito | Em construção: Prazos da Lei 14.133, Painel do prefeito, Mapa das obras e Central de alertas publicados; Licitação em detalhe com as datas reais do SEI em simulação; falta a leitura automática (banco) e o PNCP | 75% |
@@ -43,7 +47,11 @@ Percentuais mantidos até homologação do login próprio; Access continua padr�
 
 | Data | Entrega | PR |
 | --- | --- | --- |
+| 23/11 | E8, E9 e E11 publicadas em produção (migração 0008); E1 a E11 no ar | publicação do dono |
+| 23/11 | E12 (licitações), E13 (governança da execução) e E15 (navegação) no código, ~90% cada, com revisão e prévia aprovada | aguardando merge (PRs #54, #55 e o da E13) e publicação; migrações 0009 e 0010 antes do código |
+| 23/11 | Documentação: rastreabilidade dos áudios (40 pedidos) e princípios "o sistema substitui a planilha" e "sempre poder voltar" | a numerar |
 | 23/11 | E13: cronograma criado e mantido na tela, troca de responsável com histórico, tempo na mão e painel Responsáveis (migração 0009) | a numerar |
+| 23/11 | E15: navegação, voltar sempre à tela de origem (13 caminhos corrigidos) | branch agente/codex/e15-navegacao, PR #54 |
 | 22/11 | E11: menu nas três visões (Gerencial, Governança da execução, Convênios) e Visão Convênios (em execução, em risco, CAUC); menu esconde o que o perfil não abre | a numerar |
 | 22/11 | E10: Painel da equipe e relatório de inconsistências (impressão e CSV) | GovNexa #49, mesclado |
 | 22/11 | E7: Kanban enxuto e mover gravando no banco (B3), com portão e motivo | GovNexa #48, mesclado |
@@ -121,6 +129,8 @@ O GovNexa — Inteligência para a gestão pública — será a base única da c
 - **Simples para quem usa:** fichas em texto, sem barra de rolagem lateral, poucos cliques; a equipe tem dificuldade com planilha e IA.
 - **Origem preservada:** todo dado guarda fonte, data e o valor original importado.
 - **Gestão leve:** PMBOK para marcos, linha de base e caminho crítico; execução ágil em Kanban.
+- **O sistema substitui a planilha (regra do dono, 23/11/2026):** a planilha é só orientação e carga inicial; a continuidade é exclusivamente no sistema. Todo processo tem início, meio e fim na tela (criar, editar, avançar, concluir, com Histórico). Depois da carga, a tela vence a planilha. Um modelo de planilha novo só alimenta a carga inicial e nunca é requisito para continuar. Varredura pendente: conferir módulo a módulo o que ainda depende de planilha (os cronogramas eram só leitura e viraram a E13).
+- **Sempre poder voltar (regra do dono, 23/11/2026):** toda tela aberta a partir de outra oferece voltar à origem, com os filtros; conferido em toda entrega, com teste (E15).
 
 **Decisões já tomadas**
 
@@ -277,6 +287,12 @@ Abas da ficha: Resumo · Valores e recursos · Cronograma (Kanban/Gantt) · Capt
 ### 5.6 Reunião semanal e ações
 
 O modo Reunião percorre os projetos por prioridade ou farol, mostra o que mudou desde a semana anterior e registra discussão, decisão e ações (responsável e prazo). Substitui a coluna "Reunião dd-mm" e a coluna "Providências" da planilha. Ideias soltas do rodapé da planilha viram itens de um backlog de demandas, conversíveis em projeto.
+
+### 5.7 Navegação: voltar à tela de origem (23/11/2026, E15)
+
+Regra do dono: de qualquer tela, quem entrou numa segunda tela consegue voltar à de origem, com os filtros que tinha. Todo link de conteúdo para outra tela leva a origem (`pathname + search`) no parâmetro `volta`; a tela de destino mostra "← Voltar para [nome da tela]". Só telas sob `/plataforma/` valem; no máximo 2 níveis; avisos de ação concluída não voltam junto. A ficha do projeto guarda a origem e o X fecha para ela.
+
+Contrato para as telas novas (E12 e E13): (1) links de conteúdo com `comVolta(href, aquiDe(Astro.url))` e, para a ficha, `hrefFicha(id, aquiDe(Astro.url), aba)`; (2) a tela não precisa fazer nada para mostrar o Voltar (o `Platform` mostra). Se usar o slot `contexto`, ponha `<Voltar />` dentro dele; (3) redirecionamento depois de POST: `comVolta(destino, voltaSegura(url.searchParams.get('volta'), url.origin))`; (4) não use `VOLTAS_PERMITIDAS`.
 
 ## 6. Módulo Captação
 

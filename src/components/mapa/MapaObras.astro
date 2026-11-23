@@ -118,6 +118,9 @@ import { elementoGlifo } from '../../lib/mapa/icones.ts';
 import type { ObraBasica, ObraMapa } from '../../lib/mapa/obras.ts';
 import { lerLocalizacoesSimuladas } from '../../lib/mapa/simulacao.ts';
 import type { Localizacao, PontoGeo } from '../../lib/mapa/tipos.ts';
+import { voltaSegura } from '../../lib/navegacao/volta.ts';
+
+const voltaMapa = () => voltaSegura(`${location.pathname}${location.search}${location.hash}`, location.origin);
 
 type ObraVista = ObraMapa & { simulada?: boolean };
 type SemLocalVista = ObraBasica;
@@ -658,13 +661,14 @@ document.addEventListener('astro:page-load', () => {
       if (obra.precisao === 'bairro') painel.append(el('p', `Local aproximado (centro do bairro ${obra.bairro ?? ''})`, 'mp-aviso-local'));
       const links = el('div', undefined, 'mp-painel-links');
       const ficha = el('a', 'Abrir ficha completa');
-      ficha.href = `/plataforma/projeto/${encodeURIComponent(obra.id)}/`;
+      ficha.href = hrefFicha(obra.id, voltaMapa());
       ficha.addEventListener('click', (evento) => {
         evento.preventDefault();
         void abrirFicha(obra, ficha);
       });
       const editar = el('a', 'Localização');
-      editar.href = hrefFicha(obra.id, null, 'localizacao');
+      editar.href = hrefFicha(obra.id, voltaMapa(), 'localizacao');
+      editar.addEventListener('click', () => { editar.href = hrefFicha(obra.id, voltaMapa(), 'localizacao'); });
       links.append(ficha, editar);
       painel.append(links);
       return;

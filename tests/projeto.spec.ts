@@ -12,16 +12,16 @@ test('ficha do projeto: abre pelo endereço com as abas e o X volta à Carteira'
   await page.goto(PAGINA);
   await expect(page.locator('h1')).toContainText(PROJETO);
   await expect(page.locator('[data-module-title]')).toHaveText('Projeto');
-  await expect(page.locator('.fp-aba label')).toHaveText(['Cadastro', 'Recurso', 'Entrega', 'Localização', 'Fotos', 'Documentos', 'Processos SEI', 'Cronograma', 'Histórico', 'Governança']);
+  await expect(page.locator('.fp-aba label')).toHaveText(['Cadastro', 'Recurso', 'Entrega', 'Localização', 'Fotos', 'Documentos', 'Processos SEI', 'Contratações', 'Cronograma', 'Histórico', 'Governança']);
   await expect(page.getByRole('heading', { level: 2, name: 'Resumo do cadastro', exact: true })).toBeVisible();
   await expect(page.getByText('Modo simulação')).toHaveCount(0);
-  await expect(page.locator('#fp-painel-documentos a', { hasText: 'Abrir os documentos do projeto' })).toHaveAttribute('href', `/plataforma/documentos-projeto/projeto/${PROJETO}/`);
+  await expect(page.locator('#fp-painel-documentos a', { hasText: 'Abrir os documentos do projeto' })).toHaveAttribute('href', new RegExp(`^/plataforma/documentos-projeto/projeto/${PROJETO}/\\?volta=`));
   await page.getByRole('link', { name: 'Fechar e voltar à Carteira' }).click();
   await expect(page).toHaveURL(/\/plataforma\/projetos-carteira\//);
   // A tela de documentos leva de volta à página do projeto.
   await page.goto(`/plataforma/documentos-projeto/projeto/${PROJETO}/`);
   await page.locator('.doc-contexto').getByRole('link', { name: new RegExp(PROJETO) }).click();
-  await expect(page).toHaveURL(new RegExp(`/plataforma/projeto/${PROJETO}/$`));
+  await expect(page).toHaveURL(new RegExp(`/plataforma/projeto/${PROJETO}/\\?aba=documentos&volta=`));
 });
 
 test('página do projeto: código inexistente ou malformado devolve 404', async ({ page }) => {
@@ -194,7 +194,7 @@ test('cadastro: o formulário grava de verdade e leva à página do projeto', as
   const ok = page.locator('[data-np-ok]');
   await expect(ok).toContainText('foi cadastrado em 00 – Em estruturação');
   const href = await page.locator('[data-np-ok-pagina]').getAttribute('href');
-  expect(href).toMatch(/^\/plataforma\/projeto\/P-\d+\/$/);
+  expect(href).toMatch(/^\/plataforma\/projeto\/P-\d+\/\?volta=%2Fplataforma%2Fprojetos-novo%2F$/);
   await page.locator('[data-np-ok-pagina]').click();
   await expect(page.locator('h1')).toContainText('Projeto B2 pelo formulário');
   await expect(page.locator('[data-pj-historico] li').filter({ hasText: 'Projeto incluído no cadastro' })).toHaveCount(1);

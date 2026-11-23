@@ -36,7 +36,7 @@ test('do zero: cria o cronograma, inclui tarefas, troca o responsável, reordena
   await page.waitForURL(/\/plataforma\/cronograma\/C-[^/]+\/\?aba=tarefas&volta=/);
   const cronogramaUrl = page.url();
   await expect(page.getByText('Este cronograma ainda não tem tarefas.')).toBeVisible();
-  await expect(page.locator('[data-voltar]')).toHaveText('← Voltar para a ficha do projeto');
+  await expect(page.locator('[data-voltar]')).toHaveText(/^← Voltar para a ficha do projeto P-/);
 
   const hoje = await page.locator('[data-cr-editor]').getAttribute('data-hoje');
   await page.getByRole('button', { name: 'Incluir a primeira tarefa' }).click();
@@ -73,7 +73,7 @@ test('do zero: cria o cronograma, inclui tarefas, troca o responsável, reordena
 
   // Volta à ficha com a aba Cronograma aberta e confere o Histórico.
   await page.goto(cronogramaUrl);
-  await page.locator('[data-voltar]').click();
+  await page.locator('[data-voltar] a').click();
   await expect(page).toHaveURL(new RegExp(`/plataforma/projeto/${projetoId}/\\?.*aba=cronograma`));
   await expect(page.locator('#fp-painel-cronograma')).toBeVisible();
   await page.goto(`/plataforma/projeto/${projetoId}/?aba=historico`);
@@ -97,7 +97,7 @@ test('base carregada: troca o responsável, abre o painel Responsáveis e volta 
   await page.locator('[data-rp-linha] a').first().click();
   await expect(page).toHaveURL(/\/plataforma\/cronograma\/C-exemplo-002\/\?aba=tarefas&volta=.*#t-/);
   await expect(page.locator('[data-voltar]')).toHaveText('← Voltar para Responsáveis');
-  await page.locator('[data-voltar]').click();
+  await page.locator('[data-voltar] a').click();
   await expect(page).toHaveURL(new RegExp(`/plataforma/gestao-responsaveis/\\?pessoa=${encodeURIComponent(PESSOA_C).replaceAll('%20', '(%20|\\+)')}`));
   await expect(page.locator('select[name="pessoa"]')).toHaveValue(PESSOA_C);
 });

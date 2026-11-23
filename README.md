@@ -67,6 +67,8 @@ São módulos independentes que conversam entre si:
 | Gestão leve | PMBOK para marcos, linha de base e caminho crítico; execução ágil em Kanban; sala de guerra no padrão PMI |
 | Nada fixo em Goiânia | Município, logo, feriados e metas vêm de configuração; cada prefeitura tem acesso e dados isolados |
 | Lei é teto, meta é menor | A prefeitura define metas internas menores que a Lei 14.133; passar do teto legal é alerta grave; o prazo-piso não se encurta |
+| O sistema substitui a planilha (23/11/2026) | A planilha é só orientação e carga inicial; a continuidade é exclusivamente no sistema. Todo processo tem início, meio e fim na tela (criar, editar, avançar, concluir, com Histórico). Depois da carga, a tela vence a planilha. Um modelo de planilha novo (como o das licitações) só alimenta a carga inicial |
+| Sempre poder voltar (23/11/2026) | Toda tela aberta a partir de outra oferece voltar à origem, com os filtros; conferido em toda entrega, com teste (E15) |
 | Três visões (22/11/2026) | O menu se organiza em Visão gerencial (o que o prefeito vê para decidir), Governança da execução (o trabalho da equipe) e Convênios (captação e repasses); guia que o perfil não abre fica fora do menu e a página confere de novo |
 
 ### 1.2 Como o produto chegou até aqui (histórico das decisões)
@@ -96,6 +98,7 @@ São módulos independentes que conversam entre si:
    - Login próprio do GovNexa desde 17/11/2026: e-mail e senha + verificação em 2 etapas (aplicativo autenticador), com cadastro ativo no banco central. Até 17/11 o acesso era pelo Cloudflare Access. Perfis: admin, gestor, editor e leitura; durante a construção, todos os usuários são admin. Quem passa no Access, mas não está cadastrado, vê "Sem permissão".
    - Carga inicial no D1 de produção em 16/11: 334 projetos, 13 cronogramas e 725 etapas. O código 450 estava repetido (SECAP e SEINFRA); o da SECAP virou 506. Planilhas novas são importadas do repositório privado `GovNexa/govnexa-dados` por uma rotina do GitHub (etapa 3.5, ver a seção 6).
    - Marca GovNexa no site público, login e plataforma. Contato: contato@govnexa.com.br.
+7. **20 a 23/11/2026 — áudios do dono e dois princípios novos.** Os áudios de 20/11 mudaram a tela do prefeito e organizaram o menu em três visões (entregas E1 a E11, no ar em 23/11). Em 23/11 o dono fixou duas regras que mudam a direção do produto: **o sistema substitui a planilha** (a planilha é só orientação e carga inicial; todo processo vive na tela, do início ao fim, e depois da carga a tela vence a planilha) e **sempre poder voltar** (toda tela aberta a partir de outra volta à origem, com os filtros). Daí vieram a E12 (licitações cadastradas e acompanhadas no sistema), a E13 (cronograma como processo completo, com responsável e tempo na mão) e a E15 (navegação). Detalhe em [docs/govnexa/plano-requisitos-audios.md](docs/govnexa/plano-requisitos-audios.md).
 
 ### 1.3 Roteiro por fases
 
@@ -104,27 +107,46 @@ São módulos independentes que conversam entre si:
 | 0 · Base e identidade | Marca, menu por módulos, município configurável | Plataforma com a marca e o menu novos |
 | 1 · Carteira de Projetos | Substituir a planilha: carteira, ficha, Kanban, Gantt, por órgão | Carga conciliada com a planilha |
 | 1.5 · Cadastro e movimentação | Projeto nasce no cadastro e anda ou volta por qualquer caminho, com histórico | Gravar de verdade no banco |
-| 2 · Cronograma e equipe | Cronogramas criados e mantidos na tela (E13), quadro de tarefas, Responsáveis, Onde está parado, Reunião semanal, dependências, SEI | Telas entregues; E13 (cronograma como processo, responsável e tempo na mão) concluída no código, aguardando revisão, migração 0009 e publicação; leitura automática do SEI a fazer | 95% |
+| 2 · Cronograma e equipe | Cronogramas criados e mantidos na tela (E13), quadro de tarefas, Responsáveis, Onde está parado, Reunião semanal, dependências, SEI | Telas entregues; E13 (cronograma como processo, responsável e tempo na mão) com código, testes, revisão independente e prévia aprovada pelo dono (~90%), aguardando merge, migração 0009 e publicação; leitura automática do SEI a fazer | 95% |
 | 3 · Produção com banco (Cloudflare D1) | Gravação, perfis por secretaria e isolamento por prefeitura | Simulações viram gravação real no D1 |
 | 4 · Contratação, convênios e Gestão | Lei 14.133 ponta a ponta, cláusula suspensiva, painel do prefeito e medições | PNCP e datas reais por licitação |
 | 5 · Integrações e inteligência | PNCP, SIMEC, SISMOB, SINAPI e GOINFRA, WhatsApp real, IA com revisão humana | Conta do WhatsApp Business; IA aprovada |
 
+Dentro das fases 2 e 4, a partir de 23/11/2026, valem as três frentes do plano dos áudios (E12 Licitações, E13 Governança da execução e E15 Navegação), todas regidas por dois princípios: o sistema substitui a planilha e sempre se pode voltar à tela de origem (seção 1.1).
+
 ## 2. Situação atual (23/11/2026)
+
+Resumo do plano dos áudios de 20/11 ([plano-requisitos-audios.md](docs/govnexa/plano-requisitos-audios.md), seção 3): **E1 a E11 estão no ar em produção (100%), aguardando o teste do dono em produção.** **E12** Gestão das licitações, **E13** Governança da execução e **E15** Navegação estão com código, testes, revisões independentes e prévias aprovadas pelo dono (cerca de 90% cada), aguardando o merge (PR #54 da E15, PR #55 da E12, que contém a E15, e o PR da E13, que conterá as três) e a publicação; as migrações 0009 (E13) e 0010 (E12) são aplicadas antes do código, nessa ordem numérica. **E14** (PNCP e Compras.gov) é futura, 0%.
+
+| Percentual por fase do plano dos áudios | Entregas | % |
+| --- | --- | --- |
+| Base de dados para operar do zero | E1, E9 | 100% |
+| Visão gerencial (prefeito) | E2 a E8 | 100% |
+| Governança (equipe) | E10, E11, E13 | 97% |
+| Navegação | E15 | 90% |
+| Licitações | E12, E14 | 45% |
+
+Situação por fase do produto:
 
 | Fase | O que entrega | Situação | % |
 | --- | --- | --- | --- |
 | Planejamento | Plano, decisões, rastreabilidade, Fluxo do sistema, fluxos detalhados, mapa de impacto | Publicado; Fluxo com zoom e legenda recolhida | 97% |
 | 0 · Base e identidade | Marca GovNexa, menu por módulos, tema estável, paginação | Publicada; blocos do menu começam fechados | 100% |
 | 1 · Carteira de Projetos | Carteira, ficha, Kanban, Gantt, Visão por órgão, celular | Entregue; carga inicial no D1 | 100% |
-| 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, Kanban e Pendências, Histórico, Sala de guerra | E1 em 70%, com edição pela ficha, área e marca de prioritário disponíveis no código. Aguardando revisão, migração 0007 e publicação | 95% |
-| 2 · Cronograma e equipe | Cronogramas, quadro de tarefas, Onde está parado, Reunião semanal, dependências, SEI | Telas entregues; leitura automática do SEI a fazer | 90% |
+| 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, Kanban e Pendências, Histórico, Sala de guerra | E1 no ar (edição pela ficha, área, marca de prioritário e códigos a partir de 9000; migração 0007), aguardando teste do dono em produção | 100% |
+| 2 · Cronograma e equipe | Cronogramas, quadro de tarefas, Onde está parado, Reunião semanal, dependências, SEI | Telas entregues; leitura automática do SEI a fazer. Cronogramas editáveis no sistema, responsável e tempo na mão prontos, aguardando merge e publicação (E13, ~90%) | 90% |
 | 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis e isolamento por prefeitura | Tabelas em produção, carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas no ar e gravada em 16/11 (3.5). Documentos (3.4) publicados em 17/11. Usuários: lista, cadastro, convites e login próprio com 2FA no ar desde 17/11 | 95% |
-| 4 · Contratação, convênios e Gestão | Lei 14.133, alertas, dashboard do prefeito, licitação em detalhe | Prazos da lei, dashboard em três níveis, filtros e modo apresentação; mapa, Central de alertas e Licitação em detalhe; parte ainda em simulação | 75% |
+| 4 · Contratação, convênios e Gestão | Lei 14.133, alertas, dashboard do prefeito, licitação em detalhe | Prazos da lei, dashboard em três níveis, filtros e modo apresentação; mapa, Central de alertas e Licitação em detalhe; parte ainda em simulação. Gestão das licitações no sistema pronta, aguardando merge e publicação (E12, ~90%; migração 0010); PNCP e Compras.gov futuro (E14) | 75% |
 | 5 · Integrações e inteligência | PNCP, SIMEC, SISMOB, preços, WhatsApp, IA | WhatsApp em simulação | 10% |
 
 ### Entregas recentes
 
-- 23/11/2026: E13, cronograma como processo na tela (criar o cronograma de um projeto, incluir, editar, reordenar, iniciar, concluir e remover tarefas, trocar o responsável com histórico) e o painel Responsáveis (com quem está cada tarefa e há quantos dias, por pessoa e por área, com atenção e urgente; impressão e CSV); migração 0009 (branch agente/codex/e13-cronogramas; aguardando revisão e publicação).
+- 23/11/2026: E13, cronograma como processo na tela (criar o cronograma de um projeto, incluir, editar, reordenar, iniciar, concluir e remover tarefas, trocar o responsável com histórico) e o painel Responsáveis (com quem está cada tarefa e há quantos dias, por pessoa e por área, com atenção e urgente; impressão e CSV); migração 0009 (branch agente/codex/e13-cronogramas; código, testes, revisão independente e prévia aprovada pelo dono; aguardando merge e publicação; ~90%).
+- 23/11/2026: E12, Gestão das licitações na Visão gerencial (cadastro e acompanhamento manual): grandes números por etapa, listas com os campos do relatório, edição em linha para editor ou acima (o prefeito só vê), página da contratação com etapas, marcos e Histórico próprio, aba Contratações na ficha, impressão e CSV; migração 0010 (PR #55; revisão independente e prévia aprovada pelo dono; aguardando merge e publicação; ~90%). A carga da planilha modelo depende da decisão D5; a integração com PNCP e Compras.gov fica para a E14.
+- 23/11/2026: E15, navegação: em toda tela de destino aparece "← Voltar para [tela de origem]" com os filtros preservados; corrigidos 13 caminhos sem volta (ficha, cronograma, sala de guerra, documentos, SEI, histórico, diálogo de detalhes, prioritários, alertas, reunião, licitação, localização, mapa, novo projeto e Gantt) (PR #54, branch agente/codex/e15-navegacao; revisão independente e prévia aprovada pelo dono; aguardando merge e publicação; ~90%).
+- 23/11/2026: **E8 (localização por endereço), E9 (fotos da obra) e E11 (menu nas três visões e Visão Convênios) publicadas em produção**, com a migração 0008 aplicada; com elas, E1 a E11 estão no ar, aguardando o teste do dono em produção. As entregas de 22/11 listadas abaixo foram escritas antes da publicação; todas estão no ar desde 23/11.
+- 23/11/2026, prontas e aguardando merge e publicação: **E12** Gestão das licitações (migração 0010), **E13** Governança da execução ampliada (cronograma completo no sistema, responsável, tempo na mão e painel Responsáveis; migração 0009) e **E15** Navegação (sempre poder voltar à tela de origem; 13 caminhos quebrados corrigidos). As três foram juntadas na branch da E13 (PR da E13 contém as três); migrações 0009 e 0010 antes do código, nessa ordem.
+- 23/11/2026: documentação: conferência de cada áudio contra o plano (seis pedidos acrescentados) e dois princípios novos do dono (o sistema substitui a planilha; sempre poder voltar).
 - 22/11/2026: E11, menu nas três visões (Visão gerencial, Governança da execução e Convênios) e a tela Visão Convênios (em execução, em risco e CAUC); guias que o perfil não abre ficam fora do menu; pendências pequenas das revisões E4, E6 e E10 fechadas (branch agente/codex/e11-visoes; aguardando portão, prévia do dono e revisão).
 - 22/11/2026: E9, fotos da obra na aba Fotos da ficha: enviar (JPG, PNG ou WEBP, até 10 MB, com legenda e data da foto), ver em grade com ampliação e remover (remoção lógica); envio e remoção entram no Histórico; migração 0008 (branch agente/codex/e9-fotos; aguardando portão, prévia do dono e revisão).
 - 22/11/2026: E8, busca de endereço na localização (rua, endereço completo ou bairro pelo OpenStreetMap, resultado no mapa, a pessoa confirma e só o Salvar grava) (branch agente/codex/e8-endereco; aguardando portão, prévia do dono e revisão).
@@ -176,7 +198,7 @@ Legenda: **Disponível** = leitura ou operação disponível. **Simulação** = 
 
 ### Conta e acesso
 
-Guia Usuários: cadastro, convite por e-mail, reenvio, perfil, ativação e redefinição do aplicativo, só para administradores da mesma prefeitura. Login próprio: senha, aplicativo autenticador obrigatório e recuperação de senha. Disponíveis no código, aguardando publicação e validação da interface; envio local simulado.
+Guia Usuários: cadastro, convite por e-mail, reenvio, perfil, ativação e redefinição do aplicativo, só para administradores da mesma prefeitura. Login próprio: senha, aplicativo autenticador obrigatório e recuperação de senha. No ar em produção desde 17/11/2026; o envio de e-mail continua simulado no ambiente local.
 
 ### Dashboard: efeitos, alertas e atualização automática
 
@@ -196,7 +218,8 @@ O tema claro usa menu lateral branco, texto e ícones azul-escuros, destaques az
 
 | Funcionalidade | O que oferece | Situação | Código |
 | --- | --- | --- | --- |
-| Menu lateral | Três visões (E11): Visão gerencial, Governança da execução e Convênios; depois Licitações (demonstrativo) e Conta. Ícones por item e tipografia única; começa recolhido com ícones das visões e abre uma lista flutuante com todos os itens; blocos em sanfona; as guias que o perfil não pode abrir ficam fora do menu | Disponível no código (E11) | `src/lib/govnexa/catalogo.ts`, `src/layouts/Platform.astro`, `src/components/Icon.astro` |
+| Menu lateral | Três visões (E11): Visão gerencial, Governança da execução e Convênios; depois Licitações (demonstrativo) e Conta. Ícones por item e tipografia única; começa recolhido com ícones das visões e abre uma lista flutuante com todos os itens; blocos em sanfona; as guias que o perfil não pode abrir ficam fora do menu | Disponível, no ar (E11) | `src/lib/govnexa/catalogo.ts`, `src/layouts/Platform.astro`, `src/components/Icon.astro` |
+| Voltar à tela de origem | Link de conteúdo leva a origem no parâmetro `volta`; a tela de destino mostra "← Voltar para [tela]" (componente `Voltar.astro`, automático no layout). A ficha guarda a origem e o X fecha para ela; a edição mantém a aba. Só telas sob /plataforma/, no máximo 2 níveis | Disponível no código (E15) | `src/lib/navegacao/volta.ts`, `src/components/navegacao/Voltar.astro` |
 
 ### Projetos
 
@@ -204,29 +227,30 @@ O tema claro usa menu lateral branco, texto e ícones azul-escuros, destaques az
 | --- | --- | --- | --- |
 | Projetos · Início | Resumo da carteira por macroetapa: quantidade, valor e farol de prazo | Disponível | `src/lib/carteira/` |
 | Fluxo do sistema | Diagrama em raias com etapas, validações, responsáveis e links para as telas; inclui fluxos detalhados e zoom | Disponível | `src/lib/govnexa/fluxo.ts`, `subfluxos.ts`, `src/components/fluxo/` |
-| Novo projeto | Cadastro com área e marca de prioritário. Grava na macroetapa 00, usa códigos a partir de P-9000 e registra no Histórico | Disponível no código (B2 e E1) | `src/components/carteira/NovoProjeto.astro` |
+| Novo projeto | Cadastro com área e marca de prioritário. Grava na macroetapa 00, usa códigos a partir de P-9000 e registra no Histórico | Disponível, no ar (B2 e E1) | `src/components/carteira/NovoProjeto.astro` |
 | Carteira de projetos | Grandes números que seguem os filtros, colunas do relatório por órgão, filtros padrão com "Só prioritários", grupos por macroetapa da entrega mais próxima à mais distante, impressão e ficha completa | Disponível (E5) | `src/components/carteira/CarteiraProjetos.astro`, `src/lib/carteira/lista.ts` |
-| Ficha do projeto | Uma só ficha, aberta pela Carteira ou pelo endereço: topo do prefeito (órgão, área, valor total, macroetapa, entrega prevista, localização, observação) e abas Cadastro, Recurso, Entrega, Localização, Fotos, Documentos, Processos SEI, Cronograma, Histórico e Governança. Edição (E1) por quem tem permissão | Disponível no código (E6); fotos na aba Fotos (E9) | `src/pages/plataforma/projeto/[id].astro`, `src/lib/carteira/ficha*.ts` |
-| Fotos da obra | Aba Fotos da ficha, separada da Localização: enviar uma foto por vez (JPG, PNG ou WEBP, até 10 MB) com legenda e data da foto, ver em grade com ampliação e remover (remoção lógica). Envio e remoção entram no Histórico. Administrador, gestor e editor enviam e removem; o perfil leitura só vê | Disponível no código (E9) | `src/components/carteira/ficha/FotosFicha.astro`, `src/lib/fotos/**`, `src/pages/plataforma/fotos-projeto/**` |
+| Ficha do projeto | Uma só ficha, aberta pela Carteira ou pelo endereço: topo do prefeito (órgão, área, valor total, macroetapa, entrega prevista, localização, observação) e abas Cadastro, Recurso, Entrega, Localização, Fotos, Documentos, Processos SEI, Cronograma, Histórico e Governança. Edição (E1) por quem tem permissão | Disponível, no ar (E6); fotos na aba Fotos (E9) | `src/pages/plataforma/projeto/[id].astro`, `src/lib/carteira/ficha*.ts` |
+| Fotos da obra | Aba Fotos da ficha, separada da Localização: enviar uma foto por vez (JPG, PNG ou WEBP, até 10 MB) com legenda e data da foto, ver em grade com ampliação e remover (remoção lógica). Envio e remoção entram no Histórico. Administrador, gestor e editor enviam e removem; o perfil leitura só vê | Disponível, no ar (E9) | `src/components/carteira/ficha/FotosFicha.astro`, `src/lib/fotos/**`, `src/pages/plataforma/fotos-projeto/**` |
 | Obras sem localização | Lista das obras que não aparecem no mapa (fora do menu); a localização é gravada na aba Localização da ficha | Disponível (E6) | `src/pages/plataforma/projetos-localizacao/`, `src/components/carteira/ficha/` |
-| Busca de endereço na localização | Na aba Localização da ficha e no Novo projeto: procurar por rua, endereço completo ou só bairro; os resultados aparecem no mapa e a pessoa confirma; só o Salvar grava (rota da B1, com Histórico). Busca feita pelo servidor no OpenStreetMap (Nominatim), com cache, limite por pessoa e um pedido por segundo. Só administrador, gestor e editor | Disponível no código (E8) | `src/lib/mapa/busca-endereco.ts`, `src/pages/plataforma/localizacao/buscar.ts`, `src/components/mapa/EditorLocalizacao.astro` |
-| Kanban por macroetapa | Colunas de Em estruturação até Execução, com a quantidade e a previsão de saída do marco; card com nome, órgão e data de saída; filtros do padrão; mover (botão ou arrastar) grava com portão, motivo e Histórico | Disponível no código (E7) | `src/components/carteira/Kanban.astro`, `src/lib/carteira/kanban.ts`, `src/lib/carteira/mover.ts` |
+| Busca de endereço na localização | Na aba Localização da ficha e no Novo projeto: procurar por rua, endereço completo ou só bairro; os resultados aparecem no mapa e a pessoa confirma; só o Salvar grava (rota da B1, com Histórico). Busca feita pelo servidor no OpenStreetMap (Nominatim), com cache, limite por pessoa e um pedido por segundo. Só administrador, gestor e editor | Disponível, no ar (E8) | `src/lib/mapa/busca-endereco.ts`, `src/pages/plataforma/localizacao/buscar.ts`, `src/components/mapa/EditorLocalizacao.astro` |
+| Kanban por macroetapa | Colunas de Em estruturação até Execução, com a quantidade e a previsão de saída do marco; card com nome, órgão e data de saída; filtros do padrão; mover (botão ou arrastar) grava com portão, motivo e Histórico | Disponível, no ar (E7) | `src/components/carteira/Kanban.astro`, `src/lib/carteira/kanban.ts`, `src/lib/carteira/mover.ts` |
 | Gantt geral | Linha do tempo prevista por macroetapa, da entrega mais próxima à mais distante; filtros por nome, órgão, macroetapa e período de entrega (mês e ano), guardados no endereço | Disponível | `src/components/carteira/Gantt.astro`, `src/components/carteira/FiltrosProjetos.astro`, `src/lib/carteira/filtros.ts` |
 | Visão por órgão | Incorporada à Carteira (E5): o endereço antigo abre a Carteira filtrada pelo órgão | Substituída | `src/lib/carteira/lista.ts` |
 | Cronogramas | Fase atual, realizado × previsto, linha do tempo, quadro, dependências e pendências de dado; aba Tarefas e responsáveis para criar o cronograma de um projeto e incluir, editar, reordenar, iniciar, concluir e remover tarefas, e trocar o responsável (cada troca fica no Histórico e na tarefa) | Disponível: criação e manutenção na tela (E13) | `src/lib/cronograma/`, `src/pages/plataforma/cronograma/`, `src/components/cronograma/TarefasResponsaveis.astro` |
 | Responsáveis | Com quem está cada tarefa aberta e há quantos dias, por pessoa e por área; atenção (passou da duração prevista) e urgente (passou do dobro); filtros, impressão e CSV; visível ao perfil leitura (só leitura) | Disponível (E13) | `src/lib/cronograma/painel-responsaveis.ts`, `src/pages/plataforma/gestao-responsaveis/` |
+| Voltar à tela de origem (E15) | Toda tela aberta a partir de outra mostra "← Voltar para …" e mantém os filtros; 13 caminhos que perdiam a origem foram corrigidos | Disponível no código (E15, ~90%; aguardando merge e publicação) | `src/lib/navegacao/volta.ts`, `src/components/navegacao/Voltar.astro` |
 | Onde está parado | Etapas vencidas por unidade e responsável | Disponível | `src/components/cronograma/Parado.astro` |
-| Pendências de etapa | Aprovar avança; reprovar volta uma etapa com motivo; grava no banco pela mesma regra do Kanban (perfis de gestão) | Disponível no código (E7) | `src/components/carteira/PendenciasEtapa.astro`, `src/pages/plataforma/projeto/mover/[id].ts` |
+| Pendências de etapa | Aprovar avança; reprovar volta uma etapa com motivo; grava no banco pela mesma regra do Kanban (perfis de gestão) | Disponível, no ar (E7) | `src/components/carteira/PendenciasEtapa.astro`, `src/pages/plataforma/projeto/mover/[id].ts` |
 | Reunião semanal | Pauta, decisões, ações e ata | Simulação | `src/lib/reuniao/` |
 | Sala de guerra | Missões com objetivo, prazo, responsável, riscos, ações, problemas e decisões | Simulação | `src/lib/sala/` |
 | Histórico de alterações | Log com o quê, quem, quando, origem, antes e depois; filtros e CSV | Disponível para carga; gravação de movimentos em integração | `src/lib/log/` |
-| Processos no SEI | Leitor da página pública, documentos-chave, etapa sugerida e link por projeto | Simulação; rotina automática a fazer | `src/lib/sei/`, `src/components/sei/` |
+| Processos no SEI | Leitor da página pública, documentos-chave, etapa sugerida e link por projeto | Simulação; rotina automática a fazer. A aba Processos SEI da ficha do projeto está no ar (E6); a ligação real com o SEI depende do B7 (banco) | `src/lib/sei/`, `src/components/sei/` |
 
 ### Captação (dados públicos)
 
 | Guia | O que faz |
 | --- | --- |
-| Visão Convênios (E11) | Convênios em execução (da vigência mais próxima à mais distante), convênios em risco (sem desembolso há mais de 180 dias ou vigência em até 180 dias, a mesma regra do Painel da equipe) e regularidade no CAUC, com os dados públicos já coletados. Disponível no código |
+| Visão Convênios (E11) | Convênios em execução (da vigência mais próxima à mais distante), convênios em risco (sem desembolso há mais de 180 dias ou vigência em até 180 dias, a mesma regra do Painel da equipe) e regularidade no CAUC, com os dados públicos já coletados. Disponível, no ar (E11) |
 | Principal | Indicadores com fonte e data: convênios, CAUC, SICONFI, FNS, educação, saúde, saneamento e DOU |
 | Oportunidades | Programas abertos compatíveis com o município, com prazos e busca por necessidade |
 | Acompanhamento | Convênios e repasses: pactuado, liberado e saldo a liberar |
@@ -241,6 +265,8 @@ Código: `src/lib/dados/`, `src/lib/projetos/`, `coletores/`. Detalhes em [docs/
 
 | Guia | O que faz | Situação |
 | --- | --- | --- |
+| Gestão das licitações (E12) | Na Visão gerencial: grandes números por etapa, listas por etapa, próximos marcos, aguardando PGM e outras áreas, filtros, impressão e CSV; edição em linha, cadastro, mudança de etapa e marcos para editor ou acima; Histórico próprio. Aba Contratações na ficha do projeto. Integração com PNCP e Compras.gov: planejada (E14) | Disponível no código (manual; E12, ~90%; aguardando merge e publicação; migração 0010) |
+| Integração PNCP e Compras.gov (E14) | Trazer resultado, colocação e homologação dos portais do governo | Futuro (0%) |
 | Licitação em detalhe | Fases da Lei 14.133 com datas de documentos públicos do SEI, fase atual, prazos e projeto relacionado | Simulação |
 | Prazos da Lei 14.133 | Prazos legais, metas internas e calendário com feriados | Disponível |
 | Processos, Cotações, Documentos e outras | Protótipo anterior de operação, planejamento, preços, automação, mercado e cadastros | Demonstrativo (`src/data/modules.json`) |
@@ -249,10 +275,10 @@ Código: `src/lib/dados/`, `src/lib/projetos/`, `coletores/`. Detalhes em [docs/
 
 | Guia | O que faz | Situação |
 | --- | --- | --- |
-| Início · Projetos prioritários | Tela do prefeito: obras por área, quantidade e valor por etapa (as partes somam o total), linha do tempo de entregas por área até dez/2028, próximas entregas e principais obras; todo número vira filtro guardado no endereço; "Só prioritários"; região só como filtro opcional. Sem farol, prazos, "onde está parado", decisões pendentes e convênios | Disponível no código (E3) |
-| Painel da equipe | Visão operacional que saiu da tela do prefeito: 10 indicadores com farol e situação, prazos da Lei, onde está parado, decisões pendentes, alertas da central, convênios e valores por região; o projeto abre a ficha e o X volta ao painel. Só administrador, gestor e editor | Disponível no código (E10) |
-| Inconsistências de dados | Relatório por órgão ou geral com 10 regras (campo essencial faltando, datas fora de ordem, macroetapa vencida, SEI inválido, obra fora do mapa e outras pendências da carga), contagem por regra e por órgão, link para a aba Governança da ficha, impressão em A4 e CSV. Só administrador, gestor e editor | Disponível no código (E10) |
-| Mapa das obras por área (E4) | Na tela do prefeito (compacto, abaixo da linha do tempo, com os filtros da tela) e na Gestão · Painel: cor, legenda e filtro por área (mesmas cores da tela do prefeito); filtro por macroetapa e região opcional; total de obras e valor por região; sem no prazo, atenção, atrasada nem farol. Bolhas e marcadores nunca se cobrem (alvos de toque de 24 px ou mais) | Disponível no código (E4) |
+| Início · Projetos prioritários | Tela do prefeito: obras por área, quantidade e valor por etapa (as partes somam o total), linha do tempo de entregas por área até dez/2028, próximas entregas e principais obras; todo número vira filtro guardado no endereço; "Só prioritários"; região só como filtro opcional. Sem farol, prazos, "onde está parado", decisões pendentes e convênios | Disponível, no ar (E3) |
+| Painel da equipe | Visão operacional que saiu da tela do prefeito: 10 indicadores com farol e situação, prazos da Lei, onde está parado, decisões pendentes, alertas da central, convênios e valores por região; o projeto abre a ficha e o X volta ao painel. Só administrador, gestor e editor | Disponível, no ar (E10) |
+| Inconsistências de dados | Relatório por órgão ou geral com 10 regras (campo essencial faltando, datas fora de ordem, macroetapa vencida, SEI inválido, obra fora do mapa e outras pendências da carga), contagem por regra e por órgão, link para a aba Governança da ficha, impressão em A4 e CSV. Só administrador, gestor e editor | Disponível, no ar (E10) |
+| Mapa das obras por área (E4) | Na tela do prefeito (compacto, abaixo da linha do tempo, com os filtros da tela) e na Gestão · Painel: cor, legenda e filtro por área (mesmas cores da tela do prefeito); filtro por macroetapa e região opcional; total de obras e valor por região; sem no prazo, atenção, atrasada nem farol. Bolhas e marcadores nunca se cobrem (alvos de toque de 24 px ou mais) | Disponível, no ar (E4) |
 | Painel antigo (10 indicadores, farol, decisões, convênios, mapa compacto) | Saiu da tela inicial na E3; o código continua (`DashboardPrefeito.astro`, `src/lib/gestao/dashboard.ts`) e volta no painel da equipe (E10) | Fora da tela até a E10 |
 | Mapa e painel | Foto atual da carteira e dos recursos e o mapa completo das obras (antiga "Gestão · Painel", mesmo endereço; na Visão gerencial desde a E11) | Disponível |
 | Alertas | Central de alertas de convênios, contratação, obras, saldo sem fonte, etapas paradas e dados desatualizados | Disponível |
@@ -295,6 +321,7 @@ Os pedidos vêm dos áudios do dono, da reunião com a equipe e das planilhas.
 | Kanban com valores no topo das colunas | Kanban | Substituído pelos áudios de 20/11 (E7): card e coluna sem valor; a coluna mostra a previsão de saída do marco |
 | Cadastrar todos os projetos a partir da planilha | Importação da carteira | Carga inicial feita |
 | Telas simples, sem barra de rolagem, que funcionem no celular | Interface responsiva e testes | Feito |
+| Gestão das licitações dentro da visão gerencial, por etapa, com edição rápida em linha (A34 a A37) | Guia Gestão das licitações (E12) | Feito (manual); carga da planilha modelo depende de D5; integração na E14 |
 | Projeto nasce no cadastro e anda ou volta por qualquer caminho, com histórico | Motor de movimentação, Histórico | Regras prontas; gravações em integração |
 | Log de toda alteração (o quê, quem, quando) | Histórico de alterações | Feito para eventos existentes |
 | Com quem está cada tarefa; em que ponto da contratação está | Cronogramas, Onde está parado, Responsáveis (E13) | Feito |
@@ -306,11 +333,11 @@ Os pedidos vêm dos áudios do dono, da reunião com a equipe e das planilhas.
 | Cláusula suspensiva com prazo e alertas | Central de alertas | Parcial |
 | Fluxo da Lei 14.133 | Prazos da lei, Licitação em detalhe | Parcial; PNCP a fazer |
 | Painel do prefeito: etapa, empresa, valor, foto atual e histórico | Gestão · Painel, Mapa | Parcial |
-| Tela de gestão da equipe separada da tela do prefeito e relatório de inconsistências por órgão (áudios 13 e 19) | Gestão · Painel da equipe; Gestão · Inconsistências de dados | Disponível no código (E10) |
-| Menu nas três visões e tela própria dos convênios: em execução, em risco e CAUC (áudios 01 e 31) | Menu lateral; Convênios · Visão Convênios | Disponível no código (E11) |
-| Fotos da obra dentro do projeto, separadas da localização (áudio 22) | Ficha do projeto · aba Fotos | Disponível no código (E9) |
-| Mapa por área em vez de tipo; sem situação de prazo; total e valor por região; região só como filtro (áudios 04, 05, 06 e 14) | Mapa das obras (tela do prefeito e Gestão) | Feito no código (E4) |
-| Localização: procurar por rua, endereço completo ou só bairro e confirmar o ponto (áudio 07) | Aba Localização da ficha e Novo projeto | Disponível no código (E8) |
+| Tela de gestão da equipe separada da tela do prefeito e relatório de inconsistências por órgão (áudios 13 e 19) | Gestão · Painel da equipe; Gestão · Inconsistências de dados | Disponível, no ar (E10) |
+| Menu nas três visões e tela própria dos convênios: em execução, em risco e CAUC (áudios 01 e 31) | Menu lateral; Convênios · Visão Convênios | Disponível, no ar (E11) |
+| Fotos da obra dentro do projeto, separadas da localização (áudio 22) | Ficha do projeto · aba Fotos | Disponível, no ar (E9) |
+| Mapa por área em vez de tipo; sem situação de prazo; total e valor por região; região só como filtro (áudios 04, 05, 06 e 14) | Mapa das obras (tela do prefeito e Gestão) | Feito, no ar (E4) |
+| Localização: procurar por rua, endereço completo ou só bairro e confirmar o ponto (áudio 07) | Aba Localização da ficha e Novo projeto | Disponível, no ar (E8) |
 | WhatsApp para o prefeito em linguagem simples | Gestão · WhatsApp | Simulação |
 | Projetos "desejo" separados dos que serão executados | Campo compromisso | A fazer na importação |
 | Projeto × oportunidade com sugestão | Captação e Projetos | A fazer |
@@ -318,7 +345,19 @@ Os pedidos vêm dos áudios do dono, da reunião com a equipe e das planilhas.
 | Medir tempo e volume por colaborador | Fase 2 e Fase 5 | A fazer |
 | IA para proposta, ETP e minutas | Fase 5 | A fazer, sem IA no MVP |
 | Orçamento por SINAPI e GOINFRA | Fase 5 | A fazer |
-| Tela inicial "Projetos prioritários" no layout do croqui, números que viram filtro, próximas entregas e principais obras (áudios A01, A03, A09, A11, A12, A13, A14) | Início (/plataforma/) | Feito no código (E3), aguardando aprovação do dono |
+| Tela inicial "Projetos prioritários" no layout do croqui, números que viram filtro, próximas entregas e principais obras (áudios A01, A03, A09, A11, A12, A13, A14) | Início (/plataforma/) | Feito, no ar (E3), aguardando teste do dono em produção |
+| Ficha única com a observação em destaque, recursos resumidos e localização perto do cadastro; farol fora da ficha e da tela do prefeito (áudios 17 a 21) | Ficha do projeto | No ar (E6) |
+| Carteira com grandes números, colunas do relatório e filtros por nome, órgão, macroetapa e período de entrega (áudios 16 e 30); Kanban enxuto e Gantt com os mesmos filtros (áudios 23 a 29) | Carteira, Kanban, Gantt | No ar (E5 e E7) |
+| Processos do SEI dentro do projeto (áudio 32) | Ficha · aba Processos SEI | Parcial: aba no ar; ligação real com o SEI depende do B7 (banco) |
+| Gestão das licitações: grandes números, etapas, edição rápida em linha e campos da licitação nos dados do projeto (áudios 34 a 36) | Licitações (E12) | Feito no código (~90%); aguardando merge e publicação |
+| Link com PNCP e Compras.gov (áudio 37) | E14 | Futuro; por ora manual ou por planilha modelo |
+| Tarefas com responsável e tempo na mão; cronogramas dos demais projetos (áudio 31) | Governança da execução (E13) | Feito no código (~90%); aguardando merge e publicação |
+| Controle dos recursos e dos envolvidos do projeto (áudio 31, citado de passagem) | Ainda sem entrega | A planejar |
+| Origem e regra do farol (vermelho, amarelo, cinza e verde): o dono não lembra de tê-lo na planilha (áudio 19) | Farol só para a equipe | Esclarecer com o dono |
+| Mapa de pedidos: cada áudio (01 a 37) com sua entrega e situação | [plano-requisitos-audios.md](docs/govnexa/plano-requisitos-audios.md), seção 2 (40 pedidos) | Fonte completa da rastreabilidade |
+| "Entro numa tela, dela vou pra outra, porém não consigo retornar para a tela que iniciei" (23/11/2026) | Link "← Voltar para …" em toda tela de destino, com os filtros da origem (E15) | Disponível no código (E15; aguardando merge e publicação) |
+
+Situação dos pedidos de 23/11/2026: os pedidos marcados "no ar" nas linhas acima (E1 a E11) estão publicados em produção e aguardam o teste do dono; E12, E13 e E15 estão com código, testes, revisões e prévias aprovadas (~90%), aguardando merge e publicação.
 
 ## 6. O que funciona de verdade e o que é simulação
 
@@ -444,12 +483,18 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Tela do prefeito (22/11/2026, E3):** saem farol, prazos, "onde está parado", decisões pendentes, convênios, valores por região e o mapa compacto (volta por área na E4); Mobilização conta em Execução; Concluídas e Sem macroetapa aparecem como linha própria só quando existem; a área mostrada usa a sugestão pelo órgão quando o projeto não tem área gravada; Principais obras = prioritárias primeiro, depois as de maior valor; linha do tempo do mês atual até dez/2028, com 6 áreas em cor, "Outros" e "Sem área" em cinza.
 - **Kanban e Pendências (22/11/2026, E7):** o card mostra só nome, órgão e a previsão de saída da etapa atual; sem coluna Conclusão; mover grava no banco pela regra única, com motivo para voltar ou forçar; aprovar e reprovar nas Pendências é dos perfis de gestão (admin e gestor).
 
+- **Voltar à tela de origem (23/11/2026, E15):** todo link de conteúdo leva `volta`; o destino mostra "← Voltar para …"; no máximo 2 níveis; só telas sob /plataforma/. A ficha guarda a origem nas idas a Documentos, Fotos, Edição, Cronograma, SEI e Histórico completo.
+
 - **Menu nas três visões (22/11/2026, E11):** Visão gerencial = Projetos prioritários, Carteira, Mapa e painel, Kanban e Gantt (Licitações entram aqui na E12); Governança da execução = o trabalho da equipe; Convênios = Visão Convênios e Captação. Licitações continua como demonstrativo à parte até a E12; Usuários, Fluxo do sistema e WhatsApp ficam em Conta (são de configuração e de consulta do sistema inteiro). Nenhum endereço mudou. O menu esconde as guias que o perfil não abre. "Em risco" na Visão Convênios usa a mesma regra do Painel da equipe.
 - **Painel da equipe e inconsistências (22/11/2026, E10):** o painel antigo virou o Painel da equipe (sem mapa) e o relatório de inconsistências usa 10 regras fixas calculadas dos dados atuais, sem gravar nada; as duas telas são de administrador, gestor e editor.
+- **Gestão das licitações (23/11/2026, E12; decisões E12-P1=A e E12-P2=A):** a contratação pode ou não ter projeto da carteira (ligação opcional); tem Histórico próprio (`evento_contratacao`), separado do Histórico dos projetos; a carga da planilha nunca sobrescreve o que foi editado na tela. Pendências: mostrar eventos de contratação no Histórico geral, se o dono quiser; E14 (PNCP e Compras.gov).
 - **Fotos da obra (22/11/2026, E9):** as fotos ficam na aba Fotos da ficha, separadas da localização, no mesmo R2 e no mesmo padrão de segurança dos documentos; reaproveitam a tabela `projeto_foto` já existente (migração 0008 só acrescenta colunas e índices); uma foto por envio, com legenda e data.
 
 - **Cronograma como processo (23/11/2026, E13; decisões do dono P1=A, P2=A e P4=A):** o cronograma passa a ser mantido na tela e a planilha só carrega o que nunca foi editado ali (a tela vence a planilha). Padrões adotados, **a confirmar pelo dono**: (1) o relógio do tempo na mão começa no início real da tarefa, também nas criadas na tela; (2) o alerta compara o tempo total da pessoa atual naquela tarefa com a duração prevista (sem responsável, o da área atual); (3) o painel Responsáveis é visível ao perfil leitura, só leitura; (4) "Área" da tarefa é a unidade em texto livre, com sugestões; (5) a data da troca pode ser retroativa, nunca antes da última troca nem no futuro, e quem lançou e quando ficam visíveis; (6) **congelamento:** qualquer gravação na tela congela o cronograma inteiro (tarefas, projeto, casamento, título e SEI) para a planilha, e a importação lista os ids congelados no relatório; um cronograma por projeto criado pela tela; se a carga casar com um projeto que já tem cronograma da tela, a ficha mostra o editado na tela (o mais recente) e os demais ficam em "Outros cronogramas deste projeto".
 - **Busca de endereço (22/11/2026, E8, decisão D4):** serviço gratuito OpenStreetMap/Nominatim, consultado só pelo servidor (a política de segurança do navegador continua `connect-src 'self'`); no máximo 1 pedido por segundo por instância, 10 buscas por minuto por pessoa, cache de 24 h (1 h para "nada encontrado") e nenhuma busca a cada tecla; só entram resultados de Goiânia e do entorno; nada é gravado sem a pessoa confirmar e salvar; o texto da busca não vai a log. Na máquina local a busca usa respostas fictícias (`BUSCA_ENDERECO_REAL=1` liga o serviço real na prévia).
+- **O sistema substitui a planilha (23/11/2026):** planilha é só orientação e carga inicial; a continuidade é exclusivamente no sistema; todo processo com início, meio e fim na tela (criar, editar, avançar, concluir, Histórico); depois da carga, a tela vence a planilha. Por isso a E12 deixou de esperar o modelo de planilha das licitações e a E13 torna os cronogramas editáveis.
+- **Sempre poder voltar (23/11/2026):** toda tela aberta a partir de outra oferece voltar à origem com os filtros; conferido em toda entrega, com teste (E15).
+- **Plano de E12 e E13 aprovado com o padrão (23/11/2026):** tempo na mão por pessoa e por área (E13-P1 A); relógio a partir do início real (E13-P2 A); alerta de atenção acima da duração prevista e urgente acima do dobro (E13-P4 A); licitações em 6 etapas do relatório (E12-P1 A); editor ou acima edita, o prefeito só vê (E12-P2 A).
 
 ## 8. Pendências e próximos passos
 
@@ -461,18 +506,28 @@ Centros dos bairros: migração 0005 e carga publicadas em 18/11/2026. Parte dos
 
 | Pendência | Para quê |
 | --- | --- |
+| Enviar a planilha modelo de acompanhamento das licitações (D5) | Carga inicial das contratações; a E12 já funciona com cadastro manual |
 | Validar o Fluxo com as áreas e com o cliente | Confirmar etapas, dependências e subprocessos |
 | Fornecer o decreto de feriados de Goiânia | Contagem exata dos dias úteis |
 | Configurar conta oficial do WhatsApp Business e aprovar modelos | Envio real de relatórios |
+| Testar em produção as entregas E1 a E11 (no ar desde 23/11) e dar o aceite | Fechar o plano dos áudios; erros achados viram correção |
+| Decidir o acesso temporário sem verificação em 2 etapas de uma usuária administradora (sem nome aqui) | Fechar uma exceção de segurança aberta; hoje a regra do 2FA obrigatório tem essa exceção |
+| Enviar o modelo da planilha de licitações, quando houver | Só para a carga inicial da E12; não bloqueia a entrega |
+| Enviar a lista oficial de áreas, quando houver | Substitui a área sugerida pelo órgão (D2) |
+| Explicar de onde vem o farol (vermelho, amarelo, cinza e verde) | Decidir como a equipe o usa (áudio 19) |
 
 ### Próximos passos
 
-0. **Requisitos dos áudios de 20/11/2026 (visão do prefeito, gestão e governança):** plano completo em [docs/govnexa/plano-requisitos-audios.md](docs/govnexa/plano-requisitos-audios.md), com 34 pedidos rastreados, entregas E1 a E14, ordem e % por fase. Decisões D1 a D6 respondidas em 22/11/2026 (carteira inteira com marca de prioritário; áreas sugeridas pelo órgão até a lista oficial; códigos da tela a partir de 9000; busca de endereço gratuita; modelo das licitações a enviar).
+0. **Requisitos dos áudios de 20/11/2026 (visão do prefeito, gestão e governança):** plano completo em [docs/govnexa/plano-requisitos-audios.md](docs/govnexa/plano-requisitos-audios.md), com 40 pedidos rastreados (conferência de 23/11/2026 contra a transcrição dos 31 áudios), entregas E1 a E15, ordem e % por fase. Decisões D1 a D6 respondidas em 22/11/2026 e as de E12 e E13 em 23/11/2026 (seção 7). **Situação em 23/11/2026:** E1 a E11 no ar em produção, aguardando o teste do dono; E12 (licitações), E13 (governança da execução) e E15 (navegação) com código, revisões e prévias aprovadas (~90%), aguardando merge (PRs #54 E15, #55 E12 que contém a E15, e o PR da E13 que conterá as três) e publicação, com as migrações 0009 (E13) e 0010 (E12) aplicadas antes do código, nessa ordem; E14 (PNCP e Compras.gov) futura.
+   - **Varredura pendente (princípio "o sistema substitui a planilha"):** conferir módulo a módulo o que ainda depende de planilha para continuar o trabalho (os cronogramas eram só leitura e viraram a E13; falta olhar Reunião semanal, Sala de guerra, importação de projetos e demais telas em simulação) e abrir uma entrega para cada achado.
+   - **A planejar, sem entrega ainda:** controle dos recursos e dos envolvidos do projeto (áudio 31); regra e origem do farol para a equipe (áudio 19).
+   - **Ligação real com o SEI (B7):** a aba Processos SEI da ficha está no ar; a lista real de processos por projeto depende do banco.
+   - **E14:** integração com PNCP e Compras.gov, depois da E12 (futuro).
 
 1. **3.3 — usuários e login:** publicada e ligada em produção em 17/11/2026 (`LOGIN_MODO=senha`).
 2. **3.4 — documentos:** publicada em 17/11/2026.
    Entregas 1.0 (limite de requisições) e 1.1 (tipo do documento, migração 0003) publicadas em 17/11/2026.
-   Entregas B1 (página do projeto e localização, no ar desde 18/11/2026) e B2a (Novo projeto gravando, migração 0006 publicada em 18/11/2026). E1 (B2b) concluída no código, aguardando revisão e publicação. Migração 0007 a aplicar. A decisão D3 reserva à tela os códigos a partir de 9000. A planilha usa a faixa abaixo de 9000. Em seguida vem B3 (Kanban e Pendências de etapa).
+   Entregas B1 (página do projeto e localização, no ar desde 18/11/2026) e B2a (Novo projeto gravando, migração 0006 publicada em 18/11/2026). E1 (B2b) no ar, com a migração 0007 aplicada. A decisão D3 reserva à tela os códigos a partir de 9000. A planilha usa a faixa abaixo de 9000. Em seguida vem B3 (Kanban e Pendências de etapa).
 3. **3.5 — importação:** feita e gravada em 16/11.
 4. Automatizar a leitura do SEI com Cron Trigger.
 5. Desligar a hospedagem antiga.
@@ -486,7 +541,8 @@ Centros dos bairros: migração 0005 e carga publicadas em 18/11/2026. Parte dos
 13. **E9, decisões pendentes do dono:** retirar ou não o GPS gravado nas fotos; miniaturas (hoje a grade usa a própria foto) e cache das fotos; editar legenda e data sem reenviar.
 14. (Feito na E11) O mapa da Gestão usa os nomes de área do catálogo da prefeitura. `tests/dashboard-mapa.spec.ts` saiu: o mapa compacto está na tela do prefeito e é testado em `tests/mapa-area.spec.ts`.
 15. (Feito na E11) Saíram o componente antigo `LocalizacaoProjeto.astro` e o link "Localização e fotos"; os atalhos de localização abrem a aba Localização da ficha. Fotos na aba Fotos (E9).
-16. **Depois da E11:** menu nas três visões no código. Próximas: E8 (localização por endereço), E9 (fotos), E12 (Licitações na Visão gerencial) e E13 (responsável e tempo na mão de cada um, na Governança da execução).
+16. **Depois da E11 (23/11/2026):** E8, E9 e E11 publicadas junto com a migração 0008. Prontas e aguardando merge e publicação (~90%): E12 (licitações, migração 0010), E13 (responsável, tempo na mão e cronograma no sistema, migração 0009) e E15 (navegação); aplicar 0009 e 0010 antes do código, nessa ordem. Depois: E14.
+17. **Depois da E15:** links internos do Fluxo e das tabelas genéricas ainda sem `volta` (a regra e o contrato para as telas novas estão em `docs/govnexa/plano.md`).
 
 ## 9. Como rodar no computador
 

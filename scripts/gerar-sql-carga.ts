@@ -9,6 +9,8 @@
 // arrays = ARRAY[...]::text[]. Tudo em uma transação, idempotente (ON CONFLICT ... DO UPDATE).
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { texto } from '../src/lib/carteira/cadastro.ts';
+import { COLUNAS_EDITAVEIS, ID_CONTRATACAO, ID_MARCO, MAX_MARCOS, dataIsoValida, hojeBrasilia, normalizarCampos } from '../src/lib/contratacoes/regras.ts';
 import type { Carteira } from '../src/lib/carteira/tipos.ts';
 import type { Cronogramas } from '../src/lib/cronograma/tipos.ts';
 import type { RegistroLog } from '../src/lib/log/tipos.ts';
@@ -179,6 +181,62 @@ for (const h of historico) {
     );
   }
 }
+// Contratações (E12): só no D1. A TELA VENCE: nunca DO UPDATE (carga repetida não sobrescreve o que foi editado na tela).
+// Tudo é validado ANTES de gerar qualquer SQL (um erro = throw com o id, e nenhum arquivo é escrito).
+const caminhoContratacoes = achar('contratacoes.json');
+let nContratacoes = 0;
+if (caminhoContratacoes && !sqlite) {
+  console.warn('contratacoes.json ignorado: só o D1 (--dialeto sqlite) tem as tabelas de contratação.');
+} else if (caminhoContratacoes) {
+  const arquivo = JSON.parse(readFileSync(caminhoContratacoes, 'utf8')) as { prefeitura_id: number; contratacoes: Array<Record<string, unknown> & { marcos?: Array<Record<string, unknown>> }> };
+  if (arquivo.prefeitura_id !== ibge) throw new Error('contratacoes.json: prefeitura diferente da carteira');
+  const hoje = hojeBrasilia();
+  const agoraIso = new Date().toISOString();
+  const sqls: string[] = [];
+  for (const c of arquivo.contratacoes) {
+    const id = String(c.id);
+    if (!ID_CONTRATACAO.test(id)) throw new Error(`Contratação ${id}: código inválido.`);
+    const bruto: Record<string, unknown> = { etapa: c.etapa, etapa_desde: c.etapa_desde };
+    for (const col of COLUNAS_EDITAVEIS) bruto[col] = c[col] ?? null;
+    const n = normalizarCampos(bruto, 'criar');
+    if (!n.ok) throw new Error(`Contratação ${id}: ${n.erros.join(' ')}`);
+    const desde = n.campos.etapa_desde ?? hoje;
+    if (desde > hoje) throw new Error(`Contratação ${id}: Data da etapa: não pode ser futura.`);
+    const projeto = n.campos.projeto_id;
+    if (typeof projeto === 'string' && !idsProjetos.has(projeto)) throw new Error(`Contratação ${id}: projeto ${projeto} fora da carteira.`);
+    if ((c.marcos ?? []).length > MAX_MARCOS) throw new Error(`Contratação ${id}: mais de ${MAX_MARCOS} marcos.`);
+    const marcos = (c.marcos ?? []).map((m) => {
+      const mid = String(m.id);
+      if (!ID_MARCO.test(mid)) throw new Error(`Contratação ${id}, marco ${mid}: código inválido.`);
+      if (!dataIsoValida(m.data)) throw new Error(`Contratação ${id}, marco ${mid}: data inválida.`);
+      const desc = typeof m.descricao === 'string' ? texto(m.descricao, 201) : null;
+      if (!desc || Array.from(desc).length > 200) throw new Error(`Contratação ${id}, marco ${mid}: descrição de 1 a 200 caracteres.`);
+      if (typeof m.concluido !== 'boolean') throw new Error(`Contratação ${id}, marco ${mid}: concluido deve ser verdadeiro ou falso.`);
+      if (m.concluido && (typeof m.concluido_em !== 'string' || typeof m.concluido_por !== 'string')) throw new Error(`Contratação ${id}, marco ${mid}: concluído sem data e autor.`);
+      if (m.concluido && !(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?Z$/.test(String(m.concluido_em)) && !Number.isNaN(Date.parse(String(m.concluido_em))))) throw new Error(`Contratação ${id}, marco ${mid}: concluido_em fora do formato ISO com Z.`);
+      return { mid, data: m.data, desc, concluido: m.concluido, em: m.concluido ? m.concluido_em : null, por: m.concluido ? m.concluido_por : null };
+    });
+    const valor = (col: string): string => {
+      const v = (n.campos as Record<string, unknown>)[col] ?? null;
+      return typeof v === 'number' ? num(v) : txt(v);
+    };
+    sqls.push(
+      `INSERT INTO contratacao (prefeitura_id, id, ${COLUNAS_EDITAVEIS.join(', ')}, etapa, etapa_desde, origem, criada_por) VALUES (` +
+        [num(ibge), txt(id), ...COLUNAS_EDITAVEIS.map((col) => (col === 'aguardando' ? txt(n.campos.aguardando ?? 'nao') : valor(col))), txt(n.campos.etapa), txt(desde), "'carga'", "'carga'"].join(', ') +
+        `)\n  ON CONFLICT (prefeitura_id, id) DO NOTHING;`,
+      `INSERT INTO evento_contratacao (id, prefeitura_id, contratacao_id, tipo, autor, em, para, descricao) SELECT ${txt(`carga-${ibge}-${id}`)}, ${num(ibge)}, ${txt(id)}, 'carga', 'carga', ${txt(agoraIso)}, ${txt(n.campos.etapa)}, 'Contratação carregada da planilha' WHERE changes() = 1\n  ON CONFLICT (id) DO NOTHING;`,
+    );
+    for (const m of marcos) {
+      sqls.push(
+        `INSERT INTO contratacao_marco (prefeitura_id, id, contratacao_id, data, descricao, concluido, concluido_em, concluido_por, criado_por) SELECT ` +
+          [num(ibge), txt(m.mid), txt(id), txt(m.data), txt(m.desc), m.concluido ? '1' : '0', txt(m.em), txt(m.por), "'carga'"].join(', ') +
+          ` WHERE EXISTS (SELECT 1 FROM contratacao WHERE prefeitura_id = ${num(ibge)} AND id = ${txt(id)} AND removida_em IS NULL)\n  ON CONFLICT (prefeitura_id, id) DO NOTHING;`,
+      );
+    }
+    nContratacoes++;
+  }
+  linhas.push(...sqls);
+}
 linhas.push(...(sqlite ? [] : ['COMMIT;']), '');
 writeFileSync(saida, linhas.join('\n'), 'utf8');
-console.log(`SQL gerado em ${saida}: ${carteira.projetos.length} projetos, ${cronogramas?.cronogramas.length ?? 0} cronogramas, ${nEventoProjeto} eventos de projeto, ${nEventoSistema} eventos de sistema.`);
+console.log(`SQL gerado em ${saida}: ${carteira.projetos.length} projetos, ${cronogramas?.cronogramas.length ?? 0} cronogramas, ${nEventoProjeto} eventos de projeto, ${nEventoSistema} eventos de sistema, ${nContratacoes} contratações.`);
