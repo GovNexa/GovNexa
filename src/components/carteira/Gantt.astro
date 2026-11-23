@@ -5,6 +5,8 @@ import { MACROETAPAS, nomeMacroetapa } from '../../lib/carteira/macroetapas.ts';
 import { segmentosGantt } from '../../lib/carteira/visoes.ts';
 import { curto } from '../../lib/dados/formato.ts';
 import { dataBr } from '../../lib/datas.ts';
+import { hrefFicha } from '../../lib/carteira/ficha.ts';
+import { aquiDe } from '../../lib/navegacao/volta.ts';
 import { aplicarFiltros, dataEntrega, lerFiltros, opcoesFiltros, orgaoDe } from '../../lib/carteira/filtros.ts';
 import FiltrosProjetos from './FiltrosProjetos.astro';
 
@@ -16,6 +18,7 @@ const hojeIso = new Date().toISOString().slice(0, 10);
 
 const opcoes = opcoesFiltros(carteira.projetos, hojeIso);
 const { filtros, avisos } = lerFiltros(Astro.url.searchParams, opcoes);
+const aqui = aquiDe(Astro.url);
 const segsDe = new Map(carteira.projetos.map((p) => [p, segmentosGantt(p)]));
 const comDatas = carteira.projetos.filter((p) => segsDe.get(p)!.length); // eixo estável: todos com datas, sem filtro
 const visiveis = aplicarFiltros(carteira.projetos, filtros); // ordem: entrega mais próxima primeiro
@@ -74,7 +77,7 @@ const larguraMin = Math.max(900, nMeses * 36 + 220);
       </div>
       {comSegs.map(({ p, segs }) => (
         <div class="gt-linha" data-gt-linha data-orgao={orgaoDe(p)} data-macro={p.macroetapa ?? ''} data-entrega={dataEntrega(p) ?? ''}>
-          <div class="gt-rotulo" title={p.nome}>{curto(p.nome, 38)}<small>{orgaoDe(p)} · {dataEntrega(p) ? `Entrega ${dataBr(dataEntrega(p)!)}` : 'Sem data de entrega'}</small></div>
+          <div class="gt-rotulo" title={p.nome}><a class="gt-nome" href={hrefFicha(p.id, aqui)}>{curto(p.nome, 38)}</a><small>{orgaoDe(p)} · {dataEntrega(p) ? `Entrega ${dataBr(dataEntrega(p)!)}` : 'Sem data de entrega'}</small></div>
           <div class="gt-trilha">
             {segs.map((s) => {
               const rotulo = `${nomeMacroetapa(s.codigo)}: ${dataBr(s.inicio)} a ${dataBr(s.fim)}`;

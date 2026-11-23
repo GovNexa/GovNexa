@@ -81,6 +81,8 @@ const autores = [...new Set(lista.map((r) => r.autor))].sort((a, b) => a.localeC
 <script>
 import { avisar, CHAVE_LOG_SIMULACAO } from '../../lib/carteira/simulacao.ts';
 import type { RegistroLog } from '../../lib/log/tipos.ts';
+import { hrefFicha, ID_FICHA, linkFicha } from '../../lib/carteira/ficha.ts';
+import { aquiDe, voltaSegura } from '../../lib/navegacao/volta.ts';
 import { dadosExcecao, dataHoraBr, ehExcecao, filtrarLog, maisRecentes, paraCsv, resumoRegistro, rotuloAcao, rotuloCampo, rotuloOrigem, valorLegivel } from '../../lib/log/visoes.ts';
 
 const POR_PAGINA = 25;
@@ -149,6 +151,8 @@ document.addEventListener('astro:page-load', () => {
 
   const pre = new URLSearchParams(location.search).get('projeto');
   if (pre) campoProjeto.value = pre.slice(0, 80);
+  const voltaTela = voltaSegura(new URLSearchParams(location.search).get('volta'), location.origin);
+  const aquiTela = aquiDe(new URL(location.href));
   if (new URLSearchParams(location.search).get('excecoes') === '1') campoExcecoes.checked = true;
 
   let pagina = 1;
@@ -213,7 +217,7 @@ document.addEventListener('astro:page-load', () => {
       tdProj.textContent = 'Todos os projetos';
     } else {
       const a = el('a', r.projeto_nome ? `${r.projeto_id} · ${r.projeto_nome}` : r.projeto_id);
-      a.setAttribute('href', `/plataforma/projetos-carteira/?q=${encodeURIComponent(r.projeto_id)}`);
+      a.setAttribute('href', ID_FICHA.test(r.projeto_id) ? linkFicha(r.projeto_id, voltaTela, aquiTela, 'historico') : `/plataforma/projetos-carteira/?q=${encodeURIComponent(r.projeto_id)}`);
       tdProj.append(a);
     }
     tr.append(tdProj);

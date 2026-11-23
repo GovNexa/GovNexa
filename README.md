@@ -141,6 +141,7 @@ Situação por fase do produto:
 
 ### Entregas recentes
 
+- 23/11/2026: E15, navegação: em toda tela de destino aparece "← Voltar para [tela de origem]" com os filtros preservados; corrigidos 13 caminhos sem volta (ficha, cronograma, sala de guerra, documentos, SEI, histórico, diálogo de detalhes, prioritários, alertas, reunião, licitação, localização, mapa, novo projeto e Gantt) (branch agente/codex/e15-navegacao; aguardando portão e revisão).
 - 23/11/2026: **E8 (localização por endereço), E9 (fotos da obra) e E11 (menu nas três visões e Visão Convênios) publicadas em produção**, com a migração 0008 aplicada; com elas, E1 a E11 estão no ar, aguardando o teste do dono em produção. As entregas de 22/11 listadas abaixo foram escritas antes da publicação; todas estão no ar desde 23/11.
 - 23/11/2026, em andamento (branches separadas, fora da `main`): **E12** Gestão das licitações (migração 0010; cadastro e acompanhamento 100% no sistema), **E13** Governança da execução ampliada (cronograma completo no sistema, responsável, tempo na mão e painel Responsáveis; migração 0009) e **E15** Navegação (sempre poder voltar à tela de origem; 13 caminhos quebrados corrigidos).
 - 23/11/2026: documentação: conferência de cada áudio contra o plano (seis pedidos acrescentados) e dois princípios novos do dono (o sistema substitui a planilha; sempre poder voltar).
@@ -216,6 +217,7 @@ O tema claro usa menu lateral branco, texto e ícones azul-escuros, destaques az
 | Funcionalidade | O que oferece | Situação | Código |
 | --- | --- | --- | --- |
 | Menu lateral | Três visões (E11): Visão gerencial, Governança da execução e Convênios; depois Licitações (demonstrativo) e Conta. Ícones por item e tipografia única; começa recolhido com ícones das visões e abre uma lista flutuante com todos os itens; blocos em sanfona; as guias que o perfil não pode abrir ficam fora do menu | Disponível, no ar (E11) | `src/lib/govnexa/catalogo.ts`, `src/layouts/Platform.astro`, `src/components/Icon.astro` |
+| Voltar à tela de origem | Link de conteúdo leva a origem no parâmetro `volta`; a tela de destino mostra "← Voltar para [tela]" (componente `Voltar.astro`, automático no layout). A ficha guarda a origem e o X fecha para ela; a edição mantém a aba. Só telas sob /plataforma/, no máximo 2 níveis | Disponível no código (E15) | `src/lib/navegacao/volta.ts`, `src/components/navegacao/Voltar.astro` |
 
 ### Projetos
 
@@ -351,6 +353,7 @@ Os pedidos vêm dos áudios do dono, da reunião com a equipe e das planilhas.
 | Controle dos recursos e dos envolvidos do projeto (áudio 31, citado de passagem) | Ainda sem entrega | A planejar |
 | Origem e regra do farol (vermelho, amarelo, cinza e verde): o dono não lembra de tê-lo na planilha (áudio 19) | Farol só para a equipe | Esclarecer com o dono |
 | Mapa de pedidos: cada áudio (01 a 37) com sua entrega e situação | [plano-requisitos-audios.md](docs/govnexa/plano-requisitos-audios.md), seção 2 (40 pedidos) | Fonte completa da rastreabilidade |
+| "Entro numa tela, dela vou pra outra, porém não consigo retornar para a tela que iniciei" (23/11/2026) | Link "← Voltar para …" em toda tela de destino, com os filtros da origem (E15) | Disponível no código (E15) |
 
 Situação dos pedidos de 23/11/2026: os pedidos marcados "no ar" nas linhas acima (E1 a E11) estão publicados em produção e aguardam o teste do dono; E12, E13 e E15 estão em desenvolvimento.
 
@@ -478,6 +481,8 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Tela do prefeito (22/11/2026, E3):** saem farol, prazos, "onde está parado", decisões pendentes, convênios, valores por região e o mapa compacto (volta por área na E4); Mobilização conta em Execução; Concluídas e Sem macroetapa aparecem como linha própria só quando existem; a área mostrada usa a sugestão pelo órgão quando o projeto não tem área gravada; Principais obras = prioritárias primeiro, depois as de maior valor; linha do tempo do mês atual até dez/2028, com 6 áreas em cor, "Outros" e "Sem área" em cinza.
 - **Kanban e Pendências (22/11/2026, E7):** o card mostra só nome, órgão e a previsão de saída da etapa atual; sem coluna Conclusão; mover grava no banco pela regra única, com motivo para voltar ou forçar; aprovar e reprovar nas Pendências é dos perfis de gestão (admin e gestor).
 
+- **Voltar à tela de origem (23/11/2026, E15):** todo link de conteúdo leva `volta`; o destino mostra "← Voltar para …"; no máximo 2 níveis; só telas sob /plataforma/. A ficha guarda a origem nas idas a Documentos, Fotos, Edição, Cronograma, SEI e Histórico completo.
+
 - **Menu nas três visões (22/11/2026, E11):** Visão gerencial = Projetos prioritários, Carteira, Mapa e painel, Kanban e Gantt (Licitações entram aqui na E12); Governança da execução = o trabalho da equipe; Convênios = Visão Convênios e Captação. Licitações continua como demonstrativo à parte até a E12; Usuários, Fluxo do sistema e WhatsApp ficam em Conta (são de configuração e de consulta do sistema inteiro). Nenhum endereço mudou. O menu esconde as guias que o perfil não abre. "Em risco" na Visão Convênios usa a mesma regra do Painel da equipe.
 - **Painel da equipe e inconsistências (22/11/2026, E10):** o painel antigo virou o Painel da equipe (sem mapa) e o relatório de inconsistências usa 10 regras fixas calculadas dos dados atuais, sem gravar nada; as duas telas são de administrador, gestor e editor.
 - **Fotos da obra (22/11/2026, E9):** as fotos ficam na aba Fotos da ficha, separadas da localização, no mesmo R2 e no mesmo padrão de segurança dos documentos; reaproveitam a tabela `projeto_foto` já existente (migração 0008 só acrescenta colunas e índices); uma foto por envio, com legenda e data.
@@ -530,6 +535,7 @@ Centros dos bairros: migração 0005 e carga publicadas em 18/11/2026. Parte dos
 14. (Feito na E11) O mapa da Gestão usa os nomes de área do catálogo da prefeitura. `tests/dashboard-mapa.spec.ts` saiu: o mapa compacto está na tela do prefeito e é testado em `tests/mapa-area.spec.ts`.
 15. (Feito na E11) Saíram o componente antigo `LocalizacaoProjeto.astro` e o link "Localização e fotos"; os atalhos de localização abrem a aba Localização da ficha. Fotos na aba Fotos (E9).
 16. **Depois da E11 (23/11/2026):** E8, E9 e E11 publicadas junto com a migração 0008. Em andamento: E12 (licitações), E13 (responsável, tempo na mão e cronograma no sistema) e E15 (navegação). Depois: E14.
+17. **Depois da E15:** links internos do Fluxo e das tabelas genéricas ainda sem `volta` (a regra e o contrato para as telas novas estão em `docs/govnexa/plano.md`).
 
 ## 9. Como rodar no computador
 

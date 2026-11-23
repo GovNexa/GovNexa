@@ -6,13 +6,15 @@ import '../../../styles/mapa.css';
 import { carregarCarteira } from '../../../lib/carteira/carga.ts';
 import { hrefFicha, ID_FICHA } from '../../../lib/carteira/ficha.ts';
 import { carregarGeoBairros } from '../../../lib/mapa/obras.ts';
+import { aquiDe, voltaSegura } from '../../../lib/navegacao/volta.ts';
 import { obrasSemLocalizacao } from '../../../lib/mapa/pendentes.ts';
 export const prerender = false;
 const id = (Astro.url.searchParams.get('id') ?? '').trim();
-if (ID_FICHA.test(id)) return Astro.redirect(hrefFicha(id, null, 'localizacao'), 302);
+if (ID_FICHA.test(id)) return Astro.redirect(hrefFicha(id, voltaSegura(Astro.url.searchParams.get('volta'), Astro.url.origin), 'localizacao'), 302);
 const pendentes = obrasSemLocalizacao(carregarCarteira(), carregarGeoBairros());
 const total = pendentes.semBairro.length + pendentes.bairroNaoEncontrado.reduce((s, g) => s + g.projetos.length, 0);
-const link = (pid: string) => hrefFicha(pid, null, 'localizacao');
+const aqui = aquiDe(Astro.url);
+const link = (pid: string) => hrefFicha(pid, aqui, 'localizacao');
 ---
 <Platform title="Obras sem localização" slug="projetos-carteira">
   <div class="section-head"><div>

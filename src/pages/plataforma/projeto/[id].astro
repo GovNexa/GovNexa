@@ -9,7 +9,8 @@ import LocalizacaoFicha from '../../../components/carteira/ficha/LocalizacaoFich
 import '../../../styles/ficha.css';
 import { areasDaPrefeitura } from '../../../lib/carteira/area.ts';
 import { carregarCarteira } from '../../../lib/carteira/carga.ts';
-import { ABAS, abaValida, podeEditarFicha, rotuloVolta, voltaSegura, VOLTA_PADRAO } from '../../../lib/carteira/ficha.ts';
+import { ABAS, abaValida, hrefFicha, podeEditarFicha, rotuloVolta, voltaSegura, VOLTA_PADRAO, type Aba } from '../../../lib/carteira/ficha.ts';
+import { comVolta } from '../../../lib/navegacao/volta.ts';
 import { montarFicha } from '../../../lib/carteira/ficha-dados.ts';
 import { carregarCronogramas } from '../../../lib/cronograma/carga.ts';
 import { ID_PROJETO } from '../../../lib/documentos/regras.ts';
@@ -37,6 +38,7 @@ const unicos = (valores: (string | null | undefined)[]) =>
   [...new Set(valores.map((v) => (v ?? '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
 const volta = voltaSegura(Astro.url.searchParams.get('volta'), Astro.url.origin);
 const aba = abaValida(Astro.url.searchParams.get('aba'));
+const naAba = (a: Aba) => hrefFicha(projeto.id, volta, a);
 const local = projeto.localizacao && validarLocalizacao(projeto.localizacao).length === 0 ? projeto.localizacao : null;
 const bairroNoMapa = !!(projeto.bairro && carregarGeoBairros().bairros[projeto.bairro.trim()]?.encontrado);
 const situacaoLocal = local ? `Cadastrada: ${resumoLocalizacao(local)}` : bairroNoMapa ? `Aproximada pelo centro do bairro ${projeto.bairro}` : 'Sem localização no mapa';
@@ -99,16 +101,16 @@ const idEnc = encodeURIComponent(projeto.id);
       <section class="card pj-bloco fp-painel" id="fp-painel-documentos" aria-labelledby="fp-t-documentos"><h2 id="fp-t-documentos">Documentos</h2>
         <p data-pj-docs>{documentos.length === 0 ? 'Nenhum documento enviado.' : `${documentos.length} ${documentos.length === 1 ? 'documento' : 'documentos'} · ${porTipo.join(' · ')}`}</p>
         {documentos.length > 0 && <ul class="pj-itens" data-fp-docs-lista>{documentos.slice(0, 5).map((d) => <li>{d.nome_original} · {d.tipo_codigo ? nomesTipos[d.tipo_codigo] ?? d.tipo_codigo : 'Sem tipo'} · {dataBr(d.enviado_em)}</li>)}</ul>}
-        <p><a href={`/plataforma/documentos-projeto/projeto/${idEnc}/`}>Abrir os documentos do projeto</a></p></section>
+        <p><a href={comVolta(`/plataforma/documentos-projeto/projeto/${idEnc}/`, naAba('documentos'))}>Abrir os documentos do projeto</a></p></section>
       <section class="card pj-bloco fp-painel" id="fp-painel-sei" aria-labelledby="fp-t-sei"><h2 id="fp-t-sei">Processos SEI</h2>
         {ficha.sei.length === 0 ? <p data-fp-sei-vazio>Nenhum processo do SEI vinculado a este projeto.</p> : <ul class="pj-itens" data-fp-sei>{ficha.sei.map((n) => <li>{n}</li>)}</ul>}
-        <p><a href="/plataforma/projetos-sei/">Abrir a tela Processos no SEI</a></p></section>
+        <p><a href={comVolta(`/plataforma/projetos-sei/?projeto=${idEnc}`, naAba('sei'))}>Abrir a tela Processos no SEI</a></p></section>
       <section class="card pj-bloco fp-painel" id="fp-painel-cronograma" aria-labelledby="fp-t-cronograma"><h2 id="fp-t-cronograma">Cronograma</h2>
         {ficha.cronogramas.length === 0 ? <p data-fp-cron-vazio>Este projeto ainda não tem cronograma detalhado.</p> : ficha.cronogramas.map((c) => (
           <div class="fp-cron" data-fp-cron>
             <h3>{c.titulo}</h3>
             <dl class="pj-lista">{c.linhas.map((l) => <div><dt>{l.rotulo}</dt><dd>{l.valor}</dd></div>)}</dl>
-            <p><a href={`/plataforma/cronograma/${encodeURIComponent(c.id)}/`}>Abrir o cronograma detalhado</a></p>
+            <p><a href={comVolta(`/plataforma/cronograma/${encodeURIComponent(c.id)}/`, naAba('cronograma'))}>Abrir o cronograma detalhado</a></p>
           </div>
         ))}</section>
       <section class="card pj-bloco fp-painel pj-historico" id="fp-painel-historico" aria-labelledby="pj-hist"><h2 id="pj-hist">Histórico</h2>
@@ -124,7 +126,7 @@ const idEnc = encodeURIComponent(projeto.id);
       </ol>
     )}
     {historico.length > LIMITE_HISTORICO && <p class="muted">Mostrando os {LIMITE_HISTORICO} registros mais recentes de {historico.length}.</p>}
-        <p><a href={`/plataforma/projetos-log/?projeto=${idEnc}`}>Ver o histórico completo</a></p></section>
+        <p><a href={comVolta(`/plataforma/projetos-log/?projeto=${idEnc}`, naAba('historico'))}>Ver o histórico completo</a></p></section>
       <section class="card pj-bloco fp-painel" id="fp-painel-governanca" aria-labelledby="fp-t-governanca"><h2 id="fp-t-governanca">Governança</h2>
         <div class="fp-gov">
           <section aria-labelledby="fp-g-origem"><h3 id="fp-g-origem">Origem do dado</h3><ul class="pj-itens">{ficha.governanca.origem.map((t) => <li>{t}</li>)}</ul></section>

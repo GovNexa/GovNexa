@@ -1,5 +1,6 @@
 // Mensagens fixas mostradas na página de documentos. O endereço leva só um código (?r=...), nunca texto livre.
 import type { Resultado } from './servico.ts';
+import { comVolta, voltaSegura } from '../navegacao/volta.ts';
 
 export const MENSAGENS: Record<string, { texto: string; ok: boolean }> = {
   ok: { texto: 'Documento enviado.', ok: true },
@@ -31,4 +32,9 @@ export function codigoDe(r: Extract<Resultado, { ok: false }>): string {
   if (/^Tipo não/.test(r.erro)) return 'tipo';
   if (/conteúdo/.test(r.erro)) return 'conteudo';
   return 'vazio';
+}
+
+/** Página de documentos do projeto com o aviso `r` e a volta (validada de novo aqui, nunca confiada). */
+export function destinoDocumentos(projeto: string, r: string, voltaBruta: string | null, origem: string): string {
+  return comVolta(`/plataforma/documentos-projeto/projeto/${encodeURIComponent(projeto)}/?r=${encodeURIComponent(r)}`, voltaSegura(voltaBruta, origem));
 }

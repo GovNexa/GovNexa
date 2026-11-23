@@ -225,8 +225,10 @@ document.addEventListener('astro:page-load', () => {
       const r = await resposta.json().catch(() => null) as { ok?: boolean; erro?: string; erros?: string[] } | null;
       if (resposta.status === 400) return mostrar('Não foi possível salvar. Corrija:', r?.erros?.length ? r.erros : [r?.erro ?? 'Edição inválida.']);
       if (!resposta.ok || !r?.ok) return mostrar(r?.erro ?? erroRede);
-      const voltaFicha = new URLSearchParams(location.search).get('volta');
-      location.assign('/plataforma/projeto/' + id + '/?salvo=1' + (voltaFicha ? '&volta=' + encodeURIComponent(voltaFicha) : ''));
+      const destino = new URL(location.href);
+      destino.searchParams.set('salvo', '1');
+      destino.searchParams.delete('rf');
+      location.assign(destino.pathname + destino.search);
     } catch {
       mostrar(erroRede);
     } finally {

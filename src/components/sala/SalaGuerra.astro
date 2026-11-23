@@ -6,7 +6,9 @@ import { carregarSalas } from '../../lib/sala/carga.ts';
 import { ROTULO_CADENCIA, ROTULO_ESCALONAMENTO, ROTULO_TIPO_SALA, type Sala } from '../../lib/sala/tipos.ts';
 import { candidatosSala, dataBr, indicadoresSala, porqueSugerido, textoPrazo } from '../../lib/sala/visoes.ts';
 import { AVISO_SIMULACAO_SALA } from '../../lib/sala/simulacao.ts';
+import { aquiDe, comVolta } from '../../lib/navegacao/volta.ts';
 
+const aqui = aquiDe(Astro.url);
 const hoje = new Date().toISOString().slice(0, 10);
 const carteira = carregarCarteira();
 const cronogramas = carregarCronogramas().cronogramas;
@@ -39,7 +41,7 @@ const rotuloFarol = { vermelho: 'Vermelho', amarelo: 'Amarelo', verde: 'Verde' }
               <p>{ROTULO_CADENCIA[s.cadencia]} · {ROTULO_ESCALONAMENTO[s.escalonamento]}</p>
               <p class="sl-farol"><span class={`cart-ponto ${ind.farol.cor}`} aria-hidden="true"></span><span><strong>Farol {rotuloFarol[ind.farol.cor]}:</strong> {ind.farol.motivo}</span></p>
               <p class="sl-contagem">Riscos {contagem(s, 'risco')} · Ações {contagem(s, 'acao')} · Problemas {contagem(s, 'problema')} · Decisões {contagem(s, 'decisao')}</p>
-              <p><a class="button secondary" href={`/plataforma/sala-de-guerra/${s.id}/`} aria-label={`Abrir sala: ${s.titulo}`}>Abrir sala</a></p>
+              <p><a class="button secondary" href={comVolta(`/plataforma/sala-de-guerra/${s.id}/`, aqui)} aria-label={`Abrir sala: ${s.titulo}`}>Abrir sala</a></p>
             </article>
           );
         })}
@@ -80,7 +82,7 @@ const rotuloFarol = { vermelho: 'Vermelho', amarelo: 'Amarelo', verde: 'Verde' }
             <p><strong>Resultado:</strong> {s.resultado ?? 'Sem resultado registrado.'}</p>
             <h3>Lições aprendidas</h3>
             {s.licoes?.length ? <ul>{s.licoes.map((l) => <li>{l}</li>)}</ul> : <p>Nenhuma lição registrada.</p>}
-            <p><a href={`/plataforma/sala-de-guerra/${s.id}/`}>Ver a sala completa</a></p>
+            <p><a href={comVolta(`/plataforma/sala-de-guerra/${s.id}/`, aqui)}>Ver a sala completa</a></p>
           </details>
         ))}
       </div>

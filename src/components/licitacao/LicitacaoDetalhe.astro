@@ -57,6 +57,8 @@ import { lerPaginaProcesso } from '../../lib/sei/leitor.ts';
 import { montarLicitacao, digitosProcesso, type DetalheLicitacao, type Fase } from '../../lib/licitacao/detalhe.ts';
 import { copiaLimpa, guardarLicitacoes, lerLicitacoes, LIMITE_LICITACOES, processoValido } from '../../lib/licitacao/simulacao.ts';
 import { hojeEmBrasilia } from '../../lib/whatsapp/farol.ts';
+import { hrefFicha } from '../../lib/carteira/ficha.ts';
+import { aquiDe } from '../../lib/navegacao/volta.ts';
 import type { ProcessoSei } from '../../lib/sei/tipos.ts';
 
 type Dados = { exemplo: ProcessoSei; projetos: { id: string; nome: string; sei: string[] }[]; municipio: number };
@@ -128,7 +130,7 @@ if (raiz && fonte && !raiz.dataset.pronto) {
       el('h2', {}, `Processo ${d.numero ?? '—'}`),
       el('p', { class: 'ld-sub' }, `${d.tipo ?? 'Tipo não informado'} · gerado em ${br(d.geradoEm)}${lista.value === EXEMPLO ? ' · exemplo fictício' : ''}`),
       projeto
-        ? el('p', { class: 'ld-sub' }, 'Projeto da carteira: ', el('a', { href: `/plataforma/projetos-carteira/?q=${encodeURIComponent(projeto.id)}` }, projeto.nome))
+        ? el('p', { class: 'ld-sub' }, 'Projeto da carteira: ', el('a', { href: hrefFicha(projeto.id, aquiDe(new URL(location.href))) }, projeto.nome))
         : el('p', { class: 'ld-sub' }, 'Nenhum projeto da carteira tem esse número SEI.'),
     );
 
