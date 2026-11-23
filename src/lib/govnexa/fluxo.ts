@@ -191,7 +191,7 @@ export const NOS: NoFluxo[] = [
     situacao: 'simulacao', fase: 'Etapa 1.5', telas: [T.sala] },
   { id: 'painel', raia: 'gestao', linha: 12, tipo: 'tarefa', titulo: 'Painel do prefeito',
     oQue: 'Foto atual de todos os módulos: etapa de cada projeto, licitações (empresa, colocação, valor, 2ª colocada), medições e previsões; histórico a um clique; depois, WhatsApp.',
-    valida: ['Somente leitura', 'Totais conciliados', 'Mapa das obras: ícone por tipo, trechos de rua, resumo ao tocar'], quem: 'Prefeito; gabinete',
+    valida: ['Somente leitura', 'Totais conciliados', 'Mapa das obras por área (cor, legenda e filtro por área e macroetapa; região opcional; total de obras e valor por região; sem situação de prazo), também compacto na tela do prefeito (E4)'], quem: 'Prefeito; gabinete',
     situacao: 'disponivel', fase: 'Fase 4 (foto atual com os dados de hoje; licitações em detalhe na Fase 4)', telas: [T.prioritarios, T.gestao, T.orgaos, T.inicio, T.localizacao] },
   { id: 'whatsapp', raia: 'gestao', linha: 13, tipo: 'tarefa', titulo: 'Relatórios e perguntas pelo WhatsApp',
     oQue: 'Números autorizados recebem o relatório dos projetos prioritários (semanal ou diário) e perguntam sobre projetos, SEI, prazos e convênios; cada número vê só o que a sua permissão libera.',

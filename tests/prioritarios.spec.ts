@@ -94,7 +94,9 @@ test('prioritários: valor estranho no endereço é ignorado com aviso e nada é
   const html = await page.locator(TELA).innerHTML();
   // Texto escapado (ex.: nome de projeto "&lt;img ... onerror=...&gt;" criado por outro teste) é seguro; o que não pode existir é marcação ou atributo real.
   for (const trecho of ['<script>window', '<img src=x', '<svg onload']) expect(html).not.toContain(trecho);
-  await expect(page.locator(`${TELA} [onerror], ${TELA} [onload], ${TELA} script`)).toHaveCount(0);
+  // E4: os únicos scripts dentro da tela são os do mapa compacto (dados em JSON e o módulo do próprio site).
+  await expect(page.locator(`${TELA} [onerror], ${TELA} [onload], ${TELA} script:not([data-mp-dados]):not([type="module"][src^="/_astro/"])`)).toHaveCount(0);
+  await expect(page.locator(`${TELA} script[data-mp-dados]`)).toHaveAttribute('type', 'application/json');
   await expect(page.getByRole('list', { name: 'Filtros ativos' })).toHaveCount(0);
 });
 
@@ -102,7 +104,9 @@ test('prioritários: sem farol, prazo, onde está parado, decisões nem convêni
   await page.goto('/plataforma/');
   const texto = await page.locator(TELA).innerText();
   expect(texto).not.toMatch(/farol|atrasad|no prazo|vencid|onde está parado|decisões pendentes|convênio|\bcauc\b|atenção|crítico/i);
-  await expect(page.locator('[data-cartao], [data-mapa-obras], [data-indicador], #pd-decisoes, #pd-parado, #pd-regioes')).toHaveCount(0);
+  await expect(page.locator('[data-cartao], [data-indicador], #pd-decisoes, #pd-parado, #pd-regioes')).toHaveCount(0);
+  // E4: o mapa compacto voltou, por área e sem situação de prazo (conferido em tests/mapa-area.spec.ts).
+  await expect(page.locator(`${TELA} [data-mapa-obras="mapa-prefeito"]`)).toHaveCount(1);
 });
 
 test('prioritários: sem rolagem horizontal em 1280 e 390 px, com e sem filtro', async ({ page }) => {
@@ -123,6 +127,8 @@ test('prioritários: acessibilidade sem violações graves nos temas claro e esc
     await page.goto('/plataforma/?etapa=execucao');
     const resumo = page.locator('.pp-numeros summary');
     if (await resumo.count()) await resumo.click();
+    // E4: a tela ficou mais alta (mapa); abrir o resumo rolava a página e o cabeçalho fixo cobria os links das etapas.
+    await page.evaluate(() => window.scrollTo(0, 0));
     for (const tema of ['light', 'dark']) {
       await page.evaluate((t) => { document.documentElement.dataset.theme = t; }, tema);
       const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();

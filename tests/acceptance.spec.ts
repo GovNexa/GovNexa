@@ -623,12 +623,13 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  await expect(page.locator('#mapa [data-mp-contagem]')).toContainText('ocultas pelos filtros');
  const antes=await page.locator('#mapa [data-mp-lista-corpo] tr').count();
  expect(antes).toBeGreaterThanOrEqual(2);
- await page.locator('#mapa [data-mp-filtro="situacoes"] [data-mp-abrir]').click();
- await expect(page.locator('#mapa [data-mp-filtro="situacoes"] input:checked')).toHaveCount(6);
- await page.locator('#mapa [data-mp-filtro="situacoes"] [data-mp-pronto]').click();
- await page.locator('#mapa [data-mp-filtro="categorias"] [data-mp-abrir]').click();
- await expect(page.locator('#mapa [data-mp-filtro="categorias"] input:checked')).toHaveCount(9);
- await page.locator('#mapa [data-mp-filtro="categorias"] [data-mp-pronto]').click();
+ await page.locator('#mapa [data-mp-filtro="etapas"] [data-mp-abrir]').click();
+ await expect(page.locator('#mapa [data-mp-filtro="etapas"] input:checked')).toHaveCount(7);
+ await page.locator('#mapa [data-mp-filtro="etapas"] [data-mp-pronto]').click();
+ await page.locator('#mapa [data-mp-filtro="areas"] [data-mp-abrir]').click();
+ await expect(page.locator('#mapa [data-mp-filtro="areas"] input:not(:checked)')).toHaveCount(0);
+ expect(await page.locator('#mapa [data-mp-filtro="areas"] input:checked').count()).toBeGreaterThanOrEqual(2);
+ await page.locator('#mapa [data-mp-filtro="areas"] [data-mp-pronto]').click();
  await page.screenshot({path:'test-results/mapa-1280.png',fullPage:false});
  await page.locator('#mapa .leaflet-container').scrollIntoViewIfNeeded();
  await page.locator('#mapa .mp-bolha-caixa').first().click();
@@ -644,14 +645,15 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  await page.locator('#mapa').getByRole('button',{name:'Cidade inteira'}).click();
  for(let i=0;i<3;i++)await page.locator('#mapa [data-mp-zoom-in]').click();
  await expect(page.locator('#mapa .leaflet-marker-icon .mp-marcador').first()).toBeVisible();
- await expect(page.locator('#mapa path.leaflet-interactive').first()).toBeAttached();
+ await expect(page.locator('#mapa .leaflet-overlay-pane path.mp-trecho-linha').first()).toBeAttached();
  await page.goto('/plataforma/gestao/');
- await page.locator('#mapa [data-mp-filtro="farol"] [data-mp-abrir]').click();
- await page.locator('#mapa [data-mp-filtro="farol"] input[value="vermelho"]').check();
+ await page.locator('#mapa [data-mp-filtro="areas"] [data-mp-abrir]').click();
+ await page.locator('#mapa [data-mp-filtro="areas"] input').first().uncheck();
  expect(await page.locator('#mapa [data-mp-lista-corpo] tr').count()).toBeLessThan(antes);
- await page.locator('#mapa [data-mp-filtro="farol"] [data-mp-pronto]').click();
+ await page.locator('#mapa [data-mp-filtro="areas"] [data-mp-pronto]').click();
  await page.locator('#mapa').getByRole('button',{name:'Limpar filtros'}).click();
- await expect(page.locator('#mapa [data-mp-filtro="situacoes"] [data-mp-abrir]')).toContainText('Etapas: Todas');
+ await expect(page.locator('#mapa [data-mp-filtro="etapas"] [data-mp-abrir]')).toContainText('Macroetapa: Todas');
+ await expect(page.locator('#mapa [data-mp-filtro="areas"] [data-mp-abrir]')).toContainText('Área: Todas');
  // lista alternativa
  await page.locator('#mapa summary').click();
  await expect(page.locator('#mapa [data-mp-lista-corpo] tr')).toHaveCount(antes);
@@ -754,7 +756,7 @@ test('govnexa: arquivos do build com nome só hexadecimal',async({page})=>{
  await page.route('https://tile.openstreetmap.org/**',r=>r.abort());
  await page.goto('/plataforma/gestao/');
  await expect(page.locator('#mapa .leaflet-container')).toBeVisible();
- await expect(page.locator('#mapa .mp-filtros [data-mp-filtro="situacoes"] [data-mp-abrir]')).toBeVisible();
+ await expect(page.locator('#mapa .mp-filtros [data-mp-filtro="etapas"] [data-mp-abrir]')).toBeVisible();
  expect(falhas).toEqual([]);
 });
 
