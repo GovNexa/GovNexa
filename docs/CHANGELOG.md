@@ -1,5 +1,7 @@
 # Changelog
 
+## Coletores: motivo da falha legível (23/11/2026)
+- A tela "Qualidade dos dados" mostrava como motivo da falha um trecho de código (ex.: `if (tentativa === 3) throw new Error(...)`), porque o Node imprime o código da linha que falhou antes da mensagem e o resumo pegava a primeira linha com "error". Novo `coletores/lib/resumir-erro.ts`: pega a linha `Error: ...` de verdade, nunca trecho de código, e continua sem gravar caminhos de disco. Teste novo `tests/coletores/resumir-erro.test.ts`. Só o registro das próximas falhas muda; nenhuma coleta, tela ou banco.
 ## E19 · Farol retirado do sistema (23/11/2026)
 - Decisão do dono sobre o áudio 19 ("farol: tirar"): some de todo o sistema a classificação por cores (vermelho, amarelo, verde, cinza), com selos, bolinhas, rótulos "Farol ...", contagens por cor, colunas "Verde/Amarelo/Vermelho", emojis de cor no WhatsApp e a palavra na página pública e no Fluxo.
 - **Telas:** Painel da equipe (prazo vencido em texto e situação do projeto só crítica ou neutra), central de alertas (gravidade escrita como Urgente ou Atenção), Reunião semanal ("Prazo: Prazo da macroetapa vencido há N dias"), Sala de guerra ("Situação: ..." com dias), Projetos · Início (colunas "No prazo", "Prazo próximo ou dado faltando" e "Prazo vencido"), ficha da sala e do cronograma (ritmo em texto: "No ritmo previsto", "Um pouco abaixo do previsto", "Bem abaixo do previsto", "Sem previsão"), WhatsApp sem emojis de cor e página pública do site.
