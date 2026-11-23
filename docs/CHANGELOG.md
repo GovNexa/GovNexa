@@ -1,5 +1,12 @@
 # Changelog
 
+## E8 · Busca de endereço na localização (22/11/2026)
+- Na aba Localização da ficha e no Novo projeto, quem pode gravar procura por rua, endereço completo ou só bairro; os resultados aparecem no mapa e numa lista.
+- Escolher um resultado só mostra o local; "Usar este local" coloca o ponto (com o endereço preenchido) e só o botão Salvar grava, pela mesma rota da B1, com o Histórico. "Descartar" não muda nada.
+- Busca pelo servidor no OpenStreetMap (Nominatim, decisão D4): endereço fixo, Brasil e caixa de Goiânia mais o entorno, até 5 resultados, tempo-limite de 5 s, 1 pedido por segundo, cache e limite por pessoa; resultado fora da área aceita é descartado; o texto da busca não vai a log.
+- Rota nova `POST /plataforma/localizacao/buscar/` (só administrador, gestor e editor) com origem, perfil, formato, limite e tamanho conferidos antes de ler o pedido. Não grava nada.
+- Na máquina local, respostas fictícias: os testes nunca chamam o serviço real. Sem migração e sem mudança no `wrangler.jsonc` e no `_headers`.
+
 ## E10 · Painel da equipe e relatório de inconsistências (22/11/2026)
 - Novo Painel da equipe (Gestão): recebe o que saiu da tela do prefeito na E3 (indicadores com farol e situação, prazos da Lei, entregas, onde está parado, decisões pendentes, convênios e valores por região) e os 5 primeiros alertas da central. Sem mapa: o mapa por área é da E4.
 - Novo relatório Inconsistências de dados, por órgão ou geral: 10 regras (sem órgão, sem área, sem valor, sem macroetapa, datas previstas faltando, datas fora de ordem, macroetapa vencida, SEI inválido, sem localização e outras pendências da carga), contagem por regra e por órgão, link para a aba Governança da ficha, impressão em A4 e CSV protegido contra fórmula.

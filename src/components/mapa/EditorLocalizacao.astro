@@ -10,8 +10,10 @@ interface Props {
   bairros: string[];
   /** Nome do bairro → centro. */
   geo: Record<string, PontoGeo>;
+  /** Mostra a busca por rua, endereço ou bairro (E8). Só para quem pode gravar; a rota confere o perfil de novo. */
+  buscaEndereco?: boolean;
 }
-const { idPrefixo: p, inicial = null, bairros, geo } = Astro.props;
+const { idPrefixo: p, inicial = null, bairros, geo, buscaEndereco = false } = Astro.props;
 const dados = JSON.stringify({ inicial, geo }).replaceAll('<', '\\u003c');
 ---
 <div class="mp-ed" data-editor-loc id={p}>
@@ -35,6 +37,28 @@ const dados = JSON.stringify({ inicial, geo }).replaceAll('<', '\\u003c');
       </select>
     </label>
   </div>
+
+  {buscaEndereco && (
+    <section class="mp-ed-busca" data-ed-busca aria-labelledby={`${p}-busca-titulo`}>
+      <h3 id={`${p}-busca-titulo`}>Procurar no mapa</h3>
+      <div class="mp-ed-linha">
+        <label for={`${p}-busca`}>Rua, endereço completo ou bairro
+          <input id={`${p}-busca`} data-ed-busca-texto type="search" maxlength="120" autocomplete="off" enterkeyhint="search" />
+        </label>
+        <button type="button" class="mp-btn" data-ed-busca-botao>Procurar</button>
+      </div>
+      <p class="mp-nota" data-ed-busca-msg role="status" aria-live="polite">Nada é gravado na busca: escolha um resultado, confira no mapa e confirme.</p>
+      <ol class="mp-resultados" data-ed-resultados hidden></ol>
+      <div class="mp-confirmar" data-ed-confirmar hidden>
+        <p data-ed-confirmar-texto></p>
+        <div class="mp-acoes">
+          <button type="button" class="mp-btn mp-btn-usar" data-ed-usar>Usar este local</button>
+          <button type="button" class="mp-btn" data-ed-descartar>Descartar</button>
+        </div>
+      </div>
+      <p class="mp-nota">Busca feita pelo OpenStreetMap (© colaboradores do OpenStreetMap). O texto digitado é enviado a esse serviço: digite só o endereço da obra.</p>
+    </section>
+  )}
 
   <div class="mp-ed-mapa" data-ed-mapa role="region" aria-label="Mapa para marcar a localização">
     <div class="mp-camadas" role="group" aria-label="Camada do mapa">
@@ -71,6 +95,7 @@ import * as L from 'leaflet';
 import { criarCamadasFundo, ehCamada, preferenciaCamada, type NomeCamada } from '../../lib/mapa/camadas.ts';
 import 'leaflet/dist/leaflet.css';
 import { GOIANIA, validarLocalizacao } from '../../lib/mapa/geo.ts';
+import { normalizarConsulta, ROTULO_TIPO_RESULTADO, type ResultadoBusca } from '../../lib/mapa/busca-endereco-regras.ts';
 import { COR_CATEGORIA, elementoGlifo } from '../../lib/mapa/icones.ts';
 import type { Localizacao, PontoGeo, Trecho } from '../../lib/mapa/tipos.ts';
 
@@ -137,6 +162,25 @@ function iniciar(raiz: HTMLElement): void {
     if (ehCamada(nome)) aplicarCamada(nome);
   });
   const camada = L.layerGroup().addTo(mapa);
+  // Busca (E8): resultados só aparecem no mapa; o ponto muda ao confirmar e só é gravado ao salvar.
+  const camadaBusca = L.layerGroup().addTo(mapa);
+  const busca = raiz.querySelector<HTMLElement>('[data-ed-busca]');
+  let resultados: ResultadoBusca[] = [];
+  let escolhido = -1;
+  function limparPrevia(): void {
+    camadaBusca.clearLayers();
+    resultados = [];
+    escolhido = -1;
+    if (!busca) return;
+    const listaRes = busca.querySelector<HTMLElement>('[data-ed-resultados]');
+    if (listaRes) { listaRes.replaceChildren(); listaRes.hidden = true; }
+    const confirmar = busca.querySelector<HTMLElement>('[data-ed-confirmar]');
+    if (confirmar) confirmar.hidden = true;
+  }
+  function rotuloUsar(): void {
+    const b = raiz.querySelector<HTMLButtonElement>('[data-ed-usar]');
+    if (b) b.textContent = tipo === 'ponto' ? 'Usar este local' : 'Centralizar o mapa aqui';
+  }
   if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => mapa.invalidateSize()).observe(q('[data-ed-mapa]'));
 
   function icone(): L.DivIcon {
@@ -310,9 +354,11 @@ function iniciar(raiz: HTMLElement): void {
     }
     desenhar();
     textoDica();
+    rotuloUsar();
   }
 
   function aplicar(v: Localizacao | null): void {
+    limparPrevia();
     ponto = null;
     endereco = '';
     trechos = [];
@@ -380,6 +426,105 @@ function iniciar(raiz: HTMLElement): void {
   });
   raiz.addEventListener('localizacao-definir', (e) => aplicar((e as CustomEvent<Localizacao | null>).detail ?? null));
   raiz.addEventListener('localizacao-erros', (e) => mostrarErros((e as CustomEvent<string[]>).detail ?? []));
+
+  if (busca) {
+    const campoBusca = busca.querySelector<HTMLInputElement>('[data-ed-busca-texto]')!;
+    const botaoBusca = busca.querySelector<HTMLButtonElement>('[data-ed-busca-botao]')!;
+    const msgBusca = busca.querySelector<HTMLElement>('[data-ed-busca-msg]')!;
+    const listaRes = busca.querySelector<HTMLElement>('[data-ed-resultados]')!;
+    const confirmar = busca.querySelector<HTMLElement>('[data-ed-confirmar]')!;
+    const textoConfirmar = busca.querySelector<HTMLElement>('[data-ed-confirmar-texto]')!;
+    let buscando = false;
+    const valido = (x: unknown): x is ResultadoBusca => {
+      const r = x as ResultadoBusca;
+      return !!r && typeof r === 'object' && typeof r.rotulo === 'string' && r.rotulo.length > 0 && Object.hasOwn(ROTULO_TIPO_RESULTADO, r.tipo)
+        && validarLocalizacao({ tipo: 'ponto', ponto: { lat: r.lat, lng: r.lng }, endereco: null }).length === 0;
+    };
+    const desenharPrevia = (): void => {
+      camadaBusca.clearLayers();
+      resultados.forEach((r, i) => {
+        const eEscolhido = i === escolhido;
+        L.circleMarker([r.lat, r.lng], { radius: eEscolhido ? 12 : 8, color: '#fff', weight: 2, fillColor: eEscolhido ? COR_CATEGORIA.via : COR_CATEGORIA.edificacao, fillOpacity: 0.95, interactive: false, className: eEscolhido ? 'mp-previa mp-previa-escolhida' : 'mp-previa' }).addTo(camadaBusca);
+      });
+    };
+    const escolher = (i: number): void => {
+      const r = resultados[i];
+      if (!r) return;
+      escolhido = i;
+      for (const b of listaRes.querySelectorAll<HTMLButtonElement>('button')) b.setAttribute('aria-pressed', String(b.dataset.edResultado === String(i)));
+      desenharPrevia();
+      mapa.setView([r.lat, r.lng], r.tipo === 'bairro' ? 15 : 17);
+      textoConfirmar.textContent = `Local escolhido: ${r.rotulo} (${ROTULO_TIPO_RESULTADO[r.tipo]}). Confira no mapa antes de usar.`;
+      rotuloUsar();
+      confirmar.hidden = false;
+    };
+    const procurar = async (): Promise<void> => {
+      if (buscando) return;
+      const c = normalizarConsulta(campoBusca.value);
+      limparPrevia();
+      if (!c.ok) { msgBusca.textContent = c.erro; return; }
+      buscando = true;
+      botaoBusca.disabled = true;
+      msgBusca.textContent = 'Procurando…';
+      let resposta: { ok?: boolean; erro?: string; resultados?: unknown } = {};
+      try {
+        const r = await fetch('/plataforma/localizacao/buscar/', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ q: c.texto }) });
+        if (r.redirected || !(r.headers.get('content-type') ?? '').includes('json')) resposta = { ok: false, erro: 'Sua sessão terminou. Entre de novo e repita a busca.' };
+        else resposta = await r.json();
+      } catch {
+        resposta = { ok: false, erro: 'Não foi possível procurar agora. Confira a conexão e tente de novo.' };
+      } finally {
+        buscando = false;
+        botaoBusca.disabled = false;
+      }
+      if (!resposta.ok || !Array.isArray(resposta.resultados)) { msgBusca.textContent = resposta.erro ?? 'Não foi possível procurar agora.'; return; }
+      resultados = resposta.resultados.filter(valido).slice(0, 5);
+      if (resultados.length === 0) { msgBusca.textContent = 'Nada encontrado em Goiânia e no entorno. Tente o nome da rua com o bairro, ou marque o ponto no mapa.'; return; }
+      resultados.forEach((r, i) => {
+        const li = el('li');
+        const b = el('button', `${r.rotulo} (${ROTULO_TIPO_RESULTADO[r.tipo]})`, 'mp-btn mp-resultado');
+        b.type = 'button';
+        b.dataset.edResultado = String(i);
+        b.setAttribute('aria-pressed', 'false');
+        b.addEventListener('click', () => escolher(i));
+        li.append(b);
+        listaRes.append(li);
+      });
+      listaRes.hidden = false;
+      desenharPrevia();
+      mapa.fitBounds(L.latLngBounds(resultados.map((r): [number, number] => [r.lat, r.lng])), { maxZoom: 16, padding: [30, 30] });
+      msgBusca.textContent = resultados.length === 1 ? '1 resultado. Escolha para ver no mapa e confirmar.' : `${resultados.length} resultados. Escolha um para ver no mapa e confirmar.`;
+    };
+    botaoBusca.addEventListener('click', () => { void procurar(); });
+    campoBusca.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      void procurar();
+    });
+    busca.querySelector<HTMLButtonElement>('[data-ed-usar]')!.addEventListener('click', () => {
+      const r = resultados[escolhido];
+      if (!r) return;
+      if (tipo === 'ponto') {
+        ponto = { lat: arred(r.lat), lng: arred(r.lng) };
+        endereco = r.rotulo.slice(0, 200);
+        campoEnd.value = endereco;
+        escreverCampos();
+        limparPrevia();
+        desenhar();
+        mapa.setView([ponto.lat, ponto.lng], 17);
+        emitir();
+        msgBusca.textContent = 'Ponto colocado no mapa. Arraste o ícone para ajustar; a localização só é gravada quando você salvar.';
+      } else {
+        mapa.setView([r.lat, r.lng], 17);
+        limparPrevia();
+        msgBusca.textContent = 'Mapa centralizado no local. Desenhe o trecho tocando no mapa ao longo da rua.';
+      }
+    });
+    busca.querySelector<HTMLButtonElement>('[data-ed-descartar]')!.addEventListener('click', () => {
+      limparPrevia();
+      msgBusca.textContent = 'Resultado descartado. Nada foi alterado.';
+    });
+  }
 
   aplicar(dados.inicial ?? null);
 }
