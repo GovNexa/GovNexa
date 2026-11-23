@@ -14,7 +14,9 @@
 > - **Repositório antigo (`SLo0th1/Atlas_Conecta`):** congelado. Todo o trabalho segue só neste repositório.
 > - **Publicação em produção:** só com ordem expressa do dono (regras no `CLAUDE.md`).
 
-## Andamento · última atualização em 22/11/2026
+## Andamento · última atualização em 23/11/2026
+
+23/11/2026: **E1 a E11 estão no ar em produção** (E8, E9 e E11 publicadas em 23/11 com a migração 0008), aguardando o teste do dono. Em andamento, em branches separadas e fora da `main`: **E12** Gestão das licitações (migração 0010; cadastro e acompanhamento 100% no sistema), **E13** Governança da execução ampliada (cronograma completo no sistema, responsável, tempo na mão e painel Responsáveis; migração 0009) e **E15** Navegação (sempre poder voltar à tela de origem), cada uma com cerca de 25%. **E14** (PNCP e Compras.gov) é futura. A conferência de cada áudio contra o plano acrescentou seis pedidos (40 no total) e o dono fixou dois princípios novos: o sistema substitui a planilha, e sempre poder voltar. As linhas de 22/11 abaixo que dizem "aguardando revisão" ou "a numerar" foram escritas antes da publicação.
 
 23/11/2026: E12 (Gestão das licitações) entregue no código: guia na Visão gerencial, edição em linha, página da contratação, aba Contratações na ficha, impressão e CSV; carga da planilha modelo aguarda D5; integração PNCP e Compras.gov na E14.
 
@@ -31,7 +33,7 @@ Regra de apresentação (17/11/2026): datas sempre no padrão brasileiro, `DD/MM
 | Planejamento | Plano, decisões, rastreabilidade, Fluxo, fluxos detalhados, mapa de impacto | Fluxos detalhados e mapa de impacto publicados; caixas do Fluxo cabem na raia; zoom no Fluxo | 97% |
 | 0 · Base e identidade | Marca GovNexa, menu por módulos, tema estável, paginação compacta | Publicada; menu lateral com blocos que abrem e fecham (começam fechados). Menu nas três visões (Gerencial, Governança da execução, Convênios) no código desde a E11 | 100% |
 | 1 · Carteira de Projetos | Carga real, Carteira, ficha, Kanban, Gantt, Visão por órgão, celular | Publicada com dados reais | 100% |
-| 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, edição na ficha, Kanban e Pendências (simulação), Histórico, Sala de guerra | E1 em 70% com edição, área, marca de prioritário e faixa 9000 disponíveis no código. Aguardando revisão, migração 0007 e publicação | 95% |
+| 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, edição na ficha, Kanban e Pendências (simulação), Histórico, Sala de guerra | E1 no ar (edição, área, marca de prioritário e faixa 9000; migração 0007), aguardando teste do dono | 100% |
 | 2 · Cronograma e equipe | Cronogramas, quadro de tarefas, Onde está parado | Publicada com a Reunião semanal e as dependências entre etapas (atraso em cascata); leitura do SEI em simulação (a leitura diária depende do banco) | 90% |
 | 3 · Produção com banco (Cloudflare D1) | Tabelas, carga real, perfis, isolamento por prefeitura | Tabelas em produção e carga feita; plataforma lendo o D1 no ar desde 16/11; leitura otimizada no ar desde 16/11. Importação das planilhas no ar e gravada em 16/11 (3.5). Documentos (3.4) publicados em 17/11. Usuários: lista publicada; cadastro, convites e login próprio com 2FA implementados, aguardando revisão e publicação | 92% |
 | 4 · Contratação, convênios e Gestão | Lei 14.133, cláusula suspensiva, alertas, painel do prefeito | Em construção: Prazos da Lei 14.133, Painel do prefeito, Mapa das obras e Central de alertas publicados; Licitação em detalhe com as datas reais do SEI em simulação; falta a leitura automática (banco) e o PNCP | 75% |
@@ -43,6 +45,9 @@ Percentuais mantidos até homologação do login próprio; Access continua padr�
 
 | Data | Entrega | PR |
 | --- | --- | --- |
+| 23/11 | E8, E9 e E11 publicadas em produção (migração 0008); E1 a E11 no ar | publicação do dono |
+| 23/11 | Em andamento: E12 (licitações), E13 (governança da execução) e E15 (navegação) | branches separadas |
+| 23/11 | Documentação: rastreabilidade dos áudios (40 pedidos) e princípios "o sistema substitui a planilha" e "sempre poder voltar" | a numerar |
 | 22/11 | E11: menu nas três visões (Gerencial, Governança da execução, Convênios) e Visão Convênios (em execução, em risco, CAUC); menu esconde o que o perfil não abre | a numerar |
 | 22/11 | E10: Painel da equipe e relatório de inconsistências (impressão e CSV) | GovNexa #49, mesclado |
 | 22/11 | E7: Kanban enxuto e mover gravando no banco (B3), com portão e motivo | GovNexa #48, mesclado |
@@ -120,6 +125,8 @@ O GovNexa — Inteligência para a gestão pública — será a base única da c
 - **Simples para quem usa:** fichas em texto, sem barra de rolagem lateral, poucos cliques; a equipe tem dificuldade com planilha e IA.
 - **Origem preservada:** todo dado guarda fonte, data e o valor original importado.
 - **Gestão leve:** PMBOK para marcos, linha de base e caminho crítico; execução ágil em Kanban.
+- **O sistema substitui a planilha (regra do dono, 23/11/2026):** a planilha é só orientação e carga inicial; a continuidade é exclusivamente no sistema. Todo processo tem início, meio e fim na tela (criar, editar, avançar, concluir, com Histórico). Depois da carga, a tela vence a planilha. Um modelo de planilha novo só alimenta a carga inicial e nunca é requisito para continuar. Varredura pendente: conferir módulo a módulo o que ainda depende de planilha (os cronogramas eram só leitura e viraram a E13).
+- **Sempre poder voltar (regra do dono, 23/11/2026):** toda tela aberta a partir de outra oferece voltar à origem, com os filtros; conferido em toda entrega, com teste (E15).
 
 **Decisões já tomadas**
 
