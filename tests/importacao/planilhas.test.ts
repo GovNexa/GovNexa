@@ -92,6 +92,10 @@ test('gerador de SQL: reimportação preserva localização e compromisso, apaga
     assert.match(aposConflito, /nome = EXCLUDED\.nome/);
     assert.match(com, /DELETE FROM etapa_cronograma WHERE prefeitura_id = \d+ AND cronograma_id = '[^']+' AND id NOT IN/);
     assert.match(com, /INSERT INTO evento_projeto/);
+    // E20: a carga sobe a revisão do cronograma (só do não editado na tela), para a gravação baseada em leitura anterior receber 409.
+    const upsertCronograma = com.split('\n').find((l) => l.startsWith('INSERT INTO cronograma')) ?? '';
+    assert.ok(upsertCronograma.length > 0);
+    assert.match(com, /revisao = cronograma\.revisao \+ 1[^;]*WHERE cronograma\.editado_na_tela = 0;/);
     assert.doesNotMatch(sem, /INSERT INTO evento_projeto|INSERT INTO evento_sistema/);
   } finally {
     rmSync(pasta, { recursive: true, force: true });

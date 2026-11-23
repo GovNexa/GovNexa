@@ -87,3 +87,38 @@ test('criação: devolve a URL com aba=tarefas e só aceita "volta" segura', asy
   assert.equal((await lerJson(dup)).existente, 'C-x');
   assert.equal((await atenderCriacao(pedido({ projeto_id: 'P-inexistente' }, {}, rota), c, lim)).status, 404);
 });
+
+// E20: as mesmas checagens, na mesma ordem, valem para as ações de envolvidos e recursos.
+const recurso = { revisao: 0, acao: 'incluir_recurso', tarefa_id: 'C-x#1', recurso: { tipo: 'material', descricao: 'Cimento', quantidade: '10', unidade: 'sacos', valor_estimado: '1.234,56' } };
+const comTarefa = (t: TestContext, perfil: Usuario['perfil'] = 'editor') => {
+  const m = montar(t, perfil);
+  m.banco.sqlite.prepare("INSERT INTO etapa_cronograma (prefeitura_id, id, cronograma_id, ordem, fase, nome) VALUES (?, 'C-x#1', 'C-x', 1, 'Fase 1', 'Tarefa')").run(PREF);
+  return m;
+};
+
+test('E20, recusas antes do serviço: origem, perfil, formato, limite, tamanho e JSON', async (t) => {
+  const { c } = comTarefa(t);
+  const lim = () => criarLimitadorMemoria({ limite: 100 });
+  assert.equal((await atenderGravacao(pedido(recurso, { origem: 'https://evil.example' }), c, lim(), 'C-x')).status, 403);
+  assert.equal((await atenderGravacao(pedido(recurso), comTarefa(t, 'leitura').c, lim(), 'C-x')).status, 403);
+  assert.equal((await atenderGravacao(pedido(recurso, { tipo: 'text/plain' }), c, lim(), 'C-x')).status, 415);
+  const um = criarLimitadorMemoria({ limite: 1 });
+  assert.equal((await atenderGravacao(pedido(recurso), c, um, 'C-x')).status, 200);
+  assert.equal((await atenderGravacao(pedido({ ...recurso, revisao: 1 }), c, um, 'C-x')).status, 429);
+  assert.equal((await atenderGravacao(pedido(recurso, { tamanho: '20000' }), c, lim(), 'C-x')).status, 413);
+  assert.equal((await atenderGravacao(pedido(null, { bruto: '{quebrado' }), c, lim(), 'C-x')).status, 400);
+});
+
+test('E20, sucesso: devolve item_id e a revisão nova; item inexistente 404; repetir a revisão velha 409', async (t) => {
+  const { c } = comTarefa(t);
+  const lim = criarLimitadorMemoria({ limite: 100 });
+  const r = await atenderGravacao(pedido(recurso), c, lim, 'C-x');
+  assert.equal(r.status, 200);
+  const corpo = await lerJson(r);
+  assert.deepEqual({ ok: corpo.ok, mudou: corpo.mudou, revisao: corpo.revisao }, { ok: true, mudou: true, revisao: 1 });
+  assert.match(corpo.item_id, /^R-[0-9a-f-]{36}$/);
+  assert.equal((await atenderGravacao(pedido(recurso), c, lim, 'C-x')).status, 409);
+  const sem = await atenderGravacao(pedido({ revisao: 1, acao: 'remover_envolvido', tarefa_id: 'C-x#1', item_id: 'E-123e4567-e89b-12d3-a456-426614174000' }), c, lim, 'C-x');
+  assert.equal(sem.status, 404);
+  assert.equal((await lerJson(sem)).erro, 'Envolvido não encontrado.');
+});

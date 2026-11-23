@@ -95,6 +95,15 @@ export function comInvalidacao(repo: RepositorioProjetos, prefeituraId: number):
         }
       },
     } : {}),
+    ...(repo.gravarItemTarefa ? {
+      gravarItemTarefa: async (id, revisao, op, ctx) => {
+        try {
+          return await repo.gravarItemTarefa!(id, revisao, op, ctx);
+        } finally {
+          invalidarCache(prefeituraId);
+        }
+      },
+    } : {}),
     aplicar: async (evento) => {
       try {
         return await repo.aplicar(evento);

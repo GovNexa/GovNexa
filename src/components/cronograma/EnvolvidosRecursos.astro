@@ -1,0 +1,412 @@
+---
+// Aba "Envolvidos e recursos" do cronograma (E20, áudio 31): quem participa de cada tarefa além do responsável e o que ela usa.
+// Tudo que o usuário digitou sai pelo escape do Astro; no navegador só `textContent`.
+import '../../styles/inconsistencias.css';
+import '../../styles/responsaveis.css';
+import { dataBr } from '../../lib/datas.ts';
+import { ancoraEnvolvidos, ROTA_CSV_RECURSOS } from '../../lib/cronograma/navegacao.ts';
+import {
+  plural, quantidadeTexto, quemEnvolvido, reaisDeCentavos, resumoItens, resumoPorTarefa, ROTULO_TIPO_RECURSO, TIPOS_RECURSO, valorEditavel,
+  type ItensCronograma,
+} from '../../lib/cronograma/recursos.ts';
+import type { Cronograma } from '../../lib/cronograma/tipos.ts';
+
+interface Props {
+  cronograma: Cronograma;
+  itens: ItensCronograma | null;
+  podeEditar: boolean;
+  revisao: number | null;
+  volta: string | null;
+  sugestoes: { pessoas: string[]; unidades: string[] };
+}
+const { cronograma: c, itens, podeEditar, revisao, sugestoes } = Astro.props;
+const resumo = itens ? resumoItens(itens) : null;
+const porTarefa = itens ? resumoPorTarefa(itens) : new Map();
+const dia = (v: string | null) => (v ? dataBr(v) : '');
+const valorOuTraco = (n: number, v: bigint) => (n > 0 ? reaisDeCentavos(v) : '—');
+---
+{itens === null || resumo === null ? (
+  <p data-ev-indisponivel>Envolvidos e recursos ficam disponíveis quando o sistema está ligado ao banco de dados.</p>
+) : (
+  <div class="ev" data-ev data-cronograma={c.id} data-revisao={revisao ?? ''} data-cart>
+    <p class="cr-erro" role="alert" data-ev-erro-geral></p>
+    <section class="ev-resumo" aria-label="Resumo de envolvidos e recursos" data-ev-resumo>
+      <p><strong>Envolvidos:</strong> {resumo.envolvidos === 0 ? 'nenhum' : `${plural(resumo.envolvidos, 'pessoa ou área', 'pessoas ou áreas')} em ${plural(resumo.tarefasComEnvolvidos, 'tarefa', 'tarefas')}`}</p>
+      <table class="inc-tabela ev-tabela-resumo">
+        <caption>Recursos por tipo</caption>
+        <thead>
+          <tr><th scope="col">Tipo</th><th scope="col">Itens</th><th scope="col">Valor estimado</th><th scope="col">Valor utilizado</th></tr>
+        </thead>
+        <tbody>
+          {resumo.porTipo.map((t) => (
+            <tr>
+              <th scope="row">{ROTULO_TIPO_RECURSO[t.tipo]}</th>
+              <td data-rotulo="Itens">{t.itens}</td>
+              <td data-rotulo="Valor estimado">{valorOuTraco(t.comEstimado, t.estimado)}</td>
+              <td data-rotulo="Valor utilizado">{valorOuTraco(t.comUtilizado, t.utilizado)}</td>
+            </tr>
+          ))}
+          <tr>
+            <th scope="row"><strong>Total</strong></th>
+            <td data-rotulo="Itens"><strong>{resumo.recursos}</strong></td>
+            <td data-rotulo="Valor estimado"><strong>{valorOuTraco(resumo.comEstimado, resumo.estimado)}</strong></td>
+            <td data-rotulo="Valor utilizado"><strong>{valorOuTraco(resumo.comUtilizado, resumo.utilizado)}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="actions ev-sem-impressao">
+        <button type="button" class="inc-botao" data-ev-imprimir>Imprimir</button>
+        <a class="inc-botao" href={ROTA_CSV_RECURSOS + encodeURIComponent(c.id) + '/'} download data-ev-csv>Baixar CSV</a>
+      </p>
+      <label class="ev-filtro ev-sem-impressao"><input type="checkbox" data-ev-filtro /> Mostrar só tarefas com envolvidos ou recursos</label>
+    </section>
+
+    {c.fases.filter((f) => f.etapas.some((e) => e.id)).map((f) => (
+      <section class="ev-fase" aria-label={`Fase ${f.nome}`} data-ev-fase={f.nome}>
+        <h3>{f.nome}</h3>
+        <table class="inc-tabela">
+          <caption class="sr-only">Envolvidos e recursos da fase {f.nome}</caption>
+          <thead>
+            <tr>
+              <th scope="col">Tarefa</th><th scope="col">Envolvidos</th><th scope="col">Recursos</th>
+              {podeEditar && <th scope="col">Ações</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {f.etapas.filter((e) => e.id).map((e) => {
+              const id = e.id as string;
+              const envs = itens.envolvidos.filter((x) => x.tarefa_id === id);
+              const recs = itens.recursos.filter((x) => x.tarefa_id === id);
+              const soma = porTarefa.get(id);
+              const temItens = envs.length + recs.length > 0;
+              return (
+                <tr id={ancoraEnvolvidos(id)} data-ev-tarefa={id} data-ev-tem={temItens ? 'sim' : 'nao'} data-ev-dados={JSON.stringify({ id, nome: e.nome })}>
+                  <td data-rotulo="Tarefa">
+                    <strong>{e.nome}</strong>
+                    <span class="cr-sub">Responsável: {e.responsavel ?? e.unidade ?? 'sem responsável'}</span>
+                  </td>
+                  <td data-rotulo="Envolvidos">
+                    {envs.length === 0 ? '—' : (
+                      <details class="ev-det" data-ev-det>
+                        <summary>{plural(envs.length, 'envolvido', 'envolvidos')}</summary>
+                        <ul class="ev-lista">
+                          {envs.map((x) => {
+                            const quem = quemEnvolvido(x);
+                            const dadosItem = JSON.stringify({ id: x.id, tarefa_id: x.tarefa_id, nome: x.nome, area: x.area, papel: x.papel, observacao: x.observacao });
+                            return (
+                              <li>
+                                {quem}{x.papel ? ` · ${x.papel}` : ''}
+                                {x.observacao && <span class="cr-sub">{x.observacao}</span>}
+                                {podeEditar && (
+                                  <span class="cr-acoes ev-sem-impressao">
+                                    <button type="button" data-ev-acao="editar-envolvido" data-ev-item={dadosItem} aria-label={`Editar o envolvido ${quem}`}>Editar</button>
+                                    <button type="button" data-ev-acao="remover-envolvido" data-ev-item={dadosItem} aria-label={`Remover o envolvido ${quem}`}>Remover</button>
+                                  </span>
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </details>
+                    )}
+                  </td>
+                  <td data-rotulo="Recursos">
+                    {recs.length === 0 ? '—' : (
+                      <details class="ev-det" data-ev-det>
+                        <summary>{plural(recs.length, 'recurso', 'recursos')}{soma && soma.comEstimado > 0 ? ` · estimado ${reaisDeCentavos(soma.estimado)}` : ''}{soma && soma.comUtilizado > 0 ? ` · utilizado ${reaisDeCentavos(soma.utilizado)}` : ''}</summary>
+                        <ul class="ev-lista">
+                          {recs.map((x) => {
+                            const dadosItem = JSON.stringify({
+                              id: x.id, tarefa_id: x.tarefa_id, tipo: x.tipo, descricao: x.descricao, quantidade: quantidadeTexto(x.quantidade_centesimos), unidade: x.unidade,
+                              valor_estimado: valorEditavel(x.valor_estimado_centavos), valor_utilizado: valorEditavel(x.valor_utilizado_centavos), data_uso: x.data_uso, observacao: x.observacao,
+                            });
+                            return (
+                              <li>
+                                [{ROTULO_TIPO_RECURSO[x.tipo]}] {x.descricao}
+                                {x.quantidade_centesimos !== null ? ` · ${quantidadeTexto(x.quantidade_centesimos)}${x.unidade ? ' ' + x.unidade : ''}` : ''}
+                                {x.valor_estimado_centavos !== null ? ` · estimado ${reaisDeCentavos(x.valor_estimado_centavos)}` : ''}
+                                {x.valor_utilizado_centavos !== null ? ` · utilizado ${reaisDeCentavos(x.valor_utilizado_centavos)}` : ''}
+                                {x.data_uso ? ` · em ${dia(x.data_uso)}` : ''}
+                                {x.observacao && <span class="cr-sub">{x.observacao}</span>}
+                                {podeEditar && (
+                                  <span class="cr-acoes ev-sem-impressao">
+                                    <button type="button" data-ev-acao="editar-recurso" data-ev-item={dadosItem} aria-label={`Editar o recurso ${x.descricao}`}>Editar</button>
+                                    <button type="button" data-ev-acao="remover-recurso" data-ev-item={dadosItem} aria-label={`Remover o recurso ${x.descricao}`}>Remover</button>
+                                  </span>
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </details>
+                    )}
+                  </td>
+                  {podeEditar && (
+                    <td data-rotulo="Ações">
+                      <span class="cr-acoes">
+                        <button type="button" data-ev-acao="novo-envolvido" data-id={id} aria-label={`Incluir envolvido na tarefa ${e.nome}`}>+ Envolvido</button>
+                        <button type="button" data-ev-acao="novo-recurso" data-id={id} aria-label={`Incluir recurso na tarefa ${e.nome}`}>+ Recurso</button>
+                      </span>
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </section>
+    ))}
+
+    {podeEditar && (
+      <>
+        <datalist id="ev-pessoas">{sugestoes.pessoas.map((v) => <option value={v}></option>)}</datalist>
+        <datalist id="ev-unidades">{sugestoes.unidades.map((v) => <option value={v}></option>)}</datalist>
+        <datalist id="ev-medidas">{['horas', 'dias', 'unidades', 'm²', 'm³', 'kg', 'sacos', 'litros', 'diárias'].map((v) => <option value={v}></option>)}</datalist>
+        <dialog class="cart-dialogo cr-dialogo" data-ev-dialogo aria-labelledby="ev-dlg-titulo">
+          <form method="dialog" data-ev-form>
+            <h2 id="ev-dlg-titulo" data-ev-titulo>Envolvido</h2>
+            <p data-ev-tarefa-nome></p>
+            <fieldset class="cr-grupo ev-grupo" data-ev-modo="envolvido">
+              <label>Nome<input name="nome" maxlength="120" list="ev-pessoas" autocomplete="off" /></label>
+              <label>Área<input name="area" maxlength="80" list="ev-unidades" autocomplete="off" /></label>
+              <label>Papel na tarefa<input name="papel" maxlength="80" placeholder="Ex.: fiscal, apoio, aprovação" autocomplete="off" /></label>
+              <label>Observação<textarea name="observacao_envolvido" maxlength="500" rows="2"></textarea></label>
+              <p class="cr-ajuda">Informe o nome, a área ou os dois. O envolvido não substitui o responsável e não conta no tempo na mão.</p>
+              <p class="cr-ajuda" data-ev-lgpd>Não informe CPF, telefone, e-mail ou outro dado pessoal; use nome e função.</p>
+            </fieldset>
+            <fieldset class="cr-grupo ev-grupo" data-ev-modo="recurso" hidden disabled>
+              <label>Tipo *
+                <select name="tipo" required>
+                  {TIPOS_RECURSO.map((t) => <option value={t}>{ROTULO_TIPO_RECURSO[t]}</option>)}
+                </select>
+              </label>
+              <label>Descrição *<input name="descricao" required maxlength="200" autocomplete="off" /></label>
+              <label>Quantidade<input name="quantidade" inputmode="decimal" maxlength="20" placeholder="Ex.: 10 ou 2,5" autocomplete="off" /></label>
+              <label>Unidade<input name="unidade" maxlength="30" list="ev-medidas" autocomplete="off" /></label>
+              <label>Valor estimado (R$)<input name="valor_estimado" inputmode="decimal" maxlength="22" placeholder="Ex.: 1.234,56" autocomplete="off" /></label>
+              <label>Valor utilizado (R$)<input name="valor_utilizado" inputmode="decimal" maxlength="22" placeholder="Ex.: 1.234,56" autocomplete="off" /></label>
+              <label>Data de uso<input name="data_uso" type="date" min="2000-01-01" max="2100-12-31" /></label>
+              <label>Observação<textarea name="observacao_recurso" maxlength="500" rows="2"></textarea></label>
+              <p class="cr-ajuda" data-ev-lgpd>Não informe CPF, telefone, e-mail ou outro dado pessoal; use nome e função.</p>
+            </fieldset>
+            <fieldset class="cr-grupo ev-grupo" data-ev-modo="remover" hidden disabled>
+              <p data-ev-remover-quem></p>
+              <label>Motivo<textarea name="motivo_remover" maxlength="500" rows="2"></textarea></label>
+              <p class="cr-ajuda">A remoção fica no Histórico e não pode ser desfeita. Para corrigir, inclua de novo.</p>
+            </fieldset>
+            <div class="cr-erro" role="alert" data-ev-erro></div>
+            <div class="actions">
+              <button type="submit" class="primary" data-ev-salvar>Salvar</button>
+              <button type="button" data-ev-recarregar hidden>Recarregar a página</button>
+              <button type="button" data-ev-cancelar>Cancelar</button>
+            </div>
+          </form>
+        </dialog>
+      </>
+    )}
+  </div>
+)}
+<style>
+  .ev{display:grid;gap:1.25rem;min-width:0}
+  .ev-resumo{margin:0 0 1rem;padding:0;max-width:none}
+  .ev-fase{padding:0;max-width:none}
+  .ev-fase h3{margin:0 0 .5rem;font-size:1.05rem;overflow-wrap:anywhere}
+  .ev-grupo{border:0;margin:0;padding:0;min-width:0;display:grid;gap:.7rem}
+  .ev-grupo[hidden]{display:none}
+  .ev-lista{margin:.25rem 0 0;padding-left:1.1rem}
+  .ev-lista li{overflow-wrap:anywhere;margin:.25rem 0}
+  .ev-det summary{cursor:pointer}
+  .ev .inc-tabela td{overflow-wrap:anywhere;white-space:normal}
+  .ev .cr-acoes{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.25rem}
+  .ev button{min-height:36px;padding:.3rem .6rem;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--text);font-weight:600;cursor:pointer}
+  .ev button:disabled{opacity:.5;cursor:not-allowed}
+  .ev button.primary{background:var(--text);color:var(--bg)}
+  .ev .inc-botao{min-height:44px;padding:.65rem 1rem}
+  .ev .actions{margin:.5rem 0 0;gap:.5rem}
+  .ev-filtro{display:flex;align-items:center;gap:.6rem;font-weight:600;min-height:44px}
+  .ev-filtro input{width:24px;height:24px;margin:0;flex:none}
+  .ev-resumo .actions{margin:1rem 0 .5rem}
+  .ev-tabela-resumo caption{text-align:left;font-weight:700;padding:.3rem 0}
+  .ev-tabela-resumo th[scope=row]{background:transparent;font-weight:600}
+  [data-ev-dialogo] select{width:100%;box-sizing:border-box}
+  @media (max-width:760px){
+    .ev button{min-height:44px}
+    .ev-tabela-resumo th[scope=row]{display:block;width:100%;padding:.15rem 0;border:0}
+  }
+  @media print{
+    .ev button,.ev-sem-impressao,[data-ev-dialogo]{display:none!important}
+  }
+</style>
+<script>
+import { enviar, ROTA_GRAVAR } from '../../lib/cronograma/editor-cliente.ts';
+
+type Modo = 'novo-envolvido' | 'editar-envolvido' | 'remover-envolvido' | 'novo-recurso' | 'editar-recurso' | 'remover-recurso';
+interface Item { id: string; tarefa_id: string; [k: string]: unknown }
+
+document.addEventListener('astro:page-load', () => {
+  const raiz = document.querySelector<HTMLElement>('[data-ev]');
+  if (!raiz || raiz.dataset.pronto) return;
+  raiz.dataset.pronto = 'sim';
+
+  // Filtro "só tarefas com envolvidos ou recursos" (vale também para o perfil de leitura).
+  const filtro = raiz.querySelector<HTMLInputElement>('[data-ev-filtro]');
+  filtro?.addEventListener('change', () => {
+    raiz.querySelectorAll<HTMLElement>('tr[data-ev-tarefa]').forEach((tr) => { tr.hidden = filtro.checked && tr.dataset.evTem === 'nao'; });
+    raiz.querySelectorAll<HTMLElement>('section[data-ev-fase]').forEach((s) => { s.hidden = !s.querySelector('tr[data-ev-tarefa]:not([hidden])'); });
+  });
+
+  // Impressão: abre todos os detalhes e depois fecha só os que estavam fechados.
+  raiz.querySelector<HTMLElement>('[data-ev-imprimir]')?.addEventListener('click', () => window.print());
+  let abertosPorNos: HTMLDetailsElement[] = [];
+  window.addEventListener('beforeprint', () => {
+    abertosPorNos = [];
+    raiz.querySelectorAll<HTMLDetailsElement>('details[data-ev-det]').forEach((d) => { if (!d.open) { d.open = true; abertosPorNos.push(d); } });
+  });
+  window.addEventListener('afterprint', () => {
+    abertosPorNos.forEach((d) => { d.open = false; });
+    abertosPorNos = [];
+  });
+
+  const dialogo = raiz.querySelector<HTMLDialogElement>('[data-ev-dialogo]');
+  if (!dialogo) return; // perfil de leitura: sem botões
+  const form = dialogo.querySelector<HTMLFormElement>('[data-ev-form]')!;
+  const erroDialogo = dialogo.querySelector<HTMLElement>('[data-ev-erro]')!;
+  const erroGeral = raiz.querySelector<HTMLElement>('[data-ev-erro-geral]')!;
+  const botaoSalvar = dialogo.querySelector<HTMLButtonElement>('[data-ev-salvar]')!;
+  const botaoRecarregar = dialogo.querySelector<HTMLButtonElement>('[data-ev-recarregar]')!;
+  const cronogramaId = raiz.dataset.cronograma ?? '';
+  const revisao = Number(raiz.dataset.revisao);
+  const tarefas = new Map<string, string>();
+  raiz.querySelectorAll<HTMLElement>('tr[data-ev-dados]').forEach((tr) => {
+    try { const d = JSON.parse(tr.dataset.evDados ?? '') as { id: string; nome: string }; tarefas.set(d.id, d.nome); } catch { /* linha sem dados: sem botões */ }
+  });
+  let modo: Modo = 'novo-envolvido';
+  let tarefaId = '';
+  let item: Item | null = null;
+
+  const campo = (nome: string): HTMLInputElement => form.elements.namedItem(nome) as HTMLInputElement;
+  const valor = (nome: string): string => campo(nome).value.trim();
+  const texto = (v: unknown): string => (typeof v === 'string' ? v : '');
+
+  function mostrarErro(onde: HTMLElement, erro: string, erros?: string[]): void {
+    onde.textContent = erro;
+    const lista = (erros ?? []).filter((e) => e !== erro);
+    if (lista.length > 0) {
+      const ul = document.createElement('ul');
+      for (const e of lista) {
+        const li = document.createElement('li');
+        li.textContent = e;
+        ul.append(li);
+      }
+      onde.append(ul);
+    }
+  }
+  const travar = (v: boolean): void => {
+    raiz.querySelectorAll<HTMLButtonElement>('button[data-ev-acao]').forEach((b) => { if (v) b.dataset.estavaLivre = b.disabled ? 'nao' : 'sim'; b.disabled = v ? true : b.dataset.estavaLivre === 'nao'; });
+    botaoSalvar.disabled = v;
+  };
+
+  async function gravar(corpo: Record<string, unknown>, onde: HTMLElement): Promise<void> {
+    onde.textContent = '';
+    travar(true);
+    const r = await enviar(ROTA_GRAVAR + encodeURIComponent(cronogramaId) + '/', { revisao, ...corpo });
+    if (r.ok) {
+      const url = new URL(location.href);
+      url.searchParams.set('aba', 'envolvidos');
+      url.hash = 'ev-' + tarefaId.replace(/[^A-Za-z0-9_-]/g, '_');
+      history.replaceState(history.state, '', url);
+      location.reload();
+      return;
+    }
+    mostrarErro(onde, r.erro, r.erros);
+    if (r.status === 409 && dialogo!.open) {
+      botaoSalvar.hidden = true;
+      botaoRecarregar.hidden = false;
+      // Se a pessoa cancelar o diálogo depois do conflito, a página volta a aceitar cliques.
+      dialogo!.addEventListener('close', () => travar(false), { once: true });
+      return;
+    }
+    travar(false);
+  }
+
+  function abrir(m: Modo, tid: string, it: Item | null): void {
+    modo = m;
+    tarefaId = tid;
+    item = it;
+    form.reset();
+    erroDialogo.textContent = '';
+    botaoSalvar.hidden = false;
+    botaoRecarregar.hidden = true;
+    const grupo = m.endsWith('envolvido') && !m.startsWith('remover') ? 'envolvido' : m.startsWith('remover') ? 'remover' : 'recurso';
+    dialogo!.querySelectorAll<HTMLFieldSetElement>('[data-ev-modo]').forEach((g) => { const on = g.dataset.evModo === grupo; g.hidden = !on; g.disabled = !on; });
+    const titulo = dialogo!.querySelector<HTMLElement>('[data-ev-titulo]')!;
+    dialogo!.querySelector<HTMLElement>('[data-ev-tarefa-nome]')!.textContent = `Tarefa: ${tarefas.get(tid) ?? ''}`;
+    if (m === 'novo-envolvido') titulo.textContent = 'Novo envolvido';
+    else if (m === 'novo-recurso') titulo.textContent = 'Novo recurso';
+    else if (m === 'editar-envolvido' && it) {
+      titulo.textContent = 'Editar envolvido';
+      campo('nome').value = texto(it.nome);
+      campo('area').value = texto(it.area);
+      campo('papel').value = texto(it.papel);
+      campo('observacao_envolvido').value = texto(it.observacao);
+    } else if (m === 'editar-recurso' && it) {
+      titulo.textContent = 'Editar recurso';
+      for (const k of ['tipo', 'descricao', 'quantidade', 'unidade', 'valor_estimado', 'valor_utilizado', 'data_uso'] as const) campo(k).value = texto(it[k]);
+      campo('observacao_recurso').value = texto(it.observacao);
+    } else if (m === 'remover-envolvido' && it) {
+      titulo.textContent = 'Remover envolvido';
+      const quem = texto(it.nome) && texto(it.area) ? `${texto(it.nome)} (${texto(it.area)})` : texto(it.nome) || texto(it.area);
+      dialogo!.querySelector<HTMLElement>('[data-ev-remover-quem]')!.textContent = `Envolvido: ${quem}`;
+    } else if (m === 'remover-recurso' && it) {
+      titulo.textContent = 'Remover recurso';
+      dialogo!.querySelector<HTMLElement>('[data-ev-remover-quem]')!.textContent = `Recurso: ${texto(it.descricao)}`;
+    }
+    dialogo!.showModal();
+  }
+
+  dialogo.querySelector<HTMLButtonElement>('[data-ev-cancelar]')!.addEventListener('click', () => dialogo.close());
+  botaoRecarregar.addEventListener('click', () => location.reload());
+
+  form.addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    const base = { tarefa_id: tarefaId, ...(item ? { item_id: item.id } : {}) };
+    if (modo === 'novo-envolvido' || modo === 'editar-envolvido') {
+      const envolvido = { nome: valor('nome'), area: valor('area'), papel: valor('papel'), observacao: valor('observacao_envolvido') };
+      if (modo === 'editar-envolvido' && item && (['nome', 'area', 'papel', 'observacao'] as const).every((k) => envolvido[k] === texto(item![k]).trim())) {
+        mostrarErro(erroDialogo, 'Nada foi alterado.');
+        return;
+      }
+      void gravar({ acao: modo === 'novo-envolvido' ? 'incluir_envolvido' : 'editar_envolvido', ...base, envolvido }, erroDialogo);
+    } else if (modo === 'novo-recurso' || modo === 'editar-recurso') {
+      const recurso = {
+        tipo: valor('tipo'), descricao: valor('descricao'), quantidade: valor('quantidade'), unidade: valor('unidade'),
+        valor_estimado: valor('valor_estimado'), valor_utilizado: valor('valor_utilizado'), data_uso: valor('data_uso'), observacao: valor('observacao_recurso'),
+      };
+      if (modo === 'editar-recurso' && item && (Object.keys(recurso) as (keyof typeof recurso)[]).every((k) => recurso[k] === texto(item![k]).trim())) {
+        mostrarErro(erroDialogo, 'Nada foi alterado.');
+        return;
+      }
+      void gravar({ acao: modo === 'novo-recurso' ? 'incluir_recurso' : 'editar_recurso', ...base, recurso }, erroDialogo);
+    } else {
+      void gravar({ acao: modo === 'remover-envolvido' ? 'remover_envolvido' : 'remover_recurso', ...base, motivo: valor('motivo_remover') }, erroDialogo);
+    }
+  });
+
+  raiz.addEventListener('click', (ev) => {
+    const b = (ev.target as HTMLElement).closest<HTMLButtonElement>('button[data-ev-acao]');
+    if (!b || b.disabled) return;
+    const acao = b.dataset.evAcao as Modo | undefined;
+    erroGeral.textContent = '';
+    if (acao === 'novo-envolvido' || acao === 'novo-recurso') {
+      const tid = b.dataset.id ?? '';
+      if (tarefas.has(tid)) abrir(acao, tid, null);
+      return;
+    }
+    if (acao !== 'editar-envolvido' && acao !== 'remover-envolvido' && acao !== 'editar-recurso' && acao !== 'remover-recurso') return;
+    let dados: Item | null = null;
+    try { dados = JSON.parse(b.dataset.evItem ?? '') as Item; } catch { dados = null; }
+    if (!dados || typeof dados.id !== 'string' || !tarefas.has(dados.tarefa_id)) return;
+    abrir(acao, dados.tarefa_id, dados);
+  });
+});
+</script>

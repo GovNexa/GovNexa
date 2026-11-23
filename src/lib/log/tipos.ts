@@ -1,9 +1,10 @@
 // Tipos do histórico de alterações (log) do GovNexa. A tela, o CSV, o importador e o banco usam estes rótulos.
 import type { OrigemEvento, RegistroHistorico } from '../carteira/movimentacao.ts';
 import type { TipoEventoCronograma } from '../cronograma/planejar.ts';
+import type { TipoEventoItem } from '../cronograma/recursos.ts';
 
 /** Tipos do motor ('passo', 'pendencia'...) mais os que só o log conhece ('criado', 'removido', 'carga'). */
-export type TipoAcaoLog = RegistroHistorico['tipo'] | 'registrar_passo' | 'resolver_pendencia' | 'criado' | 'removido' | 'carga' | 'sala_aberta' | 'sala_reuniao' | 'sala_item' | 'sala_encerrada' | 'sala_projeto_incluido' | 'sala_projeto_retirado' | 'reuniao_registrada' | 'acao_criada' | 'localizacao_alterada' | 'documento_classificado' | 'foto_enviada' | 'foto_removida' | TipoEventoCronograma;
+export type TipoAcaoLog = RegistroHistorico['tipo'] | 'registrar_passo' | 'resolver_pendencia' | 'criado' | 'removido' | 'carga' | 'sala_aberta' | 'sala_reuniao' | 'sala_item' | 'sala_encerrada' | 'sala_projeto_incluido' | 'sala_projeto_retirado' | 'reuniao_registrada' | 'acao_criada' | 'localizacao_alterada' | 'documento_classificado' | 'foto_enviada' | 'foto_removida' | TipoEventoCronograma | TipoEventoItem;
 
 /** Registro do log: o histórico do motor, com tipos extras, nome do projeto e marca de simulação (não gravado). */
 export type RegistroLog = Omit<RegistroHistorico, 'tipo'> & {
@@ -40,6 +41,12 @@ export const ROTULO_ACAO: Record<TipoAcaoLog, string> = {
   responsavel_trocado: 'Responsável da tarefa trocado',
   tarefas_reordenadas: 'Tarefas do cronograma reordenadas',
   tarefa_removida: 'Tarefa removida do cronograma',
+  envolvido_incluido: 'Envolvido incluído na tarefa',
+  envolvido_alterado: 'Envolvido da tarefa alterado',
+  envolvido_removido: 'Envolvido removido da tarefa',
+  recurso_incluido: 'Recurso incluído na tarefa',
+  recurso_alterado: 'Recurso da tarefa alterado',
+  recurso_removido: 'Recurso removido da tarefa',
 };
 
 export const ROTULO_ORIGEM: Record<OrigemEvento | 'reuniao', string> = {

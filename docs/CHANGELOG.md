@@ -1,5 +1,12 @@
 # Changelog
 
+## E20 · Envolvidos e recursos da tarefa (23/11/2026; pronta para revisão, não publicada)
+- Migração 0012 do banco da prefeitura: tabelas `tarefa_envolvido` e `tarefa_recurso` (chave por prefeitura, tarefa ativa do mesmo cronograma, remoção lógica, sem DELETE, limites de 50 envolvidos e 200 recursos ativos por tarefa e teto total de 200 e 800 com os removidos, valores inteiros em centavos até R$ 10 bilhões). Só cria tabelas, índices e gatilhos novos.
+- Aba "Envolvidos e recursos" do cronograma: envolvidos (nome e/ou área, papel, observação; não substituem o responsável nem contam no tempo na mão) e recursos (humano, material ou equipamento, financeiro; quantidade, unidade, valor estimado e utilizado, data de uso, observação). Criar, editar e remover na tela, com 6 tipos novos no Histórico do projeto (a observação não entra no Histórico). Resumo por tipo e total, filtro "só tarefas com itens", impressão, CSV (`/plataforma/cronograma/recursos-csv/<id>/`) e resumo na aba Cronograma da ficha. O perfil Leitura só vê. Aviso na tela para não informar dado pessoal.
+- Gravação pela mesma rota da E13, com 6 ações novas; qualquer gravação de item sobe a versão do cronograma e congela o cronograma para a planilha. A carga da planilha passou a subir a versão do cronograma que atualiza (corrige uma corrida existente desde a E13).
+- Erro do banco que escapar das regras vira 400 "Dados inválidos." (nunca 500). Sem importação por planilha. Fluxo do sistema: etapa Planejamento atualizada.
+- **Não mudou:** login, `wrangler.jsonc`, `_headers`, `middleware.ts`.
+
 ## Publicação 23/11/2026
 - Em produção: E18 (ícone de tema), E14a (PNCP por botão) e E16 (dispensa da 2ª etapa e conta de consulta), na versão do Worker 6e5fd492-3904-46ab-94cb-cbf76cb3da16. Migrações 0011 (banco da prefeitura) e 0003 (banco central) aplicadas antes do código, com ponto de restauração anotado antes. No mesmo dia, antes dessa versão, já estavam no ar E8, E9, E11, E12 (com ajustes), E13, E15 e E17.
 

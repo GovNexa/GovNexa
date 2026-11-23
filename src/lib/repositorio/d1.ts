@@ -4,13 +4,15 @@ import type { Evento, RegistroHistorico } from '../carteira/movimentacao.ts';
 import type { Projeto } from '../carteira/tipos.ts';
 import { CAMPOS_TAREFA, planejar, type EstadoCronograma, type TarefaAtual } from '../cronograma/planejar.ts';
 import type { Cronograma, EtapaCronograma, FaseCronograma, TrocaResponsavel } from '../cronograma/tipos.ts';
+import { planejarItem } from '../cronograma/recursos-regras.ts';
+import type { DadosEnvolvido, DadosRecurso, Envolvido, ItensCronograma, Recurso } from '../cronograma/recursos.ts';
 import { statusNaData } from '../cronograma/visoes.ts';
 import type { RegistroLog } from '../log/tipos.ts';
 import { criarRepositorioDocumentos } from '../documentos/repositorio.ts';
 import { criarRepositorioContratacoes } from '../contratacoes/repositorio.ts';
 import { criarRepositorioFotos } from '../fotos/repositorio.ts';
 import { criarRepositorioPncp } from '../pncp/repositorio.ts';
-import type { RepositorioProjetos, ResultadoAplicacao, ResultadoCriacaoCronograma, ResultadoCriacaoProjeto, ResultadoEdicao, ResultadoGravacaoCronograma, ResultadoMovimento } from './tipos.ts';
+import type { RepositorioProjetos, ResultadoAplicacao, ResultadoCriacaoCronograma, ResultadoCriacaoProjeto, ResultadoEdicao, ResultadoGravacaoCronograma, ResultadoGravacaoItem, ResultadoMovimento } from './tipos.ts';
 
 export interface ResultadoD1 { results: any[]; success: boolean; meta?: { changes?: number }; }
 export interface StatementD1 {
@@ -122,6 +124,36 @@ export function criarRepositorioD1(db: BancoD1, prefeituraId: number): Repositor
       await gravarEventos(cliente, res.historico);
       return { ok: true, projeto: res.projeto, historico: res.historico };
     });
+  }
+
+  // E20: itens ativos de tarefas ativas; `tarefaId` restringe a uma tarefa (leitura da gravação). Sempre filtrado pela prefeitura da sessão.
+  const numeroOuNulo = (v: unknown): number | null => (v == null ? null : Number(v));
+  const textoOuNulo = (v: unknown): string | null => (v == null ? null : String(v));
+  async function lerEnvolvidos(cronogramaId: string, tarefaId: string | null): Promise<Envolvido[]> {
+    const { results } = await db.prepare(
+      `SELECT e.id, e.tarefa_id, e.nome, e.area, e.papel, e.observacao, e.criado_por, e.criado_em, e.atualizado_por, e.atualizado_em
+         FROM tarefa_envolvido e JOIN etapa_cronograma t ON t.prefeitura_id = e.prefeitura_id AND t.id = e.tarefa_id AND t.removida_em IS NULL
+        WHERE e.prefeitura_id = ? AND e.cronograma_id = ? AND e.removido_em IS NULL${tarefaId === null ? '' : ' AND e.tarefa_id = ?'} ORDER BY e.tarefa_id, e.criado_em, e.id`,
+    ).bind(...(tarefaId === null ? [prefeituraId, cronogramaId] : [prefeituraId, cronogramaId, tarefaId])).all();
+    return results.map((r): Envolvido => ({
+      id: String(r.id), tarefa_id: String(r.tarefa_id), nome: textoOuNulo(r.nome), area: textoOuNulo(r.area), papel: textoOuNulo(r.papel), observacao: textoOuNulo(r.observacao),
+      criado_por: String(r.criado_por), criado_em: String(r.criado_em), atualizado_por: textoOuNulo(r.atualizado_por), atualizado_em: textoOuNulo(r.atualizado_em),
+    }));
+  }
+  async function lerRecursos(cronogramaId: string, tarefaId: string | null): Promise<Recurso[]> {
+    const { results } = await db.prepare(
+      `SELECT e.id, e.tarefa_id, e.tipo, e.descricao, e.quantidade_centesimos, e.unidade, e.valor_estimado_centavos, e.valor_utilizado_centavos, e.data_uso, e.observacao,
+              e.criado_por, e.criado_em, e.atualizado_por, e.atualizado_em
+         FROM tarefa_recurso e JOIN etapa_cronograma t ON t.prefeitura_id = e.prefeitura_id AND t.id = e.tarefa_id AND t.removida_em IS NULL
+        WHERE e.prefeitura_id = ? AND e.cronograma_id = ? AND e.removido_em IS NULL${tarefaId === null ? '' : ' AND e.tarefa_id = ?'} ORDER BY e.tarefa_id, e.criado_em, e.id`,
+    ).bind(...(tarefaId === null ? [prefeituraId, cronogramaId] : [prefeituraId, cronogramaId, tarefaId])).all();
+    return results.map((r): Recurso => ({
+      id: String(r.id), tarefa_id: String(r.tarefa_id), tipo: String(r.tipo) as Recurso['tipo'], descricao: String(r.descricao),
+      quantidade_centesimos: numeroOuNulo(r.quantidade_centesimos), unidade: textoOuNulo(r.unidade),
+      valor_estimado_centavos: numeroOuNulo(r.valor_estimado_centavos), valor_utilizado_centavos: numeroOuNulo(r.valor_utilizado_centavos),
+      data_uso: textoOuNulo(r.data_uso), observacao: textoOuNulo(r.observacao),
+      criado_por: String(r.criado_por), criado_em: String(r.criado_em), atualizado_por: textoOuNulo(r.atualizado_por), atualizado_em: textoOuNulo(r.atualizado_em),
+    }));
   }
 
   // As três leituras abaixo (cronogramas, tarefas, trocas) não são do mesmo instante: uma gravação entre elas pode mostrar
@@ -410,6 +442,79 @@ export function criarRepositorioD1(db: BancoD1, prefeituraId: number): Repositor
       if (!existe) return { ok: false, codigo: 'inexistente', erro: 'Projeto não encontrado.' };
       const outro = await db.prepare('SELECT id FROM cronograma WHERE prefeitura_id = ? AND projeto_id = ? ORDER BY id LIMIT 1').bind(prefeituraId, projeto_id).first<{ id: string }>();
       return { ok: false, codigo: 'conflito', erro: 'Este projeto já tem cronograma.', ...(outro ? { existente: outro.id } : {}) };
+    },
+    async listarItensCronograma(cronogramaId): Promise<ItensCronograma> {
+      const [envolvidos, recursos] = await Promise.all([lerEnvolvidos(cronogramaId, null), lerRecursos(cronogramaId, null)]);
+      return { envolvidos, recursos };
+    },
+    async gravarItemTarefa(cronogramaId, revisao, op, ctx): Promise<ResultadoGravacaoItem> {
+      // E20: mesmo desenho de gravarCronograma. O primeiro comando só vale se a revisão ainda for a lida (CASE ... ELSE NULL aborta o lote: 409).
+      const CONFLITO = 'O cronograma foi alterado por outra pessoa. Recarregue a página e tente de novo.';
+      const cab = await db.prepare('SELECT id, titulo, projeto_id, revisao FROM cronograma WHERE prefeitura_id = ? AND id = ?').bind(prefeituraId, cronogramaId).first<{ id: string; titulo: string | null; projeto_id: string | null; revisao: number }>();
+      if (!cab) return { ok: false, codigo: 'inexistente', erro: 'Cronograma não encontrado.' };
+      if (Number(cab.revisao) !== revisao) return { ok: false, codigo: 'conflito', erro: CONFLITO };
+      const tarefa = await db.prepare('SELECT id, nome, responsavel FROM etapa_cronograma WHERE prefeitura_id = ? AND cronograma_id = ? AND id = ? AND removida_em IS NULL')
+        .bind(prefeituraId, cronogramaId, op.tarefa_id).first<{ id: string; nome: string; responsavel: string | null }>();
+      if (!tarefa) return { ok: false, codigo: 'inexistente', erro: 'Tarefa não encontrada.' };
+      const [envolvidos, recursos] = await Promise.all([lerEnvolvidos(cronogramaId, tarefa.id), lerRecursos(cronogramaId, tarefa.id)]);
+      const decisao = planejarItem(
+        { titulo: cab.titulo ?? '', tarefa: { id: tarefa.id, nome: tarefa.nome, responsavel: tarefa.responsavel ?? null }, envolvidos, recursos },
+        op, { novoId: () => crypto.randomUUID() },
+      );
+      if (!decisao.ok) return decisao.codigo === 'sem_mudanca' ? { ok: true, mudou: false, revisao } : { ok: false, codigo: decisao.codigo, erro: decisao.erro };
+      const { plano, item_id } = decisao;
+      const tab = plano.tabela === 'envolvido' ? 'tarefa_envolvido' : 'tarefa_recurso';
+      const onde = [prefeituraId, cronogramaId, tarefa.id] as const;
+      const lote: StatementD1[] = [
+        db.prepare('UPDATE cronograma SET revisao = CASE WHEN revisao = ? THEN revisao + 1 ELSE NULL END, editado_na_tela = 1, atualizado_em = ? WHERE prefeitura_id = ? AND id = ?')
+          .bind(revisao, ctx.agora, prefeituraId, cronogramaId),
+      ];
+      if (plano.inserir) {
+        if (plano.tabela === 'envolvido') {
+          const d = plano.inserir.dados as DadosEnvolvido;
+          lote.push(db.prepare('INSERT INTO tarefa_envolvido (prefeitura_id, id, cronograma_id, tarefa_id, nome, area, papel, observacao, criado_por, criado_em) VALUES (?,?,?,?,?,?,?,?,?,?)')
+            .bind(prefeituraId, plano.inserir.id, cronogramaId, tarefa.id, d.nome, d.area, d.papel, d.observacao, ctx.autor, ctx.agora));
+        } else {
+          const d = plano.inserir.dados as DadosRecurso;
+          lote.push(db.prepare(
+            'INSERT INTO tarefa_recurso (prefeitura_id, id, cronograma_id, tarefa_id, tipo, descricao, quantidade_centesimos, unidade, valor_estimado_centavos, valor_utilizado_centavos, data_uso, observacao, criado_por, criado_em) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+          ).bind(prefeituraId, plano.inserir.id, cronogramaId, tarefa.id, d.tipo, d.descricao, d.quantidade_centesimos, d.unidade, d.valor_estimado_centavos, d.valor_utilizado_centavos, d.data_uso, d.observacao, ctx.autor, ctx.agora));
+        }
+      }
+      if (plano.atualizar) {
+        if (plano.tabela === 'envolvido') {
+          const d = plano.atualizar.dados as DadosEnvolvido;
+          lote.push(db.prepare('UPDATE tarefa_envolvido SET nome = ?, area = ?, papel = ?, observacao = ?, atualizado_por = ?, atualizado_em = ? WHERE prefeitura_id = ? AND cronograma_id = ? AND tarefa_id = ? AND id = ? AND removido_em IS NULL')
+            .bind(d.nome, d.area, d.papel, d.observacao, ctx.autor, ctx.agora, ...onde, plano.atualizar.id));
+        } else {
+          const d = plano.atualizar.dados as DadosRecurso;
+          lote.push(db.prepare('UPDATE tarefa_recurso SET tipo = ?, descricao = ?, quantidade_centesimos = ?, unidade = ?, valor_estimado_centavos = ?, valor_utilizado_centavos = ?, data_uso = ?, observacao = ?, atualizado_por = ?, atualizado_em = ? WHERE prefeitura_id = ? AND cronograma_id = ? AND tarefa_id = ? AND id = ? AND removido_em IS NULL')
+            .bind(d.tipo, d.descricao, d.quantidade_centesimos, d.unidade, d.valor_estimado_centavos, d.valor_utilizado_centavos, d.data_uso, d.observacao, ctx.autor, ctx.agora, ...onde, plano.atualizar.id));
+        }
+      }
+      if (plano.remover) {
+        // tab vem de dois literais fixos acima.
+        lote.push(db.prepare(`UPDATE ${tab} SET removido_em = ?, removido_por = ?, motivo_remocao = ? WHERE prefeitura_id = ? AND cronograma_id = ? AND tarefa_id = ? AND id = ? AND removido_em IS NULL`)
+          .bind(ctx.agora, ctx.autor, plano.remover.motivo, ...onde, plano.remover.id));
+      }
+      const ev = plano.evento;
+      lote.push(db.prepare("INSERT INTO evento_projeto (id, prefeitura_id, projeto_id, tipo, origem, autor, em, campos, motivo, descricao) SELECT ?, ?, ?, ?, 'cronograma', ?, ?, ?, ?, ? WHERE EXISTS (SELECT 1 FROM projeto WHERE prefeitura_id = ? AND id = ?)")
+        .bind(crypto.randomUUID(), prefeituraId, cab.projeto_id, ev.tipo, ctx.autor, ctx.agora, JSON.stringify({ tarefa_id: tarefa.id, item_id }), ev.motivo, ev.descricao, prefeituraId, cab.projeto_id));
+      lote.push(db.prepare("INSERT INTO evento_sistema (id, prefeitura_id, tipo, origem, autor, em, descricao, detalhes) SELECT ?, ?, ?, 'cronograma', ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM projeto WHERE prefeitura_id = ? AND id = ?)")
+        .bind(crypto.randomUUID(), prefeituraId, ev.tipo, ctx.autor, ctx.agora, ev.descricao, JSON.stringify({ cronograma_id: cronogramaId, tarefa_id: tarefa.id, item_id, ...(ev.motivo ? { motivo: ev.motivo } : {}) }), prefeituraId, cab.projeto_id));
+      try {
+        await db.batch(lote);
+      } catch (erro) {
+        const msg = String(erro);
+        if (/NOT NULL constraint failed: cronograma\.revisao/.test(msg) || /Tarefa não pertence ao cronograma/.test(msg) || /Item removido não muda/.test(msg)) return { ok: false, codigo: 'conflito', erro: CONFLITO };
+        if (/Limite de (envolvidos|recursos) da tarefa/.test(msg)) return { ok: false, codigo: 'invalido', erro: 'Esta tarefa chegou ao limite de registros de envolvidos ou recursos; crie uma nova tarefa para continuar.' };
+        if (/CHECK constraint failed|FOREIGN KEY constraint failed|NOT NULL constraint failed/.test(msg)) {
+          console.warn('[cronograma] item de tarefa recusado pelo banco');
+          return { ok: false, codigo: 'invalido', erro: 'Dados inválidos.' };
+        }
+        throw erro;
+      }
+      return { ok: true, mudou: true, revisao: revisao + 1, item_id };
     },
     async criarProjeto(dados, autor): Promise<ResultadoCriacaoProjeto> {
       // O próximo código é lido e gravado em passos separados: duas pessoas cadastrando juntas podem calcular o mesmo número.

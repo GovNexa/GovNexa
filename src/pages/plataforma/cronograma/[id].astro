@@ -5,12 +5,14 @@ import Platform from '../../../layouts/Platform.astro';
 import LinhaDoTempo from '../../../components/cronograma/LinhaDoTempo.astro';
 import QuadroTarefas from '../../../components/cronograma/QuadroTarefas.astro';
 import Dependencias from '../../../components/cronograma/Dependencias.astro';
+import EnvolvidosRecursos from '../../../components/cronograma/EnvolvidosRecursos.astro';
 import TarefasResponsaveis from '../../../components/cronograma/TarefasResponsaveis.astro';
 import { carregarCarteira } from '../../../lib/carteira/carga.ts';
 import { carregarCronogramas } from '../../../lib/cronograma/carga.ts';
 import { analisarDependencias, cascataDoProjeto } from '../../../lib/cronograma/dependencias.ts';
 import { ID_CRONOGRAMA } from '../../../lib/cronograma/edicao.ts';
 import { abaCronograma, voltaCronograma } from '../../../lib/cronograma/navegacao.ts';
+import { reaisDeCentavos, resumoItens, resumoPorTarefa } from '../../../lib/cronograma/recursos.ts';
 import { chaveNome, tempoNaMao } from '../../../lib/cronograma/responsaveis.ts';
 import { etapasDoCronograma, resumoCronograma, rotuloRitmo } from '../../../lib/cronograma/visoes.ts';
 import { br } from '../../../lib/dados/formato.ts';
@@ -57,6 +59,14 @@ const sugestoes = {
   unidades: distintos(todas.map((e) => e.unidade)),
   pessoas: distintos(todas.map((e) => e.responsavel)),
 };
+// E20: envolvidos e recursos (só no banco). As sugestões da aba nova ficam separadas das da edição de tarefas.
+const itens = fresco && repo?.listarItensCronograma ? await repo.listarItensCronograma(id) : null;
+const porTarefa = itens ? resumoPorTarefa(itens) : new Map();
+const sugestoesEv = {
+  pessoas: distintos([...todas.map((e) => e.responsavel), ...(itens?.envolvidos ?? []).map((x) => x.nome)]),
+  unidades: distintos([...todas.map((e) => e.unidade), ...(itens?.envolvidos ?? []).map((x) => x.area)]),
+};
+const geral = itens ? resumoItens(itens) : null;
 const escondido = (n: string) => aba !== n;
 ---
 <Platform title={c.titulo} slug="projetos-cronogramas">
@@ -73,6 +83,7 @@ const escondido = (n: string) => aba !== n;
     <span><strong>Ritmo:</strong> {rotuloRitmo(r.ritmo)}</span>
     <span><strong>Entrega prevista:</strong> {br(r.entregaPrevista)}</span>
     <span><strong>Tarefas com alerta:</strong> {comAlerta}</span>
+    {geral && geral.comUtilizado > 0 && <span><strong>Recursos utilizados:</strong> {reaisDeCentavos(geral.utilizado)}</span>}
     <span><strong>Projeto da carteira:</strong> {projeto ? <a href={linkFicha(projeto.id, volta, aqui, 'cronograma')}>{projeto.id} · {projeto.nome}</a> : 'sem correspondência'}</span>
   </p>
   {cascata && <p class="cr-cascata" data-cart data-cr-cascata>
@@ -91,14 +102,16 @@ const escondido = (n: string) => aba !== n;
       {!vazio && <>
         <button type="button" aria-pressed={aba === 'tempo' ? 'true' : 'false'} data-cr-aba="tempo">Linha do tempo</button>
         <button type="button" aria-pressed={aba === 'quadro' ? 'true' : 'false'} data-cr-aba="quadro">Quadro de tarefas</button>
+        <button type="button" aria-pressed={aba === 'envolvidos' ? 'true' : 'false'} data-cr-aba="envolvidos">Envolvidos e recursos</button>
         <button type="button" aria-pressed={aba === 'dependencias' ? 'true' : 'false'} data-cr-aba="dependencias">Dependências</button>
         <button type="button" aria-pressed={aba === 'dados' ? 'true' : 'false'} data-cr-aba="dados">Pendências de dado <span class="pill">{pend.length}</span></button>
       </>}
     </div>
-    <section data-cr-painel="tarefas" aria-label="Tarefas e responsáveis" hidden={escondido('tarefas')}><TarefasResponsaveis cronograma={c} hoje={hoje} podeEditar={podeEditar} revisao={revisao} sugestoes={sugestoes} /></section>
+    <section data-cr-painel="tarefas" aria-label="Tarefas e responsáveis" hidden={escondido('tarefas')}><TarefasResponsaveis cronograma={c} hoje={hoje} podeEditar={podeEditar} revisao={revisao} sugestoes={sugestoes} porTarefa={porTarefa} volta={volta} /></section>
     {!vazio && <>
       <section data-cr-painel="tempo" aria-label="Linha do tempo" hidden={escondido('tempo')}><LinhaDoTempo cronograma={c} hoje={hoje} /></section>
-      <section data-cr-painel="quadro" aria-label="Quadro de tarefas" hidden={escondido('quadro')}><QuadroTarefas cronograma={c} hoje={hoje} /></section>
+      <section data-cr-painel="quadro" aria-label="Quadro de tarefas" hidden={escondido('quadro')}><QuadroTarefas cronograma={c} hoje={hoje} porTarefa={porTarefa} volta={volta} /></section>
+      <section data-cr-painel="envolvidos" aria-label="Envolvidos e recursos" hidden={escondido('envolvidos')}><EnvolvidosRecursos cronograma={c} itens={itens} podeEditar={podeEditar && !!repo?.gravarItemTarefa} revisao={revisao} volta={volta} sugestoes={sugestoesEv} /></section>
       <section data-cr-painel="dependencias" aria-label="Dependências entre etapas" hidden={escondido('dependencias')}><Dependencias cronograma={c} deps={deps} cascata={cascata!} hoje={hoje} /></section>
       <section data-cr-painel="dados" aria-label="Pendências de dado" hidden={escondido('dados')}>
         {pend.length === 0 ? <p>Nenhuma pendência de dado neste cronograma.</p> : <ul>{pend.map((t) => <li>{t}</li>)}</ul>}

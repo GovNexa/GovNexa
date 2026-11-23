@@ -29,7 +29,7 @@ export const COMPONENTES: Record<string, string[]> = {
   oportunidade: ['src/lib/dados/captacao.ts', 'src/lib/dados/detalhes.ts', 'src/lib/projetos/**'],
   convenio: ['src/lib/dados/captacao.ts', 'src/lib/dados/detalhes-convenio.ts', 'src/lib/convenios/**', 'src/pages/plataforma/convenios/**', 'src/styles/convenios.css', 'src/lib/alertas/central.ts'],
   clausula: ['src/lib/dados/alertas.ts'],
-  planejamento: ['src/lib/cronograma/**', 'src/components/cronograma/**', 'src/pages/plataforma/cronograma/**', 'db/d1/prefeitura/0009_*', 'src/components/carteira/Gantt.astro', 'src/components/carteira/FiltrosProjetos.astro', 'src/lib/carteira/filtros.ts'],
+  planejamento: ['src/lib/cronograma/**', 'src/components/cronograma/**', 'src/pages/plataforma/cronograma/**', 'db/d1/prefeitura/0009_*', 'db/d1/prefeitura/0012_*', 'src/components/carteira/Gantt.astro', 'src/components/carteira/FiltrosProjetos.astro', 'src/lib/carteira/filtros.ts'],
   portao: ['src/lib/carteira/movimentacao.ts', 'src/lib/carteira/simulacao.ts', 'src/components/carteira/PendenciasEtapa.astro', 'src/lib/carteira/mover.ts', 'src/lib/carteira/mover-cliente.ts', 'src/pages/plataforma/projeto/mover/**'],
   preparatorio: ['src/lib/carteira/macroetapas.ts', 'src/lib/cronograma/**'],
   juridico: ['src/lib/cronograma/visoes.ts', 'src/components/cronograma/Parado.astro'],

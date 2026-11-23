@@ -21,6 +21,19 @@ test('leitura: cronograma sem botões de ação, sem "Novo cronograma" na lista 
   await expect(page.getByRole('alert')).toContainText('Sem permissão');
 });
 
+test('leitura E20: a aba Envolvidos e recursos mostra o resumo, sem botões, e o servidor recusa gravar', async ({ page, request }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/plataforma/cronograma/C-exemplo-001/?aba=envolvidos');
+  await expect(page.locator('[data-ev-resumo]')).toBeVisible();
+  await expect(page.locator('[data-ev-acao]')).toHaveCount(0);
+  await expect(page.locator('[data-ev-dialogo]')).toHaveCount(0);
+  await expect(page.locator('[data-ev-filtro]')).toBeVisible();
+  const origin = new URL(page.url()).origin;
+  const r = await request.post('/plataforma/cronograma/gravar/C-exemplo-001/', { headers: { origin, 'content-type': 'application/json' }, data: { revisao: 0, acao: 'incluir_envolvido', tarefa_id: 'C-exemplo-001#1', envolvido: { nome: 'Pessoa Teste' } } });
+  expect(r.status()).toBe(403);
+  expect((await request.get('/plataforma/cronograma/recursos-csv/C-exemplo-001/')).status()).toBe(200);
+});
+
 test('leitura: o painel Responsáveis abre e aparece no menu', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   const r = await page.goto('/plataforma/gestao-responsaveis/');

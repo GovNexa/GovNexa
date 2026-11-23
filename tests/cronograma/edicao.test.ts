@@ -108,7 +108,10 @@ test('base carregada: a tela vence a planilha na nova carga e nada é apagado', 
   assert.equal(tarefa.responsavel, 'Pessoa Teste 9');
   assert.equal(tarefa.trocas!.length, 1);
   assert.equal(total(), n001);
-  assert.deepEqual((await repo.listarCronogramas()).find((x) => x.id === 'C-exemplo-002'), antes002);
+  // E20: a carga sobe a revisão do cronograma não editado na tela (uma gravação baseada em leitura anterior à carga recebe 409); o resto não muda.
+  const depois002 = (await repo.listarCronogramas()).find((x) => x.id === 'C-exemplo-002')!;
+  assert.equal(depois002.revisao, (antes002.revisao ?? 0) + 1);
+  assert.deepEqual({ ...depois002, revisao: antes002.revisao }, antes002);
 });
 
 test('abuso: revisão velha, simultâneas, outra prefeitura, tarefa de outro cronograma, perfil, JSON e corpo inválido', async (t) => {

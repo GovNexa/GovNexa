@@ -3,7 +3,7 @@ import { voltaSegura } from '../carteira/ficha.ts';
 
 export const ROTA_CRONOGRAMAS = '/plataforma/projetos-cronogramas/';
 export const ROTA_RESPONSAVEIS = '/plataforma/gestao-responsaveis/';
-export const ABAS_CRONOGRAMA = ['tarefas', 'tempo', 'quadro', 'dependencias', 'dados'] as const;
+export const ABAS_CRONOGRAMA = ['tarefas', 'tempo', 'quadro', 'envolvidos', 'dependencias', 'dados'] as const;
 export type AbaCronograma = (typeof ABAS_CRONOGRAMA)[number];
 export const abaCronograma = (v: string | null | undefined): AbaCronograma => (ABAS_CRONOGRAMA as readonly string[]).includes(v ?? '') ? (v as AbaCronograma) : 'tempo';
 export const PREFIXOS_VOLTA_E13 = ['/plataforma/projeto/', '/plataforma/projetos-cronogramas/', '/plataforma/gestao-responsaveis/', '/plataforma/cronograma/', '/plataforma/projetos-parado/'] as const;
@@ -42,6 +42,10 @@ export function rotuloVoltaCronograma(volta: string | null): string {
 
 export const ancoraTarefa = (id: string): string => 't-' + id.replace(/[^A-Za-z0-9_-]/g, '_');
 
+// E20: aba "Envolvidos e recursos".
+export const ancoraEnvolvidos = (id: string): string => 'ev-' + id.replace(/[^A-Za-z0-9_-]/g, '_');
+export const ROTA_CSV_RECURSOS = '/plataforma/cronograma/recursos-csv/';
+
 export function urlCronograma(id: string, op: { aba?: AbaCronograma | null; volta?: string | null; tarefa?: string | null } = {}): string {
   const q = new URLSearchParams();
   if (op.aba && op.aba !== 'tempo') q.set('aba', op.aba);
@@ -49,3 +53,6 @@ export function urlCronograma(id: string, op: { aba?: AbaCronograma | null; volt
   const query = q.toString();
   return `/plataforma/cronograma/${encodeURIComponent(id)}/${query ? `?${query}` : ''}${op.tarefa ? `#${ancoraTarefa(op.tarefa)}` : ''}`;
 }
+
+export const urlEnvolvidos = (id: string, volta: string | null, tarefa?: string | null): string =>
+  urlCronograma(id, { aba: 'envolvidos', volta }) + (tarefa ? `#${ancoraEnvolvidos(tarefa)}` : '');
