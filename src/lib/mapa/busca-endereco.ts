@@ -56,7 +56,7 @@ export function criarCacheMemoria(opcoes: { agora?: () => number; max?: number; 
   };
 }
 
-/** Um pedido ao serviço por vez, com intervalo mínimo; espera longa demais = ocupado; depois de um 429 fica pausada. */
+/** No máximo 1 pedido a cada 1,1 s por instância (espaça o início dos pedidos); espera longa demais = ocupado; depois de um 429 fica pausada. */
 export function criarFila(opcoes: { agora?: () => number; intervaloMs?: number; esperaMaxMs?: number } = {}): FilaBusca {
   const agora = opcoes.agora ?? Date.now;
   const intervalo = opcoes.intervaloMs ?? INTERVALO_NOMINATIM_MS;
@@ -203,8 +203,10 @@ export async function responderBuscaEndereco(request: Request, contexto: Context
   if (!podeBuscarEndereco(contexto.usuario)) return json(403, { ok: false, erro: 'Seu perfil não permite alterar a localização.' });
   if (!/^application\/json\s*(;|$)/i.test(request.headers.get('content-type') ?? '')) return json(415, { ok: false, erro: 'Formato do pedido inválido.' });
   const chave = chaveLimite(contexto.prefeituraId, contexto.usuario?.email);
+  // Sessão sem prefeitura ou e-mail válidos: recusa como falta de permissão (não é excesso de buscas).
+  if (!chave) return json(403, { ok: false, erro: 'Seu perfil não permite alterar a localização.' });
   let dentro = false;
-  if (chave) {
+  {
     try { dentro = (await deps.estado.porPessoa.permitir(chave)) === true && (await deps.limitador.permitir(`busca:${chave}`)) === true; } catch { dentro = false; }
   }
   if (!dentro) return json(429, { ok: false, erro: 'Muitas buscas em pouco tempo. Espere um minuto e tente de novo.' });

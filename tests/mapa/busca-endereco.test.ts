@@ -138,8 +138,8 @@ test('rota: origem, perfil e formato são conferidos antes do limite, da leitura
   assert.equal(req.bodyUsed, false);
   assert.equal(m.chamadas.length, 0);
   assert.deepEqual(m.chaves, ['busca:5208707:editor@x.gov.br']);
-  // Sem prefeitura válida não há chave de limite: recusa.
-  assert.equal((await responderBuscaEndereco(pedido({ q: 'Avenida Goiás' }), { usuario: usuario('editor'), prefeituraId: 0 }, montar().deps)).status, 429);
+  // Sem prefeitura válida não há chave de limite: recusa como falta de permissão (403), não como excesso de buscas.
+  assert.equal((await responderBuscaEndereco(pedido({ q: 'Avenida Goiás' }), { usuario: usuario('editor'), prefeituraId: 0 }, montar().deps)).status, 403);
 });
 
 test('rota: tamanho, JSON e texto inválidos são recusados sem chamar o serviço', async () => {
