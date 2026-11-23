@@ -7,6 +7,10 @@
 - Remover uma contratação ligada desliga o vínculo e registra no Histórico do PNCP. Limites: 10 pedidos por minuto por pessoa, 60 por minuto por instância e 120 coletas por hora por prefeitura; os limites são conferidos antes da trava de 10 minutos.
 - Riscos aceitos: ver README, seção 7. **Não mudou:** login, `wrangler.jsonc`, agendamentos (nenhum nesta fatia). Fluxo: nó PNCP disponível e subfluxo "Integração com o PNCP".
 - Testes: estabilizados três testes intermitentes (espera por condição em vez de tempo fixo).
+## E16 · Dispensa temporária da 2ª etapa e conta de consulta (23/11/2026)
+- Nova ação da guia Usuários, "Dispensar a 2ª etapa por um prazo": só outro administrador, de 1 a 60 dias, com motivo; a pessoa entra só com e-mail e senha até o fim do prazo e a situação aparece na lista. "Retirar a dispensa" encerra na hora. Retirar, vencer, mudar o perfil ou desativar derruba as sessões abertas sem código; quem está dispensado não concede dispensa.
+- Banco central: migração `0003_excecao_2fa.sql` (tabela `excecao_2fa`, coluna `sessao.via_excecao`). Cada concessão, retirada e entrada sem código fica em `evento_acesso`. Conta de consulta: perfil Leitura, cadastrada pela guia Usuários, que define a própria senha pelo convite; as ações de Usuários passam a ter o limite de requisições por pessoa.
+- **Não mudou:** limites de login, bloqueio progressivo, Turnstile, Cloudflare Access e as telas de entrada (além do redirecionamento direto para a plataforma quando há dispensa). Fluxo do sistema atualizado (acesso).
 
 ## E18 · Ícone de tema claro/escuro (23/11/2026)
 - Botão-ícone no topo da plataforma, antes do sino: mostra o sol no tema escuro e a lua no claro; alterna, lembra a escolha e funciona por teclado (Tab e Enter), com rótulo e `aria-pressed` atualizados. O botão antigo do menu do avatar foi removido; o site público mantém o botão "Tema" com o mesmo comportamento.

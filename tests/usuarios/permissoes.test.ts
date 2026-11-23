@@ -5,7 +5,7 @@ import { bancoTeste } from '../helpers/d1.ts';
 import { pode, usuarioPode, obterUsuarioAtivoPorEmail, prefeituraDoUsuario, type Perfil, type Acao } from '../../src/lib/usuarios/index.ts';
 
 test('matriz completa de permissões e ausência de usuário', () => {
- const acoes: Acao[] = ['ver','editar_projeto','aprovar_etapa','enviar_documento','gerenciar_usuarios','importar'];
+ const acoes: Acao[] = ['ver','editar_projeto','aprovar_etapa','enviar_documento','gerenciar_usuarios','importar','dispensar_2fa'];
  const permitidas = { admin: acoes, gestor: acoes.slice(0,4), editor: ['ver','editar_projeto','enviar_documento'], leitura: ['ver'] };
  for (const perfil of Object.keys(permitidas) as Perfil[]) for (const acao of acoes) {
   assert.equal(pode(perfil, acao), permitidas[perfil].includes(acao));

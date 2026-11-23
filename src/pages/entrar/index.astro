@@ -16,7 +16,7 @@ if(config.LOGIN_MODO==='senha'&&!modoLocal(Astro.request,config)&&(!config.TURNS
 if(Astro.request.method==='POST'&&config.LOGIN_MODO==='senha')try{
  conferirPost(Astro.request);const f=await Astro.request.formData();await conferirTurnstile(config,Astro.request,f);
  const login=await servicoLogin(config,Astro.request,waitUntil).iniciarLogin(campo(f,'email'),campo(f,'senha'));
- const resposta=Astro.redirect(`/entrar/${login.etapa==='segundo_fator'?'codigo':'configurar'}/?volta=${encodeURIComponent(volta)}`,303);
+ const resposta=Astro.redirect(login.etapa==='completa'?volta:`/entrar/${login.etapa==='segundo_fator'?'codigo':'configurar'}/?volta=${encodeURIComponent(volta)}`,303);
  resposta.headers.set('Set-Cookie',cookieSessao(Astro.request,login.valor,false,config));return resposta;
 }catch(e){erro=mensagemPublica(e);}
 } finally {if(Astro.request.method==='POST')await tempoMinimo(inicio);}

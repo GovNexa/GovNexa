@@ -72,8 +72,8 @@ const T = {
 
 export const NOS: NoFluxo[] = [
   { id: 'acesso', raia: 'gestao', linha: 1, tipo: 'tarefa', titulo: 'Acesso e usuários',
-    oQue: 'Administrador cadastra e convida a equipe. No modo senha, a pessoa define a senha, configura o aplicativo autenticador e guarda os códigos de recuperação. O Access continua como padrão até a troca autorizada.',
-    valida: ['Cadastro ativo na prefeitura', 'Senha e segundo fator no modo senha', 'Sessão válida e perfil autorizado'], quem: 'Administrador e equipe', situacao: 'disponivel', fase: 'Etapa 3.3',
+    oQue: 'Administrador cadastra e convida a equipe. No modo senha, a pessoa define a senha, configura o aplicativo autenticador e guarda os códigos de recuperação. O Access continua como padrão até a troca autorizada. Por exceção, outro administrador pode dispensar a 2ª etapa de uma pessoa por até 60 dias, com motivo e registro.',
+    valida: ['Cadastro ativo na prefeitura', 'Senha e segundo fator no modo senha', 'Sessão válida e perfil autorizado', 'Dispensa temporária da 2ª etapa só por outro administrador, até 60 dias, revogável e registrada (E16)'], quem: 'Administrador e equipe', situacao: 'disponivel', fase: 'Etapa 3.3',
     telas: [{rotulo:'Usuários',url:'/plataforma/usuarios/'},{rotulo:'Entrar',url:'/entrar/'}] },
   // ——— Início e cadastro
   { id: 'inicio', raia: 'projetos', linha: 1, tipo: 'inicio', titulo: 'Início: demanda ou ideia',

@@ -95,7 +95,7 @@ São módulos independentes que conversam entre si:
    - Site e plataforma em https://govnexa.com.br e https://www.govnexa.com.br, servidos por Cloudflare Worker. A hospedagem antiga será desligada.
    - Astro 7 + `@astrojs/cloudflare`: site público pré-renderizado; `/plataforma/` montada a cada acesso no Worker, lendo D1. `worker/entrypoint.ts` encaminha as páginas `/entrar/*` ao Astro e trata `/sair` e `/api`; `src/middleware.ts` valida o login e escolhe o banco.
    - Cloudflare D1 (SQLite): um banco por prefeitura (`govnexa-5208707` para Goiânia) e banco central `govnexa-central` para prefeituras, usuários e importações. Migrações atuais em `db/d1/central` e `db/d1/prefeitura`; `db/migracoes/` é a referência PostgreSQL antiga. O histórico é imutável; fotos e documentos só têm remoção lógica. Arquivos ficam no R2 `govnexa-documentos`. Supabase/PostgreSQL é apenas plano B.
-   - Login próprio do GovNexa desde 17/11/2026: e-mail e senha + verificação em 2 etapas (aplicativo autenticador), com cadastro ativo no banco central. Até 17/11 o acesso era pelo Cloudflare Access. Perfis: admin, gestor, editor e leitura; durante a construção, todos os usuários são admin. Quem passa no Access, mas não está cadastrado, vê "Sem permissão".
+   - Login próprio do GovNexa desde 17/11/2026: e-mail e senha + verificação em 2 etapas (aplicativo autenticador, obrigatória, salvo dispensa temporária de até 60 dias), com cadastro ativo no banco central. Até 17/11 o acesso era pelo Cloudflare Access. Perfis: admin, gestor, editor e leitura; durante a construção, todos os usuários são admin. Quem passa no Access, mas não está cadastrado, vê "Sem permissão".
    - Carga inicial no D1 de produção em 16/11: 334 projetos, 13 cronogramas e 725 etapas. O código 450 estava repetido (SECAP e SEINFRA); o da SECAP virou 506. Planilhas novas são importadas do repositório privado `GovNexa/govnexa-dados` por uma rotina do GitHub (etapa 3.5, ver a seção 6).
    - Marca GovNexa no site público, login e plataforma. Contato: contato@govnexa.com.br.
 7. **20 a 23/11/2026 — áudios do dono e dois princípios novos.** Os áudios de 20/11 mudaram a tela do prefeito e organizaram o menu em três visões (entregas E1 a E11, no ar em 23/11). Em 23/11 o dono fixou duas regras que mudam a direção do produto: **o sistema substitui a planilha** (a planilha é só orientação e carga inicial; todo processo vive na tela, do início ao fim, e depois da carga a tela vence a planilha) e **sempre poder voltar** (toda tela aberta a partir de outra volta à origem, com os filtros). Daí vieram a E12 (licitações cadastradas e acompanhadas no sistema), a E13 (cronograma como processo completo, com responsável e tempo na mão) e a E15 (navegação). Detalhe em [docs/govnexa/plano-requisitos-audios.md](docs/govnexa/plano-requisitos-audios.md).
@@ -141,7 +141,8 @@ Situação por fase do produto:
 
 ### Entregas recentes
 
-- 23/11/2026: E14a, integração parcial com o PNCP (no código, aguardando revisão, merge e publicação; migração 0011): cadastro das secretarias compradoras pela tela (permissão própria, hoje só do administrador, com registro de quem criou, editou e desativou), ligação manual da contratação à compra (número de controle ou link, com prévia e confirmação), botão "Atualizar agora" (por contratação ou por secretaria) e quadro "Dados do PNCP" (situação, itens, vencedores, valores, classificação de obra). Só por botão; sem agendamento.
+- 23/11/2026: E14a, integração parcial com o PNCP (na main desde 23/11/2026, aguardando publicação; migração 0011): cadastro das secretarias compradoras pela tela (permissão própria, hoje só do administrador, com registro de quem criou, editou e desativou), ligação manual da contratação à compra (número de controle ou link, com prévia e confirmação), botão "Atualizar agora" (por contratação ou por secretaria) e quadro "Dados do PNCP" (situação, itens, vencedores, valores, classificação de obra). Só por botão; sem agendamento.
+- 23/11/2026: E16, dispensa temporária da 2ª etapa e conta de consulta: só outro administrador dispensa o código do aplicativo de uma pessoa, de 1 a 60 dias, com motivo e registro; retirar, vencer, mudar o perfil ou desativar encerra a dispensa; a conta de consulta é o perfil Leitura com convite por e-mail. No código, com testes; aguardando revisão independente, merge e publicação (a migração central 0003 antecede o deploy). Fase 3 sem mudança de %.
 - 23/11/2026: E13, cronograma como processo na tela (criar o cronograma de um projeto, incluir, editar, reordenar, iniciar, concluir e remover tarefas, trocar o responsável com histórico) e o painel Responsáveis (com quem está cada tarefa e há quantos dias, por pessoa e por área, com atenção e urgente; impressão e CSV); migração 0009 (branch agente/codex/e13-cronogramas; código, testes, revisão independente e prévia aprovada pelo dono; aguardando merge e publicação; ~90%).
 - 23/11/2026: E12, Gestão das licitações na Visão gerencial (cadastro e acompanhamento manual): grandes números por etapa, listas com os campos do relatório, edição em linha para editor ou acima (o prefeito só vê), página da contratação com etapas, marcos e Histórico próprio, aba Contratações na ficha, impressão e CSV; migração 0010 (PR #55; revisão independente e prévia aprovada pelo dono; aguardando merge e publicação; ~90%). A carga da planilha modelo depende da decisão D5; a integração com PNCP e Compras.gov fica para a E14.
 - 23/11/2026: E15, navegação: em toda tela de destino aparece "← Voltar para [tela de origem]" com os filtros preservados; corrigidos 13 caminhos sem volta (ficha, cronograma, sala de guerra, documentos, SEI, histórico, diálogo de detalhes, prioritários, alertas, reunião, licitação, localização, mapa, novo projeto e Gantt) (PR #54, branch agente/codex/e15-navegacao; revisão independente e prévia aprovada pelo dono; aguardando merge e publicação; ~90%).
@@ -201,7 +202,7 @@ Legenda: **Disponível** = leitura ou operação disponível. **Simulação** = 
 
 ### Conta e acesso
 
-Guia Usuários: cadastro, convite por e-mail, reenvio, perfil, ativação e redefinição do aplicativo, só para administradores da mesma prefeitura. Login próprio: senha, aplicativo autenticador obrigatório e recuperação de senha. No ar em produção desde 17/11/2026; o envio de e-mail continua simulado no ambiente local.
+Guia Usuários: cadastro, convite por e-mail, reenvio, perfil, ativação e redefinição do aplicativo, só para administradores da mesma prefeitura. Login próprio: senha, aplicativo autenticador obrigatório e recuperação de senha. Por exceção, outro administrador pode dispensar a 2ª etapa de uma pessoa por 1 a 60 dias, com motivo; a situação aparece na guia Usuários e a dispensa pode ser retirada a qualquer momento (E16). No ar em produção desde 17/11/2026; o envio de e-mail continua simulado no ambiente local.
 
 ### Dashboard: efeitos, alertas e atualização automática
 
@@ -361,6 +362,7 @@ Os pedidos vêm dos áudios do dono, da reunião com a equipe e das planilhas.
 | Origem e regra do farol (vermelho, amarelo, cinza e verde): o dono não lembra de tê-lo na planilha (áudio 19) | Farol só para a equipe | Esclarecer com o dono |
 | Mapa de pedidos: cada áudio (01 a 37) com sua entrega e situação | [plano-requisitos-audios.md](docs/govnexa/plano-requisitos-audios.md), seção 2 (40 pedidos) | Fonte completa da rastreabilidade |
 | "Entro numa tela, dela vou pra outra, porém não consigo retornar para a tela que iniciei" (23/11/2026) | Link "← Voltar para …" em toda tela de destino, com os filtros da origem (E15) | Disponível no código (E15; aguardando merge e publicação) |
+| Liberar uma administradora a entrar sem a 2ª etapa por um tempo, e uma conta de consulta temporária só de leitura (23/11/2026) | Guia Usuários: "Dispensar a 2ª etapa por um prazo" (E16) | No código; aguardando revisão, merge e publicação |
 
 Situação dos pedidos de 23/11/2026: os pedidos marcados "no ar" nas linhas acima (E1 a E11) estão publicados em produção e aguardam o teste do dono; E12, E13 e E15 estão com código, testes, revisões e prévias aprovadas (~90%), aguardando merge e publicação.
 
@@ -376,7 +378,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Gravam de verdade:** documentos do projeto, a localização da obra (entrega B1) e o cadastro de projeto novo (entrega B2, publicação depende de ordem do dono).
 - **Ainda é simulação:** reunião, sala de guerra, SEI na interface e WhatsApp. Essas partes passam a gravar de verdade pelo roteiro B3 a B8 de `docs/govnexa/projeto-banco.md`. Kanban e Pendências de etapa gravam desde a E7 (B3).
 - A plataforma lê o D1 em produção desde 16/11/2026. A leitura foi otimizada (só a guia aberta é montada e a leitura do banco fica em cache de 30 s); a otimização foi publicada em 16/11/2026 às 19h35 (versão 2e1114fa do Worker).
-- Acesso à plataforma exige sessão do login próprio (senha + verificação em 2 etapas) e cadastro ativo no banco central. A prefeitura não é escolhida pela URL.
+- Acesso à plataforma exige sessão do login próprio (senha + verificação em 2 etapas, salvo dispensa temporária) e cadastro ativo no banco central. A prefeitura não é escolhida pela URL.
 
 ### SEI automático
 
@@ -397,8 +399,9 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - `/plataforma/usuarios/`: só `gerenciar_usuarios`, sempre na prefeitura do administrador; impede desativar o próprio acesso ou remover o último administrador ativo.
 - `LOGIN_MODO=access` (também padrão quando ausente) mantém o Access; `senha` exige senha e aplicativo autenticador. Os convites permitem preparar contas antes da troca, sem sincronizar políticas do Access.
 - Convite vale 24 horas; redefinição vale uma hora. Links são de uso único e um novo link invalida os anteriores do mesmo tipo. GET não consome o token.
-- Primeira senha abre sessão de configuração por dez minutos. Confirmação do aplicativo mostra dez códigos de recuperação uma vez e cria sessão completa. Login sempre exige código ou configuração.
+- Primeira senha abre sessão de configuração por dez minutos. Confirmação do aplicativo mostra dez códigos de recuperação uma vez e cria sessão completa. Login exige código ou configuração, salvo dispensa temporária (E16).
 - Redefinir senha revoga todas as sessões e exige novo login, preservando o aplicativo. Redefinir 2FA revoga sessões, apaga chave e códigos e exige configuração no próximo login.
+- Dispensa temporária da 2ª etapa (E16): tabela `excecao_2fa` no banco central (migração `0003_excecao_2fa.sql`), concedida só por outro administrador ativo da mesma prefeitura (nunca a si mesmo), de 1 a 60 dias, com motivo; vale só até a data e as sessões abertas sem código caem quando ela acaba ou é retirada. Mudar o perfil da pessoa ou desativá-la retira a dispensa (e as que ela concedeu, no caso de um administrador rebaixado ou desativado). Quem está dispensado não concede dispensa. Cada entrada sem código fica em `evento_acesso` (`login_sem_2fa`). Limites, bloqueios e Turnstile do login continuam antes da dispensa.
 - Sessão completa: 12 horas absolutas e duas horas sem uso. Cinco tentativas de código; conta bloqueada por 15 minutos após cinco falhas; limite de 20 tentativas por IP em 15 minutos, incluindo acertos (opção conservadora). Esqueci: três pedidos por e-mail/hora e dez por IP/hora, resposta sempre genérica.
 - Configure ORIGEM_PUBLICA (HTTPS público), `SENHA_PEPPER`, `TOTP_CHAVE` (32 bytes em base64), `TURNSTILE_SECRET`, `TURNSTILE_SITE_KEY` e binding `EMAIL` antes de habilitar. Sem Turnstile em produção, login e recuperação retornam 503. A chave TOTP deve ser preservada: perdê-la exige redefinir os aplicativos.
 - Local: `EMAIL_SIMULADO=1` disponibiliza os últimos 20 e-mails em `/entrar/_emails-locais`, só localhost/127.0.0.1 sem `cf-ray`; logs nunca contêm o link. Em produção a simulação é ignorada. Cookie local `govnexa_local`; fora desse modo, `__Host-govnexa` com Secure.
@@ -464,7 +467,8 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Domínios:** `govnexa.com.br` e `www.govnexa.com.br`.
 - **Hospedagem e código:** Cloudflare + GitHub; o repositório público não recebe dados reais.
 - **Banco:** D1, um por prefeitura, e um D1 central para prefeituras, usuários e importações. Supabase/PostgreSQL fica apenas como plano B.
-- **Login (17/11/2026):** modo próprio com senha e 2FA obrigatório autorizado; Access permanece padrão até decisão expressa de troca. Perfis admin, gestor, editor e leitura.
+- **Login (17/11/2026):** modo próprio com senha e 2FA obrigatório (salvo dispensa temporária, E16) autorizado; Access permanece padrão até decisão expressa de troca. Perfis admin, gestor, editor e leitura.
+- **Dispensa da 2ª etapa e conta de consulta (23/11/2026):** prazo máximo de 60 dias; nunca a si mesmo; só outro administrador concede (e quem está dispensado não concede); a conta de consulta é o perfil Leitura, cadastrada pela guia Usuários, e define a própria senha pelo convite por e-mail.
 - **Cadastro (17/11/2026):** administrador cadastra e envia convite pelo GovNexa. Preparar senha e 2FA antes de mudar `LOGIN_MODO`; sem sincronização automática com Access.
 - **Datas (17/11/2026):** padrão brasileiro em todo o sistema: `DD/MM/AAAA` e, com hora, `DD/MM/AAAA HH:MM` no horário de Brasília.
 - **Importações (17/11/2026):** por enquanto os dados entram por importação de planilhas; a data de importação passa a ser registrada a partir da próxima planilha enviada. O cadastro direto no sistema vem numa fase seguinte.
@@ -519,7 +523,7 @@ Centros dos bairros: migração 0005 e carga publicadas em 18/11/2026. Parte dos
 | Fornecer o decreto de feriados de Goiânia | Contagem exata dos dias úteis |
 | Configurar conta oficial do WhatsApp Business e aprovar modelos | Envio real de relatórios |
 | Testar em produção as entregas E1 a E11 (no ar desde 23/11) e dar o aceite | Fechar o plano dos áudios; erros achados viram correção |
-| Decidir o acesso temporário sem verificação em 2 etapas de uma usuária administradora (sem nome aqui) | Fechar uma exceção de segurança aberta; hoje a regra do 2FA obrigatório tem essa exceção |
+| Conceder em produção as dispensas pela guia Usuários (dono) e criar a conta de consulta | Atender o pedido de 23/11/2026 (E16); depois da publicação e da migração central 0003 |
 | Enviar o modelo da planilha de licitações, quando houver | Só para a carga inicial da E12; não bloqueia a entrega |
 | Enviar a lista oficial de áreas, quando houver | Substitui a área sugerida pelo órgão (D2) |
 | Explicar de onde vem o farol (vermelho, amarelo, cinza e verde) | Decidir como a equipe o usa (áudio 19) |
@@ -664,6 +668,7 @@ Não reutilize variáveis de autenticação ou publicação da arquitetura antig
 - Saída no modo senha exige POST de mesma origem; GET apenas confirma. POST de login e ações de Usuários exigem tamanho decimal declarado até 16 KiB.
 - Mensagens da guia Usuários vêm de códigos fixos. Desativação invalida sessões, convites e redefinições; janelas de limites com mais de 24 h são limpas a cada cem chamadas.
 
+- Dispensa temporária da 2ª etapa (E16): risco residual aceito. Quem controla o e-mail da pessoa entra só com a senha redefinida enquanto a dispensa valer; por isso o prazo curto (até 60 dias) e o registro. Quem está com a dispensa válida não pode dispensar outra pessoa, convidar ou promover alguém a administrador, nem redefinir a verificação de outra pessoa. Risco residual: as dispensas concedidas por uma administradora antes de ela mesma ser dispensada continuam valendo até o fim do prazo ou até serem retiradas. Riscos aceitos e controles da dispensa (E16): a renovação é ilimitada (cada concessão vale até 60 dias e pode ser renovada); um administrador com duas contas contorna a regra do "outro administrador"; o controle real é a auditoria `2fa_dispensado`, com `por` (quem concedeu); os avisos e a redefinição de senha por e-mail vão para o próprio endereço da pessoa, que pode ser justamente o que foi comprometido; a conta de consulta não tem aplicativo autenticador e, vencido o prazo, cai na configuração da 2ª etapa, por isso a conta deve ser desativada ao fim do uso.
 - O acesso exige cadastro ativo e JWT válido do Access no modo padrão; no modo senha, sessão completa após senha e segundo fator.
 - Quem autentica no Access, mas não tem cadastro ativo, recebe "Sem permissão".
 - O middleware escolhe a prefeitura e o binding D1 a partir do cadastro; prefeitura nunca vem da URL.
