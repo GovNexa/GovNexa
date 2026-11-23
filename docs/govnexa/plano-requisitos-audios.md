@@ -4,7 +4,7 @@ Versão pública (sem nomes de pessoas, nomes de obras, valores ou números inte
 
 Origem: 31 áudios gravados pela gestão da secretaria do piloto, com quatro modelos visuais (um painel de entregas de governo, um croqui da tela principal, um gráfico de portfólio e a tabela de colunas da aba PIPELINE). Também vieram dois relatórios em PDF: obras prioritárias por órgão e situação das licitações. Os áudios são numerados de 01 a 37, e os números que faltam são as imagens e os PDFs.
 
-Escrito por 🟣 Opus em 22/11/2026 e aprovado pelo dono. **Atualizado em 23/11/2026** com a situação real das entregas (E1 a E11 no ar em produção; E12, E13 e E15 com código, revisões e prévias aprovadas, aguardando merge e publicação), a conferência de cada áudio contra a tabela da seção 2 (seis pedidos acrescentados) e os dois princípios novos do dono (itens 11 e 12 abaixo).
+Escrito por 🟣 Opus em 22/11/2026 e aprovado pelo dono. **Atualizado em 23/11/2026** com a situação real das entregas (E1 a E13 e E15 a E18 no ar em produção; E14a no ar, E14b a E14e a fazer), a conferência de cada áudio contra a tabela da seção 2 (seis pedidos acrescentados) e os dois princípios novos do dono (itens 11 e 12 abaixo).
 
 ## 1. O que muda no produto (princípios novos)
 
@@ -26,7 +26,7 @@ Escrito por 🟣 Opus em 22/11/2026 e aprovado pelo dono. **Atualizado em 23/11/
 
 ## 2. Rastreabilidade: cada áudio, o que existe hoje e onde é atendido
 
-Situação hoje (23/11/2026): **No ar** = publicado em produção, aguardando o teste do dono; **Parcial**; **No código** = pronto, com revisão e prévia aprovada, aguardando merge e publicação, ainda fora da `main`; **Em andamento** = em construção em branch separada. A coluna "Entrega" aponta para a seção 3. As linhas marcadas com (novo 23/11) foram acrescentadas na conferência de cada áudio contra a transcrição.
+Situação hoje (23/11/2026): **No ar** = publicado em produção, aguardando o teste do dono; **Parcial**; **No código** = pronto, com revisão e prévia aprovada, aguardando merge e publicação, ainda fora da `main` (em 23/11/2026 nenhuma entrega está nesta situação); **Em andamento** = em construção em branch separada. A coluna "Entrega" aponta para a seção 3. As linhas marcadas com (novo 23/11) foram acrescentadas na conferência de cada áudio contra a transcrição.
 
 | Áudio | Pedido | Hoje | Entrega |
 | --- | --- | --- | --- |
@@ -61,24 +61,24 @@ Situação hoje (23/11/2026): **No ar** = publicado em produção, aguardando o 
 | A28 | Kanban sem a coluna Conclusão (fica no Histórico) | No ar | E7 |
 | A29 | Gantt: busca por nome e filtros de órgão, macroetapa e período de entrega | No ar | E7 |
 | A30 | Carteira com grandes números no topo (total de projetos e de valor) que mudam com os filtros; a "Visão por órgão" deixa de existir | No ar | E5 |
-| A31 | Menu nas três visões; governança da execução com responsável e tempo na mão do responsável | Menu no ar (E11); responsável, tempo na mão e cronograma no sistema no código (E13; prévia aprovada, aguardando merge e publicação) | E11 + E13 |
-| A31 | (novo 23/11) Criar o cronograma dos demais projetos no sistema (hoje só os cronogramas do GEPP existem, e eram só leitura) | No código (E13; aguardando merge e publicação) | E13 |
-| A31 | (novo 23/11) Governança do projeto: quem são os envolvidos e como controlar os recursos | Responsável por tarefa no código (E13; aguardando merge e publicação); controle dos recursos a planejar | E13 + a planejar |
+| A31 | Menu nas três visões; governança da execução com responsável e tempo na mão do responsável | Menu no ar (E11); responsável, tempo na mão e cronograma no sistema no ar (E13; aguardando o teste do dono) | E11 + E13 |
+| A31 | (novo 23/11) Criar o cronograma dos demais projetos no sistema (hoje só os cronogramas do GEPP existem, e eram só leitura) | No ar (E13; aguardando o teste do dono) | E13 |
+| A31 | (novo 23/11) Governança do projeto: quem são os envolvidos e como controlar os recursos | Responsável por tarefa no ar (E13); controle dos recursos a planejar | E13 + a planejar |
 | A32 | Processos do SEI listados dentro do projeto | Parcial: aba Processos SEI na ficha no ar; ligação real com o SEI depende do B7 (banco) | E6 (+ B7 do banco) |
-| A34 | Gestão das licitações dentro da visão gerencial: grandes números primeiro | No código (E12; aguardando merge e publicação) | E12 |
-| A35 | Por etapa da contratação: concluídas (ordem de serviço, pago, %), em julgamento, publicadas, editais em ajustes, em preparação, projetos em finalização; campos de cada uma | No código (E12; aguardando merge e publicação) | E12 |
-| A35 | (novo 23/11) Os campos da licitação passam a fazer parte dos dados do projeto e a pessoa atualiza só a fase da licitação, sem planilha paralela | No código (E12; aguardando merge e publicação) | E12 |
-| A36 | Edição rápida em linha dos dados da licitação (o prefeito só vê) | No código (E12; aguardando merge e publicação) | E12 |
-| A37 | Por enquanto manual ou por planilha modelo; depois, integração com PNCP e Compras.gov | Manual: no código (E12; aguardando merge e publicação); integração: E14a (por botão) no código; E14b a E14e planejadas | E12 (manual) + E14a a E14e (integração) |
+| A34 | Gestão das licitações dentro da visão gerencial: grandes números primeiro | No ar (E12; aguardando o teste do dono) | E12 |
+| A35 | Por etapa da contratação: concluídas (ordem de serviço, pago, %), em julgamento, publicadas, editais em ajustes, em preparação, projetos em finalização; campos de cada uma | No ar (E12; aguardando o teste do dono) | E12 |
+| A35 | (novo 23/11) Os campos da licitação passam a fazer parte dos dados do projeto e a pessoa atualiza só a fase da licitação, sem planilha paralela | No ar (E12; aguardando o teste do dono) | E12 |
+| A36 | Edição rápida em linha dos dados da licitação (o prefeito só vê) | No ar (E12; aguardando o teste do dono) | E12 |
+| A37 | Por enquanto manual ou por planilha modelo; depois, integração com PNCP e Compras.gov | Manual: no ar (E12; aguardando o teste do dono); integração: E14a (por botão) no ar; E14b a E14e a fazer | E12 (manual) + E14a a E14e (integração) |
 
-Quadro final (23/11/2026): 40 pedidos (alguns áudios trazem mais de um; seis foram acrescentados na conferência de 23/11). 31 estão no ar em produção, aguardando o teste do dono; 3 são parciais (A31 menu e responsável, A31 envolvidos e recursos, A32 SEI); 6 estão no código, aguardando merge e publicação (A31 cronogramas, A34, A35 duas linhas, A36 e A37 manual); a integração do A37 (E14) é futura.
+Quadro final (23/11/2026): 40 pedidos (alguns áudios trazem mais de um; seis foram acrescentados na conferência de 23/11). 37 estão no ar em produção, aguardando o teste do dono (os 31 anteriores mais A31 cronogramas, A34, A35 duas linhas, A36 e A37 manual, publicados em 23/11); 3 são parciais (A31 menu e responsável, A31 envolvidos e recursos, A32 SEI); nenhum está só no código. A integração do A37 (E14) está em 70%: E14a (PNCP por botão) no ar; E14b a E14d a fazer; E14e (Compras.gov) opcional.
 
 Pontos de atenção da conferência:
 - **A19 (farol):** o dono disse não lembrar de vermelho, amarelo, cinza e verde na planilha e que precisa entender melhor de onde veio a regra. Até lá o farol fica fora da tela do prefeito e da ficha (já cumprido) e só aparece para a equipe. Esclarecer a origem com o dono.
 - **A31 (controle de recursos):** foi citado de passagem ("como controlo os recursos"); não há entrega que o cubra. Entra como pendência a planejar (README, seção 8).
 - **A35 e A37 (modelo da planilha):** a transcrição diz que o acompanhamento das licitações hoje vive em outro arquivo e que a ideia é ter esses campos nos dados do projeto. Isso confirma o princípio 11: o modelo de planilha, quando chegar, só serve para a carga inicial.
 
-Pedido posterior do dono (23/11/2026, E16): liberar uma administradora a entrar sem a 2ª etapa por um tempo e criar uma conta de consulta temporária, só de leitura. Atendido pela dispensa temporária da 2ª etapa (até 60 dias, só por outro administrador) na guia Usuários e pelo perfil Leitura.
+Pedido posterior do dono (23/11/2026, E16): liberar uma administradora a entrar sem a 2ª etapa por um tempo e criar uma conta de consulta temporária, só de leitura. Atendido pela dispensa temporária da 2ª etapa (até 60 dias, só por outro administrador) na guia Usuários e pelo perfil Leitura; no ar desde 23/11/2026 (migração central 0003). Liberar a conta da administradora e cadastrar a conta de consulta ainda é tarefa do dono.
 
 Pedido posterior do dono (23/11/2026): "entro numa tela, dela vou pra outra, porém não consigo retornar para a tela que iniciei" (princípio 3: toda tela permite voltar à de origem com os filtros preservados). Atendido na **E15** (navegação), com os 13 caminhos corrigidos: ficha → cronograma, diálogo de detalhes → cronograma, sala de guerra → cronograma e ficha, ficha → documentos (envio e volta), ficha → SEI, ficha → histórico completo, prioritários → ficha, alertas e reunião → ficha, obras sem localização → ficha, mapa → localização, Novo projeto → ficha, licitação em detalhe → ficha e Gantt → ficha.
 
@@ -92,7 +92,7 @@ Regras que valem para todas as entregas:
 - O 🟢 Haiku tira as fotos de tela para conferência.
 - Publicação só com ordem do dono.
 
-A % de cada entrega é atualizada no README (seção 2) a cada PR. Situação de 23/11/2026: as entregas E1 a E11 foram publicadas em produção (a migração 0008 entrou junto com E8, E9 e E11) e aguardam o teste do dono em produção.
+A % de cada entrega é atualizada no README (seção 2) a cada PR. Situação de 23/11/2026: as entregas E1 a E13 e E15 a E18 foram publicadas em produção no mesmo dia (migração 0008 com E8, E9 e E11; 0009 e 0010 com E13 e E12; 0011 e central 0003 com E14a e E16, na versão do Worker 6e5fd492-3904-46ab-94cb-cbf76cb3da16) e aguardam o teste do dono em produção.
 
 | # | Entrega | Áudios | Depende de | Banco | Executor | % |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -107,20 +107,21 @@ A % de cada entrega é atualizada no README (seção 2) a cada PR. Situação de
 | E9 | **Fotos da obra**: enviar, legendar e ver fotos na aba Fotos (R2, como os documentos); Histórico | A22 | E6 | Migração 0008: colunas e índices na tabela `projeto_foto` (já existente) | Codex sol + revisão Opus | 100% (no ar desde 23/11; migração 0008 aplicada; aguardando teste do dono) |
 | E10 | **Painel de gestão (equipe)**: recebe o que saiu da tela do prefeito (farol, onde está parado, decisões pendentes, alertas); **relatório de inconsistências** por órgão ou geral (campo faltando, data fora de ordem, macroetapa vencida), com impressão e CSV | A13, A19 | E3 | — | Codex terra | 100% (no ar; aguardando teste do dono) |
 | E11 | **Menu nas três visões** (Gerencial, Governança da execução, Convênios); tela **Visão Convênios** com convênios em execução, em risco e CAUC, usando a Captação | A01, A31 | E3, E10 | — | Codex luna | 100% (no ar desde 23/11; aguardando teste do dono) |
-| E12 | **Gestão das licitações** (cadastro e acompanhamento 100% no sistema): grandes números por situação (6 etapas) → listas por etapa com os campos do relatório (marco, valor estimado/contratado/proposta, pago, empresa e colocação, onde está, aguardando quem, abertura, publicação prevista); próximos marcos; "aguardando PGM" e "aguardando outras áreas"; **edição em linha** para editor ou acima (prefeito só lê); cadastro de nova contratação e avanço de etapa na tela; ligação opcional com o projeto (há contratações sem projeto). O modelo de planilha do dono, quando chegar, só serve para a **carga inicial**; deixou de ser bloqueio | A34, A35, A36, A37 | D5 deixou de bloquear | Migração 0010: `contratacao`, `contratacao_marco` e `evento_contratacao` | Sonnet (substituindo o Codex) + revisão Opus | 90%: código, testes, revisão independente e prévia aprovada pelo dono; PR #55 (contém a E15); aguardando merge e publicação, com a migração 0010 antes do código |
-| E13 | **Governança da execução, ampliada**: o cronograma passa a ser um processo completo no sistema. Criar o cronograma do projeto; incluir, editar, reordenar e remover tarefas; marcar início e fim reais; troca de responsável com histórico; **tempo na mão** por pessoa e por área (relógio a partir do início real); alertas: **atenção** quando passa da duração prevista e **urgente** quando passa do dobro; painel **"Responsáveis"** com impressão e CSV. Migração 0009 reconstrói `etapa_cronograma` com identificador estável | A31 | E11 | Migração 0009: `etapa_cronograma` com id estável e histórico de responsável da tarefa | Codex sol + revisão Opus | 90%: código, testes, revisão independente e prévia aprovada pelo dono; aguardando merge (o PR da E13 contém a E12 e a E15) e publicação, com as migrações 0009 e 0010 antes do código, nessa ordem |
-| E14 | **Integração PNCP e Compras.gov** (resultado, colocação, homologação) | A37 | E12 | — | Plano Opus próprio | E14a no código (por botão); E14b a E14e planejadas |
-| E15 | **Navegação: sempre poder voltar** (princípio 12). Corrige 13 caminhos que perdiam a tela de origem; o botão "← Voltar para …" aparece automaticamente quando a tela foi aberta a partir de outra; função `voltaSegura` aceita qualquer tela dentro de `/plataforma/` e mantém os filtros | pedido do dono de 23/11 (sem áudio) | E2 | — | Sonnet (substituindo o Codex, que no Windows não roda node) + revisão Opus | 90%: código, testes, revisão independente e prévia aprovada pelo dono; PR #54; aguardando merge e publicação |
-| E17 | **Fluxo legível na impressão**: o PDF do Fluxo sai em partes, uma folha A4 paisagem por faixa de linhas, com mapa geral antes, cabeçalho das raias repetido e "Parte N de M" | pedido do dono de 23/11 (sem áudio) | — | — | Sonnet (substituindo o Codex) + revisão Opus | 90%: código e testes prontos; aguardando revisão |
-| E18 | **Ícone de tema claro/escuro** visível no topo da plataforma: pedido do dono de 23/11/2026, sem áudio. Alterna claro/escuro, lembra a escolha e é alcançável por teclado |
+| E12 | **Gestão das licitações** (cadastro e acompanhamento 100% no sistema): grandes números por situação (6 etapas) → listas por etapa com os campos do relatório (marco, valor estimado/contratado/proposta, pago, empresa e colocação, onde está, aguardando quem, abertura, publicação prevista); próximos marcos; "aguardando PGM" e "aguardando outras áreas"; **edição em linha** para editor ou acima (prefeito só lê); cadastro de nova contratação e avanço de etapa na tela; ligação opcional com o projeto (há contratações sem projeto). O modelo de planilha do dono, quando chegar, só serve para a **carga inicial**; deixou de ser bloqueio | A34, A35, A36, A37 | D5 deixou de bloquear | Migração 0010: `contratacao`, `contratacao_marco` e `evento_contratacao` | Sonnet (substituindo o Codex) + revisão Opus | 100% (no ar desde 23/11/2026, migração 0010 antes do código; aguardando teste do dono) |
+| E13 | **Governança da execução, ampliada**: o cronograma passa a ser um processo completo no sistema. Criar o cronograma do projeto; incluir, editar, reordenar e remover tarefas; marcar início e fim reais; troca de responsável com histórico; **tempo na mão** por pessoa e por área (relógio a partir do início real); alertas: **atenção** quando passa da duração prevista e **urgente** quando passa do dobro; painel **"Responsáveis"** com impressão e CSV. Migração 0009 reconstrói `etapa_cronograma` com identificador estável | A31 | E11 | Migração 0009: `etapa_cronograma` com id estável e histórico de responsável da tarefa | Codex sol + revisão Opus | 100% (no ar desde 23/11/2026, migrações 0009 e 0010 antes do código, nessa ordem; aguardando teste do dono) |
+| E14 | **Integração PNCP e Compras.gov** (resultado, colocação, homologação) | A37 | E12 | — | Plano Opus próprio | 70% do PNCP completo: E14a no ar desde 23/11/2026 (por botão; migração 0011); E14b (sugestões e alertas), E14c (atualização automática) e E14d (sugestão automática de ligação) a fazer; E14e (Compras.gov) opcional |
+| E15 | **Navegação: sempre poder voltar** (princípio 12). Corrige 13 caminhos que perdiam a tela de origem; o botão "← Voltar para …" aparece automaticamente quando a tela foi aberta a partir de outra; função `voltaSegura` aceita qualquer tela dentro de `/plataforma/` e mantém os filtros | pedido do dono de 23/11 (sem áudio) | E2 | — | Sonnet (substituindo o Codex, que no Windows não roda node) + revisão Opus | 100% (no ar desde 23/11/2026; aguardando teste do dono) |
+| E16 | **Dispensa temporária da 2ª etapa e conta de consulta**: só outro administrador dispensa o código do aplicativo de uma pessoa, de 1 a 60 dias, com motivo e registro; retirar, vencer, mudar o perfil ou desativar encerra a dispensa; a conta de consulta é o perfil Leitura, com convite por e-mail | pedido do dono de 23/11 (sem áudio) | — | Migração central 0003 (`excecao_2fa`) | revisão independente | 100% (no ar desde 23/11/2026; aguardando teste do dono; conceder as dispensas e criar a conta de consulta é do dono) |
+| E17 | **Fluxo legível na impressão**: o PDF do Fluxo sai em partes, uma folha A4 paisagem por faixa de linhas, com mapa geral antes, cabeçalho das raias repetido e "Parte N de M" | pedido do dono de 23/11 (sem áudio) | — | — | Sonnet (substituindo o Codex) + revisão Opus | 100% (no ar desde 23/11/2026; aguardando teste do dono) |
+| E18 | **Ícone de tema claro/escuro** visível no topo da plataforma, ao lado do sino: pedido do dono de 23/11/2026, sem áudio. Alterna claro/escuro, lembra a escolha e é alcançável por teclado | pedido do dono de 23/11 (sem áudio) | — | — | — | 100% (no ar desde 23/11/2026; aguardando teste do dono) |
 
 ### Ordem e paralelismo
 - **1ª rodada:** E1 e E2 ao mesmo tempo. Não tocam os mesmos arquivos.
 - **2ª rodada:** E3, E5 e E6 em paralelo, cada uma na sua worktree. Todas usam o filtro da E2 e a área da E1.
 - **3ª rodada:** E4, E7 e E10.
 - **4ª rodada:** E11, E8 e E9.
-- **5ª rodada (concluída no código; aguardando merge e publicação):** E12, E13 e E15 foram feitas em branches separadas e juntadas por merge na branch da E13, com a suíte completa na cópia juntada.
-- **Depois:** E14.
+- **5ª rodada (concluída e publicada em 23/11/2026):** E12, E13 e E15 foram feitas em branches separadas e juntadas por merge, com a suíte completa na cópia juntada; E17, E18, E14a e E16 foram publicadas depois, no mesmo dia.
+- **Depois:** E14b a E14e.
 - **Prévia visual antes do código** em E3, E5 e E6: o dono aprova o desenho na tela local (`wrangler dev`), conforme a regra K.
 
 ### Percentual por fase (para o README)
@@ -128,9 +129,9 @@ A % de cada entrega é atualizada no README (seção 2) a cada PR. Situação de
 | --- | --- | --- |
 | Base de dados para operar do zero | E1, E9 | 100% |
 | Visão gerencial (prefeito) | E2, E3, E4, E5, E6, E7, E8 | 100% |
-| Governança (equipe) | E10, E11, E13 | 97% (E10 e E11 no ar; E13 em 90%) |
-| Navegação | E15 | 90% |
-| Licitações | E12, E14 | 45% (E12 em 90%; E14 em 0%) |
+| Governança (equipe) | E10, E11, E13, E16 | 100% (no ar) |
+| Navegação | E15, E17, E18 | 100% (no ar) |
+| Licitações | E12, E14 | 85% (E12 em 100%; E14 PNCP completo em 70%: E14a no ar; E14b a E14d a fazer) |
 
 ## 4. Banco de dados (projetar antes de criar)
 
