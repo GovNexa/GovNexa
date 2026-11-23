@@ -11,9 +11,9 @@ Este documento vale como regra de trabalho: toda entrega que crie ou use dados c
 | Banco | Guarda | Tabelas |
 | --- | --- | --- |
 | Central (`govnexa-central`) | Quem pode entrar e em qual prefeitura | `prefeitura`, `usuario`, `importacao`, `sessao`, `token_email`, `codigo_recuperacao`, `limite_tentativa`, `evento_acesso` |
-| Um por prefeitura (`govnexa-<código IBGE>`) | Os dados de trabalho daquela prefeitura | `prefeitura`, `projeto`, `evento_projeto`, `evento_sistema`, `cronograma`, `etapa_cronograma`, `projeto_foto`, `documento`, `tipo_documento`, `catalogo` (E1, migração 0007 a aplicar), visão `log_alteracoes` |
+| Um por prefeitura (`govnexa-<código IBGE>`) | Os dados de trabalho daquela prefeitura | `prefeitura`, `projeto`, `evento_projeto`, `evento_sistema`, `cronograma`, `etapa_cronograma`, `projeto_foto`, `documento`, `tipo_documento`, `catalogo` (E1, migração 0007 a aplicar), visão `log_alteracoes`. Fotos da obra (E9): `projeto_foto` com a migração 0008 a aplicar |
 
-**O que já grava de verdade:** documentos do projeto (envio, tipo, remoção lógica), importação das planilhas, usuários e login.
+**O que já grava de verdade:** documentos do projeto (envio, tipo, remoção lógica), importação das planilhas, usuários e login. No código (E9, a publicar): fotos da obra (envio e remoção lógica, com Histórico).
 
 **O que só lê:** carteira, cronogramas, histórico, painéis e mapa.
 
@@ -138,6 +138,7 @@ Cada linha é um PR pequeno, com migração (se houver), rota, tela, testes, atu
 | B2a (feita no código em 18/11/2026) | Novo projeto gravando (código único, histórico junto, repetição quando dois cadastros calculam o mesmo número) | Migração 0006: índice único do código |
 | B2b (feita no código na E1) | Edição dos campos por revisão, com antes e depois no Histórico. Área e marca de prioritário também no Novo projeto e na importação | Migração 0007 a aplicar |
 | B3 | Kanban e Pendências de etapa gravando (movimentar, portão, motivo) | E7: sem migração (usa `projeto.macroetapa`, `projeto.revisao` e `evento_projeto`) |
+| E9 (feita no código) | Fotos da obra na aba Fotos: envio, grade, remoção lógica, eventos no Histórico | Migração 0008 a aplicar: `removida_por`, `sha256` e índices em `projeto_foto` |
 | B4 | Catálogos de órgão, região e tipo | 4.2 |
 | B5 | Reunião semanal e ações | `reuniao`, `reuniao_item`, `acao` |
 | B6 | Sala de guerra | Tabelas `sala…` |

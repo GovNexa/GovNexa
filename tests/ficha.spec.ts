@@ -104,7 +104,7 @@ test('ficha: processos SEI, cronograma e projeto sem dados', async ({ page, requ
   await expect(page.locator('[data-fp-sei-vazio]')).toHaveText('Nenhum processo do SEI vinculado a este projeto.');
   await expect(page.locator('[data-fp-cron-vazio]')).toHaveText('Este projeto ainda não tem cronograma detalhado.');
   await expect(page.locator('[data-pj-docs]')).toHaveText('Nenhum documento enviado.');
-  await expect(page.locator('[data-fp-fotos]')).toContainText('em breve');
+  await expect(page.locator('[data-fp-fotos]')).toHaveText('Nenhuma foto enviada.');
 });
 
 test('ficha: guia Localização e fotos sai do menu e o endereço antigo leva à aba Localização', async ({ page }) => {
