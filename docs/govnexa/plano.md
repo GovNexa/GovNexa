@@ -14,9 +14,11 @@
 > - **Repositório antigo (`SLo0th1/Atlas_Conecta`):** congelado. Todo o trabalho segue só neste repositório.
 > - **Publicação em produção:** só com ordem expressa do dono (regras no `CLAUDE.md`).
 
-## Andamento · última atualização em 17/11/2026
+## Andamento · última atualização em 22/11/2026
 
 22/11/2026: os requisitos dos áudios de 20/11 (três visões: gerencial, governança da execução e convênios; tela do prefeito; carteira, ficha, Kanban, mapa por área e licitações) estão planejados em [plano-requisitos-audios.md](plano-requisitos-audios.md).
+
+22/11/2026: E1 a E7 e E10 mesclados na `main` (PRs #40, #41 e #44 a #49), sem publicação; E11 (menu nas três visões e Visão Convênios) no código, aguardando revisão. A situação de cada entrega fica na seção 3 de [plano-requisitos-audios.md](plano-requisitos-audios.md).
 
 O sistema está no ar com os dados reais da planilha (334 projetos e 13 cronogramas do GEPP); gravação de alterações depende do banco de dados. O que mudou em cada entrega está em `docs/CHANGELOG.md`.
 
@@ -25,7 +27,7 @@ Regra de apresentação (17/11/2026): datas sempre no padrão brasileiro, `DD/MM
 | Fase | O que entrega | Situação | % |
 | --- | --- | --- | --- |
 | Planejamento | Plano, decisões, rastreabilidade, Fluxo, fluxos detalhados, mapa de impacto | Fluxos detalhados e mapa de impacto publicados; caixas do Fluxo cabem na raia; zoom no Fluxo | 97% |
-| 0 · Base e identidade | Marca GovNexa, menu por módulos, tema estável, paginação compacta | Publicada; menu lateral com blocos que abrem e fecham (começam fechados) | 100% |
+| 0 · Base e identidade | Marca GovNexa, menu por módulos, tema estável, paginação compacta | Publicada; menu lateral com blocos que abrem e fecham (começam fechados). Menu nas três visões (Gerencial, Governança da execução, Convênios) no código desde a E11 | 100% |
 | 1 · Carteira de Projetos | Carga real, Carteira, ficha, Kanban, Gantt, Visão por órgão, celular | Publicada com dados reais | 100% |
 | 1.5 · Cadastro, movimentação, log, sala de guerra | Novo projeto, edição na ficha, Kanban e Pendências (simulação), Histórico, Sala de guerra | E1 em 70% com edição, área, marca de prioritário e faixa 9000 disponíveis no código. Aguardando revisão, migração 0007 e publicação | 95% |
 | 2 · Cronograma e equipe | Cronogramas, quadro de tarefas, Onde está parado | Publicada com a Reunião semanal e as dependências entre etapas (atraso em cascata); leitura do SEI em simulação (a leitura diária depende do banco) | 90% |
@@ -39,6 +41,16 @@ Percentuais mantidos até homologação do login próprio; Access continua padr�
 
 | Data | Entrega | PR |
 | --- | --- | --- |
+| 22/11 | E11: menu nas três visões (Gerencial, Governança da execução, Convênios) e Visão Convênios (em execução, em risco, CAUC); menu esconde o que o perfil não abre | a numerar |
+| 22/11 | E10: Painel da equipe e relatório de inconsistências (impressão e CSV) | GovNexa #49, mesclado |
+| 22/11 | E7: Kanban enxuto e mover gravando no banco (B3), com portão e motivo | GovNexa #48, mesclado |
+| 22/11 | E4: mapa das obras por área, região opcional, mapa compacto na tela do prefeito | GovNexa #47, mesclado |
+| 22/11 | E6: ficha única do projeto com abas e Governança | GovNexa #46, mesclado |
+| 22/11 | E5: Carteira com grandes números, colunas do relatório, grupos por macroetapa e impressão | GovNexa #45, mesclado |
+| 22/11 | E3: tela do prefeito "Projetos prioritários" | GovNexa #44, mesclado |
+| 22/11 | E1: edição na ficha, área, marca de prioritário e códigos a partir de 9000 (migração 0007 a aplicar) | GovNexa #41, mesclado |
+| 22/11 | E2: padrão visual e filtros padrão | GovNexa #40, mesclado |
+| 22/11 | Plano dos requisitos dos áudios de 20/11 (E1 a E14) | GovNexa #39, mesclado |
 | 18/11 | Entrega B2: Novo projeto grava no banco (código único, macroetapa 00, cadastro no Histórico); migração 0006 (índice único do código) | novo PR |
 | 17/11 | Entrega B1: página do projeto e localização gravando no banco, com registro no Histórico; migração 0004 (índices do histórico por projeto); em 18/11, limite da localização ampliado para a cidade e o entorno (cerca de 10 km) | GovNexa #29 |
 | 17/11 | Projeto do banco de dados aprovado (`docs/govnexa/projeto-banco.md`): princípios para toda entrega com dados e roteiro B1 a B8 na ordem do Fluxo | GovNexa #28 |

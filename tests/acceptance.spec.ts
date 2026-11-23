@@ -57,7 +57,7 @@ test('rodada 4: paginação informa intervalo e avança',async({page})=>{
 test('govnexa: marca e módulos na plataforma',async({page})=>{
  for(const path of ['/plataforma/projetos/','/plataforma/gestao/']){const response=await page.goto(path);expect(response?.status(),path).toBe(200);await expect(page.locator('h1'),path).toHaveCount(1);}
  await page.goto('/plataforma/');await expect(page).toHaveTitle(/GovNexa/);
- const side=page.locator('.sidebar');for(const t of ['Projetos','Captação','Licitações','Gestão'])await expect(side).toContainText(t);await expect(side).not.toContainText('Área do comprador');
+ const side=page.locator('.sidebar');for(const t of ['Visão gerencial','Governança da execução','Convênios','Licitações','Conta'])await expect(side).toContainText(t);await expect(side).not.toContainText('Área do comprador');
  await page.goto('/entrar/');await expect(page).toHaveTitle(/GovNexa/);
 });
 test('govnexa: carteira, kanban, gantt e órgãos',async({page})=>{
@@ -316,7 +316,8 @@ test('govnexa: tema escolhido se mantém ao trocar de guia',async({page})=>{
   const toggle=page.locator('#sidebar-toggle');if(await toggle.getAttribute('aria-expanded')==='false')await toggle.click();
   await page.evaluate(t=>{localStorage.setItem('govnexa-theme',t);document.documentElement.dataset.theme=t},escolhido);
   for(const nome of ['Carteira de projetos','Kanban por macroetapa','Fluxo do sistema','Histórico de alterações','Projetos · Início']){
-   const link=page.locator('.sidebar').getByRole('link',{name:nome,exact:true});const destino=new URL((await link.getAttribute('href'))!,page.url()).pathname;await link.click();await page.waitForURL(u=>u.pathname===destino);await page.waitForLoadState('load');
+   // E11: as guias ficam em visões diferentes; abre a visão da guia antes de clicar.
+   const link=page.locator(`.sidebar .side-links a[aria-label="${nome}"]`);if(!(await link.isVisible()))await page.locator('.sidebar .side-module').filter({has:page.locator(`a[aria-label="${nome}"]`)}).locator('button[data-sec^="m:"]').click();const destino=new URL((await link.getAttribute('href'))!,page.url()).pathname;await link.click();await page.waitForURL(u=>u.pathname===destino);await page.waitForLoadState('load');
    await expect(page.locator('html'),nome).toHaveAttribute('data-theme',escolhido);
   }
  }
@@ -536,7 +537,7 @@ test('govnexa: menu lateral com blocos que abrem e fecham',async({page})=>{
  const toggle=page.locator('#sidebar-toggle');if(await toggle.getAttribute('aria-expanded')==='false')await toggle.click();
  const bloco=()=>page.locator('.sidebar button[data-sec^="m:"]',{hasText:/licita/i}).first();
  await expect(bloco()).toHaveAttribute('aria-expanded','false');
- await expect(page.locator('.sidebar button[data-sec="m:Projetos"]')).toHaveAttribute('aria-expanded','true');
+ await expect(page.locator('.sidebar button[data-sec="m:Governança da execução"]')).toHaveAttribute('aria-expanded','true');
  const linkAtual=page.locator('.side-links a[aria-current=page]');
  await expect(linkAtual).toHaveCount(1);
  await expect(linkAtual).toBeVisible();
@@ -545,7 +546,7 @@ test('govnexa: menu lateral com blocos que abrem e fecham',async({page})=>{
  await expect(currentGroup).toHaveAttribute('aria-expanded','true');
  await bloco().click();
  await expect(bloco()).toHaveAttribute('aria-expanded','true');
- await expect(page.locator('.sidebar button[data-sec="m:Projetos"]')).toHaveAttribute('aria-expanded','false');
+ await expect(page.locator('.sidebar button[data-sec="m:Governança da execução"]')).toHaveAttribute('aria-expanded','false');
  const operacao=page.locator('.sidebar button[data-sec="g:Licitações:Operação"]');
  await expect(operacao).toHaveAttribute('aria-controls');
  await expect(operacao).toHaveAttribute('aria-expanded','false');
@@ -559,7 +560,7 @@ test('govnexa: menu lateral com blocos que abrem e fecham',async({page})=>{
  await expect(operacao).toHaveAttribute('aria-expanded','false');
  await page.reload();
  await expect(bloco()).toHaveAttribute('aria-expanded','false');
- await expect(page.locator('.sidebar button[data-sec="m:Projetos"]')).toHaveAttribute('aria-expanded','true');
+ await expect(page.locator('.sidebar button[data-sec="m:Governança da execução"]')).toHaveAttribute('aria-expanded','true');
  await expect(linkAtual).toBeVisible();
  await page.goto('/plataforma/processos/');
  await expect(page.locator('.sidebar button[data-sec="m:Licitações"]')).toHaveAttribute('aria-expanded','true');
@@ -577,16 +578,16 @@ test('govnexa: menu no celular não restaura o estado dos blocos',async({page})=
  await page.locator('#drawer-toggle').click();
  const bloco=page.locator('.sidebar button[data-sec="m:Licitações"]');
  await expect(bloco).toBeVisible();await expect(bloco).toHaveAttribute('aria-expanded','false');
- await expect(page.locator('.sidebar button[data-sec="m:Projetos"]')).toHaveAttribute('aria-expanded','true');
+ await expect(page.locator('.sidebar button[data-sec="m:Governança da execução"]')).toHaveAttribute('aria-expanded','true');
  await bloco.click();
- await expect(page.locator('.sidebar button[data-sec="m:Projetos"]')).toHaveAttribute('aria-expanded','false');
+ await expect(page.locator('.sidebar button[data-sec="m:Governança da execução"]')).toHaveAttribute('aria-expanded','false');
  const operacao=page.locator('.sidebar button[data-sec="g:Licitações:Operação"]');
  await expect(operacao).toHaveAttribute('aria-controls');
  await operacao.click();
  await expect(page.locator('#'+await operacao.getAttribute('aria-controls')).locator('a').first()).toBeVisible();
  await page.reload();
  await page.locator('#drawer-toggle').click();
- await expect(page.locator('.sidebar button[data-sec="m:Projetos"]')).toHaveAttribute('aria-expanded','true');
+ await expect(page.locator('.sidebar button[data-sec="m:Governança da execução"]')).toHaveAttribute('aria-expanded','true');
  await expect(bloco).toHaveAttribute('aria-expanded','false');
  await expect(page.locator('.side-links a[aria-current=page]')).toBeVisible();
 });
@@ -596,7 +597,7 @@ test('govnexa: painel do prefeito',async({page})=>{
  const resposta=await page.goto('/plataforma/gestao/');
  expect(resposta?.status()).toBe(200);
  await expect(page.locator('h1')).toHaveCount(1);
- await expect(page.locator('h1')).toHaveText('Gestão · Painel');
+ await expect(page.locator('h1')).toHaveText('Mapa e painel');
  const cartoes=page.locator('[data-painel] .pn-cartao');
  await expect(cartoes).toHaveCount(6);
  const destinos=await cartoes.evaluateAll(els=>els.map(e=>(e as HTMLAnchorElement).getAttribute('href')||''));

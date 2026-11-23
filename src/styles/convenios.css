@@ -1,0 +1,40 @@
+/* Visão Convênios (E11). Prefixo cv- só existe nesta tela. Fundo claro e cor só na informação, nos dois temas. */
+.cv{display:grid;gap:1rem;min-width:0}
+.cv .section-head{margin-bottom:0}
+.cv-numeros{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin:0;padding:0;list-style:none}
+.cv-cartao{display:grid;gap:.25rem;min-height:100%;padding:1rem 1.1rem;border:1px solid var(--line);border-left:4px solid var(--line);border-radius:12px;background:var(--surface);color:var(--text);text-decoration:none}
+.cv-cartao:hover{border-color:var(--text)}
+.cv-cartao[data-cv-situacao=atencao]{border-left-color:#b67710}
+.cv-cartao[data-cv-situacao=critico]{border-left-color:#b52e27}
+.cv-cartao[data-cv-situacao=ok]{border-left-color:#2f7d4f}
+.cv-rotulo{font-size:.9rem;font-weight:650;color:var(--muted)}
+.cv-numero{font-size:clamp(1.6rem,3vw,2.2rem);line-height:1.1;font-weight:750}
+.cv-numero-texto{font-size:clamp(1.3rem,2.4vw,1.8rem)}
+.cv-nota{font-size:.88rem;color:var(--muted);overflow-wrap:anywhere}
+.cv-bloco{min-width:0;max-width:none;margin:0;padding:clamp(1rem,1.5vw,1.5rem);border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+.cv-bloco h2{margin:0 0 .75rem;font-size:1.15rem}
+.cv-bloco h3{margin:1rem 0 .4rem;font-size:1rem;letter-spacing:0}
+.cv-resumo,.cv-regra,.cv-links,.cv-fonte{margin:0 0 .75rem;max-width:none}
+.cv-regra,.cv-fonte{color:var(--muted);font-size:.9rem}
+.cv-links{margin:1rem 0 0}
+.cv-links a,.cv-tabela a{font-weight:650}
+.cv-vazio{margin:0;color:var(--muted)}
+.cv-tabela{width:100%;table-layout:auto;white-space:normal}
+.cv-tabela th,.cv-tabela td{padding:.6rem .7rem;white-space:normal;overflow-wrap:anywhere;vertical-align:top}
+.cv-tabela tbody th{background:transparent;font-weight:600}
+.cv-tabela .cv-num{text-align:right;white-space:nowrap;overflow-wrap:normal}
+.cv-selo{display:inline-block;margin-right:.25rem;padding:.05rem .5rem;border-radius:20px;font-size:.78rem;font-weight:700;background:#fff0bf;color:#634600}
+.cv-selo[data-gravidade=vermelho]{background:#ffe0df;color:#8b201a}
+.cv-itens{margin:0;padding-left:1.2rem;display:grid;gap:.35rem}
+@media (max-width:1100px){
+  .cv-tabela .cv-num{white-space:normal}
+}
+@media (max-width:760px){
+  .cv-numeros{grid-template-columns:1fr}
+  .cv-tabela thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+  .cv-tabela,.cv-tabela tbody,.cv-tabela tr,.cv-tabela th,.cv-tabela td{display:block;width:100%}
+  .cv-tabela tr{padding:.5rem 0;border-bottom:1px solid var(--line)}
+  .cv-tabela tr:last-child{border-bottom:0}
+  .cv-tabela th,.cv-tabela td{padding:.15rem 0;border:0;text-align:left}
+  .cv-tabela tbody th::before,.cv-tabela td::before{content:attr(data-rotulo) ": ";color:var(--muted);font-weight:650}
+}

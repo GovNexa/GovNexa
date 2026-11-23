@@ -3,7 +3,7 @@ import Base from './Base.astro';
 import Icon from '../components/Icon.astro';
 import modules from '../data/modules.json';
 import { municipioAtivo } from '../lib/municipio-ativo.ts';
-import { catalogoCompleto, menuPorModulo } from '../lib/govnexa/catalogo.ts';
+import { FORA_DO_MENU, catalogoCompleto, menuPorModulo } from '../lib/govnexa/catalogo.ts';
 import { carregarCarteira } from '../lib/carteira/carga.ts';
 import { usuarioPode } from '../lib/usuarios/index.ts';
 import '../styles/painel-detalhes.css';
@@ -79,13 +79,16 @@ const menuIcons: Record<string, string> = {
   gestao: 'gauge',
   'gestao-whatsapp': 'message-square',
   'gestao-alertas': 'bell',
+  'gestao-equipe': 'users',
+  'gestao-inconsistencias': 'search-check',
+  convenios: 'gauge',
   'licitacoes-prazos': 'clock',
 };
 const moduleIcons: Record<string, string> = {
-  projetos: 'briefcase',
-  captacao: 'trend',
+  gerencial: 'gauge',
+  governanca: 'clipboard-check',
+  convenios: 'trend',
   licitacoes: 'gavel',
-  gestao: 'gauge',
   conta: 'user',
 };
 const groupIcons: Record<string, string> = {
@@ -100,19 +103,22 @@ const groupIcons: Record<string, string> = {
   Conta: 'user',
   Projetos: 'briefcase',
   Gestão: 'gauge',
+  'Visão gerencial': 'gauge',
+  'Governança da execução': 'clipboard-check',
+  Convênios: 'trend',
 };
 const itemIsCurrent = (item: { slug?: string }) =>
   slug !== '' && (item.slug === slug || `/plataforma/${item.slug ? `${item.slug}/` : ''}` === Astro.url.pathname);
-// A guia Usuários só aparece para quem pode gerenciar usuários (a própria página também confere).
-const podeVerUsuarios = usuarioPode(usuario, 'gerenciar_usuarios');
-const menu = menuPorModulo(catalogoCompleto(modules)).map((mod) => {
+// E11: cada guia só aparece para o perfil que pode abri-la (Usuários, Painel da equipe, Inconsistências); a página também confere.
+const menu = menuPorModulo(catalogoCompleto(modules), (acao) => usuarioPode(usuario, acao)).map((mod) => {
   return {
     ...mod,
-    grupos: mod.grupos.map((g) => ({ ...g, itens: g.itens.filter((i) => podeVerUsuarios || i.slug !== 'usuarios') })).filter((g) => g.itens.length > 0),
     icon: moduleIcons[mod.id],
     current: mod.grupos.some((group) => group.itens.some(itemIsCurrent)),
   };
 });
+// E2: o padrão visual das telas de Projetos (fundo claro e neutro) continua valendo para as mesmas telas, agora espalhadas pelas visões.
+const padraoProjetos = catalogoCompleto(modules).some((item) => item.group === 'Projetos' && !FORA_DO_MENU.includes(item.slug) && itemIsCurrent(item));
 const muni = municipioAtivo();
 ---
 <Base platform title={title} origemDados={origemDados} description={`Explore ${title} com dados fictícios de ${muni.nome}.`} userName={userName} userInitials={userInitials} userRole={userRole}>
@@ -234,7 +240,7 @@ const muni = municipioAtivo();
         </section>
       ))}
     </div>
-    <div class="workspace" data-current-module={menu.find((mod) => mod.current)?.id}>
+    <div class="workspace" data-current-module={menu.find((mod) => mod.current)?.id} data-padrao={padraoProjetos ? 'projetos' : undefined}>
       <slot name="contexto" />
       <p class="notice"><span>{avisoDados}</span><span>Dados de exemplo nos módulos demonstrativos, salas, reuniões, WhatsApp e mapa por bairro.</span></p>
       <slot />

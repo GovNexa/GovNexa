@@ -35,7 +35,7 @@ for (const tema of ['light', 'dark']) {
         else expect(sidebar.bg).toBeLessThan(.2);
         expect(sidebar.contraste).toBeGreaterThanOrEqual(4.5);
         if (recolhido) {
-          await page.getByRole('button', { name: 'Módulo Projetos' }).click();
+          await page.getByRole('button', { name: 'Módulo Visão gerencial' }).click();
           const flyout = page.locator('.side-module-flyout:visible');
           await expect(flyout).toBeVisible();
           expect((await cores(flyout)).contraste).toBeGreaterThanOrEqual(4.5);

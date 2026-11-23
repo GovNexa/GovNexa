@@ -1,5 +1,13 @@
 # Changelog
 
+## E11 · Menu nas três visões e Visão Convênios (22/11/2026)
+- Menu lateral em três visões (áudio 31): **Visão gerencial** (Projetos prioritários, Carteira, Mapa e painel, Kanban e Gantt), **Governança da execução** (Painel da equipe, Projetos · Início, Cronogramas, Onde está parado, Inconsistências, Pendências, Reunião, Sala de guerra, Histórico, Alertas e Processos no SEI) e **Convênios** (Visão Convênios e as guias da Captação). Depois vêm Licitações (demonstrativo, com os grupos de antes) e Conta (Usuários, Fluxo do sistema, WhatsApp, relatórios, perfil e configurações).
+- Nenhum endereço mudou: todas as telas abrem no mesmo lugar. A guia "Gestão · Painel" passou a se chamar "Mapa e painel" (mesmo endereço).
+- Nova tela **Visão Convênios** (`/plataforma/convenios/`, áudio 01): convênios em execução, convênios em risco (a mesma regra do Painel da equipe) e regularidade no CAUC, com os dados públicos que a Captação já coleta. Sem dado novo e sem gravação.
+- O menu esconde as guias que o perfil não pode abrir (Painel da equipe, Inconsistências e Usuários para o perfil leitura); as páginas continuam respondendo 403.
+- Pendências das revisões: o mapa da Gestão usa os nomes de área do catálogo da prefeitura; os atalhos de localização vão para a aba Localização da ficha (rótulo "Localização"); saiu o componente antigo `LocalizacaoProjeto.astro`; o CSV protege também o sinal de fórmula depois de espaços; teste do 403 do CSV pela própria rota; `tests/dashboard-mapa.spec.ts` saiu (o mapa compacto está na tela do prefeito e já é testado em `tests/mapa-area.spec.ts`).
+- Testes de interface ganharam um servidor local com um usuário fictício de perfil leitura (projeto `leitura` do Playwright).
+
 ## E9 · Fotos da obra na ficha do projeto (22/11/2026)
 - Aba Fotos da ficha: enviar uma foto por vez (JPG, PNG ou WEBP, até 10 MB) com legenda e data da foto, ver em grade com ampliação e remover (remoção lógica: o arquivo fica guardado).
 - Envio e remoção entram no Histórico do projeto no mesmo lote da gravação.

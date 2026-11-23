@@ -8,6 +8,7 @@ import { dataHoraBr, maisRecentes, resumoRegistro, rotuloAcao } from '../log/vis
 import { resumoCronograma } from '../cronograma/visoes.ts';
 import { AREAS_PADRAO, areaDoProjeto, type Area } from './area.ts';
 import { carregarCarteira } from './carga.ts';
+import { hrefFicha } from './ficha.ts';
 import { MACROETAPAS, nomeMacroetapa } from './macroetapas.ts';
 import type { Projeto } from './tipos.ts';
 import { farol, fimDaMacroetapaAtual, resumoPorMacroetapa, saldoSemFonte, valorProjeto } from './visoes.ts';
@@ -129,7 +130,7 @@ export function detalheProjeto(
       ? recentes.map((h) => `${dataHoraBr(h.em)} · ${rotuloAcao(h.tipo)} · ${resumoRegistro(h)} · por ${h.autor}`)
       : ['Nenhuma alteração registrada ainda'],
   });
-  links.push({ rotulo: 'Localização e fotos', url: `/plataforma/projetos-localizacao/?id=${encodeURIComponent(p.id)}` });
+  links.push({ rotulo: 'Localização', url: hrefFicha(p.id, null, 'localizacao') });
   links.push({ rotulo: 'Ver histórico completo', url: `/plataforma/projetos-log/?projeto=${encodeURIComponent(p.id)}` });
   secoes.push({ titulo: 'Pendências de dado', itens: p.pendencias.length ? p.pendencias : ['Nenhuma'] });
   secoes.push({

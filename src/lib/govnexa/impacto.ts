@@ -26,7 +26,7 @@ export const COMPONENTES: Record<string, string[]> = {
   fontesFederais: ['coletores/**', 'src/lib/dados/**', '.github/workflows/atualizar-dados*.yml'],
   casamento: ['src/lib/dados/captacao.ts', 'src/lib/carteira/modulos.ts'],
   oportunidade: ['src/lib/dados/captacao.ts', 'src/lib/dados/detalhes.ts', 'src/lib/projetos/**'],
-  convenio: ['src/lib/dados/captacao.ts', 'src/lib/dados/detalhes-convenio.ts'],
+  convenio: ['src/lib/dados/captacao.ts', 'src/lib/dados/detalhes-convenio.ts', 'src/lib/convenios/**', 'src/pages/plataforma/convenios/**', 'src/styles/convenios.css', 'src/lib/alertas/central.ts'],
   clausula: ['src/lib/dados/alertas.ts'],
   planejamento: ['src/lib/cronograma/**', 'src/components/cronograma/**', 'src/pages/plataforma/cronograma/**', 'src/components/carteira/Gantt.astro', 'src/components/carteira/FiltrosProjetos.astro', 'src/lib/carteira/filtros.ts'],
   portao: ['src/lib/carteira/movimentacao.ts', 'src/lib/carteira/simulacao.ts', 'src/components/carteira/PendenciasEtapa.astro', 'src/lib/carteira/mover.ts', 'src/lib/carteira/mover-cliente.ts', 'src/pages/plataforma/projeto/mover/**'],

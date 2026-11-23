@@ -347,7 +347,8 @@ test('código: rota fina só com POST; conferências na ordem; tela só mostra a
   const editor = readFileSync('src/components/mapa/EditorLocalizacao.astro', 'utf8');
   assert.ok(editor.includes('{buscaEndereco && ('));
   assert.ok(!/innerHTML|insertAdjacentHTML|outerHTML/.test(editor));
-  for (const f of ['src/components/carteira/ficha/LocalizacaoFicha.astro', 'src/components/mapa/LocalizacaoProjeto.astro', 'src/components/carteira/NovoProjeto.astro']) {
+  // LocalizacaoProjeto.astro saiu na E11 (os atalhos levam à aba Localização da ficha).
+  for (const f of ['src/components/carteira/ficha/LocalizacaoFicha.astro', 'src/components/carteira/NovoProjeto.astro']) {
     assert.ok(readFileSync(f, 'utf8').includes('buscaEndereco={podeSalvar}'), f);
   }
 });

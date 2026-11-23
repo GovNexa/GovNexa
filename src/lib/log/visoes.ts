@@ -134,7 +134,8 @@ const CABECALHO_CSV = ['Data e hora', 'Projeto (ID)', 'Nome do projeto', 'Ação
 
 export function celula(v: unknown): string {
   let s = String(v ?? '');
-  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`; // proteção contra injeção de fórmula em planilhas
+  // Proteção contra injeção de fórmula em planilhas: sinal de fórmula no início, também depois de espaços (E11), tabulação ou retorno.
+  if (/^[\t\r\n]/.test(s) || /^\s*[=+\-@＝＋－＠]/.test(s)) s = `'${s}`;
   return `"${s.replaceAll('"', '""')}"`;
 }
 

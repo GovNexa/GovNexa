@@ -1,14 +1,27 @@
-// Catálogo de módulos do GovNexa (Fase 0): agrupa as telas existentes por módulo e acrescenta Projetos e Gestão.
-export type ModuloId = 'projetos' | 'captacao' | 'licitacoes' | 'gestao' | 'conta';
+// Catálogo de módulos do GovNexa. Desde a E11 (áudio 31) o menu lateral tem TRÊS VISÕES: Gerencial (o que o prefeito vê),
+// Governança da execução (o trabalho da equipe) e Convênios (captação e repasses); depois vêm Licitações (demonstrativo,
+// até a E12 trazer a gestão das licitações para a Visão gerencial) e Conta. Os endereços das telas não mudaram.
+import type { Acao } from '../usuarios/index.ts';
+
+export type ModuloId = 'gerencial' | 'governanca' | 'convenios' | 'licitacoes' | 'conta';
 
 export const MODULOS: { id: ModuloId; nome: string; descricao: string; ativo: boolean }[] = [
-  { id: 'projetos', nome: 'Projetos', descricao: 'Carteira de projetos, cronograma, Kanban e Gantt.', ativo: true },
-  { id: 'captacao', nome: 'Captação', descricao: 'Oportunidades, convênios, alertas e parecer de elegibilidade.', ativo: true },
-  { id: 'licitacoes', nome: 'Licitações', descricao: 'Operação, planejamento, preços, automação, mercado e cadastros.', ativo: true },
-  { id: 'gestao', nome: 'Gestão', descricao: 'Painel do prefeito: foto atual de todos os módulos ativos.', ativo: true },
-  { id: 'conta', nome: 'Conta', descricao: 'Relatórios, perfil e configurações.', ativo: true },
+  { id: 'gerencial', nome: 'Visão gerencial', descricao: 'O que o prefeito vê para decidir: projetos prioritários, carteira, mapa, Kanban e Gantt.', ativo: true },
+  { id: 'governanca', nome: 'Governança da execução', descricao: 'O trabalho da equipe: painel da equipe, cronogramas, onde está parado, inconsistências, pendências, reunião, sala de guerra e histórico.', ativo: true },
+  { id: 'convenios', nome: 'Convênios', descricao: 'Captação e repasses: convênios em execução e em risco, CAUC, oportunidades e alertas.', ativo: true },
+  { id: 'licitacoes', nome: 'Licitações', descricao: 'Demonstrativo: operação, planejamento, preços, automação, mercado e cadastros.', ativo: true },
+  { id: 'conta', nome: 'Conta', descricao: 'Usuários, Fluxo do sistema, WhatsApp, relatórios, perfil e configurações.', ativo: true },
 ];
 
+/** Telas de cada visão, na ordem do menu (slug '' = /plataforma/). Toda tela do catálogo fica em exatamente um lugar. */
+export const ITENS_DA_VISAO: Record<Exclude<ModuloId, 'licitacoes'>, readonly string[]> = {
+  gerencial: ['', 'projetos-carteira', 'gestao', 'projetos-kanban', 'projetos-gantt'],
+  governanca: ['gestao-equipe', 'projetos', 'projetos-cronogramas', 'projetos-parado', 'gestao-inconsistencias', 'projetos-pendencias', 'projetos-reuniao', 'projetos-sala', 'projetos-log', 'gestao-alertas', 'projetos-sei'],
+  convenios: ['convenios', 'captacao', 'captacao-acompanhamento', 'captacao-alertas', 'captacao-oportunidades', 'captacao-projetos', 'captacao-comparativo', 'captacao-qualidade'],
+  conta: ['usuarios', 'projetos-fluxo', 'gestao-whatsapp', 'relatorios', 'perfil', 'configuracoes'],
+};
+
+/** O que sobra do catálogo vai para Licitações (demonstrativo), agrupado pelo grupo de origem. */
 export const GRUPO_PARA_MODULO: Record<string, ModuloId> = {
   Operação: 'licitacoes',
   Planejamento: 'licitacoes',
@@ -17,218 +30,58 @@ export const GRUPO_PARA_MODULO: Record<string, ModuloId> = {
   Mercado: 'licitacoes',
   Cadastros: 'licitacoes',
   Prazos: 'licitacoes',
-  Captação: 'captacao',
-  Conta: 'conta',
-  Projetos: 'projetos',
-  Gestão: 'gestao',
+};
+
+/** Nome no menu quando difere do título do catálogo (o item '' de modules.json chama-se "Painel" desde o protótipo). */
+export const TITULO_NO_MENU: Record<string, string> = { '': 'Projetos prioritários' };
+
+/** Telas que o perfil precisa poder abrir para vê-las no menu (a própria página também confere e responde 403). */
+export const PERMISSAO_DO_ITEM: Record<string, Acao> = {
+  usuarios: 'gerenciar_usuarios',
+  'gestao-equipe': 'editar_projeto',
+  'gestao-inconsistencias': 'editar_projeto',
 };
 
 const textosGestao: Record<string, string> = {
-  projetos: 'Carteira por fase, entregas previstas e o que está parado',
-  captacao: 'Convênios, saldo a liberar e cláusulas suspensivas a vencer',
-  licitacoes: 'Licitações em andamento, colocados e próximos prazos',
+  gerencial: 'Projetos prioritários, carteira, mapa, Kanban e Gantt',
+  governanca: 'Cronogramas, onde está parado, inconsistências e pendências',
+  convenios: 'Convênios em execução e em risco e regularidade no CAUC',
 };
 
+const tela = (slug: string, title: string, group: string, source: string) => ({
+  slug, title, group, columns: [] as string[], rows: [] as (string | number)[][], fields: [] as string[], source,
+});
+
 export const NOVOS_MODULOS = [
+  // Conteúdo de "Projetos · Início" montado a partir da carteira em src/lib/carteira/modulos.ts (montarInicio).
+  tela('projetos', 'Projetos · Início', 'Projetos', 'govnexa-roteiro'),
+  tela('projetos-fluxo', 'Fluxo do sistema', 'Projetos', 'govnexa-fluxo'),
+  tela('projetos-novo', 'Novo projeto', 'Projetos', 'govnexa-cadastro'),
+  tela('projetos-carteira', 'Carteira de projetos', 'Projetos', 'govnexa-carteira'),
+  tela('projetos-localizacao', 'Obras sem localização', 'Projetos', 'govnexa-localizacao'),
+  tela('projetos-kanban', 'Kanban por macroetapa', 'Projetos', 'govnexa-carteira'),
+  tela('projetos-gantt', 'Gantt geral', 'Projetos', 'govnexa-carteira'),
+  tela('projetos-cronogramas', 'Cronogramas', 'Projetos', 'govnexa-cronogramas'),
+  tela('projetos-parado', 'Onde está parado', 'Projetos', 'govnexa-cronogramas'),
+  tela('projetos-pendencias', 'Pendências de etapa', 'Projetos', 'govnexa-carteira'),
+  tela('projetos-reuniao', 'Reunião semanal', 'Projetos', 'govnexa-reuniao'),
+  tela('projetos-sala', 'Sala de guerra', 'Projetos', 'govnexa-sala'),
+  tela('usuarios', 'Usuários', 'Conta', 'govnexa-usuarios'),
+  tela('projetos-log', 'Histórico de alterações', 'Projetos', 'govnexa-log'),
+  tela('projetos-sei', 'Processos no SEI', 'Projetos', 'govnexa-sei'),
+  tela('licitacoes-detalhe', 'Licitação em detalhe', 'Operação', 'govnexa-licitacao'),
+  tela('licitacoes-prazos', 'Prazos da Lei 14.133', 'Prazos', 'govnexa-prazos'),
   {
-    slug: 'projetos',
-    title: 'Projetos · Início',
-    group: 'Projetos',
-    // Conteúdo montado a partir da carteira em src/lib/carteira/modulos.ts (montarInicio).
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-roteiro',
+    ...tela('gestao', 'Mapa e painel', 'Gestão', 'govnexa-modulos'),
+    columns: ['Visão', 'Situação', 'O que mostra'],
+    rows: MODULOS.filter((m) => m.id in textosGestao).map((m) => [m.nome, 'Ativo', textosGestao[m.id]]),
   },
-  {
-    slug: 'projetos-fluxo',
-    title: 'Fluxo do sistema',
-    group: 'Projetos',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-fluxo',
-  },
-  {
-    slug: 'projetos-novo',
-    title: 'Novo projeto',
-    group: 'Projetos',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-cadastro',
-  },
-  {
-    slug: 'projetos-carteira',
-    title: 'Carteira de projetos',
-    group: 'Projetos',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-carteira',
-  },
-  {
-    slug: 'projetos-localizacao',
-    title: 'Obras sem localização',
-    group: 'Projetos',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-localizacao',
-  },
-  {
-    slug: 'projetos-kanban',
-    title: 'Kanban por macroetapa',
-    group: 'Projetos',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-carteira',
-  },
-  {
-    slug: 'projetos-gantt',
-    title: 'Gantt geral',
-    group: 'Projetos',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-carteira',
-  },
-  {
-    slug: 'projetos-cronogramas',
-    title: 'Cronogramas',
-    group: 'Projetos',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-cronogramas',
-  },
-  {
-    slug: 'projetos-parado',
-    title: 'Onde está parado',
-    group: 'Projetos',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-cronogramas',
-  },
-  {
-    slug: 'projetos-pendencias',
-    title: 'Pendências de etapa',
-    group: 'Projetos',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-carteira',
-  },
-  {
-    slug: 'projetos-reuniao',
-    title: 'Reunião semanal',
-    group: 'Projetos',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-reuniao',
-  },
-  {
-    slug: 'projetos-sala',
-    title: 'Sala de guerra',
-    group: 'Projetos',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-sala',
-  },
-  {
-    slug: 'usuarios',
-    title: 'Usuários',
-    group: 'Conta',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-usuarios',
-  },
-  {
-    slug: 'projetos-log',
-    title: 'Histórico de alterações',
-    group: 'Projetos',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-log',
-  },
-  {
-    slug: 'projetos-sei',
-    title: 'Processos no SEI',
-    group: 'Projetos',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-sei',
-  },
-  {
-    slug: 'licitacoes-detalhe',
-    title: 'Licitação em detalhe',
-    group: 'Operação',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-licitacao',
-  },
-  {
-    slug: 'licitacoes-prazos',
-    title: 'Prazos da Lei 14.133',
-    group: 'Prazos',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-prazos',
-  },
-  {
-    slug: 'gestao',
-    title: 'Gestão · Painel',
-    group: 'Gestão',
-    columns: ['Módulo', 'Situação', 'O que mostrará na Gestão'],
-    rows: MODULOS.filter((m) => m.id !== 'gestao' && m.id !== 'conta').map((m) => [m.nome, 'Ativo', textosGestao[m.id]]),
-    fields: [] as string[],
-    source: 'govnexa-modulos',
-  },
-  {
-    slug: 'gestao-equipe',
-    title: 'Painel da equipe',
-    group: 'Gestão',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-equipe',
-  },
-  {
-    slug: 'gestao-inconsistencias',
-    title: 'Inconsistências de dados',
-    group: 'Gestão',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-inconsistencias',
-  },
-  {
-    slug: 'gestao-whatsapp',
-    title: 'WhatsApp',
-    group: 'Gestão',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-whatsapp',
-  },
-  {
-    slug: 'gestao-alertas',
-    title: 'Alertas',
-    group: 'Gestão',
-    columns: [] as string[],
-    rows: [] as (string | number)[][],
-    fields: [] as string[],
-    source: 'govnexa-alertas',
-  },
+  tela('gestao-equipe', 'Painel da equipe', 'Gestão', 'govnexa-equipe'),
+  tela('gestao-inconsistencias', 'Inconsistências de dados', 'Gestão', 'govnexa-inconsistencias'),
+  tela('gestao-whatsapp', 'WhatsApp', 'Gestão', 'govnexa-whatsapp'),
+  tela('gestao-alertas', 'Alertas', 'Gestão', 'govnexa-alertas'),
+  // E11: tela própria em src/pages/plataforma/convenios/ (o grupo Captação liga a tela ao Fluxo).
+  tela('convenios', 'Visão Convênios', 'Captação', 'govnexa-convenios'),
 ];
 
 /** Base seguida dos módulos novos. Cast único: a forma dos novos itens espelha a de modules.json (slug, title, group, columns, rows, fields, source). */
@@ -239,19 +92,45 @@ export function catalogoCompleto<T>(base: T[]): T[] {
 /** Páginas que existem mas não aparecem no menu lateral (abertas por botão em outra tela). */
 export const FORA_DO_MENU = ['projetos-novo', 'projetos-localizacao'];
 
-export function menuPorModulo<T extends { group: string; slug?: string }>(lista: T[]) {
+/** Visão (módulo do menu) de uma tela; erro se a tela não tiver lugar. */
+export function moduloDoItem(item: { group: string; slug?: string }): ModuloId {
+  const slug = item.slug ?? '';
+  for (const [id, slugs] of Object.entries(ITENS_DA_VISAO)) if (slugs.includes(slug)) return id as ModuloId;
+  const destino = GRUPO_PARA_MODULO[item.group];
+  if (!destino) throw new Error(`Tela sem lugar no menu: ${slug || '(início)'} (grupo ${item.group})`);
+  return destino;
+}
+
+/** A tela aparece no menu para quem tem a permissão dela (sem regra = todos os perfis). */
+export function itemVisivel(slug: string | undefined, pode: (acao: Acao) => boolean): boolean {
+  const acao = PERMISSAO_DO_ITEM[slug ?? ''];
+  return !acao || pode(acao);
+}
+
+/**
+ * Menu lateral: uma entrada por visão, na ordem de MODULOS. As três visões e a Conta são listas simples, na ordem de
+ * ITENS_DA_VISAO; Licitações mantém os grupos de origem (Operação, Planejamento...). `pode` esconde as telas que o perfil não abre.
+ */
+export function menuPorModulo<T extends { group: string; slug?: string; title?: string }>(lista: T[], pode?: (acao: Acao) => boolean) {
   const resultado: { id: ModuloId; nome: string; grupos: { grupo: string; itens: T[] }[] }[] = [];
+  const doMenu = lista.filter((item) => !(item.slug !== undefined && FORA_DO_MENU.includes(item.slug)));
   for (const mod of MODULOS) {
     if (!mod.ativo) continue;
+    const itens = doMenu
+      .filter((item) => moduloDoItem(item) === mod.id)
+      .filter((item) => !pode || itemVisivel(item.slug, pode))
+      .map((item) => (TITULO_NO_MENU[item.slug ?? ''] !== undefined ? { ...item, title: TITULO_NO_MENU[item.slug ?? ''] } : item));
+    const ordem = mod.id === 'licitacoes' ? null : ITENS_DA_VISAO[mod.id];
     const grupos: { grupo: string; itens: T[] }[] = [];
-    for (const item of lista) {
-      if (item.slug && FORA_DO_MENU.includes(item.slug)) continue;
-      const destino = GRUPO_PARA_MODULO[item.group];
-      if (!destino) throw new Error(`Grupo sem módulo: ${item.group}`);
-      if (destino !== mod.id) continue;
-      let g = grupos.find((x) => x.grupo === item.group);
-      if (!g) grupos.push((g = { grupo: item.group, itens: [] }));
-      g.itens.push(item);
+    if (ordem) {
+      const ordenados = [...itens].sort((a, b) => ordem.indexOf(a.slug ?? '') - ordem.indexOf(b.slug ?? ''));
+      if (ordenados.length) grupos.push({ grupo: mod.nome, itens: ordenados });
+    } else {
+      for (const item of itens) {
+        let g = grupos.find((x) => x.grupo === item.group);
+        if (!g) grupos.push((g = { grupo: item.group, itens: [] }));
+        g.itens.push(item);
+      }
     }
     if (grupos.length) resultado.push({ id: mod.id, nome: mod.nome, grupos });
   }
