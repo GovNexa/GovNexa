@@ -13,8 +13,7 @@ export const prerender = false;
 const repo = Astro.locals.repositorio;
 const pncp = repo.pncp;
 const orgaos = pncp ? await pncp.listarOrgaos() : [];
-const historicos = new Map<string, Awaited<ReturnType<NonNullable<typeof pncp>['historicoOrgao']>>>();
-if (pncp) for (const o of orgaos) historicos.set(o.id, await pncp.historicoOrgao(o.id, 20));
+const historicos = pncp ? await pncp.historicoOrgaos(20) : {};
 const podeAtualizar = !!pncp && podeGravarNaTela(Astro.locals.usuario, repo) === 'ok';
 const podeAdministrar = !!pncp && !!repo.podeGravar && usuarioPode(Astro.locals.usuario, 'gerenciar_secretarias_compradoras');
 ---
@@ -88,9 +87,9 @@ const podeAdministrar = !!pncp && !!repo.podeGravar && usuarioPode(Astro.locals.
                       )}
                       <details class="pn-mini" data-pn-historico-orgao>
                         <summary>Histórico</summary>
-                        {(historicos.get(o.id) ?? []).length === 0 ? <p class="ct-vazio">Nenhum registro.</p> : (
+                        {(historicos[o.id] ?? []).length === 0 ? <p class="ct-vazio">Nenhum registro.</p> : (
                           <ol class="ct-historico-lista">
-                            {(historicos.get(o.id) ?? []).map((e) => (
+                            {(historicos[o.id] ?? []).map((e) => (
                               <li>{dataHoraBr(e.em)} · <strong>{ROTULO_EVENTO_ORGAO[e.tipo] ?? e.tipo}</strong>{e.descricao ? ` · ${mascararCpf(e.descricao)}` : ''} <span class="muted">· por {e.autor}</span></li>
                             ))}
                           </ol>

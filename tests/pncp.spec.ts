@@ -1,4 +1,5 @@
 import { test, expect, type APIRequestContext, type Page } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -144,8 +145,8 @@ test('2. ligar a seq 1 (obra), ver itens e vencedor, atualizar, lote da secretar
     const historico = quadro.locator('[data-pn-historico] li');
     await expect(historico).toHaveCount(3);
     await expect(historico.nth(0)).toContainText('Desligada do PNCP');
-    await expect(historico.nth(1)).toContainText('Ligada ao PNCP'); // no mesmo instante, "ligada" vem antes de "dados atualizados"
-    await expect(historico.nth(2)).toContainText('Dados atualizados');
+    await expect(historico.nth(1)).toContainText('Dados atualizados'); // do mais novo ao mais antigo: no mesmo instante, a atualização fica acima da ligação
+    await expect(historico.nth(2)).toContainText('Ligada ao PNCP');
     await expect(quadro.locator('[data-pn-historico]')).toContainText('dev@exemplo.invalid');
   } finally {
     await limpar(request, baseURL, id);
@@ -243,7 +244,7 @@ test('7. PNCP com erro depois de um retrato bom: os dados ficam e o aviso da úl
 SELECT prefeitura_id, 'V-e2e-${Date.now()}', '${id}', id, cnpj, 2026, 7, '${controle(7)}', 'manual', 'dev@exemplo.invalid', '2026-11-01T10:00:00.000Z', '2026-11-01T10:00:00.000Z', '2026-11-01T10:00:00.000Z', 'ok'
   FROM pncp_orgao WHERE prefeitura_id = 5208707 AND cnpj = '90000001000129' AND ativo = 1;
 INSERT INTO pncp_compra (prefeitura_id, vinculo_id, situacao_id, situacao_nome, existe_resultado, srp, obra, objeto, itens_total, incompleto, coletado_em)
-SELECT 5208707, id, 1, 'Divulgada no PNCP', 0, 0, 'sim', 'OBRA DE RETRATO ANTIGO EXEMPLO', 1, 0, '2026-11-01T10:00:00.000Z' FROM contratacao_pncp WHERE prefeitura_id = 5208707 AND contratacao_id = '${id}';
+SELECT 5208707, id, 1, 'Divulgada no PNCP', 0, 0, 'sim', 'OBRA DE RETRATO ANTIGO EXEMPLO 000.000.001-91', 1, 0, '2026-11-01T10:00:00.000Z' FROM contratacao_pncp WHERE prefeitura_id = 5208707 AND contratacao_id = '${id}';
 INSERT INTO pncp_item (prefeitura_id, vinculo_id, numero_item, descricao, situacao_id, situacao_nome, tem_resultado)
 SELECT 5208707, id, 1, 'Item do retrato antigo', 1, 'Em andamento', 0 FROM contratacao_pncp WHERE prefeitura_id = 5208707 AND contratacao_id = '${id}';
 `;
@@ -253,13 +254,13 @@ SELECT 5208707, id, 1, 'Item do retrato antigo', 1, 'Em andamento', 0 FROM contr
       shell: true, stdio: 'pipe', env: { ...process.env, TMPDIR: resolve('.tmp'), WRANGLER_LOG_PATH: resolve('.tmp/wrangler-seed.log') },
     });
     await page.goto(`${PAINEL}${id}/`);
-    await expect(page.locator('[data-pn-retrato]')).toContainText('OBRA DE RETRATO ANTIGO EXEMPLO');
+    await expect(page.locator('[data-pn-retrato]')).toContainText('OBRA DE RETRATO ANTIGO EXEMPLO ***');
     await liberar();
     await page.getByRole('button', { name: 'Atualizar agora' }).click();
     const aviso = page.locator('[data-pn-aviso-status]');
     await expect(aviso).toContainText(/Última tentativa em \d\d\/\d\d\/\d{4} \d\d:\d\d: O PNCP não respondeu\./);
     await expect(aviso).toContainText('Mostrando os dados de 01/11/2026 07:00.'); // 10:00Z = 07:00 em Brasília
-    await expect(page.locator('[data-pn-retrato]')).toContainText('OBRA DE RETRATO ANTIGO EXEMPLO');
+    await expect(page.locator('[data-pn-retrato]')).toContainText('OBRA DE RETRATO ANTIGO EXEMPLO ***');
     await expect(page.locator('[data-pn-itens]')).toContainText('Item do retrato antigo');
     await expect(page.locator('[data-pn-historico]')).toContainText('Falha ao atualizar');
   } finally {
@@ -282,4 +283,47 @@ test('8. remover pela tela uma contratação ligada: o vínculo cai (atualizar d
   await liberar();
   const r = await request.post('/plataforma/gestao-licitacoes/pncp/', { headers: { origin: origem(baseURL) }, data: { acao: 'atualizar', id } });
   expect(r.status()).toBe(404);
+});
+
+/** Contraste (axe) nos dois temas, trocando pelo ícone do topo. Parte do tema escuro. */
+async function contrasteNosDoisTemas(page: Page, rotulo: string): Promise<void> {
+  const graves = async () => (await new AxeBuilder({ page }).withRules(['color-contrast']).analyze()).violations.filter((v) => ['serious', 'critical'].includes(v.impact || ''));
+  const botao = page.locator('.appbar [data-tema-alternar]');
+  await page.evaluate(() => localStorage.setItem('govnexa-theme', 'dark'));
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  expect(await graves(), `${rotulo}: escuro`).toEqual([]);
+  await botao.click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  expect(await graves(), `${rotulo}: claro`).toEqual([]);
+}
+
+test('9. contraste (axe) nos dois temas: secretarias e quadro Dados do PNCP (prévia, aviso e selo de aviso)', async ({ page, request, baseURL }) => {
+  test.setTimeout(180_000);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(SECRETARIAS);
+  await page.locator('[data-pn-historico-orgao] summary').first().click();
+  await contrasteNosDoisTemas(page, 'secretarias');
+  const id = await criar(request, baseURL, nome('contraste'));
+  try {
+    await page.goto(`${PAINEL}${id}/`);
+    await previa(page, controle(9)); // não identificada: aviso e caixa de confirmação visíveis
+    await expect(page.locator('[data-pn-previa-aviso]')).toBeVisible();
+    // a prévia fica aberta enquanto o tema é trocado (a troca recarrega a página: refaz a prévia a cada tema)
+    const graves = async () => (await new AxeBuilder({ page }).withRules(['color-contrast']).analyze()).violations.filter((v) => ['serious', 'critical'].includes(v.impact || ''));
+    await page.evaluate(() => localStorage.setItem('govnexa-theme', 'dark'));
+    await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
+    expect(await graves(), 'prévia: escuro').toEqual([]);
+    await page.locator('.appbar [data-tema-alternar]').click();
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+    await expect(page.locator('[data-pn-previa-aviso]')).toBeVisible();
+    expect(await graves(), 'prévia: claro').toEqual([]);
+    await page.locator('[data-pn-confirmo]').check();
+    await ligar(page);
+    await expect(page.locator('.pn-selo-aviso')).toBeVisible();
+    await contrasteNosDoisTemas(page, 'quadro com selo de aviso');
+    await expect(page.locator('.pn-selo-aviso')).toBeVisible();
+  } finally {
+    await limpar(request, baseURL, id);
+  }
 });

@@ -53,6 +53,8 @@ export interface RepositorioPncp {
   gravarRetrato(v: VinculoPncp, coleta: ColetaOk, autor: string, emIso: string): Promise<'ok' | 'desligado' | 'recusado'>;
   gravarFalha(v: VinculoPncp, status: 'erro' | 'nao_encontrado' | 'formato', motivo: string, autor: string, emIso: string): Promise<'ok' | 'desligado'>;
   historicoOrgao(orgaoId: string, limite: number): Promise<EventoPncp[]>;
+  /** Histórico de TODAS as secretarias em uma consulta (até `limite` eventos por secretaria, do mais novo ao mais antigo). */
+  historicoOrgaos(limite: number): Promise<Record<string, EventoPncp[]>>;
 }
 
 const mudou = (r: { meta?: { changes?: number } } | undefined): boolean => (r?.meta?.changes ?? 0) === 1;
@@ -169,7 +171,7 @@ export function criarRepositorioPncp(db: BancoD1, prefeituraId: number): Reposit
     },
     async historico(contratacaoId, limite) {
       const r = await db.prepare(
-        `SELECT id, tipo, contratacao_id, orgao_id, vinculo_id, autor, em, descricao, detalhe FROM evento_pncp WHERE prefeitura_id = ? AND contratacao_id = ? ORDER BY em DESC, CASE WHEN tipo = 'vinculo' THEN 0 ELSE 1 END, id DESC LIMIT ?`,
+        `SELECT id, tipo, contratacao_id, orgao_id, vinculo_id, autor, em, descricao, detalhe FROM evento_pncp WHERE prefeitura_id = ? AND contratacao_id = ? ORDER BY em DESC, CASE WHEN tipo = 'vinculo' THEN 1 ELSE 0 END, id DESC LIMIT ?`,
       ).bind(prefeituraId, contratacaoId, limite).all();
       return r.results.map((x: any) => ({ ...x, detalhe: x.detalhe ? JSON.parse(String(x.detalhe)) : null })) as EventoPncp[];
     },
@@ -267,6 +269,18 @@ export function criarRepositorioPncp(db: BancoD1, prefeituraId: number): Reposit
         eventoVinculo('coleta_erro', v.id, autor, emIso, motivo, { status }),
       ]);
       return mudou(r) ? 'ok' : 'desligado';
+    },
+    async historicoOrgaos(limite) {
+      const r = await db.prepare(
+        `SELECT id, tipo, contratacao_id, orgao_id, vinculo_id, autor, em, descricao, detalhe FROM (
+           SELECT id, tipo, contratacao_id, orgao_id, vinculo_id, autor, em, descricao, detalhe,
+                  ROW_NUMBER() OVER (PARTITION BY orgao_id ORDER BY em DESC, id DESC) AS n
+             FROM evento_pncp WHERE prefeitura_id = ? AND orgao_id IS NOT NULL
+         ) WHERE n <= ? ORDER BY orgao_id, em DESC, id DESC`,
+      ).bind(prefeituraId, limite).all();
+      const saida: Record<string, EventoPncp[]> = {};
+      for (const x of r.results as any[]) (saida[x.orgao_id] ??= []).push({ ...x, detalhe: x.detalhe ? JSON.parse(String(x.detalhe)) : null });
+      return saida;
     },
     async historicoOrgao(orgaoId, limite) {
       const r = await db.prepare(

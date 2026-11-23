@@ -17,6 +17,7 @@ import {
 } from '../../src/lib/pncp/regras.ts';
 import { lerCompra, lerItens, lerResultados } from '../../src/lib/pncp/validacao.ts';
 import { lerLimitado } from '../../src/lib/seguranca/ler-limitado.ts';
+import { podeGravarNaTela } from '../../src/lib/contratacoes/servico.ts';
 import { pode, usuarioPode, type Usuario } from '../../src/lib/usuarios/index.ts';
 import dados from '../../data/exemplo/pncp/compras.json' with { type: 'json' };
 import { rodarCasosMigracao } from './casos-migracao.ts';
@@ -181,6 +182,12 @@ test('4b. CPF dentro de textos é mascarado; CNPJ e valores não', () => {
   assert.equal(mascararCpf('CPF: 000.000.001-91.'), 'CPF: ***.');
   assert.equal(mascararCpf(null), null);
   for (const s of ['90000001000129', '90.000.001/0001-29', ALFA, 'R$ 1.380.000,00', `${A}-1-000001/2026`]) assert.equal(mascararCpf(s), s, s);
+});
+
+test('4e. CPF também em processo e número da compra (lerCompra)', () => {
+  const c = lerCompra({ ...COMPRAS[`${A}/2026/1`]!.compra, processo: 'PROC 000.000.001-91 de 2026', numeroCompra: '00000000191' }, TRIO1)!;
+  assert.equal(c.processo, 'PROC *** de 2026');
+  assert.equal(c.numeroCompra, '***');
 });
 
 test('4c. datas do PNCP: 10 ou 19 caracteres, só o que existe', () => {
@@ -642,14 +649,14 @@ test('10d. limite estourado em "atualizar" = 429 ANTES da trava: a próxima tent
   assert.ok(d.esp.n > chamadas);
 });
 
-test('10e. Histórico: no mesmo instante, "vinculo" vem antes de "coleta_*"', async () => {
+test('10e. Histórico (do mais novo ao mais antigo): no mesmo instante, "coleta_*" fica ACIMA de "vinculo" (a ligação aconteceu antes)', async () => {
   const m = montar('admin');
   await secretaria(m.ctx);
   const cid = await contratacao(m.ctx);
   const { deps } = mk(undefined, estadoLivre());
   assert.equal(corpoDe(await ligar(m.ctx, deps, cid, 1)).status, 'ok'); // ligar grava vínculo e 1ª coleta no mesmo instante
   const tipos = (await m.pncp.historico(cid, 20)).map((e) => e.tipo);
-  assert.deepEqual(tipos, ['vinculo', 'coleta_ok']);
+  assert.deepEqual(tipos, ['coleta_ok', 'vinculo']);
 });
 
 test('11. HTTP: origem, perfil, formato, tamanho, JSON, chave extra e sem cache', async () => {
@@ -861,4 +868,58 @@ test('15. repositório: vincular recusa órgão inativo e contratação removida
   assert.equal(await m.pncp.desvincular(cid, v.id, 'x', 'a@b.c', agora().toISOString()), 'ok');
   assert.ok((await org(m.ctx, { acao: 'orgao_desativar', orgao_id: orgaoId, revisao: 0 })).ok);
   assert.equal(await m.pncp.vincular({ id: 'V-novo', contratacaoId: cid, orgaoId, cnpj: A, ano: 2026, sequencial: 3, numeroControle: controle(3), obra: 'sim' }, 'a@b.c', agora().toISOString()), 'invalido');
+});
+
+test('16. "recente" não gasta vaga de limite da prefeitura: 7 cliques seguidos não esgotam a cota', async () => {
+  const m = montar('admin');
+  await secretaria(m.ctx);
+  const cid = await contratacao(m.ctx);
+  let pedidos = 0;
+  const estado = { pausadoAte: 0, porPessoa: { permitir: async () => true }, porPrefeitura: { permitir: async () => { pedidos++; return true; } } };
+  const { deps, esp } = mk(undefined, estado);
+  assert.equal(corpoDe(await ligar(m.ctx, deps, cid, 1)).status, 'ok');
+  const antesPedidos = pedidos;
+  const antesChamadas = esp.n;
+  const antesEventos = n(m.banco, 'SELECT count(*) FROM evento_pncp');
+  for (let i = 0; i < 7; i++) assert.equal(corpoDe(await exec(m.ctx, deps, { acao: 'atualizar', id: cid })).status, 'recente');
+  assert.equal(pedidos, antesPedidos);
+  assert.equal(esp.n, antesChamadas);
+  assert.equal(n(m.banco, 'SELECT count(*) FROM evento_pncp'), antesEventos);
+  const orgaoId = (await m.pncp.listarOrgaos())[0]!.id;
+  assert.equal(corpoDe(await exec(m.ctx, deps, { acao: 'atualizar_orgao', orgao_id: orgaoId })).recentes, 1);
+  assert.equal(pedidos, antesPedidos);
+});
+
+test('17. permissões das telas: o editor atualiza, mas não cadastra, edita nem desativa secretarias', async () => {
+  const m = montar('admin');
+  const repo = m.repositorio;
+  const editor = usuario('editor');
+  assert.equal(podeGravarNaTela(editor, repo), 'ok'); // vê "Atualizar agora"
+  assert.equal(usuarioPode(editor, 'gerenciar_secretarias_compradoras'), false); // não vê Cadastrar/Editar/Desativar
+  assert.equal(podeAdministrarPncp(editor), false);
+  assert.equal(podeGravarNaTela(usuario('gestor'), repo), 'ok');
+  assert.equal(usuarioPode(usuario('gestor'), 'gerenciar_secretarias_compradoras'), false);
+  assert.equal(podeGravarNaTela(usuario('admin'), repo), 'ok');
+  assert.equal(usuarioPode(usuario('admin'), 'gerenciar_secretarias_compradoras'), true);
+  assert.equal(podeGravarNaTela(usuario('leitura'), repo), 'perfil');
+});
+
+test('18. Histórico das secretarias em UMA consulta, até 20 por secretaria e só da prefeitura', async () => {
+  const m = montar('admin');
+  const o1 = await secretaria(m.ctx);
+  const o2 = await secretaria(m.ctx, B, 'Secretaria Dois');
+  for (let i = 0; i < 25; i++) assert.ok((await org(m.ctx, { acao: 'orgao_editar', orgao_id: o1, revisao: i, nome: `Nome ${i}`, sigla: 'X' })).ok);
+  const outra = montar('admin', OUTRA);
+  await secretaria(outra.ctx);
+  const consultas: string[] = [];
+  const original = m.banco.db.prepare.bind(m.banco.db);
+  (m.banco.db as { prepare: unknown }).prepare = (sql: string) => { consultas.push(sql); return original(sql); };
+  const h = await m.pncp.historicoOrgaos(20);
+  assert.equal(consultas.length, 1);
+  assert.match(consultas[0]!, /ROW_NUMBER\(\) OVER \(PARTITION BY orgao_id ORDER BY em DESC, id DESC\)/);
+  assert.equal(h[o1]!.length, 20);
+  assert.equal(h[o2]!.length, 1);
+  assert.equal(Object.keys(h).length, 2);
+  assert.ok(h[o1]!.every((e) => e.orgao_id === o1));
+  assert.equal(h[o1]![0]!.descricao, 'Secretaria editada: Nome 24');
 });

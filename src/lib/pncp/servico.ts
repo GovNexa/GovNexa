@@ -117,6 +117,12 @@ async function atualizarVinculo(c: ContextoPncp, deps: DepsPncp, agora: Date, v:
   const autor = c.usuario!.email;
   const emIso = agora.toISOString();
   const ms = agora.getTime();
+  // Trava de 10 min só para LEITURA primeiro: "recente" responde sem gastar vaga de limite da prefeitura.
+  if (v.ultima_tentativa_em) {
+    const base = Date.parse(v.ultima_tentativa_em);
+    const janela = v.ultimo_status === 'ok' ? TRAVA_OK_MS : TRAVA_ERRO_MS;
+    if (Number.isFinite(base) && ms - base < janela) return { r: 'recente', liberaEm: new Date(base + janela).toISOString() };
+  }
   // Limites ANTES da trava: um 429 não pode deixar a contratação travada sem ter coletado.
   if (comLimites && (await limitesPrefeitura(c, deps, agora, true))) return { r: 'limite' };
   const reservou = await repo.reservarTentativa(v.id, emIso, new Date(ms - TRAVA_OK_MS).toISOString(), new Date(ms - TRAVA_ERRO_MS).toISOString());
