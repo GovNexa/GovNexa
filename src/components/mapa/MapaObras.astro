@@ -1,4 +1,7 @@
 ---
+// Mapa das obras (E4): cor, legenda e filtro por ÁREA; filtro por macroetapa e, opcional, por região; total de obras e
+// valor por região. Sem situação de prazo (no prazo, atenção, atrasada) e sem farol. Textos de usuário só por textContent.
+import '../../styles/prioritarios.css';
 import '../../styles/mapa.css';
 import Icon from '../Icon.astro';
 import type { ObraBasica, ObraMapa } from '../../lib/mapa/obras.ts';
@@ -9,34 +12,40 @@ interface Props {
   semLocalLista?: ObraBasica[];
   altura?: string;
   id?: string;
-  /** Versão de resumo (dashboard): só o mapa, sem filtros nem painel; tocar amplia para a apresentação em tela cheia. */
+  /** Versão de resumo (tela do prefeito): só o mapa e a legenda; tocar amplia para a apresentação em tela cheia. */
   compacto?: boolean;
+  /** Endereço do mapa completo (Gestão) com os filtros equivalentes; só caminhos de /plataforma/gestao/. */
+  linkCompleto?: string;
 }
 const { obras, semLocal, semLocalLista = [], altura = 'min(70vh, 640px)', id = 'mapa-obras', compacto = false } = Astro.props;
+const COMPLETO = '/plataforma/gestao/#mapa';
+const linkCompleto = typeof Astro.props.linkCompleto === 'string' && Astro.props.linkCompleto.startsWith('/plataforma/gestao/') && !/[\s\\]/.test(Astro.props.linkCompleto)
+  ? Astro.props.linkCompleto
+  : COMPLETO;
 const dados = JSON.stringify({ obras, semLocalLista, semLocal }).replaceAll('<', '\\u003c');
 ---
-<div class="mp-secao" data-mapa-obras={id} id={id} data-mp-compacto={compacto ? '' : undefined}>
+<div class="mp-secao" data-mapa-obras={id} id={id} data-mp-compacto={compacto ? '' : undefined} data-mp-completo={linkCompleto}>
   <div class="mp-cab">
     <h2 id={`${id}-titulo`}>Mapa das obras</h2>
     {compacto
-      ? <a class="mp-link" href="/plataforma/gestao/#mapa">Abrir na Gestão →</a>
+      ? <a class="mp-link" href={linkCompleto}>Abrir na Gestão →</a>
       : <a class="mp-link" href="/plataforma/projetos-localizacao/">Cadastrar localização</a>}
   </div>
   <p class="mp-contagem" role="status" aria-live="polite" data-mp-contagem></p>
 
   <div class="mp-filtros">
     <div class="mp-filtros-linha" role="group" aria-label="Filtros do mapa">
-      <div class="mp-filtro" data-mp-filtro="farol">
-        <button type="button" class="mp-btn mp-filtro-abrir" data-mp-abrir aria-expanded="false" aria-controls={`${id}-filtro-farol`}>Situação: Todas ▾</button>
-        <div class="mp-popover" id={`${id}-filtro-farol`} data-mp-popover hidden></div>
+      <div class="mp-filtro" data-mp-filtro="etapas">
+        <button type="button" class="mp-btn mp-filtro-abrir" data-mp-abrir aria-expanded="false" aria-controls={`${id}-filtro-etapas`}>Macroetapa: Todas ▾</button>
+        <div class="mp-popover" id={`${id}-filtro-etapas`} data-mp-popover hidden></div>
       </div>
-      <div class="mp-filtro" data-mp-filtro="situacoes">
-        <button type="button" class="mp-btn mp-filtro-abrir" data-mp-abrir aria-expanded="false" aria-controls={`${id}-filtro-situacoes`}>Etapas: Todas ▾</button>
-        <div class="mp-popover" id={`${id}-filtro-situacoes`} data-mp-popover hidden></div>
+      <div class="mp-filtro" data-mp-filtro="areas">
+        <button type="button" class="mp-btn mp-filtro-abrir" data-mp-abrir aria-expanded="false" aria-controls={`${id}-filtro-areas`}>Área: Todas ▾</button>
+        <div class="mp-popover" id={`${id}-filtro-areas`} data-mp-popover hidden></div>
       </div>
-      <div class="mp-filtro" data-mp-filtro="categorias">
-        <button type="button" class="mp-btn mp-filtro-abrir" data-mp-abrir aria-expanded="false" aria-controls={`${id}-filtro-categorias`}>Tipos: Todos ▾</button>
-        <div class="mp-popover" id={`${id}-filtro-categorias`} data-mp-popover hidden></div>
+      <div class="mp-filtro" data-mp-filtro="regiao">
+        <button type="button" class="mp-btn mp-filtro-abrir" data-mp-abrir aria-expanded="false" aria-controls={`${id}-filtro-regiao`}>Região: Todas ▾</button>
+        <div class="mp-popover" id={`${id}-filtro-regiao`} data-mp-popover hidden></div>
       </div>
     </div>
     <div class="mp-acoes">
@@ -66,19 +75,17 @@ const dados = JSON.stringify({ obras, semLocalLista, semLocal }).replaceAll('<',
     <aside class="mp-painel" aria-label="Resumo do mapa" aria-live="polite" data-mp-painel></aside>
   </div>
 
-  <ul class="mp-legenda" aria-label="Legenda da situação do prazo">
-    <li><span class="mp-ponto-farol mp-farol-verde" aria-hidden="true"></span>No prazo</li>
-    <li><span class="mp-ponto-farol mp-farol-amarelo" aria-hidden="true"></span>Atenção</li>
-    <li><span class="mp-ponto-farol mp-farol-vermelho" aria-hidden="true"></span>Atrasada</li>
-    <li><span class="mp-contorno-aprox" aria-hidden="true"></span>Contorno tracejado = local aproximado (centro do bairro)</li>
-  </ul>
+  <div class="mp-legenda-bloco">
+    <ul class="mp-legenda" aria-label="Legenda das áreas" data-mp-legenda></ul>
+    <p class="mp-legenda-nota"><span class="mp-contorno-aprox" aria-hidden="true"></span>Contorno tracejado = local aproximado (centro do bairro)</p>
+  </div>
 
   <details class="mp-lista">
     <summary>Ver as obras em lista</summary>
     <div class="table-wrap">
       <table>
         <caption class="mp-nota">Obras visíveis com os filtros escolhidos</caption>
-        <thead><tr><th scope="col">Obra</th><th scope="col">Órgão</th><th scope="col">Situação do prazo</th><th scope="col">Etapa</th><th scope="col">Tipo de obra</th><th scope="col">Local</th></tr></thead>
+        <thead><tr><th scope="col">Obra</th><th scope="col">Órgão</th><th scope="col">Área</th><th scope="col">Macroetapa</th><th scope="col">Valor</th><th scope="col">Local</th></tr></thead>
         <tbody data-mp-lista-corpo></tbody>
       </table>
     </div>
@@ -101,34 +108,31 @@ import * as L from 'leaflet';
 import { criarCamadasFundo, ehCamada, preferenciaCamada, type NomeCamada } from '../../lib/mapa/camadas.ts';
 import 'leaflet/dist/leaflet.css';
 import { dataBr } from '../../lib/datas.ts';
-import { GOIANIA, ROTULO_CATEGORIA, ROTULO_SITUACAO_MAPA, espalharSobrepostos, type SituacaoMapa } from '../../lib/mapa/geo.ts';
-import { agruparPorBairro, agruparPorRegiao, type AgrupamentoMapa, type CorFarol, type ObraAgrupavel } from '../../lib/mapa/agrupar.ts';
+import { ETAPAS, NOME_SEM_AREA, SEM_AREA, nomeEtapa, type IdEtapa } from '../../lib/gestao/prioritarios.ts';
+import { GOIANIA } from '../../lib/mapa/geo.ts';
+import { agruparPorBairro, agruparPorRegiao, type AgrupamentoMapa, type ObraAgrupavel } from '../../lib/mapa/agrupar.ts';
+import { posicionarSemSobrepor, type Alvo, type Obstaculo } from '../../lib/mapa/bolhas.ts';
+import { SERIES_COR, VAR_COR, glifoDaArea, serieDaCor, type SerieCor } from '../../lib/mapa/cores-area.ts';
 import { elementoGlifo } from '../../lib/mapa/icones.ts';
 import type { ObraBasica, ObraMapa } from '../../lib/mapa/obras.ts';
 import { lerLocalizacoesSimuladas } from '../../lib/mapa/simulacao.ts';
-import type { CategoriaObra, Localizacao, PontoGeo } from '../../lib/mapa/tipos.ts';
+import type { Localizacao, PontoGeo } from '../../lib/mapa/tipos.ts';
 
 type ObraVista = ObraMapa & { simulada?: boolean };
 type SemLocalVista = ObraBasica;
 interface Dados { obras: ObraVista[]; semLocalLista: SemLocalVista[]; semLocal: number }
-type FarolFiltro = CorFarol | 'todas';
 type Selecao =
   | { tipo: 'cidade' }
   | { tipo: 'grupo'; grupo: AgrupamentoMapa }
   | { tipo: 'obra'; obra: ObraVista };
+interface OpcaoArea { codigo: string; nome: string; serie: SerieCor }
 
-const SITUACOES = Object.keys(ROTULO_SITUACAO_MAPA) as SituacaoMapa[];
-const CATEGORIAS = Object.keys(ROTULO_CATEGORIA) as CategoriaObra[];
-const FAROIS: { valor: FarolFiltro; texto: string }[] = [
-  { valor: 'todas', texto: 'Todas' },
-  { valor: 'verde', texto: 'No prazo' },
-  { valor: 'amarelo', texto: 'Atenção' },
-  { valor: 'vermelho', texto: 'Atrasadas' },
-];
-const CORES_FAROL: Record<CorFarol, string> = { verde: '#238636', amarelo: '#b76e00', vermelho: '#c62828' };
-const ROTULO_FAROL: Record<CorFarol, string> = { verde: 'No prazo', amarelo: 'Atenção', vermelho: 'Atrasada' };
+const IDS_ETAPA: IdEtapa[] = ETAPAS.map((etapa) => etapa.id);
+const CODIGO_AREA_MAPA = /^(-sem|[a-z0-9_]{2,40})$/;
 const MOEDA = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+const TAMANHO_MARCADOR = 44;
 const tamanhoBolha = (total: number): number => Math.min(88, 52 + Math.sqrt(total) * 5);
+const plural = (n: number, um: string, varios: string): string => `${n} ${n === 1 ? um : varios}`;
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, texto?: string, classe?: string): HTMLElementTagNameMap[K] {
   const e = document.createElement(tag);
@@ -143,6 +147,14 @@ function pontosDaLocalizacao(localizacao: Localizacao): PontoGeo[] {
     : localizacao.trechos.flatMap((trecho) => trecho.linha);
 }
 
+/** Onde fica o marcador clicável da obra: o ponto, ou o meio do primeiro trecho de rua. */
+function pontoDoMarcador(obra: ObraVista): PontoGeo | null {
+  const local = obra.localizacao;
+  if (local.tipo === 'ponto') return local.ponto;
+  const linha = local.trechos[0]?.linha ?? [];
+  return linha[Math.floor(linha.length / 2)] ?? null;
+}
+
 function localTexto(o: ObraVista): string {
   const local = o.localizacao;
   if (o.precisao === 'bairro') return `Aproximado: centro do bairro ${o.bairro ?? ''}`.trim();
@@ -151,16 +163,29 @@ function localTexto(o: ObraVista): string {
 }
 
 function valorTexto(obras: ObraBasica[]): string {
-  const conhecidos = obras.filter((obra) => obra.valor !== null);
+  const conhecidos = obras.filter((obra) => typeof obra.valor === 'number' && Number.isFinite(obra.valor));
   if (conhecidos.length === 0) return `— (0 de ${obras.length} com valor)`;
   const total = conhecidos.reduce((soma, obra) => soma + (obra.valor ?? 0), 0);
   return `${MOEDA.format(total)} (${conhecidos.length} de ${obras.length} com valor)`;
 }
 
-function contagemFarol(obras: ObraBasica[]): Record<CorFarol, number> {
-  const contagem: Record<CorFarol, number> = { verde: 0, amarelo: 0, vermelho: 0 };
-  for (const obra of obras) contagem[obra.farol.cor]++;
-  return contagem;
+const serieDe = (obra: ObraBasica): SerieCor => serieDaCor(obra.cor, obra.area);
+const nomeAreaDe = (obra: ObraBasica): string => (typeof obra.areaNome === 'string' && obra.areaNome.trim() ? obra.areaNome : NOME_SEM_AREA);
+const etapaValida = (obra: ObraBasica): IdEtapa => (IDS_ETAPA.includes(obra.etapa) ? obra.etapa : 'sem');
+
+/** Áreas presentes, na ordem da legenda: as 6 com cor (1 a 6), depois as outras pelo nome e "Sem área" no fim. */
+function areasPresentes(obras: ObraBasica[]): OpcaoArea[] {
+  const mapa = new Map<string, OpcaoArea>();
+  for (const obra of obras) {
+    if (typeof obra.area !== 'string' || !CODIGO_AREA_MAPA.test(obra.area) || mapa.has(obra.area)) continue;
+    mapa.set(obra.area, { codigo: obra.area, nome: nomeAreaDe(obra), serie: serieDe(obra) });
+  }
+  const peso = (a: OpcaoArea): number => SERIES_COR.indexOf(a.serie);
+  return [...mapa.values()].sort((a, b) => peso(a) - peso(b) || a.nome.localeCompare(b.nome, 'pt-BR'));
+}
+
+function resumoAreas(obras: ObraBasica[]): string {
+  return areasPresentes(obras).map((area) => `${area.nome} ${obras.filter((obra) => obra.area === area.codigo).length}`).join(' · ');
 }
 
 document.addEventListener('astro:page-load', () => {
@@ -184,10 +209,11 @@ document.addEventListener('astro:page-load', () => {
   const q = <T extends HTMLElement>(seletor: string) => raiz.querySelector<T>(seletor)!;
 
   const compacto = raiz.hasAttribute('data-mp-compacto');
+  const completo = raiz.dataset.mpCompleto?.startsWith('/plataforma/gestao/') ? raiz.dataset.mpCompleto : '/plataforma/gestao/#mapa';
   const simuladas = lerLocalizacoesSimuladas();
   const todas: ObraVista[] = [];
   let semLocal = 0;
-  // Monta a lista de obras (também usada quando o dashboard troca os filtros e envia dados novos).
+  // Monta a lista de obras (também usada quando a tela que contém o mapa envia dados novos).
   const montarObras = (d: Dados): void => {
     todas.length = 0;
     for (const obra of d.obras) {
@@ -204,16 +230,33 @@ document.addEventListener('astro:page-load', () => {
   };
   montarObras(dados);
 
-  // Na versão compacta (dashboard) o estado do mapa não vai para o endereço, que pertence aos filtros do dashboard.
-  const parametrosIniciais = new URLSearchParams(compacto ? '' : location.search);
-  const lerConjunto = <T extends string>(chave: string, valores: T[]): Set<T> => {
-    const valor = parametrosIniciais.get(chave);
-    return valor === null ? new Set(valores) : new Set(valor.split(',').filter((item): item is T => valores.includes(item as T)));
+  // Filtros: null = todas. Na versão compacta o estado não vai para o endereço (que pertence à tela que contém o mapa).
+  let etapasFiltro: Set<IdEtapa> | null = null;
+  let areasFiltro: Set<string> | null = null;
+  let regiaoFiltro = '';
+  let opcoesArea: OpcaoArea[] = [];
+  let opcoesRegiao: string[] = [];
+  const recalcularOpcoes = (): void => {
+    opcoesArea = areasPresentes(todas);
+    opcoesRegiao = [...new Set(todas.map((obra) => (typeof obra.regiao === 'string' ? obra.regiao.trim() : '')).filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
   };
-  const situacoes = lerConjunto('etapas', SITUACOES);
-  const categorias = lerConjunto('tipos', CATEGORIAS);
-  const farolInicial: Record<string, FarolFiltro> = { todas: 'todas', noprazo: 'verde', atencao: 'amarelo', atrasadas: 'vermelho' };
-  let farolFiltro = farolInicial[parametrosIniciais.get('sit') ?? 'todas'] ?? 'todas';
+  recalcularOpcoes();
+  const lerFiltrosDoEndereco = (parametros: URLSearchParams): void => {
+    const lista = (chave: string): string[] | null => {
+      const valor = parametros.get(chave);
+      return valor === null ? null : valor.split(',').map((item) => item.trim()).filter(Boolean);
+    };
+    const etapas = lista('etapas')?.filter((item): item is IdEtapa => IDS_ETAPA.includes(item as IdEtapa)) ?? [];
+    etapasFiltro = etapas.length && etapas.length < IDS_ETAPA.length ? new Set(etapas) : null;
+    const codigos = opcoesArea.map((area) => area.codigo);
+    const areas = lista('areas')?.filter((item) => codigos.includes(item)) ?? [];
+    areasFiltro = areas.length && areas.length < codigos.length ? new Set(areas) : null;
+    const regiao = (parametros.get('regiao') ?? '').trim();
+    regiaoFiltro = opcoesRegiao.includes(regiao) ? regiao : '';
+  };
+  const parametrosIniciais = new URLSearchParams(compacto ? '' : location.search);
+  lerFiltrosDoEndereco(parametrosIniciais);
   const centroInicial = parametrosIniciais.get('c')?.split(',').map(Number);
   const zoomInicial = Number(parametrosIniciais.get('z'));
   const centroValido = centroInicial?.length === 2 && centroInicial.every(Number.isFinite)
@@ -221,7 +264,8 @@ document.addEventListener('astro:page-load', () => {
   const zoomValido = Number.isFinite(zoomInicial) && zoomInicial >= 10 && zoomInicial <= 18;
   let selecao: Selecao = { tipo: 'cidade' };
   const historico: Selecao[] = [];
-  const mapa = L.map(q('[data-mp-mapa]'), {
+  const elMapa = q('[data-mp-mapa]');
+  const mapa = L.map(elMapa, {
     zoomControl: false,
     tap: true,
     minZoom: 10,
@@ -240,7 +284,7 @@ document.addEventListener('astro:page-load', () => {
     for (const lista of Object.values(camadasFundo)) for (const c of lista) if (mapa.hasLayer(c)) mapa.removeLayer(c);
     for (const c of camadasFundo[nome]) c.addTo(mapa);
     camadaAtual = nome;
-    q('[data-mp-mapa]').dataset.camada = nome;
+    elMapa.dataset.camada = nome;
     for (const b of botoesCamada) b.setAttribute('aria-pressed', String(b.dataset.mpCamada === nome));
     preferenciaCamada(nome);
   }
@@ -254,6 +298,7 @@ document.addEventListener('astro:page-load', () => {
   const contagem = q('[data-mp-contagem]');
   const corpo = q('[data-mp-lista-corpo]');
   const painel = q('[data-mp-painel]');
+  const legenda = q('[data-mp-legenda]');
   const aviso = el('p', undefined, 'mp-aviso');
   aviso.setAttribute('role', 'status');
   aviso.hidden = true;
@@ -273,8 +318,8 @@ document.addEventListener('astro:page-load', () => {
     }
   }
 
-  type TipoFiltro = 'farol' | 'situacoes' | 'categorias';
-  const filtros = new Map<TipoFiltro, { trigger: HTMLButtonElement; popover: HTMLDivElement }>();
+  type TipoFiltro = 'etapas' | 'areas' | 'regiao';
+  const filtros = new Map<TipoFiltro, { trigger: HTMLButtonElement; popover: HTMLDivElement; opcoes: HTMLDivElement; raiz: HTMLElement }>();
   const fecharFiltro = (restaurarFoco = false): void => {
     for (const { trigger, popover } of filtros.values()) {
       if (popover.hidden) continue;
@@ -286,12 +331,13 @@ document.addEventListener('astro:page-load', () => {
   const salvarURL = (): void => {
     if (compacto) return;
     const url = new URL(location.href);
-    if (farolFiltro === 'todas') url.searchParams.delete('sit');
-    else url.searchParams.set('sit', farolFiltro === 'verde' ? 'noprazo' : farolFiltro === 'amarelo' ? 'atencao' : 'atrasadas');
-    if (situacoes.size === SITUACOES.length) url.searchParams.delete('etapas');
-    else url.searchParams.set('etapas', SITUACOES.filter((item) => situacoes.has(item)).join(','));
-    if (categorias.size === CATEGORIAS.length) url.searchParams.delete('tipos');
-    else url.searchParams.set('tipos', CATEGORIAS.filter((item) => categorias.has(item)).join(','));
+    for (const antigo of ['sit', 'tipos']) url.searchParams.delete(antigo);
+    if (etapasFiltro) url.searchParams.set('etapas', IDS_ETAPA.filter((item) => etapasFiltro!.has(item)).join(','));
+    else url.searchParams.delete('etapas');
+    if (areasFiltro) url.searchParams.set('areas', opcoesArea.map((area) => area.codigo).filter((codigo) => areasFiltro!.has(codigo)).join(','));
+    else url.searchParams.delete('areas');
+    if (regiaoFiltro) url.searchParams.set('regiao', regiaoFiltro);
+    else url.searchParams.delete('regiao');
     url.searchParams.set('z', String(mapa.getZoom()));
     const centro = mapa.getCenter();
     url.searchParams.set('c', `${centro.lat.toFixed(5)},${centro.lng.toFixed(5)}`);
@@ -302,15 +348,18 @@ document.addEventListener('astro:page-load', () => {
     else url.searchParams.delete('sel');
     history.replaceState(history.state, '', `${url.pathname}${url.search}${url.hash}`);
   };
-  const tituloFarol = (valor: FarolFiltro): string => FAROIS.find((item) => item.valor === valor)!.texto;
   const atualizarResumo = (): void => {
     const atualizar = (tipo: TipoFiltro, texto: string): void => {
       const entrada = filtros.get(tipo);
       if (entrada) entrada.trigger.textContent = `${texto} ▾`;
     };
-    atualizar('farol', `Situação: ${farolFiltro === 'todas' ? 'Todas' : tituloFarol(farolFiltro)}`);
-    atualizar('situacoes', `Etapas: ${situacoes.size === SITUACOES.length ? 'Todas' : `${situacoes.size} de ${SITUACOES.length}`}`);
-    atualizar('categorias', `Tipos: ${categorias.size === CATEGORIAS.length ? 'Todos' : `${categorias.size} de ${CATEGORIAS.length}`}`);
+    const etapasMarcadas = etapasFiltro ? IDS_ETAPA.filter((item) => etapasFiltro!.has(item)) : IDS_ETAPA;
+    atualizar('etapas', `Macroetapa: ${!etapasFiltro ? 'Todas' : etapasMarcadas.length === 1 ? nomeEtapa(etapasMarcadas[0]) : `${etapasMarcadas.length} de ${IDS_ETAPA.length}`}`);
+    const areasMarcadas = areasFiltro ? opcoesArea.filter((area) => areasFiltro!.has(area.codigo)) : opcoesArea;
+    atualizar('areas', `Área: ${!areasFiltro ? 'Todas' : areasMarcadas.length === 1 ? areasMarcadas[0].nome : `${areasMarcadas.length} de ${opcoesArea.length}`}`);
+    atualizar('regiao', `Região: ${regiaoFiltro || 'Todas'}`);
+    const filtroRegiao = filtros.get('regiao');
+    if (filtroRegiao) filtroRegiao.raiz.hidden = opcoesRegiao.length === 0;
   };
   const criarOpcao = (
     popover: HTMLElement,
@@ -320,6 +369,7 @@ document.addEventListener('astro:page-load', () => {
     tipo: 'checkbox' | 'radio',
     marcado: boolean,
     aoMudar: (marcado: boolean) => void,
+    serie?: SerieCor,
   ): HTMLInputElement => {
     const rotuloEl = el('label', undefined, 'mp-opcao-filtro');
     const input = el('input');
@@ -328,11 +378,22 @@ document.addEventListener('astro:page-load', () => {
     input.value = valor;
     input.checked = marcado;
     input.addEventListener('change', () => aoMudar(input.checked));
-    rotuloEl.append(input, el('span', rotulo));
+    rotuloEl.append(input);
+    if (serie) {
+      const amostra = el('span', undefined, `mp-amostra ${serie}`);
+      amostra.setAttribute('aria-hidden', 'true');
+      rotuloEl.append(amostra);
+    }
+    rotuloEl.append(el('span', rotulo));
     popover.append(rotuloEl);
     return input;
   };
-  const adicionarFiltro = (tipo: TipoFiltro, titulo: string): { trigger: HTMLButtonElement; popover: HTMLDivElement; opcoes: HTMLDivElement } => {
+  const aposMudarFiltro = (): void => {
+    atualizarResumo();
+    salvarURL();
+    desenhar();
+  };
+  const adicionarFiltro = (tipo: TipoFiltro, titulo: string, multiplo: boolean, aoMarcarTodos?: (todos: boolean) => void): void => {
     const raizFiltro = q<HTMLElement>(`[data-mp-filtro="${tipo}"]`);
     const trigger = raizFiltro.querySelector<HTMLButtonElement>('[data-mp-abrir]')!;
     const popover = raizFiltro.querySelector<HTMLDivElement>('[data-mp-popover]')!;
@@ -340,7 +401,7 @@ document.addEventListener('astro:page-load', () => {
     opcoes.setAttribute('role', 'group');
     opcoes.setAttribute('aria-label', titulo);
     popover.append(opcoes);
-    filtros.set(tipo, { trigger, popover });
+    filtros.set(tipo, { trigger, popover, opcoes, raiz: raizFiltro });
     trigger.addEventListener('click', () => {
       const estavaAberto = !popover.hidden;
       fecharFiltro();
@@ -364,12 +425,14 @@ document.addEventListener('astro:page-load', () => {
       }
     });
     const rodape = el('div', undefined, 'mp-popover-acoes');
-    if (tipo !== 'farol') {
+    if (multiplo && aoMarcarTodos) {
       const marcar = el('button', 'Marcar todos', 'mp-btn');
       const desmarcar = el('button', 'Desmarcar todos', 'mp-btn');
       marcar.type = desmarcar.type = 'button';
       marcar.dataset.mpMarcar = 'todos';
       desmarcar.dataset.mpMarcar = 'nenhum';
+      marcar.addEventListener('click', () => aoMarcarTodos(true));
+      desmarcar.addEventListener('click', () => aoMarcarTodos(false));
       rodape.append(marcar, desmarcar);
     }
     const pronto = el('button', 'Pronto', 'mp-btn');
@@ -378,71 +441,71 @@ document.addEventListener('astro:page-load', () => {
     pronto.addEventListener('click', () => fecharFiltro(true));
     rodape.append(pronto);
     popover.append(rodape);
-    return { trigger, popover, opcoes };
   };
-  const filtroFarol = adicionarFiltro('farol', 'Situação do prazo');
-  for (const filtro of FAROIS) {
-    criarOpcao(filtroFarol.opcoes, `${raiz.id}-farol`, filtro.valor, filtro.texto, 'radio', filtro.valor === farolFiltro, () => {
-      farolFiltro = filtro.valor;
-      filtroFarol.opcoes.querySelectorAll<HTMLInputElement>('input').forEach((input) => { input.checked = input.value === farolFiltro; });
-      atualizarResumo();
-      salvarURL();
-      desenhar();
-    });
+
+  adicionarFiltro('etapas', 'Macroetapas', true, (todos) => {
+    etapasFiltro = todos ? null : new Set();
+    montarOpcoesEtapa();
+    aposMudarFiltro();
+  });
+  adicionarFiltro('areas', 'Áreas', true, (todos) => {
+    areasFiltro = todos ? null : new Set();
+    montarOpcoesArea();
+    aposMudarFiltro();
+  });
+  adicionarFiltro('regiao', 'Região (opcional)', false);
+
+  function montarOpcoesEtapa(): void {
+    const { opcoes } = filtros.get('etapas')!;
+    opcoes.replaceChildren();
+    for (const etapa of ETAPAS) {
+      criarOpcao(opcoes, `${raiz!.id}-etapas`, etapa.id, etapa.nome, 'checkbox', !etapasFiltro || etapasFiltro.has(etapa.id), (ligado) => {
+        const atual = new Set(etapasFiltro ?? IDS_ETAPA);
+        if (ligado) atual.add(etapa.id); else atual.delete(etapa.id);
+        etapasFiltro = atual.size === IDS_ETAPA.length ? null : atual;
+        aposMudarFiltro();
+      });
+    }
   }
-  const filtroSituacao = adicionarFiltro('situacoes', 'Etapas');
-  for (const situacao of SITUACOES) {
-    criarOpcao(filtroSituacao.opcoes, `${raiz.id}-etapas`, situacao, ROTULO_SITUACAO_MAPA[situacao], 'checkbox', situacoes.has(situacao), (ligado) => {
-      if (ligado) situacoes.add(situacao);
-      else situacoes.delete(situacao);
-      atualizarResumo();
-      salvarURL();
-      desenhar();
-    });
+  function montarOpcoesArea(): void {
+    const { opcoes } = filtros.get('areas')!;
+    opcoes.replaceChildren();
+    if (opcoesArea.length === 0) opcoes.append(el('p', 'Nenhuma obra no mapa.', 'mp-nota'));
+    for (const area of opcoesArea) {
+      criarOpcao(opcoes, `${raiz!.id}-areas`, area.codigo, area.nome, 'checkbox', !areasFiltro || areasFiltro.has(area.codigo), (ligado) => {
+        const atual = new Set(areasFiltro ?? opcoesArea.map((item) => item.codigo));
+        if (ligado) atual.add(area.codigo); else atual.delete(area.codigo);
+        areasFiltro = atual.size === opcoesArea.length ? null : atual;
+        aposMudarFiltro();
+      }, area.serie);
+    }
   }
-  const filtroCategoria = adicionarFiltro('categorias', 'Tipos de obra');
-  for (const categoria of CATEGORIAS) {
-    criarOpcao(filtroCategoria.opcoes, `${raiz.id}-tipos`, categoria, ROTULO_CATEGORIA[categoria], 'checkbox', categorias.has(categoria), (ligado) => {
-      if (ligado) categorias.add(categoria);
-      else categorias.delete(categoria);
-      atualizarResumo();
-      salvarURL();
-      desenhar();
-    });
+  function montarOpcoesRegiao(): void {
+    const { opcoes } = filtros.get('regiao')!;
+    opcoes.replaceChildren();
+    for (const regiao of ['', ...opcoesRegiao]) {
+      criarOpcao(opcoes, `${raiz!.id}-regiao`, regiao, regiao || 'Todas', 'radio', regiao === regiaoFiltro, () => {
+        regiaoFiltro = regiao;
+        aposMudarFiltro();
+      });
+    }
   }
-  const configurarAcoesMultiplas = <T extends SituacaoMapa | CategoriaObra>(
-    conjunto: Set<T>,
-    valores: T[],
-    filtro: { popover: HTMLDivElement; opcoes: HTMLDivElement },
-  ): void => {
-    filtro.popover.querySelector('[data-mp-marcar="todos"]')?.addEventListener('click', () => {
-      conjunto.clear();
-      valores.forEach((valor) => conjunto.add(valor));
-      filtro.opcoes.querySelectorAll<HTMLInputElement>('input').forEach((input) => { input.checked = true; });
-      atualizarResumo();
-      salvarURL();
-      desenhar();
-    });
-    filtro.popover.querySelector('[data-mp-marcar="nenhum"]')?.addEventListener('click', () => {
-      conjunto.clear();
-      filtro.opcoes.querySelectorAll<HTMLInputElement>('input').forEach((input) => { input.checked = false; });
-      atualizarResumo();
-      salvarURL();
-      desenhar();
-    });
+  const montarOpcoes = (): void => {
+    montarOpcoesEtapa();
+    montarOpcoesArea();
+    montarOpcoesRegiao();
+    atualizarResumo();
   };
-  configurarAcoesMultiplas(situacoes, SITUACOES, filtroSituacao);
-  configurarAcoesMultiplas(categorias, CATEGORIAS, filtroCategoria);
-  atualizarResumo();
+  montarOpcoes();
   document.addEventListener('pointerdown', (evento) => {
     if (!(evento.target instanceof Element) || !raiz.contains(evento.target) || !evento.target.closest('[data-mp-filtro]')) fecharFiltro();
   });
 
   function obrasFiltradas(): ObraVista[] {
     return todas.filter((obra) =>
-      situacoes.has(obra.situacao) &&
-      categorias.has(obra.categoria) &&
-      (farolFiltro === 'todas' || obra.farol.cor === farolFiltro),
+      (!etapasFiltro || etapasFiltro.has(etapaValida(obra))) &&
+      (!areasFiltro || areasFiltro.has(obra.area)) &&
+      (!regiaoFiltro || (typeof obra.regiao === 'string' ? obra.regiao.trim() : '') === regiaoFiltro),
     );
   }
 
@@ -451,7 +514,7 @@ document.addEventListener('astro:page-load', () => {
       id: obra.id,
       regiao: obra.regiao,
       bairro: obra.bairro,
-      farol: obra.farol.cor,
+      serie: serieDe(obra),
       pontos: pontosDaLocalizacao(obra.localizacao),
     }));
   }
@@ -471,20 +534,17 @@ document.addEventListener('astro:page-load', () => {
   }
 
   function selecionarObra(obra: ObraVista): void {
-    const local = obra.localizacao;
-    const ponto = local.tipo === 'ponto'
-      ? local.ponto
-      : local.trechos[0]?.linha[0];
+    const ponto = pontoDoMarcador(obra);
     selecionar({ tipo: 'obra', obra });
     if (ponto) mapa.setView([ponto.lat, ponto.lng], Math.max(15, mapa.getZoom()));
   }
 
-  function botaoObra(obra: ObraVista, texto = obra.nome): HTMLButtonElement {
+  function botaoObra(obra: ObraVista): HTMLButtonElement {
     const botao = el('button', undefined, 'mp-item');
-    const nome = el('strong', texto);
-    const detalhe = el('span', `${obra.orgao ?? 'Sem órgão'} · ${ROTULO_SITUACAO_MAPA[obra.situacao]}`);
-    const prazo = el('span', `${ROTULO_FAROL[obra.farol.cor]} · ${obra.farol.texto}`, `mp-texto-farol mp-texto-${obra.farol.cor}`);
-    botao.append(nome, detalhe, prazo);
+    botao.append(
+      el('strong', obra.nome),
+      el('span', `${obra.orgao ?? 'Sem órgão'} · ${nomeAreaDe(obra)} · ${nomeEtapa(etapaValida(obra))}`),
+    );
     botao.type = 'button';
     botao.addEventListener('click', () => selecionarObra(obra));
     return botao;
@@ -578,12 +638,12 @@ document.addEventListener('astro:page-load', () => {
       if (obra.simulada) painel.append(el('span', 'Simulação', 'mp-selo'));
       painel.append(
         el('p', obra.orgao ?? 'Sem órgão'),
-        el('p', `Etapa: ${ROTULO_SITUACAO_MAPA[obra.situacao]}`),
-        el('p', `Valor: ${obra.valor === null ? '—' : MOEDA.format(obra.valor)}`),
+        el('p', `Área: ${nomeAreaDe(obra)}`),
+        el('p', `Macroetapa: ${nomeEtapa(etapaValida(obra))}`),
+        el('p', `Valor: ${typeof obra.valor === 'number' && Number.isFinite(obra.valor) ? MOEDA.format(obra.valor) : '—'}`),
       );
-      if (obra.percentual !== null) painel.append(el('p', `Executado: ${Math.round(obra.percentual)}%`));
-      painel.append(el('p', `Prazo da etapa: ${obra.prazo ? dataBr(obra.prazo) : '—'}`));
-      painel.append(el('p', `${ROTULO_FAROL[obra.farol.cor]} · ${obra.farol.texto}`, `mp-texto-farol mp-texto-${obra.farol.cor}`));
+      if (typeof obra.percentual === 'number' && Number.isFinite(obra.percentual)) painel.append(el('p', `Executado: ${Math.round(obra.percentual)}%`));
+      painel.append(el('p', `Entrega prevista: ${obra.entrega ? dataBr(obra.entrega) : 'Sem data'}`));
       if (obra.foto) {
         const foto = el('img');
         foto.src = obra.foto;
@@ -606,16 +666,16 @@ document.addEventListener('astro:page-load', () => {
       return;
     }
 
-    const gruposRegiao = agruparPorRegiao(obrasAgrupaveis(obras));
+    const porId = new Map(obras.map((obra) => [obra.id, obra]));
+    const membrosDe = (grupo: AgrupamentoMapa): ObraVista[] => grupo.ids.map((id) => porId.get(id)).filter((obra): obra is ObraVista => !!obra);
     if (selecao.tipo === 'grupo') {
       const grupo = selecao.grupo;
       const membros = obras.filter((obra) => grupo.ids.includes(obra.id));
       titulo.textContent = grupo.nome;
       cabecalho.append(titulo, acoes);
-      painel.append(cabecalho, el('p', `${membros.length} ${membros.length === 1 ? 'obra' : 'obras'}`));
+      painel.append(cabecalho, el('p', plural(membros.length, 'obra', 'obras')));
       painel.append(el('p', `Valor: ${valorTexto(membros)}`));
-      const contagens = contagemFarol(membros);
-      painel.append(el('p', `No prazo: ${contagens.verde} · Atenção: ${contagens.amarelo} · Atrasadas: ${contagens.vermelho}`));
+      if (membros.length) painel.append(el('p', `Por área: ${resumoAreas(membros)}`));
       const lista = el('div', undefined, 'mp-painel-lista');
       for (const obra of membros) lista.append(botaoObra(obra));
       painel.append(lista);
@@ -624,19 +684,21 @@ document.addEventListener('astro:page-load', () => {
 
     titulo.textContent = 'Goiânia';
     cabecalho.append(titulo, acoes);
-    painel.append(cabecalho, el('p', `${obras.length} ${obras.length === 1 ? 'obra no mapa' : 'obras no mapa'}`));
+    painel.append(cabecalho, el('p', plural(obras.length, 'obra no mapa', 'obras no mapa')));
     painel.append(el('p', `Valor: ${valorTexto(obras)}`));
-    const contagens = contagemFarol(obras);
-    painel.append(el('p', `No prazo: ${contagens.verde} · Atenção: ${contagens.amarelo} · Atrasadas: ${contagens.vermelho}`));
-    const regiaoTitulo = el('h4', 'Obras por região');
-    painel.append(regiaoTitulo);
+    if (obras.length === 0) {
+      painel.append(el('p', todas.length ? 'Nenhuma obra com estes filtros. Use "Limpar filtros" para ver todas.' : 'Nenhuma obra com localização no mapa.', 'mp-nota'));
+      return;
+    }
+    painel.append(el('h4', 'Obras por região'));
     const lista = el('div', undefined, 'mp-painel-lista');
-    for (const grupo of gruposRegiao) {
+    for (const grupo of agruparPorRegiao(obrasAgrupaveis(obras))) {
       const botao = el('button', undefined, 'mp-item mp-item-regiao');
       botao.type = 'button';
+      botao.dataset.mpRegiao = grupo.nome;
       botao.append(
         el('strong', grupo.nome),
-        el('span', `${grupo.total} ${grupo.total === 1 ? 'obra' : 'obras'} · No prazo: ${grupo.farois.verde}, Atenção: ${grupo.farois.amarelo}, Atrasadas: ${grupo.farois.vermelho}`),
+        el('span', `${plural(grupo.total, 'obra', 'obras')} · ${valorTexto(membrosDe(grupo))}`),
       );
       botao.addEventListener('click', () => selecionarGrupo(grupo, 13));
       lista.append(botao);
@@ -644,159 +706,173 @@ document.addEventListener('astro:page-load', () => {
     painel.append(lista);
   }
 
+  function renderLegenda(obras: ObraVista[]): void {
+    legenda.replaceChildren();
+    const areas = areasPresentes(obras);
+    if (areas.length === 0) {
+      legenda.append(el('li', 'Nenhuma obra no mapa com estes filtros.'));
+      return;
+    }
+    for (const area of areas) {
+      const item = el('li');
+      item.dataset.mpLegendaArea = area.codigo;
+      const amostra = el('span', undefined, `mp-amostra ${area.serie}`);
+      amostra.setAttribute('aria-hidden', 'true');
+      item.append(amostra, el('span', `${area.nome} (${obras.filter((obra) => obra.area === area.codigo).length})`));
+      legenda.append(item);
+    }
+  }
+
   function elementoMarcador(obra: ObraVista): HTMLElement {
     const selecionado = selecao.tipo === 'obra' && selecao.obra.id === obra.id;
-    const marcador = el('div', undefined, `mp-marcador mp-farol-${obra.farol.cor}${obra.precisao === 'bairro' ? ' mp-aprox' : ''}${selecionado ? ' mp-marcador-selecionado' : ''}`);
-    marcador.title = `${obra.nome} · ${ROTULO_FAROL[obra.farol.cor]}`;
-    marcador.setAttribute('aria-label', marcador.title);
-    marcador.append(elementoGlifo(obra.categoria));
+    const marcador = el('div', undefined, `mp-marcador ${serieDe(obra)}${obra.precisao === 'bairro' ? ' mp-aprox' : ''}${selecionado ? ' mp-marcador-selecionado' : ''}`);
+    marcador.append(elementoGlifo(glifoDaArea(obra.area)));
     return marcador;
   }
 
   function elementoBolha(grupo: AgrupamentoMapa): HTMLElement {
     const bolha = el('div', undefined, 'mp-bolha');
-    const nome = grupo.nivel === 'regiao' && grupo.nome === 'Região não informada' ? 'não informada' : grupo.nome;
-    const rotuloGrupo = grupo.nivel === 'regiao' ? 'Região' : 'Bairro';
     const total = Math.max(1, grupo.total);
-    const pctVerde = (grupo.farois.verde / total) * 100;
-    const pctAmarelo = (grupo.farois.amarelo / total) * 100;
     const tamanho = tamanhoBolha(grupo.total);
     bolha.style.width = `${tamanho}px`;
     bolha.style.height = `${tamanho}px`;
-    bolha.style.background = `conic-gradient(${CORES_FAROL.verde} 0 ${pctVerde}%, ${CORES_FAROL.amarelo} ${pctVerde}% ${pctVerde + pctAmarelo}%, ${CORES_FAROL.vermelho} ${pctVerde + pctAmarelo}% 100%)`;
-    bolha.setAttribute('aria-label', `${rotuloGrupo} ${nome}, ${grupo.total} obras; No prazo: ${grupo.farois.verde}, Atenção: ${grupo.farois.amarelo}, Atrasadas: ${grupo.farois.vermelho}`);
-    bolha.title = bolha.getAttribute('aria-label')!;
+    let inicio = 0;
+    const partes: string[] = [];
+    for (const serie of SERIES_COR) {
+      const qtd = grupo.series[serie] ?? 0;
+      if (!qtd) continue;
+      const fim = inicio + (qtd / total) * 100;
+      partes.push(`${VAR_COR[serie]} ${inicio}% ${fim}%`);
+      inicio = fim;
+    }
+    bolha.style.background = partes.length ? `conic-gradient(${partes.join(', ')})` : VAR_COR['mp-cor-sem'];
     bolha.append(el('span', String(grupo.total), 'mp-bolha-miolo'));
     return bolha;
   }
 
-  function adicionarBolha(grupo: AgrupamentoMapa, zoomSeguinte: number, centroVisivel?: PontoGeo): void {
-    if (!grupo.centro) return;
+  /** Nome acessível no elemento focável do Leaflet (a caixa do ícone). */
+  function rotular(marcador: L.Marker, texto: string): void {
+    const aplicar = (): void => { marcador.getElement()?.setAttribute('aria-label', texto); };
+    marcador.on('add', aplicar);
+    aplicar();
+  }
+
+  function adicionarBolha(grupo: AgrupamentoMapa, zoomSeguinte: number, posicao: L.LatLng, membros: ObraVista[]): void {
     const conteudo = elementoBolha(grupo);
-    const tamanho = Number.parseFloat(conteudo.style.width);
+    const tamanho = tamanhoBolha(grupo.total);
+    const nome = grupo.nivel === 'regiao' && grupo.nome === 'Região não informada' ? 'não informada' : grupo.nome;
+    const texto = `${grupo.nivel === 'regiao' ? 'Região' : 'Bairro'} ${nome}: ${plural(grupo.total, 'obra', 'obras')}; valor ${valorTexto(membros)}; ${resumoAreas(membros)}`;
     const icone = L.divIcon({ html: conteudo, className: 'mp-bolha-caixa', iconSize: [tamanho, tamanho], iconAnchor: [tamanho / 2, tamanho / 2] });
-    const posicao = centroVisivel ?? grupo.centro;
-    L.marker([posicao.lat, posicao.lng], { icon: icone, title: conteudo.title, alt: conteudo.title, riseOnHover: true })
+    const marcador = L.marker(posicao, { icon: icone, title: texto, riseOnHover: true })
       .on('click', () => selecionarGrupo(grupo, zoomSeguinte))
       .addTo(camada);
+    rotular(marcador, texto);
   }
 
-  function adicionarBolhas(grupos: AgrupamentoMapa[], zoomSeguinte: number): void {
-    const conjuntos: { centro: L.Point; grupos: AgrupamentoMapa[] }[] = [];
-    for (const grupo of grupos) {
-      if (!grupo.centro) continue;
-      const ponto = mapa.latLngToLayerPoint([grupo.centro.lat, grupo.centro.lng]);
-      const conjunto = conjuntos.find((item) => ponto.distanceTo(item.centro) < 72);
-      if (conjunto) conjunto.grupos.push(grupo);
-      else conjuntos.push({ centro: ponto, grupos: [grupo] });
-    }
-    for (const conjunto of conjuntos) {
-      const { grupos: itens } = conjunto;
-      itens.forEach((grupo, indice) => {
-        if (itens.length === 1) {
-          adicionarBolha(grupo, zoomSeguinte);
-          return;
-        }
-        const diametro = Math.max(...itens.map((item) => tamanhoBolha(item.total)));
-        const raio = Math.max(56, (diametro + 8) / (2 * Math.sin(Math.PI / itens.length)));
-        const angulo = (2 * Math.PI * indice) / itens.length;
-        // Afasta visualmente centros coincidentes; selecionar ainda leva ao centro médio original.
-        const ponto = conjunto.centro.add(L.point(Math.cos(angulo) * raio, Math.sin(angulo) * raio));
-        const centroVisivel = mapa.layerPointToLatLng(ponto);
-        adicionarBolha(grupo, zoomSeguinte, centroVisivel);
-      });
-    }
-  }
-
-  function adicionarObra(obra: ObraVista, pontosEspalhados: Map<string, PontoGeo>): void {
+  function adicionarObra(obra: ObraVista, posicao: L.LatLng): void {
     const local = obra.localizacao;
-    if (local.tipo === 'ponto') {
-      const ponto = pontosEspalhados.get(obra.id) ?? local.ponto;
-      const icone = L.divIcon({ html: elementoMarcador(obra), className: 'mp-marcador-caixa', iconSize: [44, 44], iconAnchor: [22, 22] });
-      const marcador = L.marker([ponto.lat, ponto.lng], {
-        icon: icone,
-        title: obra.nome,
-        alt: `${obra.nome} · ${ROTULO_FAROL[obra.farol.cor]}`,
-        riseOnHover: true,
-        zIndexOffset: selecao.tipo === 'obra' && selecao.obra.id === obra.id ? 1000 : 0,
-      }).on('click', () => selecionarObra(obra)).addTo(camada);
-      marcadoresObra.set(obra.id, marcador);
+    if (local.tipo === 'trechos') {
+      for (const trecho of local.trechos) {
+        L.polyline(trecho.linha.map((ponto): [number, number] => [ponto.lat, ponto.lng]), {
+          className: `mp-trecho-linha ${serieDe(obra)}`,
+          weight: 8,
+          opacity: 0.9,
+          interactive: false,
+          dashArray: obra.precisao === 'bairro' ? '7 7' : undefined,
+        }).addTo(camada);
+      }
+    }
+    const texto = `${obra.nome} · ${nomeAreaDe(obra)}`;
+    const icone = L.divIcon({ html: elementoMarcador(obra), className: 'mp-marcador-caixa', iconSize: [TAMANHO_MARCADOR, TAMANHO_MARCADOR], iconAnchor: [TAMANHO_MARCADOR / 2, TAMANHO_MARCADOR / 2] });
+    const marcador = L.marker(posicao, {
+      icon: icone,
+      title: texto,
+      riseOnHover: true,
+      zIndexOffset: selecao.tipo === 'obra' && selecao.obra.id === obra.id ? 1000 : 0,
+    }).on('click', () => selecionarObra(obra)).addTo(camada);
+    rotular(marcador, texto);
+    marcadoresObra.set(obra.id, marcador);
+  }
+
+  /** Controles sobre o mapa, em pixels da camada: bolhas e marcadores não ficam embaixo deles. */
+  function obstaculosDosControles(): Obstaculo[] {
+    const caixaMapa = elMapa.getBoundingClientRect();
+    return [...elMapa.querySelectorAll<HTMLElement>('.mp-zoom, .mp-camadas, .mp-expandir > span, .leaflet-control-attribution')]
+      .filter((controle) => controle.getClientRects().length > 0)
+      .map((controle) => {
+        const caixa = controle.getBoundingClientRect();
+        const canto = mapa.containerPointToLayerPoint([caixa.left - caixaMapa.left, caixa.top - caixaMapa.top]);
+        return { x: canto.x + caixa.width / 2, y: canto.y + caixa.height / 2, meioL: caixa.width / 2, meioA: caixa.height / 2 };
+      });
+  }
+
+  let zoomDesenhado = Number.NaN;
+  function desenharCamada(visiveis: ObraVista[]): void {
+    camada.clearLayers();
+    marcadoresObra.clear();
+    const zoom = mapa.getZoom();
+    zoomDesenhado = zoom;
+    const obstaculos = obstaculosDosControles();
+    if (zoom <= 14) {
+      const grupos = (zoom <= 12 ? agruparPorRegiao : agruparPorBairro)(obrasAgrupaveis(visiveis));
+      const alvos: Alvo[] = [];
+      for (const grupo of grupos) {
+        if (!grupo.centro) continue;
+        const ponto = mapa.latLngToLayerPoint([grupo.centro.lat, grupo.centro.lng]);
+        alvos.push({ id: grupo.id, x: ponto.x, y: ponto.y, meio: tamanhoBolha(grupo.total) / 2 });
+      }
+      const posicoes = posicionarSemSobrepor(alvos, obstaculos);
+      const porId = new Map(visiveis.map((obra) => [obra.id, obra]));
+      for (const grupo of grupos) {
+        const posicao = posicoes.get(grupo.id);
+        if (!posicao) continue;
+        const membros = grupo.ids.map((id) => porId.get(id)).filter((obra): obra is ObraVista => !!obra);
+        adicionarBolha(grupo, zoom <= 12 ? 13 : 15, mapa.layerPointToLatLng([posicao.x, posicao.y]), membros);
+      }
       return;
     }
-    for (const trecho of local.trechos) {
-      const linha = L.polyline(trecho.linha.map((ponto): [number, number] => [ponto.lat, ponto.lng]), {
-        color: CORES_FAROL[obra.farol.cor],
-        weight: 8,
-        opacity: 0.9,
-        dashArray: obra.precisao === 'bairro' ? '7 7' : undefined,
-      }).addTo(camada);
-      linha.on('click', () => selecionarObra(obra));
-      const tornarAcessivel = () => {
-        const path = linha.getElement();
-        if (!path) return;
-        path.setAttribute('tabindex', '0');
-        path.setAttribute('role', 'button');
-        path.setAttribute('aria-label', `${obra.nome} · ${ROTULO_FAROL[obra.farol.cor]}`);
-        path.addEventListener('keydown', (evento: Event) => {
-          if (evento instanceof KeyboardEvent && (evento.key === 'Enter' || evento.key === ' ')) {
-            evento.preventDefault();
-            selecionarObra(obra);
-          }
-        });
-      };
-      linha.on('add', tornarAcessivel);
-      tornarAcessivel();
+    const alvos: Alvo[] = [];
+    for (const obra of visiveis) {
+      const ponto = pontoDoMarcador(obra);
+      if (!ponto) continue;
+      const camadaPonto = mapa.latLngToLayerPoint([ponto.lat, ponto.lng]);
+      alvos.push({ id: obra.id, x: camadaPonto.x, y: camadaPonto.y, meio: TAMANHO_MARCADOR / 2 });
+    }
+    const posicoes = posicionarSemSobrepor(alvos, obstaculos);
+    for (const obra of visiveis) {
+      const posicao = posicoes.get(obra.id);
+      if (posicao) adicionarObra(obra, mapa.layerPointToLatLng([posicao.x, posicao.y]));
     }
   }
 
   function desenhar(): void {
     const visiveis = obrasFiltradas();
     const ocultas = todas.length - visiveis.length;
-    // Na miniatura do dashboard não há filtros do mapa: "0 ocultas" só confundiria.
-    contagem.textContent = `${todas.length} ${todas.length === 1 ? 'obra' : 'obras'} no mapa${compacto && ocultas === 0 ? '' : ` · ${ocultas} ocultas pelos filtros`} · ${semLocal} sem localização`;
+    // Na miniatura sem filtros do mapa, "0 ocultas" só confundiria.
+    contagem.textContent = `${plural(todas.length, 'obra', 'obras')} no mapa${compacto && ocultas === 0 ? '' : ` · ${ocultas} ocultas pelos filtros`} · ${semLocal} sem localização`;
     corpo.replaceChildren();
     for (const obra of visiveis) {
       const linha = el('tr');
       linha.append(
         el('td', obra.nome),
         el('td', obra.orgao ?? '—'),
-        el('td', `${ROTULO_FAROL[obra.farol.cor]} · ${obra.farol.texto}`),
-        el('td', ROTULO_SITUACAO_MAPA[obra.situacao]),
-        el('td', ROTULO_CATEGORIA[obra.categoria]),
+        el('td', nomeAreaDe(obra)),
+        el('td', nomeEtapa(etapaValida(obra))),
+        el('td', typeof obra.valor === 'number' && Number.isFinite(obra.valor) ? MOEDA.format(obra.valor) : '—'),
         el('td', localTexto(obra)),
       );
       corpo.append(linha);
     }
-    camada.clearLayers();
-    marcadoresObra.clear();
-    const zoom = mapa.getZoom();
-    if (zoom <= 12) {
-      adicionarBolhas(agruparPorRegiao(obrasAgrupaveis(visiveis)), 13);
-    } else if (zoom <= 14) {
-      adicionarBolhas(agruparPorBairro(obrasAgrupaveis(visiveis)), 15);
-    } else {
-      const pontos = visiveis
-        .filter((obra) => obra.localizacao.tipo === 'ponto')
-        .map((obra) => ({
-          id: obra.id,
-          ponto: obra.localizacao.tipo === 'ponto' ? obra.localizacao.ponto : GOIANIA.centro,
-        }));
-      const espalhados = espalharSobrepostos(pontos);
-      for (const obra of visiveis) adicionarObra(obra, espalhados);
-    }
+    renderLegenda(visiveis);
+    desenharCamada(visiveis);
     renderPainel(visiveis);
   }
 
   q('[data-mp-limpar]').addEventListener('click', () => {
-    situacoes.clear();
-    SITUACOES.forEach((situacao) => situacoes.add(situacao));
-    categorias.clear();
-    CATEGORIAS.forEach((categoria) => categorias.add(categoria));
-    farolFiltro = 'todas';
-    filtroSituacao.opcoes.querySelectorAll<HTMLInputElement>('input').forEach((input) => { input.checked = true; });
-    filtroCategoria.opcoes.querySelectorAll<HTMLInputElement>('input').forEach((input) => { input.checked = true; });
-    filtroFarol.opcoes.querySelectorAll<HTMLInputElement>('input').forEach((input) => { input.checked = input.value === 'todas'; });
-    atualizarResumo();
+    etapasFiltro = null;
+    areasFiltro = null;
+    regiaoFiltro = '';
+    montarOpcoes();
     desenhar();
     salvarURL();
   });
@@ -810,8 +886,14 @@ document.addEventListener('astro:page-load', () => {
   for (const b of botoesCamada) b.addEventListener('click', () => { const n = b.dataset.mpCamada; if (ehCamada(n)) { aplicarCamada(n); salvarURL(); } });
   q('[data-mp-zoom-in]').addEventListener('click', () => mapa.zoomIn());
   q('[data-mp-zoom-out]').addEventListener('click', () => mapa.zoomOut());
-  mapa.on('zoomend', desenhar);
-  mapa.on('moveend', salvarURL);
+  // Zoom novo: redesenha tudo (bolha, bairro ou obra). Só arrastou: reposiciona as bolhas longe dos controles.
+  mapa.on('moveend', () => {
+    if (mapa.getZoom() !== zoomDesenhado) desenhar();
+    else desenharCamada(obrasFiltradas());
+    salvarURL();
+  });
+  mapa.on('resize', () => desenharCamada(obrasFiltradas()));
+  if ('ResizeObserver' in window) new ResizeObserver(() => mapa.invalidateSize({ pan: false })).observe(elMapa);
 
   const apresentar = q<HTMLButtonElement>('[data-mp-apresentar]');
   if (!document.fullscreenEnabled) apresentar.hidden = true;
@@ -842,10 +924,14 @@ document.addEventListener('astro:page-load', () => {
     // No Safari, o Esc em tela cheia é consumido pelo navegador (sai da tela cheia sem chegar à página): fecha a lista de filtro aberta.
     if (!ativo) fecharFiltro(raiz.contains(document.activeElement));
     if (!ativo && compacto) {
-      // De volta ao dashboard: a miniatura mostra de novo a cidade inteira.
+      // De volta à tela que contém a miniatura: a cidade inteira e sem os filtros locais do mapa.
       if (dialogoFicha.open) dialogoFicha.close();
       historico.length = 0;
       selecao = { tipo: 'cidade' };
+      etapasFiltro = null;
+      areasFiltro = null;
+      regiaoFiltro = '';
+      montarOpcoes();
       mapa.setView([GOIANIA.centro.lat, GOIANIA.centro.lng], 12, { animate: false });
       desenhar();
     }
@@ -864,15 +950,19 @@ document.addEventListener('astro:page-load', () => {
     const expandir = raiz.querySelector<HTMLElement>('[data-mp-expandir]');
     if (expandir) { L.DomEvent.disableClickPropagation(expandir); L.DomEvent.disableScrollPropagation(expandir); }
     expandir?.addEventListener('click', () => {
-      const gestao = () => location.assign('/plataforma/gestao/#mapa');
+      const gestao = () => location.assign(completo);
       if (!document.fullscreenEnabled) { gestao(); return; }
       raiz.requestFullscreen().catch(gestao);
     });
-    // O dashboard envia os dados novos (filtros ou atualização automática) sem recriar o mapa.
+    // A tela que contém o mapa pode enviar dados novos (filtros ou atualização automática) sem recriar o mapa.
     raiz.addEventListener('mp:dados', (evento) => {
       const novo = (evento as CustomEvent<Partial<Dados>>).detail;
       if (!novo || !Array.isArray(novo.obras) || !Array.isArray(novo.semLocalLista) || typeof novo.semLocal !== 'number') return;
       montarObras({ obras: novo.obras, semLocalLista: novo.semLocalLista, semLocal: novo.semLocal });
+      recalcularOpcoes();
+      if (areasFiltro) areasFiltro = new Set([...areasFiltro].filter((codigo) => opcoesArea.some((area) => area.codigo === codigo)));
+      if (!opcoesRegiao.includes(regiaoFiltro)) regiaoFiltro = '';
+      montarOpcoes();
       historico.length = 0;
       const atual = selecao.tipo === 'obra' ? todas.find((obra) => obra.id === (selecao as { obra: ObraVista }).obra.id) : undefined;
       selecao = atual ? { tipo: 'obra', obra: atual } : { tipo: 'cidade' };
@@ -882,20 +972,8 @@ document.addEventListener('astro:page-load', () => {
 
   function restaurarEstadoURL(): void {
     const parametros = new URLSearchParams(compacto ? '' : location.search);
-    const restaurarConjunto = <T extends string>(alvo: Set<T>, chave: string, valores: T[]): void => {
-      const parametro = parametros.get(chave);
-      alvo.clear();
-      (parametro === null ? valores : parametro.split(',').filter((item): item is T => valores.includes(item as T)))
-        .forEach((valor) => alvo.add(valor));
-    };
-    restaurarConjunto(situacoes, 'etapas', SITUACOES);
-    restaurarConjunto(categorias, 'tipos', CATEGORIAS);
-    const codigosFarol: Record<string, FarolFiltro> = { todas: 'todas', noprazo: 'verde', atencao: 'amarelo', atrasadas: 'vermelho' };
-    farolFiltro = codigosFarol[parametros.get('sit') ?? 'todas'] ?? 'todas';
-    filtroSituacao.opcoes.querySelectorAll<HTMLInputElement>('input').forEach((input) => { input.checked = situacoes.has(input.value as SituacaoMapa); });
-    filtroCategoria.opcoes.querySelectorAll<HTMLInputElement>('input').forEach((input) => { input.checked = categorias.has(input.value as CategoriaObra); });
-    filtroFarol.opcoes.querySelectorAll<HTMLInputElement>('input').forEach((input) => { input.checked = input.value === farolFiltro; });
-    atualizarResumo();
+    lerFiltrosDoEndereco(parametros);
+    montarOpcoes();
     const centro = parametros.get('c')?.split(',').map(Number);
     const zoom = Number(parametros.get('z'));
     if (centro?.length === 2 && centro.every(Number.isFinite) && Math.abs(centro[0]!) <= 90 && Math.abs(centro[1]!) <= 180) {

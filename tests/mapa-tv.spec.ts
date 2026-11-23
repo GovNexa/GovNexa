@@ -28,7 +28,7 @@ test('mapa em modo TV ocupa a tela e oferece alvos de 56 px', async ({ page }) =
   expect(arranjo.painelEsquerda).toBeGreaterThan(arranjo.mapa.direita);
   expect(arranjo.mapa.altura).toBeGreaterThanOrEqual(1080 * 0.85);
   expect(arranjo.mapa.largura).toBeGreaterThanOrEqual(1920 * 0.55);
-  const filtroEtapas = mapa.locator('[data-mp-filtro="situacoes"]');
+  const filtroEtapas = mapa.locator('[data-mp-filtro="etapas"]');
   await filtroEtapas.locator('[data-mp-abrir]').click();
   for (const opcao of await filtroEtapas.locator('.mp-opcao-filtro').all()) {
     const caixa = await opcao.boundingBox();
@@ -150,16 +150,16 @@ test('painel compacto, PDF abaixo do mapa e filtros restaurados pela URL', async
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  const filtro = page.locator('#mapa [data-mp-filtro="situacoes"]');
+  const filtro = page.locator('#mapa [data-mp-filtro="etapas"]');
   await filtro.locator('[data-mp-abrir]').click();
   await filtro.locator('input[type="checkbox"]').first().uncheck();
-  await expect(filtro.locator('[data-mp-abrir]')).toContainText('Etapas: 5 de 6');
+  await expect(filtro.locator('[data-mp-abrir]')).toContainText('Macroetapa: 6 de 7');
   await expect(page).toHaveURL(/etapas=/);
   await page.keyboard.press('Escape');
   await expect(filtro.locator('[data-mp-abrir]')).toHaveAttribute('aria-expanded', 'false');
   await page.reload();
   await filtro.locator('[data-mp-abrir]').click();
-  await expect(filtro.locator('input[type="checkbox"]:checked')).toHaveCount(5);
+  await expect(filtro.locator('input[type="checkbox"]:checked')).toHaveCount(6);
 });
 
 test('mapa: camadas Mapa, Satélite e Híbrido (Esri) com estado no endereço', async ({ page }) => {

@@ -43,10 +43,10 @@ test('dashboard mostra o mapa compacto e amplia para a mesma apresentação da G
   expect(arranjo.mapaEsq).toBeGreaterThan(arranjo.filtros);
   expect(arranjo.painel).toBeGreaterThan(arranjo.mapaDir);
   expect(arranjo.altura).toBeGreaterThanOrEqual(900 * 0.8);
-  await mapa.locator('[data-mp-filtro="situacoes"] [data-mp-abrir]').click();
-  await mapa.locator('[data-mp-filtro="situacoes"] input[type="checkbox"]').first().uncheck();
-  await expect(mapa.locator('[data-mp-filtro="situacoes"] [data-mp-abrir]')).toContainText('Etapas: 5 de 6');
-  await mapa.locator('[data-mp-filtro="situacoes"] [data-mp-pronto]').click();
+  await mapa.locator('[data-mp-filtro="etapas"] [data-mp-abrir]').click();
+  await mapa.locator('[data-mp-filtro="etapas"] input[type="checkbox"]').first().uncheck();
+  await expect(mapa.locator('[data-mp-filtro="etapas"] [data-mp-abrir]')).toContainText('Macroetapa: 6 de 7');
+  await mapa.locator('[data-mp-filtro="etapas"] [data-mp-pronto]').click();
   // O estado do mapa não vai para o endereço do dashboard.
   expect(page.url()).toBe(urlAntes);
 
