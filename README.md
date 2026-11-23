@@ -123,6 +123,7 @@ São módulos independentes que conversam entre si:
 
 ### Entregas recentes
 
+- 22/11/2026: E9, fotos da obra na aba Fotos da ficha: enviar (JPG, PNG ou WEBP, até 10 MB, com legenda e data da foto), ver em grade com ampliação e remover (remoção lógica); envio e remoção entram no Histórico; migração 0008 (branch agente/codex/e9-fotos; aguardando portão, prévia do dono e revisão).
 - 22/11/2026: E8, busca de endereço na localização (rua, endereço completo ou bairro pelo OpenStreetMap, resultado no mapa, a pessoa confirma e só o Salvar grava) (branch agente/codex/e8-endereco; aguardando portão, prévia do dono e revisão).
 - 22/11/2026: E10, Painel da equipe (o que saiu da tela do prefeito, mais os alertas) e relatório de inconsistências por órgão ou geral, com impressão e CSV (branch agente/codex/e10-equipe; aguardando portão, prévia do dono e revisão).
 - 22/11/2026: E7, Kanban enxuto sem Conclusão, com saída do marco e filtros do padrão; mover no Kanban e nas Pendências de etapa grava no banco (B3) (branch agente/codex/e7-kanban; aguardando portão, prévia do dono e revisão).
@@ -202,7 +203,8 @@ O tema claro usa menu lateral branco, texto e ícones azul-escuros, destaques az
 | Fluxo do sistema | Diagrama em raias com etapas, validações, responsáveis e links para as telas; inclui fluxos detalhados e zoom | Disponível | `src/lib/govnexa/fluxo.ts`, `subfluxos.ts`, `src/components/fluxo/` |
 | Novo projeto | Cadastro com área e marca de prioritário. Grava na macroetapa 00, usa códigos a partir de P-9000 e registra no Histórico | Disponível no código (B2 e E1) | `src/components/carteira/NovoProjeto.astro` |
 | Carteira de projetos | Grandes números que seguem os filtros, colunas do relatório por órgão, filtros padrão com "Só prioritários", grupos por macroetapa da entrega mais próxima à mais distante, impressão e ficha completa | Disponível (E5) | `src/components/carteira/CarteiraProjetos.astro`, `src/lib/carteira/lista.ts` |
-| Ficha do projeto | Uma só ficha, aberta pela Carteira ou pelo endereço: topo do prefeito (órgão, área, valor total, macroetapa, entrega prevista, localização, observação) e abas Cadastro, Recurso, Entrega, Localização, Fotos, Documentos, Processos SEI, Cronograma, Histórico e Governança. Edição (E1) por quem tem permissão | Disponível no código (E6); fotos em breve (E9) | `src/pages/plataforma/projeto/[id].astro`, `src/lib/carteira/ficha*.ts` |
+| Ficha do projeto | Uma só ficha, aberta pela Carteira ou pelo endereço: topo do prefeito (órgão, área, valor total, macroetapa, entrega prevista, localização, observação) e abas Cadastro, Recurso, Entrega, Localização, Fotos, Documentos, Processos SEI, Cronograma, Histórico e Governança. Edição (E1) por quem tem permissão | Disponível no código (E6); fotos na aba Fotos (E9) | `src/pages/plataforma/projeto/[id].astro`, `src/lib/carteira/ficha*.ts` |
+| Fotos da obra | Aba Fotos da ficha, separada da Localização: enviar uma foto por vez (JPG, PNG ou WEBP, até 10 MB) com legenda e data da foto, ver em grade com ampliação e remover (remoção lógica). Envio e remoção entram no Histórico. Administrador, gestor e editor enviam e removem; o perfil leitura só vê | Disponível no código (E9) | `src/components/carteira/ficha/FotosFicha.astro`, `src/lib/fotos/**`, `src/pages/plataforma/fotos-projeto/**` |
 | Obras sem localização | Lista das obras que não aparecem no mapa (fora do menu); a localização é gravada na aba Localização da ficha | Disponível (E6) | `src/pages/plataforma/projetos-localizacao/`, `src/components/carteira/ficha/` |
 | Busca de endereço na localização | Na aba Localização da ficha e no Novo projeto: procurar por rua, endereço completo ou só bairro; os resultados aparecem no mapa e a pessoa confirma; só o Salvar grava (rota da B1, com Histórico). Busca feita pelo servidor no OpenStreetMap (Nominatim), com cache, limite por pessoa e um pedido por segundo. Só administrador, gestor e editor | Disponível no código (E8) | `src/lib/mapa/busca-endereco.ts`, `src/pages/plataforma/localizacao/buscar.ts`, `src/components/mapa/EditorLocalizacao.astro` |
 | Kanban por macroetapa | Colunas de Em estruturação até Execução, com a quantidade e a previsão de saída do marco; card com nome, órgão e data de saída; filtros do padrão; mover (botão ou arrastar) grava com portão, motivo e Histórico | Disponível no código (E7) | `src/components/carteira/Kanban.astro`, `src/lib/carteira/kanban.ts`, `src/lib/carteira/mover.ts` |
@@ -300,6 +302,7 @@ Os pedidos vêm dos áudios do dono, da reunião com a equipe e das planilhas.
 | Fluxo da Lei 14.133 | Prazos da lei, Licitação em detalhe | Parcial; PNCP a fazer |
 | Painel do prefeito: etapa, empresa, valor, foto atual e histórico | Gestão · Painel, Mapa | Parcial |
 | Tela de gestão da equipe separada da tela do prefeito e relatório de inconsistências por órgão (áudios 13 e 19) | Gestão · Painel da equipe; Gestão · Inconsistências de dados | Disponível no código (E10) |
+| Fotos da obra dentro do projeto, separadas da localização (áudio 22) | Ficha do projeto · aba Fotos | Disponível no código (E9) |
 | Mapa por área em vez de tipo; sem situação de prazo; total e valor por região; região só como filtro (áudios 04, 05, 06 e 14) | Mapa das obras (tela do prefeito e Gestão) | Feito no código (E4) |
 | Localização: procurar por rua, endereço completo ou só bairro e confirmar o ponto (áudio 07) | Aba Localização da ficha e Novo projeto | Disponível no código (E8) |
 | WhatsApp para o prefeito em linguagem simples | Gestão · WhatsApp | Simulação |
@@ -376,6 +379,13 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
   - O arquivo inteiro passa pela memória do Worker (até 26 MB por envio). Para volumes maiores, o caminho é o envio direto ao R2.
 - **Publicação (17/11/2026):** migração `0002` aplicada no D1 de produção e Worker publicado (versão f5327c05).
 
+### Fotos da obra (E9)
+
+- **Onde:** aba Fotos da ficha do projeto (`/plataforma/projeto/<código>/?aba=fotos`). Envio em `POST /plataforma/fotos-projeto/enviar/`, remoção em `POST /plataforma/fotos-projeto/remover/<id>/` e exibição em `GET /plataforma/fotos-projeto/foto/<id>/`.
+- **Banco:** tabela `projeto_foto` (criada vazia na 0001) com a migração 0008 (quem removeu, conteúdo da foto e índices). Mesmo R2 dos documentos, com o prefixo próprio `fotos/<prefeitura>/<projeto>/<id>`.
+- **Regras de segurança** (cada uma tem teste): mesmas dos documentos (chave gerada pelo sistema, filtro por prefeitura, tipo conferido pelo conteúdo, origem e perfil antes de ler o pedido, mesma foto não entra duas vezes no projeto, remoção só lógica, 30 ações por minuto por pessoa); só JPG, PNG e WEBP (SVG, GIF e HEIC recusados); até 10 MB; até 60 fotos por hora por pessoa e 200 fotos ativas por projeto, conferidos também dentro da gravação; a foto é mostrada no navegador com o tipo gravado, `nosniff` e nome gerado pelo sistema; envio e remoção entram no Histórico no mesmo lote.
+- **Limites conhecidos:** a grade usa a própria foto (sem miniatura; carregamento só quando aparece na tela) e mostra as 60 mais recentes; a foto guarda os dados do celular (inclusive o GPS, quando ligado) e só quem entra na plataforma da prefeitura a vê; legenda e data se corrigem removendo e enviando de novo.
+
 ### Importação das planilhas (etapa 3.5)
 
 - **Onde ficam:** pasta `planilhas/` do repositório privado `GovNexa/govnexa-dados`:
@@ -429,6 +439,7 @@ O site público é pré-renderizado; `/plataforma/` é montada a cada acesso pel
 - **Kanban e Pendências (22/11/2026, E7):** o card mostra só nome, órgão e a previsão de saída da etapa atual; sem coluna Conclusão; mover grava no banco pela regra única, com motivo para voltar ou forçar; aprovar e reprovar nas Pendências é dos perfis de gestão (admin e gestor).
 
 - **Painel da equipe e inconsistências (22/11/2026, E10):** o painel antigo virou o Painel da equipe (sem mapa) e o relatório de inconsistências usa 10 regras fixas calculadas dos dados atuais, sem gravar nada; as duas telas são de administrador, gestor e editor.
+- **Fotos da obra (22/11/2026, E9):** as fotos ficam na aba Fotos da ficha, separadas da localização, no mesmo R2 e no mesmo padrão de segurança dos documentos; reaproveitam a tabela `projeto_foto` já existente (migração 0008 só acrescenta colunas e índices); uma foto por envio, com legenda e data.
 
 - **Busca de endereço (22/11/2026, E8, decisão D4):** serviço gratuito OpenStreetMap/Nominatim, consultado só pelo servidor (a política de segurança do navegador continua `connect-src 'self'`); no máximo 1 pedido por segundo por instância, 10 buscas por minuto por pessoa, cache de 24 h (1 h para "nada encontrado") e nenhuma busca a cada tecla; só entram resultados de Goiânia e do entorno; nada é gravado sem a pessoa confirmar e salvar; o texto da busca não vai a log. Na máquina local a busca usa respostas fictícias (`BUSCA_ENDERECO_REAL=1` liga o serviço real na prévia).
 
@@ -459,10 +470,11 @@ Centros dos bairros: migração 0005 e carga publicadas em 18/11/2026. Parte dos
 7. Teste "mapa das obras" no Safari (WebKit): falha também na main (marcadores não aparecem após "Cidade inteira" + zoom); investigar à parte. No Chrome passa.
 8. Melhorias de segurança sem falha conhecida: retirar `'unsafe-inline'` da política de scripts (CSP) e redirecionar `www.govnexa.com.br` para o endereço sem www.
 9. E4: o mapa da Gestão ainda usa os nomes das áreas padrão (o catálogo da prefeitura chega lá quando a E10 passar `areas` para `obrasDoMapa` em `PainelPrefeito.astro`); a E10 reativa `tests/dashboard-mapa.spec.ts` (já com o filtro "Macroetapa").
-10. E6: retirar o componente antigo `LocalizacaoProjeto.astro` e o link "Localização e fotos" de `detalheProjeto` depois da junção com a E5; fotos na aba Fotos (E9).
+10. E6: retirar o componente antigo `LocalizacaoProjeto.astro` e o link "Localização e fotos" de `detalheProjeto` depois da junção com a E5; fotos na aba Fotos: feitas no código na E9 (publicar com a migração 0008).
 11. E7: depois da publicação, conferir no painel de produção que mover no Kanban aparece no Histórico; avaliar mover pela ficha (origem "ficha") e pelo SEI (B7).
 12. **Depois da E10:** os testes do painel antigo voltaram no Painel da equipe; `tests/dashboard-mapa.spec.ts` continua pausado até a E4 decidir onde fica o mapa compacto por área. A E11 usa o Painel da equipe no menu das três visões.
 13. E8: o cache e o limite de 1 pedido por segundo valem por instância do Worker; se o uso crescer, decidir com o dono um cache e uma fila compartilhados (KV ou Durable Object, mudança no `wrangler.jsonc`).
+14. **E9, decisões pendentes do dono:** retirar ou não o GPS gravado nas fotos; miniaturas (hoje a grade usa a própria foto) e cache das fotos; editar legenda e data sem reenviar.
 
 ## 9. Como rodar no computador
 

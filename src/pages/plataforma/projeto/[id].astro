@@ -4,6 +4,7 @@
 import Platform from '../../../layouts/Platform.astro';
 import Icon from '../../../components/Icon.astro';
 import EditarProjeto from '../../../components/carteira/EditarProjeto.astro';
+import FotosFicha from '../../../components/carteira/ficha/FotosFicha.astro';
 import LocalizacaoFicha from '../../../components/carteira/ficha/LocalizacaoFicha.astro';
 import '../../../styles/ficha.css';
 import { areasDaPrefeitura } from '../../../lib/carteira/area.ts';
@@ -12,6 +13,8 @@ import { ABAS, abaValida, podeEditarFicha, rotuloVolta, voltaSegura, VOLTA_PADRA
 import { montarFicha } from '../../../lib/carteira/ficha-dados.ts';
 import { carregarCronogramas } from '../../../lib/cronograma/carga.ts';
 import { ID_PROJETO } from '../../../lib/documentos/regras.ts';
+import { hojeBrasilia } from '../../../lib/fotos/regras.ts';
+import { permissaoFotos } from '../../../lib/fotos/servico.ts';
 import { dataBr, dataHoraBr } from '../../../lib/datas.ts';
 import { resumoRegistro, rotuloAcao, rotuloOrigem } from '../../../lib/log/visoes.ts';
 import type { RegistroLog } from '../../../lib/log/tipos.ts';
@@ -46,6 +49,10 @@ const documentos = repo.documentos ? await repo.documentos.listar(projeto.id) : 
 const contagem: Record<string, number> = repo.documentos ? await repo.documentos.contarPorTipo(projeto.id) : {};
 const nomesTipos: Record<string, string> = repo.documentos ? await repo.documentos.nomesTipos() : {};
 const porTipo = Object.entries(contagem).map(([c, n]) => `${c ? nomesTipos[c] ?? c : 'Sem tipo'}: ${n}`);
+const LIMITE_GRADE_FOTOS = 60;
+const fotos = repo.fotos ? await repo.fotos.listar(projeto.id, LIMITE_GRADE_FOTOS) : [];
+const totalFotos = repo.fotos ? await repo.fotos.contarAtivas(projeto.id) : 0;
+const acessoFotos = permissaoFotos(Astro.locals.usuario, !!repo.fotos);
 const LIMITE_HISTORICO = 50;
 const historico = (await repo.historico(projeto.id) as RegistroLog[]).slice().reverse();
 const visiveis = historico.slice(0, LIMITE_HISTORICO);
@@ -87,7 +94,8 @@ const idEnc = encodeURIComponent(projeto.id);
         {local?.tipo === 'trechos' && <ul class="pj-itens">{local.trechos.map((t) => <li>{t.rua}{t.de || t.ate ? ` (de ${t.de ?? 'início'} até ${t.ate ?? 'fim'})` : ''}</li>)}</ul>}
         <div class="pj-so-pagina"><LocalizacaoFicha id={projeto.id} bairro={projeto.bairro} inicial={local} podeSalvar={podeSalvarLocal} /></div></section>
       <section class="card pj-bloco fp-painel" id="fp-painel-fotos" aria-labelledby="fp-t-fotos"><h2 id="fp-t-fotos">Fotos</h2>
-        <p data-fp-fotos>As fotos da obra chegam em breve: aqui você vai enviar, legendar e ver as fotos de cada etapa.</p></section>
+        <FotosFicha projetoId={projeto.id} fotos={fotos} total={totalFotos} podeGerir={acessoFotos.podeGerir} aviso={acessoFotos.aviso}
+          codigo={Astro.url.searchParams.get('rf')} volta={volta} hoje={hojeBrasilia()} /></section>
       <section class="card pj-bloco fp-painel" id="fp-painel-documentos" aria-labelledby="fp-t-documentos"><h2 id="fp-t-documentos">Documentos</h2>
         <p data-pj-docs>{documentos.length === 0 ? 'Nenhum documento enviado.' : `${documentos.length} ${documentos.length === 1 ? 'documento' : 'documentos'} · ${porTipo.join(' · ')}`}</p>
         {documentos.length > 0 && <ul class="pj-itens" data-fp-docs-lista>{documentos.slice(0, 5).map((d) => <li>{d.nome_original} · {d.tipo_codigo ? nomesTipos[d.tipo_codigo] ?? d.tipo_codigo : 'Sem tipo'} · {dataBr(d.enviado_em)}</li>)}</ul>}
@@ -144,6 +152,7 @@ function iniciarAbasFicha(): void {
     if (aba === ABA_PADRAO) url.searchParams.delete('aba');
     else url.searchParams.set('aba', aba);
     url.searchParams.delete('salvo');
+    url.searchParams.delete('rf');
     history.replaceState(history.state, '', url);
     if (aba === 'localizacao') window.dispatchEvent(new Event('resize'));
   });

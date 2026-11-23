@@ -1,5 +1,12 @@
 # Changelog
 
+## E9 · Fotos da obra na ficha do projeto (22/11/2026)
+- Aba Fotos da ficha: enviar uma foto por vez (JPG, PNG ou WEBP, até 10 MB) com legenda e data da foto, ver em grade com ampliação e remover (remoção lógica: o arquivo fica guardado).
+- Envio e remoção entram no Histórico do projeto no mesmo lote da gravação.
+- Mesmo padrão de segurança dos documentos: chave do R2 gerada pelo sistema com prefixo próprio por prefeitura e projeto, tipo conferido pelo conteúdo (SVG recusado), origem, perfil, tamanho e limite de requisições antes de ler o pedido; até 60 fotos por hora por pessoa e 200 por projeto.
+- Envio e remoção: administrador, gestor e editor; o perfil leitura só vê.
+- Migração 0008: acrescenta `removida_por`, `sha256` e índices à tabela `projeto_foto` (criada vazia na 0001); não altera linha existente.
+
 ## E8 · Busca de endereço na localização (22/11/2026)
 - Na aba Localização da ficha e no Novo projeto, quem pode gravar procura por rua, endereço completo ou só bairro; os resultados aparecem no mapa e numa lista.
 - Escolher um resultado só mostra o local; "Usar este local" coloca o ponto (com o endereço preenchido) e só o botão Salvar grava, pela mesma rota da B1, com o Histórico. "Descartar" não muda nada.

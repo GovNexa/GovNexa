@@ -673,7 +673,7 @@ test('govnexa: mapa das obras',async({page,browser})=>{
  // tela de localização: trocar para ruas e trechos, desenhar 2 pontos e salvar (grava no banco)
  await page.goto('/plataforma/projeto/P-905/?aba=localizacao');
  await expect(page.locator('#fp-aba-localizacao')).toBeChecked();
- await expect(page.locator('[data-fp-fotos]')).toContainText('em breve');
+ await expect(page.locator('[data-fp-fotos]')).toHaveCount(1);
  await page.screenshot({path:'test-results/localizacao-1280.png'});
  const editor=page.locator('#lp-loc');
  await page.getByRole('radio',{name:/Um ponto/}).check();

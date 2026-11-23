@@ -2,7 +2,7 @@
 import type { OrigemEvento, RegistroHistorico } from '../carteira/movimentacao.ts';
 
 /** Tipos do motor ('passo', 'pendencia'...) mais os que só o log conhece ('criado', 'removido', 'carga'). */
-export type TipoAcaoLog = RegistroHistorico['tipo'] | 'registrar_passo' | 'resolver_pendencia' | 'criado' | 'removido' | 'carga' | 'sala_aberta' | 'sala_reuniao' | 'sala_item' | 'sala_encerrada' | 'sala_projeto_incluido' | 'sala_projeto_retirado' | 'reuniao_registrada' | 'acao_criada' | 'localizacao_alterada' | 'documento_classificado';
+export type TipoAcaoLog = RegistroHistorico['tipo'] | 'registrar_passo' | 'resolver_pendencia' | 'criado' | 'removido' | 'carga' | 'sala_aberta' | 'sala_reuniao' | 'sala_item' | 'sala_encerrada' | 'sala_projeto_incluido' | 'sala_projeto_retirado' | 'reuniao_registrada' | 'acao_criada' | 'localizacao_alterada' | 'documento_classificado' | 'foto_enviada' | 'foto_removida';
 
 /** Registro do log: o histórico do motor, com tipos extras, nome do projeto e marca de simulação (não gravado). */
 export type RegistroLog = Omit<RegistroHistorico, 'tipo'> & {
@@ -31,6 +31,8 @@ export const ROTULO_ACAO: Record<TipoAcaoLog, string> = {
   acao_criada: 'Ação criada na reunião',
   localizacao_alterada: 'Localização cadastrada',
   documento_classificado: 'Tipo de documento alterado',
+  foto_enviada: 'Foto enviada',
+  foto_removida: 'Foto removida',
 };
 
 export const ROTULO_ORIGEM: Record<OrigemEvento | 'reuniao', string> = {
