@@ -6,7 +6,7 @@ import '../../styles/dashboard.css';
 import { dataHoraBr, dataOuDataHoraBr } from '../../lib/datas.ts';
 import { carregarCarteira } from '../../lib/carteira/carga.ts';
 import { hrefFicha } from '../../lib/carteira/ficha.ts';
-import { comVolta } from '../../lib/navegacao/volta.ts';
+import { aquiDe, comVolta } from '../../lib/navegacao/volta.ts';
 import { carregarCronogramas } from '../../lib/cronograma/carga.ts';
 import { dados } from '../../lib/dados/index.ts';
 import { avaliarFontes } from '../../lib/dados/qualidade.ts';
@@ -38,7 +38,7 @@ const rota = (cartao?: IdCartao) => urlCom(filtros, cartao, undefined, ROTA);
 const cartaoSelecionado = dashboard.cartoes.find((cartao) => cartao.id === cartaoId);
 const limparPainel = rota();
 // A ficha volta para este painel com os mesmos filtros e o mesmo detalhe aberto.
-const voltaFicha = `${Astro.url.pathname}${Astro.url.search}`;
+const voltaFicha = aquiDe(Astro.url);
 const valorFicha = (id: string) => hrefFicha(id, voltaFicha);
 // Alertas da central (toda a prefeitura), com a mesma montagem da guia Gestão › Alertas.
 const central = montarCentral({

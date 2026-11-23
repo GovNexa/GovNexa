@@ -22,6 +22,16 @@ test('volta: recusa redirecionamento aberto, rotas que não são tela e texto in
   for (const ruim of ruins) assert.equal(voltaSegura(ruim, O), null, String(ruim));
 });
 
+test('volta: recusa rotas que não são tela mesmo codificadas ou em maiúsculas (revisão E15)', () => {
+  const ruins = [
+    '/plataforma/projeto/%65ditar/P-1/', '/plataforma/documentos-projeto/%61rquivo/x/', '/plataforma/Projeto/editar/P-1/',
+    '/plataforma/FOTOS-PROJETO/foto/x/', '/plataforma/x/..%2f..%2fentrar/', '/plataforma/%2fexterno/', '/plataforma/%5cexterno/',
+    '/plataforma/%E0%A4%A/',
+  ];
+  for (const ruim of ruins) assert.equal(voltaSegura(ruim, O), null, ruim);
+  assert.equal(voltaSegura('/plataforma/projeto/P-900/', O), '/plataforma/projeto/P-900/');
+});
+
 test('volta: avisos passageiros saem', () => {
   assert.equal(voltaSegura('/plataforma/projeto/P-1/?salvo=1&aba=fotos&rf=enviada', O), '/plataforma/projeto/P-1/?aba=fotos');
 });

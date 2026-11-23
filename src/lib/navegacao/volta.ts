@@ -26,6 +26,15 @@ export function voltaSegura(candidato: string | null | undefined, origem: string
   }
   const caminho = destino.pathname;
   if (destino.origin !== base.origin || !caminho.startsWith(PREFIXO_VOLTA) || caminho.includes('//') || !caminho.endsWith('/') || NAO_E_TELA.test(caminho)) return null;
+  // Revisão E15: também confere o caminho DECODIFICADO e sem diferença de maiúsculas (ex.: %65ditar, Projeto/, ..%2f).
+  let decodificado: string;
+  try {
+    decodificado = decodeURIComponent(caminho);
+  } catch {
+    return null;
+  }
+  if (decodificado.includes('//') || decodificado.includes('\\') || CONTROLE.test(decodificado) || /(^|\/)\.\.?(\/|$)/.test(decodificado)) return null;
+  if (NAO_E_TELA.test(decodificado.toLowerCase()) || NAO_E_TELA.test(caminho.toLowerCase())) return null;
   const busca = destino.searchParams;
   // Só reescreve a busca quando precisa (mantém a grafia original dos filtros nos demais casos).
   if (busca.has(PARAMETRO_VOLTA) || PARAMETROS_PASSAGEIROS.some((p) => busca.has(p))) {
