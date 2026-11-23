@@ -1,5 +1,10 @@
 # Changelog
 
+## E12 · Gestão das licitações, Parte A: banco, regras, gravação e carga (em andamento)
+- Migração D1 `0010_contratacao.sql` (contratação, marcos e Histórico próprio), módulo `src/lib/contratacoes/`, rota `POST /plataforma/gestao-licitacoes/gravar/` e carga de exemplo. Telas na Parte B.
+- **Riscos aceitos:** o Histórico (`evento_contratacao`) cresce sem limite próprio; o freio é o limite de 30 gravações por minuto por pessoa e o teto de 20.000 contratações (ativas e removidas) por prefeitura.
+
+
 ## E11 · Menu nas três visões e Visão Convênios (22/11/2026)
 - Menu lateral em três visões (áudio 31): **Visão gerencial** (Projetos prioritários, Carteira, Mapa e painel, Kanban e Gantt), **Governança da execução** (Painel da equipe, Projetos · Início, Cronogramas, Onde está parado, Inconsistências, Pendências, Reunião, Sala de guerra, Histórico, Alertas e Processos no SEI) e **Convênios** (Visão Convênios e as guias da Captação). Depois vêm Licitações (demonstrativo, com os grupos de antes) e Conta (Usuários, Fluxo do sistema, WhatsApp, relatórios, perfil e configurações).
 - Nenhum endereço mudou: todas as telas abrem no mesmo lugar. A guia "Gestão · Painel" passou a se chamar "Mapa e painel" (mesmo endereço).

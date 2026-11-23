@@ -173,3 +173,10 @@ Consequências no projeto: gravações em lote dividem os parâmetros em blocos;
 
 1. Princípios e ordem do roteiro (seção 6): aprovados em 17/11/2026.
 2. Plano da Cloudflare: a conta está no plano pago (conferido pelo dono em 17/11/2026). Valem 30 dias de restauração e 1000 consultas por acesso.
+
+## Contratações (E12, migração 0010)
+- Estudo e projeto: gestão das licitações como processo 100% no sistema (áudios A34 a A37); `contratacao` (1 por processo), `contratacao_marco` (N por contratação) e `evento_contratacao` (Histórico imutável). A migração só acrescenta tabelas; nada existente muda e não depende da 0009.
+- Isolamento: toda consulta filtra `prefeitura_id` da sessão; FKs compostas; id de outra prefeitura = 404.
+- Integridade: remoção só lógica; gatilhos proíbem DELETE e UPDATE do Histórico; `revisao` otimista no `WHERE`; evento gravado no MESMO `db.batch` com `WHERE changes() = 1`.
+- Limites: 5.000 contratações ativas e 20.000 no total por prefeitura; 50 marcos ativos por contratação; corpo de gravação até 16 KB; 30 gravações por minuto por pessoa.
+- Carga: arquivo JSON (`contratacoes.json`), idempotente, "a tela vence a planilha".

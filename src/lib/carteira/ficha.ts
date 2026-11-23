@@ -2,14 +2,14 @@
 export const ABAS = [
   { id: 'cadastro', rotulo: 'Cadastro' }, { id: 'recurso', rotulo: 'Recurso' }, { id: 'entrega', rotulo: 'Entrega' },
   { id: 'localizacao', rotulo: 'Localização' }, { id: 'fotos', rotulo: 'Fotos' }, { id: 'documentos', rotulo: 'Documentos' },
-  { id: 'sei', rotulo: 'Processos SEI' }, { id: 'cronograma', rotulo: 'Cronograma' }, { id: 'historico', rotulo: 'Histórico' },
+  { id: 'sei', rotulo: 'Processos SEI' }, { id: 'contratacoes', rotulo: 'Contratações' }, { id: 'cronograma', rotulo: 'Cronograma' }, { id: 'historico', rotulo: 'Histórico' },
   { id: 'governanca', rotulo: 'Governança' },
 ] as const;
 export type Aba = (typeof ABAS)[number]['id'];
 export const ABA_PADRAO: Aba = 'cadastro';
 export const ID_FICHA = /^P-[A-Za-z0-9_-]{1,40}$/;
 export const VOLTA_PADRAO = '/plataforma/projetos-carteira/';
-export const VOLTAS_PERMITIDAS = ['/plataforma/projetos-carteira/', '/plataforma/gestao/', '/plataforma/projetos-kanban/', '/plataforma/projetos-gantt/', '/plataforma/gestao-equipe/', '/plataforma/gestao-inconsistencias/'] as const;
+export const VOLTAS_PERMITIDAS = ['/plataforma/projetos-carteira/', '/plataforma/gestao/', '/plataforma/projetos-kanban/', '/plataforma/projetos-gantt/', '/plataforma/gestao-equipe/', '/plataforma/gestao-inconsistencias/', '/plataforma/gestao-licitacoes/', '/plataforma/projeto/'] as const;
 export const MAX_VOLTA = 2000;
 const CONTROLE = /[\u0000-\u001f\u007f]/;
 export function abaValida(valor: string | null | undefined): Aba {
@@ -38,6 +38,8 @@ export function rotuloVolta(volta: string | null): string {
   if (volta?.startsWith('/plataforma/projetos-gantt/')) return 'Fechar e voltar ao Gantt';
   if (volta?.startsWith('/plataforma/gestao-equipe/')) return 'Fechar e voltar ao painel da equipe';
   if (volta?.startsWith('/plataforma/gestao-inconsistencias/')) return 'Fechar e voltar ao relatório';
+  if (volta?.startsWith('/plataforma/gestao-licitacoes/')) return 'Fechar e voltar às licitações';
+  if (volta?.startsWith('/plataforma/projeto/')) return 'Fechar e voltar';
   return 'Fechar e voltar à Carteira';
 }
 /** Endereço da ficha. `volta` = tela de onde veio (com filtros); `aba` = aba aberta. */

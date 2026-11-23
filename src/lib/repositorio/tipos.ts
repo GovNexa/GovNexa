@@ -67,4 +67,6 @@ export interface RepositorioProjetos {
   documentos?: import('../documentos/repositorio.ts').RepositorioDocumentos;
   /** Fotos da obra (E9; só no D1; ausente nos demais repositórios). */
   fotos?: import('../fotos/repositorio.ts').RepositorioFotos;
+  /** Contratações (E12; só no D1; ausente nos demais repositórios). */
+  contratacoes?: import('../contratacoes/repositorio.ts').RepositorioContratacoes;
 }
