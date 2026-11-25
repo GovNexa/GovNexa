@@ -1,6 +1,14 @@
 # Changelog
 
-## E20 · Envolvidos e recursos da tarefa (23/11/2026; pronta para revisão, não publicada)
+## Testes de tela no Windows (25/11/2026)
+- `playwright.config.ts`: a espera pelo primeiro servidor local passou de `node -e '...'` (aspas simples, que o `cmd.exe` do Windows não aceita) para `scripts/esperar-servidor.mjs <porta>`. Com isso os servidores de login e de leitura sobem também no Windows; no Mac nada muda.
+- Validação no Windows: os 338 testes (chromium, login e leitura) passam. Com 10 processos em paralelo, testes que gravam muito (Kanban, documentos, fotos, licitações) podem receber 429 do limite de 30 gravações por minuto; nesse caso, repetir os que falharam com `--last-failed --workers=1`.
+- **Não mudou:** os testes, as portas, os servidores e as variáveis de teste.
+
+## Publicação 25/11/2026
+- Em produção: E19 (farol retirado) e E20 (envolvidos e recursos da tarefa), com os dados de 24/11 (PR #65), na versão do Worker 68e42b16-cd43-4917-b2e4-269a8fd389d6. Migração 0012 (banco da prefeitura) aplicada antes do código, com ponto de restauração anotado antes. Rotas públicas e protegidas conferidas e log sem erros.
+
+## E20 · Envolvidos e recursos da tarefa (23/11/2026; publicada em 25/11/2026)
 - Migração 0012 do banco da prefeitura: tabelas `tarefa_envolvido` e `tarefa_recurso` (chave por prefeitura, tarefa ativa do mesmo cronograma, remoção lógica, sem DELETE, limites de 50 envolvidos e 200 recursos ativos por tarefa e teto total de 200 e 800 com os removidos, valores inteiros em centavos até R$ 10 bilhões). Só cria tabelas, índices e gatilhos novos.
 - Aba "Envolvidos e recursos" do cronograma: envolvidos (nome e/ou área, papel, observação; não substituem o responsável nem contam no tempo na mão) e recursos (humano, material ou equipamento, financeiro; quantidade, unidade, valor estimado e utilizado, data de uso, observação). Criar, editar e remover na tela, com 6 tipos novos no Histórico do projeto (a observação não entra no Histórico). Resumo por tipo e total, filtro "só tarefas com itens", impressão, CSV (`/plataforma/cronograma/recursos-csv/<id>/`) e resumo na aba Cronograma da ficha. O perfil Leitura só vê. Aviso na tela para não informar dado pessoal.
 - Gravação pela mesma rota da E13, com 6 ações novas; qualquer gravação de item sobe a versão do cronograma e congela o cronograma para a planilha. A carga da planilha passou a subir a versão do cronograma que atualiza (corrige uma corrida existente desde a E13).

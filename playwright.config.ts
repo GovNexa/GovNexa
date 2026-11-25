@@ -2,7 +2,7 @@ import {defineConfig,devices} from '@playwright/test';
 const port=Number(process.env.PLAYWRIGHT_PORT||4321),loginPort=port+1,leituraPort=port+2;
 const localEnv={SENHA_PEPPER:'pepper-ficticio-playwright',DEV_EMAIL:'dev@exemplo.invalid',GOVNEXA_EXEMPLO:'1',WRANGLER_LOG_PATH:'.tmp/wrangler-playwright.log',TMPDIR:process.cwd()+'/.tmp'};
 // Espera a primeira preparação (build + banco local) antes de subir os servidores que reaproveitam o mesmo D1 local.
-const esperar=`node --input-type=module -e 'const fim=Date.now()+170000;while(true){try{const r=await fetch("http://127.0.0.1:${port}/entrar/");if(r.ok)break;}catch{}if(Date.now()>fim)throw new Error("Servidor local indisponível.");await new Promise(r=>setTimeout(r,500));}'`;
+const esperar=`node scripts/esperar-servidor.mjs ${port}`;
 export default defineConfig({
  testDir:'./tests',testMatch:'**/*.spec.ts',fullyParallel:true,use:{baseURL:`http://127.0.0.1:${port}`},
  webServer:[
