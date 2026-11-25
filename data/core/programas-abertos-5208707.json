@@ -2,9 +2,9 @@
  "proveniencia": {
   "fonte": "Transferegov — arquivo aberto siconv_programa.zip (Discricionárias e Legais)",
   "url_origem": "https://api-publica.transferegov.gestao.gov.br/downloads/dadosgov/siconv_programa.zip",
-  "data_referencia": "Tue, 24 Nov 2026 11:14:06 GMT",
-  "data_coleta": "2026-11-24T13:58:51.911Z",
-  "id_carga": "programas-abertos-2026-11-24"
+  "data_referencia": "Wed, 25 Nov 2026 11:17:08 GMT",
+  "data_coleta": "2026-11-25T14:03:30.781Z",
+  "id_carga": "programas-abertos-2026-11-25"
  },
  "criterio": "situação DISPONIBILIZADO, com algum prazo (proposta, emendas ou beneficiário específico) igual ou posterior à data da coleta, aberto a \"Administração Pública Municipal\" na UF do município (ou sem UF). Classificação por tema = correspondência de palavras-chave de data/config/temas.json (rascunho, a validar).",
  "municipio": {
@@ -13,7 +13,7 @@
  },
  "resumo": {
   "linhas_lidas": 1259659,
-  "programas_abertos_no_pais": 183,
+  "programas_abertos_no_pais": 181,
   "programas_elegiveis_ao_municipio": 61,
   "sem_tema_classificado": 2
  },
@@ -329,7 +329,7 @@
    "subtipo": null,
    "subtipo_descricao": null,
    "historico": {
-    "propostas_total": 561,
+    "propostas_total": 562,
     "propostas_municipais": 482,
     "valor_global_municipal": {
      "minimo": 0.01,
@@ -1220,7 +1220,7 @@
    "subtipo": null,
    "subtipo_descricao": null,
    "historico": {
-    "propostas_total": 192,
+    "propostas_total": 191,
     "propostas_municipais": 0,
     "valor_global_municipal": {
      "minimo": null,

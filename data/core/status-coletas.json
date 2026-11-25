@@ -1,17 +1,17 @@
 {
- "atualizado_em": "2026-11-24T14:03:07.111Z",
+ "atualizado_em": "2026-11-25T14:08:01.924Z",
  "coletores": {
   "ibge": {
    "script": "coletores/ibge-municipios.ts",
-   "ultima_tentativa": "2026-11-24T13:45:47.538Z",
+   "ultima_tentativa": "2026-11-25T13:49:19.440Z",
    "resultado": "ok",
    "tentativas": 1,
    "erro": null,
-   "ultimo_sucesso": "2026-11-24T13:45:47.538Z"
+   "ultimo_sucesso": "2026-11-25T13:49:19.440Z"
   },
   "cauc": {
    "script": "coletores/cauc.ts",
-   "ultima_tentativa": "2026-11-24T13:51:17.887Z",
+   "ultima_tentativa": "2026-11-25T13:54:49.925Z",
    "resultado": "falha",
    "tentativas": 3,
    "erro": "Error: CAUC: fetch failed",
@@ -19,43 +19,43 @@
   },
   "siconfi": {
    "script": "coletores/siconfi.ts",
-   "ultima_tentativa": "2026-11-24T13:51:20.101Z",
+   "ultima_tentativa": "2026-11-25T13:54:52.406Z",
    "resultado": "ok",
    "tentativas": 1,
    "erro": null,
-   "ultimo_sucesso": "2026-11-24T13:51:20.101Z"
+   "ultimo_sucesso": "2026-11-25T13:54:52.406Z"
   },
   "fns": {
    "script": "coletores/fns.ts",
-   "ultima_tentativa": "2026-11-24T13:58:51.758Z",
+   "ultima_tentativa": "2026-11-25T14:03:30.583Z",
    "resultado": "ok",
    "tentativas": 1,
    "erro": null,
-   "ultimo_sucesso": "2026-11-24T13:58:51.758Z"
+   "ultimo_sucesso": "2026-11-25T14:03:30.583Z"
   },
   "programas-abertos": {
    "script": "coletores/programas-abertos.ts",
-   "ultima_tentativa": "2026-11-24T14:02:30.843Z",
+   "ultima_tentativa": "2026-11-25T14:07:24.326Z",
    "resultado": "ok",
    "tentativas": 1,
    "erro": null,
-   "ultimo_sucesso": "2026-11-24T14:02:30.843Z"
+   "ultimo_sucesso": "2026-11-25T14:07:24.326Z"
   },
   "transferegov": {
    "script": "coletores/transferegov-convenios.ts",
-   "ultima_tentativa": "2026-11-24T14:03:06.886Z",
+   "ultima_tentativa": "2026-11-25T14:08:01.668Z",
    "resultado": "ok",
    "tentativas": 1,
    "erro": null,
-   "ultimo_sucesso": "2026-11-24T14:03:06.886Z"
+   "ultimo_sucesso": "2026-11-25T14:08:01.668Z"
   },
   "acompanhamento": {
    "script": "coletores/derivar-acompanhamento.ts",
-   "ultima_tentativa": "2026-11-24T14:03:07.111Z",
+   "ultima_tentativa": "2026-11-25T14:08:01.924Z",
    "resultado": "ok",
    "tentativas": 1,
    "erro": null,
-   "ultimo_sucesso": "2026-11-24T14:03:07.111Z"
+   "ultimo_sucesso": "2026-11-25T14:08:01.924Z"
   }
  }
 }
