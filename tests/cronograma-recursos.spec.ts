@@ -120,8 +120,8 @@ test('CSV: 200, text/csv, BOM, cabeçalho exato e linha Total', async ({ request
   expect(r.status()).toBe(200);
   expect(r.headers()['content-type']).toContain('text/csv');
   const bruto = await r.text();
-  expect(bruto.startsWith('﻿')).toBe(true);
-  const texto = bruto.replace(/^﻿/, '');
+  expect(bruto.startsWith('\uFEFF')).toBe(true);
+  const texto = bruto.replace(/^\uFEFF/, '');
   expect(texto.split('\r\n')[0]).toBe(HEADER_CSV.split(';').map((c) => `"${c}"`).join(';'));
   expect(texto).toContain('"Total"');
   expect(texto).toContain('"Diárias"');

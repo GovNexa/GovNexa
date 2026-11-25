@@ -200,3 +200,42 @@ test('o envolvido não entra no tempo na mão nem no painel Responsáveis', asyn
   const texto = JSON.stringify(depois);
   for (const nome of ['Pessoa Envolvida Teste', 'Área Envolvida Teste', 'Outra Pessoa Envolvida']) assert.ok(!texto.includes(nome));
 });
+
+test('todo UPDATE e INSERT de item grava com o filtro da prefeitura da sessão (confere o bind de prefeitura_id)', async (t) => {
+  const banco = bancoTeste();
+  t.after(() => banco.sqlite.close());
+  banco.sqlite.prepare("INSERT INTO prefeitura (id, nome, uf) VALUES (?, 'Teste', 'GO')").run(PREF);
+  banco.sqlite.prepare("INSERT INTO cronograma (prefeitura_id, id, titulo) VALUES (?, 'C-s', 'S')").run(PREF);
+  banco.sqlite.prepare("INSERT INTO etapa_cronograma (prefeitura_id, id, cronograma_id, ordem, fase, nome) VALUES (?, 'C-s#1', 'C-s', 1, 'F', 'T')").run(PREF);
+  const vistos: { sql: string; v: unknown[] }[] = [];
+  const espiao = {
+    prepare: (sql: string) => { const st = banco.db.prepare(sql); return { ...st, bind: (...v: unknown[]) => { vistos.push({ sql, v }); return st.bind(...v); }, first: st.first.bind(st), all: st.all.bind(st), run: st.run.bind(st) }; },
+    batch: banco.db.batch.bind(banco.db),
+  };
+  const c: ContextoCronograma = { usuario: usuario(), repositorio: comInvalidacao(repositorioD1ParaTestes(espiao as unknown as typeof banco.db, PREF), PREF) };
+  let rev = 0;
+  const g = async (corpo: Record<string, unknown>) => { const r = ok(await gravarCronograma(c, 'C-s', { revisao: rev, ...corpo }, RELOGIO)); rev = r.revisao; return r; };
+  const e = (await g({ acao: 'incluir_envolvido', tarefa_id: 'C-s#1', envolvido: { nome: 'Pessoa Teste 2' } })).item_id!;
+  const r = (await g({ acao: 'incluir_recurso', tarefa_id: 'C-s#1', recurso: { tipo: 'material', descricao: 'Cimento' } })).item_id!;
+  await g({ acao: 'editar_envolvido', tarefa_id: 'C-s#1', item_id: e, envolvido: { nome: 'Pessoa Teste 2', papel: 'Apoio' } });
+  await g({ acao: 'editar_recurso', tarefa_id: 'C-s#1', item_id: r, recurso: { tipo: 'material', descricao: 'Cimento', quantidade: '2' } });
+  await g({ acao: 'remover_envolvido', tarefa_id: 'C-s#1', item_id: e });
+  await g({ acao: 'remover_recurso', tarefa_id: 'C-s#1', item_id: r });
+  const alvo = vistos.filter((x) => /^(UPDATE|INSERT INTO) tarefa_(envolvido|recurso)/.test(x.sql));
+  assert.equal(alvo.length, 6);
+  for (const { sql, v } of alvo) {
+    const antes = (sql.match(/\?/g) ?? []).length - (sql.slice(sql.indexOf('WHERE') >= 0 ? sql.indexOf('WHERE') : 0).match(/\?/g) ?? []).length;
+    const posicao = sql.startsWith('INSERT') ? 0 : antes; // INSERT: prefeitura_id é a 1ª coluna; UPDATE: primeiro `?` depois do WHERE
+    assert.equal(v[posicao], PREF, sql);
+    if (sql.startsWith('UPDATE')) assert.match(sql, /WHERE prefeitura_id = \?/);
+  }
+});
+
+test('recurso financeiro sem valor (vazio, só "R$" ou espaços) vira erro claro, não erro do banco', async (t) => {
+  const { c, cr, t1, rev } = await montarDoZero(t);
+  for (const valor of ['', 'R$ ', '   ']) {
+    const r = await gravarCronograma(c, cr, { revisao: rev(), acao: 'incluir_recurso', tarefa_id: t1, recurso: { tipo: 'financeiro', descricao: 'Diárias', valor_estimado: valor, valor_utilizado: valor } }, RELOGIO);
+    assert.equal(status(r), 400);
+    assert.deepEqual(erros(r), ['Recurso financeiro: informe o valor estimado ou o utilizado.']);
+  }
+});

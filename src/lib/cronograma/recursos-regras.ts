@@ -65,8 +65,9 @@ export function normalizarOperacaoItem(acao: AcaoItem, bruto: Record<string, unk
     tipo, descricao, quantidade_centesimos: quantidade, unidade: quantidade === null ? null : unidade, valor_estimado_centavos: estimado, valor_utilizado_centavos: utilizado,
     data_uso: data ?? null, observacao: texto(v.observacao, 500, true),
   };
-  const valorInformado = (x: unknown): boolean => x !== null && x !== undefined && x !== '';
-  if (tipoBruto === 'financeiro' && !valorInformado(v.valor_estimado) && !valorInformado(v.valor_utilizado)) erros.push('Recurso financeiro: informe o valor estimado ou o utilizado.');
+  // Depois da conversão: valor vazio ou só "R$" também não conta (senão cairia no CHECK do banco).
+  const valorInvalido = erros.some((e) => e.startsWith('Valor estimado:') || e.startsWith('Valor utilizado:'));
+  if (tipoBruto === 'financeiro' && estimado === null && utilizado === null && !valorInvalido) erros.push('Recurso financeiro: informe o valor estimado ou o utilizado.');
   return acao === 'incluir_recurso' ? { acao, tarefa_id, recurso } : { acao: 'editar_recurso', tarefa_id, item_id, recurso };
 }
 

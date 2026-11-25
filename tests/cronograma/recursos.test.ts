@@ -79,6 +79,14 @@ test('resumos: soma bigint exata (200 x 1e12), por tipo na ordem fixa, por taref
   assert.equal(r.tarefasComRecursos, 2);
   const porTarefa = resumoPorTarefa(itens);
   assert.equal(porTarefa.get('T-a')!.recursos, 100);
+  assert.equal(porTarefa.get('T-a')!.estimado, 100n * 1_000_000_000_000n);
+  assert.equal(porTarefa.get('T-a')!.utilizado, 99n);
+  assert.equal(porTarefa.get('T-b')!.utilizado, 100n);
+  const duas = resumoPorTarefa({ envolvidos: [], recursos: [rec('s1', 'T-c', { valor_estimado_centavos: 123456, valor_utilizado_centavos: 44 }), rec('s2', 'T-c', { valor_estimado_centavos: 44 })] }).get('T-c')!;
+  assert.equal(duas.estimado, 123500n); // 1.234,56 + 0,44
+  assert.equal(duas.utilizado, 44n);
+  assert.equal(duas.comEstimado, 2);
+  assert.equal(duas.comUtilizado, 1);
   assert.equal(porTarefa.get('T-a')!.envolvidos, 2);
   assert.equal(textoResumoTarefa(porTarefa.get('T-a')), '2 envolvidos · 100 recursos');
   assert.equal(textoResumoTarefa(porTarefa.get('T-b')), '100 recursos');
@@ -247,7 +255,7 @@ test('CSV de recursos: cabeçalho, fórmula neutralizada, total, CRLF, sem BOM e
   assert.equal(linhas.at(-1), '');
   assert.equal(linhas[0], CABECALHO_CSV_RECURSOS.map((c) => `"${c}"`).join(';'));
   assert.equal(linhas.length, 5);
-  assert.ok(!csv.startsWith('﻿'));
+  assert.ok(!csv.startsWith('\uFEFF'));
   assert.ok(linhas[1].includes(`"'=SOMA(1)"`));
   assert.ok(linhas[1].includes('"Envolvido"'));
   assert.ok(linhas[2].includes('"Financeiro";"Diárias"'));

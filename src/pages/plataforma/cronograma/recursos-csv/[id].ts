@@ -6,7 +6,7 @@ import { nomeArquivoCsvRecursos, paraCsvRecursos } from '../../../../lib/cronogr
 import { usuarioPode } from '../../../../lib/usuarios/index.ts';
 import { hojeEmBrasilia } from '../../../../lib/whatsapp/farol.ts';
 
-const SEM_CACHE = { 'Cache-Control': 'private, no-store' };
+const SEM_CACHE = { 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' };
 const texto = (status: number, corpo: string): Response => new Response(corpo, { status, headers: { ...SEM_CACHE, 'Content-Type': 'text/plain; charset=utf-8' } });
 
 export const GET: APIRoute = async ({ locals, params }) => {
@@ -19,7 +19,7 @@ export const GET: APIRoute = async ({ locals, params }) => {
   if (!achado) return texto(404, 'Cronograma não encontrado.');
   const itens = await repo.listarItensCronograma(id);
   // A marca inicial (BOM) faz o Excel abrir o arquivo em UTF-8; o código-fonte continua sem BOM.
-  return new Response(`﻿${paraCsvRecursos(achado.cronograma, itens)}`, {
+  return new Response(`\uFEFF${paraCsvRecursos(achado.cronograma, itens)}`, {
     headers: {
       ...SEM_CACHE,
       'Content-Type': 'text/csv; charset=utf-8',
