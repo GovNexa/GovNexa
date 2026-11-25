@@ -3,8 +3,8 @@
   "fonte": "Ministério da Saúde — Fundo Nacional de Saúde, Consulta Consolidada Fundo a Fundo",
   "url_origem": "https://consultafns.saude.gov.br/recursos/consulta-consolidada",
   "data_referencia": "exercício 2026",
-  "data_coleta": "2026-11-24T13:51:20.251Z",
-  "id_carga": "fns-2026-11-24"
+  "data_coleta": "2026-11-25T13:54:52.579Z",
+  "id_carga": "fns-2026-11-25"
  },
  "capitais": [
   {
@@ -12,13 +12,13 @@
    "nome": "Belo Horizonte",
    "uf": "MG",
    "populacao": 2415451,
-   "total_bruto": 2832805107.27,
-   "per_capita": 1172.79,
+   "total_bruto": 2834456272.27,
+   "per_capita": 1173.47,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 16511650
+     "valor_bruto": 18162815
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -57,13 +57,13 @@
    "nome": "Porto Alegre",
    "uf": "RS",
    "populacao": 1388791,
-   "total_bruto": 1502274009.13,
-   "per_capita": 1081.71,
+   "total_bruto": 1503223379.23,
+   "per_capita": 1082.4,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 9527813.52
+     "valor_bruto": 10477183.62
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -102,13 +102,13 @@
    "nome": "Curitiba",
    "uf": "PR",
    "populacao": 1832183,
-   "total_bruto": 1523570715.73,
-   "per_capita": 831.56,
+   "total_bruto": 1524820686.23,
+   "per_capita": 832.24,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 12499705
+     "valor_bruto": 13749675.5
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -152,13 +152,13 @@
    "nome": "Cuiabá",
    "uf": "MT",
    "populacao": 698917,
-   "total_bruto": 572948536.24,
-   "per_capita": 819.77,
+   "total_bruto": 573420897.54,
+   "per_capita": 820.44,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 5065079
+     "valor_bruto": 5537440.3
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -187,13 +187,13 @@
    "nome": "Natal",
    "uf": "RN",
    "populacao": 783196,
-   "total_bruto": 621106932.65,
-   "per_capita": 793.04,
+   "total_bruto": 621650145.55,
+   "per_capita": 793.74,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 5445337.85
+     "valor_bruto": 5988550.75
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -227,13 +227,13 @@
    "nome": "Teresina",
    "uf": "PI",
    "populacao": 908012,
-   "total_bruto": 719389862.32,
-   "per_capita": 792.27,
+   "total_bruto": 720014191.12,
+   "per_capita": 792.96,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 6243288
+     "valor_bruto": 6867616.8
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -267,13 +267,13 @@
    "nome": "Maceió",
    "uf": "AL",
    "populacao": 995134,
-   "total_bruto": 784606627.18,
-   "per_capita": 788.44,
+   "total_bruto": 785294464.78,
+   "per_capita": 789.13,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 7375608
+     "valor_bruto": 8063445.6
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -312,13 +312,13 @@
    "nome": "Campo Grande",
    "uf": "MS",
    "populacao": 970843,
-   "total_bruto": 739867811.59,
-   "per_capita": 762.09,
+   "total_bruto": 740528033.09,
+   "per_capita": 762.77,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 7217972.53
+     "valor_bruto": 7878194.03
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -357,13 +357,13 @@
    "nome": "Fortaleza",
    "uf": "CE",
    "populacao": 2582360,
-   "total_bruto": 1929537291.06,
-   "per_capita": 747.2,
+   "total_bruto": 1931317926.06,
+   "per_capita": 747.89,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 17806350
+     "valor_bruto": 19586985
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -407,13 +407,13 @@
    "nome": "João Pessoa",
    "uf": "PB",
    "populacao": 906093,
-   "total_bruto": 629509178.59,
-   "per_capita": 694.75,
+   "total_bruto": 630123848.29,
+   "per_capita": 695.43,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 6146697
+     "valor_bruto": 6761366.7
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -452,13 +452,13 @@
    "nome": "São Luís",
    "uf": "MA",
    "populacao": 1090229,
-   "total_bruto": 718421314.39,
-   "per_capita": 658.96,
+   "total_bruto": 719173887.19,
+   "per_capita": 659.65,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 7525728
+     "valor_bruto": 8278300.8
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -492,13 +492,13 @@
    "nome": "Palmas",
    "uf": "TO",
    "populacao": 333154,
-   "total_bruto": 217528306.36,
-   "per_capita": 652.94,
+   "total_bruto": 217752147.06,
+   "per_capita": 653.61,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 2400219.5
+     "valor_bruto": 2624060.2
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -537,13 +537,13 @@
    "nome": "Goiânia",
    "uf": "GO",
    "populacao": 1511709,
-   "total_bruto": 946509896.28,
-   "per_capita": 626.12,
+   "total_bruto": 947543660.68,
+   "per_capita": 626.8,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 10337644
+     "valor_bruto": 11371408.4
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -582,13 +582,13 @@
    "nome": "Belém",
    "uf": "PA",
    "populacao": 1396157,
-   "total_bruto": 786301094.41,
-   "per_capita": 563.19,
+   "total_bruto": 787268411.71,
+   "per_capita": 563.88,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 9673173
+     "valor_bruto": 10640490.3
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -622,13 +622,13 @@
    "nome": "Aracaju",
    "uf": "SE",
    "populacao": 623328,
-   "total_bruto": 350538410.09,
-   "per_capita": 562.37,
+   "total_bruto": 350973363.99,
+   "per_capita": 563.06,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 4349539
+     "valor_bruto": 4784492.9
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -662,13 +662,13 @@
    "nome": "Boa Vista",
    "uf": "RR",
    "populacao": 500965,
-   "total_bruto": 275763919.51,
-   "per_capita": 550.47,
+   "total_bruto": 276089119.81,
+   "per_capita": 551.11,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 3252003
+     "valor_bruto": 3577203.3
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -702,13 +702,13 @@
    "nome": "Macapá",
    "uf": "AP",
    "populacao": 491987,
-   "total_bruto": 267796412.42,
-   "per_capita": 544.32,
+   "total_bruto": 268133392.42,
+   "per_capita": 545,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 3613400
+     "valor_bruto": 3950380
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -747,13 +747,13 @@
    "nome": "Rio de Janeiro",
    "uf": "RJ",
    "populacao": 6731133,
-   "total_bruto": 3558834266.39,
-   "per_capita": 528.71,
+   "total_bruto": 3563489109.79,
+   "per_capita": 529.4,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 47085936.68
+     "valor_bruto": 51740780.08
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -797,13 +797,13 @@
    "nome": "Recife",
    "uf": "PE",
    "populacao": 1588983,
-   "total_bruto": 736357931.31,
-   "per_capita": 463.41,
+   "total_bruto": 737456095.41,
+   "per_capita": 464.11,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 10981641
+     "valor_bruto": 12079805.1
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -842,13 +842,13 @@
    "nome": "Salvador",
    "uf": "BA",
    "populacao": 2559945,
-   "total_bruto": 1176080650.6,
-   "per_capita": 459.42,
+   "total_bruto": 1177857492.5,
+   "per_capita": 460.11,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 17768419
+     "valor_bruto": 19545260.9
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -882,13 +882,13 @@
    "nome": "Porto Velho",
    "uf": "RO",
    "populacao": 520379,
-   "total_bruto": 202957275.37,
-   "per_capita": 390.02,
+   "total_bruto": 203313395.87,
+   "per_capita": 390.7,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 3638634.58
+     "valor_bruto": 3994755.08
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -927,13 +927,13 @@
    "nome": "Rio Branco",
    "uf": "AC",
    "populacao": 390058,
-   "total_bruto": 145859982.69,
-   "per_capita": 373.94,
+   "total_bruto": 146128246.99,
+   "per_capita": 374.63,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 2876569
+     "valor_bruto": 3144833.3
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -967,13 +967,13 @@
    "nome": "São Paulo",
    "uf": "SP",
    "populacao": 11911337,
-   "total_bruto": 3181282512.8,
-   "per_capita": 267.08,
+   "total_bruto": 3189411157.8,
+   "per_capita": 267.76,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 83665565.6
+     "valor_bruto": 91794210.6
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -1012,13 +1012,13 @@
    "nome": "Vitória",
    "uf": "ES",
    "populacao": 343935,
-   "total_bruto": 85599840.74,
-   "per_capita": 248.88,
+   "total_bruto": 85834087.44,
+   "per_capita": 249.56,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 2411027
+     "valor_bruto": 2645273.7
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -1047,13 +1047,13 @@
    "nome": "Florianópolis",
    "uf": "SC",
    "populacao": 598370,
-   "total_bruto": 148867703.79,
-   "per_capita": 248.79,
+   "total_bruto": 149261550.49,
+   "per_capita": 249.45,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 3980487.1
+     "valor_bruto": 4374333.8
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
@@ -1082,13 +1082,13 @@
    "nome": "Manaus",
    "uf": "AM",
    "populacao": 2327101,
-   "total_bruto": 372498479.73,
-   "per_capita": 160.07,
+   "total_bruto": 374075262.63,
+   "per_capita": 160.75,
    "grupos": [
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
      "grupo": "ASSISTÊNCIA FARMACÊUTICA",
-     "valor_bruto": 15767829
+     "valor_bruto": 17344611.9
     },
     {
      "bloco": "Manutenção das Ações e Serviços Públicos de Saúde",
