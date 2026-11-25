@@ -3,6 +3,7 @@
 ## Atualização diária dos dados (25/11/2026)
 - Regra do dono (CLAUDE.md, seção 1.2): no primeiro processo do dia, o Claude confere e atualiza todos os coletores (CAUC à mão; os demais pelo fluxo diário do GitHub, disparado se ainda não rodou) e abre o PR de dados.
 - `scripts/coletas-do-dia.mjs`: lista cada coletor com o último sucesso no horário de Brasília e diz quais não foram atualizados hoje. Só lê o `status-coletas.json`.
+- Publicação dos dados autorizada de forma permanente pelo dono (25/11/2026): após o merge do PR de dados, o Claude publica sem esperar ordem, desde que a diferença para a versão no ar seja só de dados (e documentação). Código continua exigindo ordem expressa.
 - **Não mudou:** coletores, fluxos do GitHub e código do sistema.
 
 ## CAUC coletado à mão (25/11/2026)
