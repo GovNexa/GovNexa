@@ -147,6 +147,9 @@ Aprovadas pelo dono para reduzir tempo e tokens sem perder qualidade nem seguran
 9. **Portão roda os testes de tela da área alterada;** a suíte completa roda uma vez por lote, antes do PR.
 10. **Sessão nova por lote.** Quando for hora de fechar a sessão (contexto grande, fim de lote, mudança de assunto), avisar o dono com os passos: (1) o dono diz `fechar sessão` e o Claude salva o trabalho nas branches e registra as pendências; (2) no Claude Code, `/clear` ou conversa nova; (3) na conversa nova: `continuar a partir do README e das pendências`.
 
+11. **Codex de volta nas faixas B e C (dono, 25/11/2026):** a 🟣 Opus faz a ordem (curta na B, completa na C) e, na C, revisa o desenho; o 🟠 Codex (`gpt-6.2-sol` complexa ou sensível; `gpt-6.1-terra` média) escreve o código; o 🔴 Codex Security (`gpt-6.2-sol`) revisa o código; o 🔵 Sonnet roda os testes e o portão fora do Codex (no Windows o sandbox dele não roda o Node), faz o commit e o PR. Faixa A continua com o Claude direto. Um Codex por vez; a conferência lê só o diff e os testes que falharam; no máximo 2 devoluções ao Codex, na 3ª o Claude assume.
+12. **Pacote do Codex acabou: o Claude assume automaticamente, sem parar o desenvolvimento e sem perguntar.** Codex → 🔵 Sonnet executa a mesma ordem na mesma worktree (com a nota "já feito / continue do passo N"); Codex Security → 🟣 Opus faz a revisão de código. Avisar só "(substituindo Codex)" e voltar ao Codex na tarefa seguinte, quando a cota voltar.
+
 ## Marcação na tela
 Toda mensagem começa com a marca de quem trabalha: 🟣 Opus, 🔵 Sonnet, 🟢 Haiku, 🟠 Codex, ⚪ sem delegação.
 Relatório final com a linha "Quem fez o quê".
