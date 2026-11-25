@@ -1,5 +1,9 @@
 # Changelog
 
+## CAUC coletado à mão (25/11/2026)
+- Decisão do dono: como o site do Tesouro recusa a coleta a partir do GitHub ("fetch failed" em 23, 24 e 25/11), o CAUC é coletado localmente quando pedido. Coleta de hoje: Goiânia regular, sem pendências (dado de 19/11/2026); 26 itens regulares e 2 sem informação.
+- **Não mudou:** o fluxo diário do GitHub e os demais coletores.
+
 ## Limite de gravações maior só nos testes locais (25/11/2026, medida 8)
 - `src/lib/seguranca/limite.ts`: com `AMBIENTE=local` **e** `LIMITE_TESTE_LOCAL` (inteiro de 31 a 100000), as rotas usam o limitador em memória com esse limite; em qualquer outro caso, a ligação `LIMITE_API` da Cloudflare (30 por minuto, recusa se falhar). Os três servidores do `playwright.config.ts` passam `LIMITE_TESTE_LOCAL:1000`, e a suíte de tela roda em paralelo sem 429.
 - Testes novos: variáveis ausentes ou inválidas mantêm o limite normal; produção recusa a 31ª; o `wrangler.jsonc` não pode declarar `AMBIENTE` nem `LIMITE_TESTE_LOCAL`; só o `playwright.config.ts` liga o limite de teste. Prova de mutação: retirar a exigência de `AMBIENTE` ou a faixa de valores derruba os testes.
