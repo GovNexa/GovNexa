@@ -26,13 +26,13 @@ export const ROTULO_STATUS: Record<StatusEtapa, string> = {
   concluida: 'Concluída',
 };
 
-export type CorRitmo = 'verde' | 'amarelo' | 'vermelho' | null;
-/** Farol do SPI: >= 0,95 verde; 0,85 a 0,95 amarelo; < 0,85 vermelho; null = sem previsão. */
-export function farolRitmo(spi: number | null): CorRitmo {
+export type Ritmo = 'no-ritmo' | 'pouco-abaixo' | 'bem-abaixo' | null;
+/** Ritmo pelo SPI: >= 0,95 no ritmo; 0,85 a 0,95 um pouco abaixo; < 0,85 bem abaixo; null = sem previsão. */
+export function ritmoDoSpi(spi: number | null): Ritmo {
   if (spi === null) return null;
-  return spi >= 0.95 ? 'verde' : spi >= 0.85 ? 'amarelo' : 'vermelho';
+  return spi >= 0.95 ? 'no-ritmo' : spi >= 0.85 ? 'pouco-abaixo' : 'bem-abaixo';
 }
-export const rotuloRitmo = (cor: CorRitmo): string => (cor === 'verde' ? 'Verde' : cor === 'amarelo' ? 'Amarelo' : cor === 'vermelho' ? 'Vermelho' : 'Sem previsão');
+export const rotuloRitmo = (r: Ritmo): string => (r === 'no-ritmo' ? 'No ritmo previsto' : r === 'pouco-abaixo' ? 'Um pouco abaixo do previsto' : r === 'bem-abaixo' ? 'Bem abaixo do previsto' : 'Sem previsão');
 
 export const etapasDoCronograma = (c: Cronograma): EtapaCronograma[] => c.fases.flatMap((f) => f.etapas);
 
@@ -42,7 +42,7 @@ export interface ResumoCronograma {
   realizadoPct: number;
   previstoPct: number;
   spi: number | null;
-  ritmo: CorRitmo;
+  ritmo: Ritmo;
   faseAtual: string;
   atrasadas: number;
   proximos7: number;
@@ -78,7 +78,7 @@ export function resumoCronograma(c: Cronograma, hoje: string = hojePadrao()): Re
     realizadoPct,
     previstoPct,
     spi,
-    ritmo: farolRitmo(spi),
+    ritmo: ritmoDoSpi(spi),
     faseAtual: etapas.length === 0 ? 'Sem tarefas' : faseAberta ? faseAberta.nome : 'Concluído',
     atrasadas: etapas.filter((e) => ['atrasada', 'inicio_atrasado'].includes(statusNaData(e, hoje))).length,
     proximos7: etapas.filter((e) => statusNaData(e, hoje) !== 'concluida' && !!e.fim_previsto && e.fim_previsto >= hoje && e.fim_previsto <= limite).length,

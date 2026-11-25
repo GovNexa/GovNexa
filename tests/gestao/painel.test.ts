@@ -67,14 +67,14 @@ test('contratação ordenada pela data prevista (sem data por último) e só as 
   assert.equal(valor, 3000);
 });
 
-test('atenção: no máximo 5 vermelhos, por prioridade; candidatos no máximo 3', () => {
+test('atenção: no máximo 5 com prazo vencido, por prioridade; candidatos no máximo 3', () => {
   const vermelho = (id: string, prioridade: string) => proj(id, (p) => { p.prioridade = prioridade; p.datas.mobilizacao = '2026-01-01'; p.macroetapa = '04'; });
   const c = cart(vermelho('P-1', 'Baixa'), vermelho('P-2', 'Muito Alta'), vermelho('P-3', 'Alta'), vermelho('P-4', 'Média'), vermelho('P-5', 'Muito Alta'), vermelho('P-6', 'Alta'), vermelho('P-7', 'Baixa'));
   const { atencao } = montarPainel(c, [], [], null, HOJE);
-  assert.equal(atencao.vermelhos.qtd, 7);
-  assert.equal(atencao.vermelhos.top.length, 5);
-  assert.deepEqual(atencao.vermelhos.top.map((i) => i.prioridade), ['Muito Alta', 'Muito Alta', 'Alta', 'Alta', 'Média']);
-  assert.ok(atencao.vermelhos.top.every((i) => i.motivo.length > 0));
+  assert.equal(atencao.vencidos.qtd, 7);
+  assert.equal(atencao.vencidos.top.length, 5);
+  assert.deepEqual(atencao.vencidos.top.map((i) => i.prioridade), ['Muito Alta', 'Muito Alta', 'Alta', 'Alta', 'Média']);
+  assert.ok(atencao.vencidos.top.every((i) => i.motivo.length > 0));
   assert.ok(atencao.candidatosSala.top.length <= 3);
   assert.ok(atencao.candidatosSala.top.every((x) => x.porque.startsWith('Sugerido porque')));
 });

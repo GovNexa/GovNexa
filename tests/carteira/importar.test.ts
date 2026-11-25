@@ -248,3 +248,20 @@ test('duas importações seguidas registram carga, criado, removido, campos e et
   assert.match(por('carga').descricao, /nova\.xlsx: 3 projetos \(1 incluídos, 2 alterados, 1 retirados\)/);
   assert.equal(new Set(h2.map((r) => r.id)).size, h2.length);
 });
+
+test('importador: coluna Farol na planilha é ignorada com aviso; sem a coluna, o aviso fica vazio', async () => {
+  assert.deepEqual(relatorio.abas.PIPELINE.colunas_ignoradas, []);
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.readFile(planilha);
+  const aba = wb.getWorksheet('PIPELINE')!;
+  const coluna = aba.getRow(1).cellCount + 1;
+  aba.getRow(1).getCell(coluna).value = 'Farol';
+  aba.getRow(2).getCell(coluna).value = 'Vermelho';
+  aba.getRow(3).getCell(coluna).value = 'Verde';
+  const arquivo = join(dir, 'com-coluna-farol.xlsx');
+  await wb.xlsx.writeFile(arquivo);
+  const r = await importarCarteira({ planilha: arquivo, saida: join(dir, 'saida-farol'), agora: new Date('2026-01-01T12:00:00Z') });
+  assert.equal(r.carteira.projetos.length, carteira.projetos.length);
+  assert.deepEqual((r.relatorio as any).abas.PIPELINE.colunas_ignoradas, ['Farol']);
+  assert.equal(JSON.stringify(r.carteira).includes('Vermelho'), false);
+});

@@ -20,7 +20,6 @@ const candidatos = candidatosSala(carteira, cronogramas, hoje, salas);
 const prazoPadrao = new Date(Date.parse(`${hoje}T00:00:00Z`) + 30 * 86400000).toISOString().slice(0, 10);
 const abertas = ativas.map((s) => ({ id: s.id, titulo: s.titulo, projetos: s.projetos.join(' ') }));
 const contagem = (s: Sala, tipo: string) => s.raid.filter((i) => i.tipo === tipo && (i.situacao === 'aberto' || i.situacao === 'em_andamento')).length;
-const rotuloFarol = { vermelho: 'Vermelho', amarelo: 'Amarelo', verde: 'Verde' } as const;
 ---
 <div data-cart data-sala-guerra>
   <p class="cart-aviso" role="note">{AVISO_SIMULACAO_SALA}</p>
@@ -39,7 +38,7 @@ const rotuloFarol = { vermelho: 'Vermelho', amarelo: 'Amarelo', verde: 'Verde' }
               <p><strong>Dono:</strong> {s.dono}</p>
               <p><strong>Prazo:</strong> {dataBr(s.prazo)} ({textoPrazo(ind.diasParaPrazo)})</p>
               <p>{ROTULO_CADENCIA[s.cadencia]} · {ROTULO_ESCALONAMENTO[s.escalonamento]}</p>
-              <p class="sl-farol"><span class={`cart-ponto ${ind.farol.cor}`} aria-hidden="true"></span><span><strong>Farol {rotuloFarol[ind.farol.cor]}:</strong> {ind.farol.motivo}</span></p>
+              <p class="sl-situacao"><strong>Situação:</strong> {ind.situacao.texto}</p>
               <p class="sl-contagem">Riscos {contagem(s, 'risco')} · Ações {contagem(s, 'acao')} · Problemas {contagem(s, 'problema')} · Decisões {contagem(s, 'decisao')}</p>
               <p><a class="button secondary" href={comVolta(`/plataforma/sala-de-guerra/${s.id}/`, aqui)} aria-label={`Abrir sala: ${s.titulo}`}>Abrir sala</a></p>
             </article>

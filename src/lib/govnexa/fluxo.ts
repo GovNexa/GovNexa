@@ -186,7 +186,7 @@ export const NOS: NoFluxo[] = [
     situacao: 'simulacao', fase: 'Fase 2', telas: [T.reuniao] },
   { id: 'alertas', raia: 'gestao', linha: 6, tipo: 'tarefa', titulo: 'Alertas e prazos',
     oQue: 'Cinco alertas principais: cláusula suspensiva, edital na praça, homologação, início e fim de obra; mais saldo sem fonte, etapa parada e dado defasado.',
-    valida: ['Prazo da prefeitura (meta) × prazo da lei (teto): passar do teto é alerta vermelho', 'Calendário de dias úteis com feriados nacionais e municipais'], quem: 'Sistema',
+    valida: ['Prazo da prefeitura (meta) × prazo da lei (teto): passar do teto é alerta urgente', 'Calendário de dias úteis com feriados nacionais e municipais'], quem: 'Sistema',
     situacao: 'disponivel', fase: 'Fase 4 (edital na praça e homologação real aguardam fonte de dados)', telas: [T.alertasCentral, T.alertas, T.prazos] },
   { id: 'parado', raia: 'gestao', linha: 9, tipo: 'tarefa', titulo: 'Onde está parado',
     oQue: 'Etapas vencidas por unidade e por responsável, com dias acumulados e quantas etapas seguintes cada atraso segura: com quem está cada tarefa e o que precisa ser cobrado. O painel Responsáveis mostra com quem está cada tarefa e há quantos dias, por pessoa e por área, com atenção e urgente (E13).',
@@ -209,7 +209,7 @@ export const NOS: NoFluxo[] = [
     valida: ['Registro imutável'], quem: 'Todos (consulta)',
     situacao: 'disponivel', fase: 'Etapa 1.5', telas: [T.log] },
   { id: 'equipe', raia: 'gestao', linha: 15, tipo: 'tarefa', titulo: 'Painel da equipe e inconsistências',
-    oQue: 'A equipe acompanha o que saiu da tela do prefeito (farol, prazos, onde está parado, decisões pendentes, alertas e convênios) e corrige os dados pelo relatório de inconsistências, por órgão ou geral, com impressão e CSV.',
+    oQue: 'A equipe acompanha o que saiu da tela do prefeito (prazos vencidos, onde está parado, decisões pendentes, alertas e convênios) e corrige os dados pelo relatório de inconsistências, por órgão ou geral, com impressão e CSV.',
     valida: ['Campo essencial faltando (órgão, área, valor, macroetapa, datas previstas)', 'Datas fora de ordem e macroetapa vencida', 'SEI inválido e obra fora do mapa', 'Só administrador, gestor e editor veem'], quem: 'Equipe de gestão de portfólio',
     situacao: 'disponivel', fase: 'E10', telas: [T.equipe, T.inconsistencias] },
 ];

@@ -5,6 +5,10 @@
  */
 export const FUSO_BRASILIA = 'America/Sao_Paulo';
 
+/** Data de hoje no fuso de Brasília ('AAAA-MM-DD'). Roda no build, no Worker e no navegador. */
+export const hojeEmBrasilia = (agora: Date = new Date()): string =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: FUSO_BRASILIA, year: 'numeric', month: '2-digit', day: '2-digit' }).format(agora);
+
 const SO_DIA = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 /** 'AAAA-MM-DD' (sem fuso) ou data e hora ISO/Date (convertida para Brasília) → DD/MM/AAAA. */

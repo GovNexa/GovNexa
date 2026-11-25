@@ -1,5 +1,5 @@
 // Tela do prefeito "Projetos prioritários" (E3). Funções puras: `hoje` ('AAAA-MM-DD'), projetos e catálogo de áreas são injetados.
-// Sem farol, prazo vencido, "onde está parado", decisões pendentes nem convênios: essa lógica continua em dashboard.ts e painel.ts
+// Sem situação de prazo, prazo vencido, "onde está parado", decisões pendentes nem convênios: essa lógica continua em dashboard.ts e painel.ts
 // e vai para o painel da equipe na E10. Valores somados em centavos inteiros, para as partes somarem exatamente o total.
 import { AREAS_PADRAO, areaDoProjeto, type Area } from '../carteira/area.ts';
 import { dataEntrega, lerFiltros, orgaoDe } from '../carteira/filtros.ts';

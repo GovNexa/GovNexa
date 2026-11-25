@@ -2,7 +2,8 @@
 // Datas, valores e porcentagens saem aqui como número/ISO; a formatação fica nas telas.
 import { MACROETAPAS } from '../carteira/macroetapas.ts';
 import type { Carteira, CodigoMacroetapa, Projeto } from '../carteira/tipos.ts';
-import { farol, valorProjeto } from '../carteira/visoes.ts';
+import { prazoVencido } from '../carteira/prazo.ts';
+import { situacaoPrazo, valorProjeto } from '../carteira/visoes.ts';
 import type { Cronograma } from '../cronograma/tipos.ts';
 import { diasEntre, ondeEstaParado } from '../cronograma/visoes.ts';
 import { IBGE } from '../dados/alertas.ts';
@@ -66,7 +67,7 @@ export interface PainelPrefeito {
     prioridadeMuitoAlta: number;
   };
   atencao: {
-    vermelhos: { qtd: number; top: ItemAtencao[] };
+    vencidos: { qtd: number; top: ItemAtencao[] };
     candidatosSala: { qtd: number; top: { id: string; nome: string; porque: string }[] };
     salasAbertas: number;
   };
@@ -99,14 +100,14 @@ export function montarPainel(carteira: Carteira, cronogramas: Cronograma[], sala
   const sem = projetos.filter((p) => p.macroetapa === null);
   if (sem.length) porMacroetapa.push({ codigo: 'sem', nome: 'Sem macroetapa', qtd: sem.length, valor: soma(sem) });
 
-  const vermelhos = projetos
+  const vencidos = projetos
     .filter((p) => p.macroetapa !== '06')
-    .map((p) => ({ p, f: farol(p, hoje) }))
-    .filter((x) => x.f.cor === 'vermelho');
-  const topVermelhos: ItemAtencao[] = [...vermelhos]
+    .map((p) => ({ p, s: situacaoPrazo(p, hoje) }))
+    .filter((x) => prazoVencido(x.s.codigo));
+  const topVencidos: ItemAtencao[] = [...vencidos]
     .sort((a, b) => rankPrioridade(a.p.prioridade) - rankPrioridade(b.p.prioridade) || a.p.nome.localeCompare(b.p.nome, 'pt-BR'))
     .slice(0, 5)
-    .map((x) => ({ id: x.p.id, nome: x.p.nome, prioridade: x.p.prioridade, motivo: x.f.motivo }));
+    .map((x) => ({ id: x.p.id, nome: x.p.nome, prioridade: x.p.prioridade, motivo: x.s.texto }));
 
   const candidatos = candidatosSala(carteira, cronogramas, hoje, salas);
   const salasAbertas = salas.filter((s) => s.situacao === 'aberta' || s.situacao === 'em_andamento').length;
@@ -121,7 +122,7 @@ export function montarPainel(carteira: Carteira, cronogramas: Cronograma[], sala
   return {
     carteira: { total: projetos.length, valor: soma(projetos), porMacroetapa, prioridadeMuitoAlta: projetos.filter((p) => p.prioridade === 'Muito Alta').length },
     atencao: {
-      vermelhos: { qtd: vermelhos.length, top: topVermelhos },
+      vencidos: { qtd: vencidos.length, top: topVencidos },
       candidatosSala: { qtd: candidatos.length, top: candidatos.slice(0, 3).map((c) => ({ id: c.projeto.id, nome: c.projeto.nome, porque: porqueSugerido(c.motivos) })) },
       salasAbertas,
     },

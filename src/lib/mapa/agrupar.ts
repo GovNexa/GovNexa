@@ -6,7 +6,7 @@ export interface ObraAgrupavel {
   id: string;
   regiao: string | null;
   bairro: string | null;
-  /** Série de cor da área (ex.: 'mp-cor-1'; ver cores-area.ts). Sem farol desde a E4. */
+  /** Série de cor da área (ex.: 'mp-cor-1'; ver cores-area.ts). Sem situação de prazo desde a E4. */
   serie: string;
   pontos: PontoGeo[];
 }

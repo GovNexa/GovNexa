@@ -3,7 +3,7 @@ process.env.GOVNEXA_EXEMPLO = '1'; // usa os dados fictícios de data/exemplo, n
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { Cronograma, EtapaCronograma } from '../../src/lib/cronograma/tipos.ts';
-import { farolRitmo, ondeEstaParado, resumoCronograma, statusNaData } from '../../src/lib/cronograma/visoes.ts';
+import { ondeEstaParado, resumoCronograma, ritmoDoSpi, rotuloRitmo, statusNaData } from '../../src/lib/cronograma/visoes.ts';
 
 const HOJE = '2026-06-10';
 
@@ -57,7 +57,7 @@ test('resumoCronograma: percentuais, SPI, fase atual, atrasadas e próximos 7 di
   // previsto: e1 inteira (10) + e2 9/20 de 10 (4,5) + e3 inteira (1) + e4 ainda não começou (0)
   assert.ok(Math.abs(r.previstoPct - (15.5 / 31) * 100) < 1e-9);
   assert.ok(Math.abs((r.spi as number) - 10 / 15.5) < 1e-9);
-  assert.equal(r.ritmo, 'vermelho');
+  assert.equal(r.ritmo, 'bem-abaixo');
   assert.equal(r.faseAtual, 'Fase A');
   assert.equal(r.atrasadas, 1); // e3: início atrasado
   assert.equal(r.proximos7, 1); // e4 vence em 17/06
@@ -69,7 +69,7 @@ test('resumoCronograma: tudo concluído e sem previsão', () => {
   const r = resumoCronograma(pronto, HOJE);
   assert.equal(r.faseAtual, 'Concluído');
   assert.equal(r.realizadoPct, 100);
-  assert.equal(r.ritmo, 'verde');
+  assert.equal(r.ritmo, 'no-ritmo');
   const futuro = cron('C-4', [['F', [etapa('a', 'F', { inicio_previsto: '2027-01-01', fim_previsto: '2027-01-10' })]]]);
   const f = resumoCronograma(futuro, HOJE);
   assert.equal(f.previstoPct, 0);
@@ -77,12 +77,16 @@ test('resumoCronograma: tudo concluído e sem previsão', () => {
   assert.equal(f.ritmo, null);
 });
 
-test('farol do SPI nos limites', () => {
-  assert.equal(farolRitmo(0.95), 'verde');
-  assert.equal(farolRitmo(0.9499), 'amarelo');
-  assert.equal(farolRitmo(0.85), 'amarelo');
-  assert.equal(farolRitmo(0.8499), 'vermelho');
-  assert.equal(farolRitmo(null), null);
+test('ritmo do SPI nos limites e rótulos em texto', () => {
+  assert.equal(ritmoDoSpi(0.95), 'no-ritmo');
+  assert.equal(ritmoDoSpi(0.9499), 'pouco-abaixo');
+  assert.equal(ritmoDoSpi(0.85), 'pouco-abaixo');
+  assert.equal(ritmoDoSpi(0.8499), 'bem-abaixo');
+  assert.equal(ritmoDoSpi(null), null);
+  assert.equal(rotuloRitmo('no-ritmo'), 'No ritmo previsto');
+  assert.equal(rotuloRitmo('pouco-abaixo'), 'Um pouco abaixo do previsto');
+  assert.equal(rotuloRitmo('bem-abaixo'), 'Bem abaixo do previsto');
+  assert.equal(rotuloRitmo(null), 'Sem previsão');
 });
 
 test('ondeEstaParado agrupa por unidade e por responsável, do maior atraso acumulado ao menor', () => {

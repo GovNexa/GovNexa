@@ -1,5 +1,5 @@
 ---
-import { hojeEmBrasilia } from '../../lib/whatsapp/farol.ts';
+import { hojeEmBrasilia } from '../../lib/datas.ts';
 // Central de alertas (Gestão). Monta a lista no build (dados + dia de hoje); os filtros só mostram/escondem itens no navegador.
 import '../../styles/carteira.css';
 import '../../styles/alertas.css';
@@ -10,7 +10,7 @@ import { avaliarFontes } from '../../lib/dados/qualidade.ts';
 import { municipioAtivo } from '../../lib/municipio-ativo.ts';
 import { formatarData } from '../../lib/prazos/calendario.ts';
 import { aquiDe, comVolta } from '../../lib/navegacao/volta.ts';
-import { montarCentral, nomeTipo, SEM_ORGAO, textoDias, type ConvenioEntrada, type TipoAlerta } from '../../lib/alertas/central.ts';
+import { montarCentral, nomeTipo, ROTULO_GRAVIDADE, SEM_ORGAO, textoDias, type ConvenioEntrada, type TipoAlerta } from '../../lib/alertas/central.ts';
 
 const municipio = municipioAtivo().codigo_ibge;
 const hoje = hojeEmBrasilia();
@@ -49,7 +49,7 @@ const prazoTexto = (a: (typeof central.alertas)[number]) =>
     Situação em {formatarData(hoje)}. Prazos em dias corridos e em dias úteis (sem fins de semana e feriados nacionais e municipais).
   </p>
   <p class="al-totais" data-al-totais>
-    <strong>{plural(central.totais.total, 'alerta', 'alertas')}</strong>: {plural(central.totais.vermelho, 'vermelho', 'vermelhos')} e {plural(central.totais.amarelo, 'amarelo', 'amarelos')}.
+    <strong>{plural(central.totais.total, 'alerta', 'alertas')}</strong>: {plural(central.totais.vermelho, 'urgente', 'urgentes')} e {central.totais.amarelo} em atenção.
   </p>
 
   <section class="al-bloco" aria-labelledby="al-resumo">
@@ -62,7 +62,7 @@ const prazoTexto = (a: (typeof central.alertas)[number]) =>
             <button type="button" class="al-cartao" data-al-cartao={t.tipo} aria-pressed="false">
               <span class="al-cartao-nome">{t.nome}</span>
               <strong class="al-cartao-numero">{t.total}</strong>
-              <span class="al-cartao-nota">{plural(t.vermelho, 'vermelho', 'vermelhos')} · {plural(t.amarelo, 'amarelo', 'amarelos')}</span>
+              <span class="al-cartao-nota">{plural(t.vermelho, 'urgente', 'urgentes')} · {t.amarelo} em atenção</span>
             </button>
           ) : (
             <div class="al-cartao al-cartao-zero" data-al-cartao-zero={t.tipo}>
@@ -87,9 +87,9 @@ const prazoTexto = (a: (typeof central.alertas)[number]) =>
       </div>
       <div class="al-campo"><label for="al-f-gravidade">Gravidade</label>
         <select id="al-f-gravidade" name="gravidade" data-al-filtro="gravidade">
-          <option value="">Vermelho e amarelo</option>
-          <option value="vermelho">Vermelho ({central.totais.vermelho})</option>
-          <option value="amarelo">Amarelo ({central.totais.amarelo})</option>
+          <option value="">Urgente e atenção</option>
+          <option value="vermelho">Urgente ({central.totais.vermelho})</option>
+          <option value="amarelo">Atenção ({central.totais.amarelo})</option>
         </select>
       </div>
       <div class="al-campo"><label for="al-f-orgao">Órgão</label>
@@ -107,7 +107,7 @@ const prazoTexto = (a: (typeof central.alertas)[number]) =>
       {central.alertas.map((a) => (
         <li class={`al-item al-${a.gravidade}`} data-tipo={a.tipo} data-gravidade={a.gravidade} data-orgao={a.orgao ?? SEM_ORGAO} data-al-item>
           <p class="al-meta">
-            <span class={`al-grav al-grav-${a.gravidade}`}><span class="al-simbolo" aria-hidden="true">{a.gravidade === 'vermelho' ? '●' : '▲'}</span> {a.gravidade === 'vermelho' ? 'Vermelho' : 'Amarelo'}</span>
+            <span class={`al-grav al-grav-${a.gravidade}`}><span class="al-simbolo" aria-hidden="true">{a.gravidade === 'vermelho' ? '●' : '▲'}</span> {ROTULO_GRAVIDADE[a.gravidade]}</span>
             <span class="al-tipo">{nomeTipo(a.tipo)}</span>
             <span>{a.orgao ?? SEM_ORGAO}</span>
           </p>

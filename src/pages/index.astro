@@ -72,7 +72,7 @@ import '../styles/home.css';
       </div>
       <div class="gx-story">
         <aside class="gx-glass gx-ficha">
-          <div class="gx-live-head" style="margin:0"><span class="gx-tag">Ficha do projeto · exemplo</span><span class="gx-tag" id="fFarol">no prazo</span></div>
+          <div class="gx-live-head" style="margin:0"><span class="gx-tag">Ficha do projeto · exemplo</span><span class="gx-tag" id="fPrazo">no prazo</span></div>
           <h3>Reforma da unidade de saúde</h3>
           <div class="gx-rail" id="rail" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
           <div class="gx-stage"><span class="gx-num" id="fNum">00</span><span class="gx-nm" id="fNome">Em estruturação</span></div>
@@ -133,7 +133,7 @@ import '../styles/home.css';
         <article class="gx-glass gx-lit gx-tile gx-t-ges">
           <span class="gx-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 12l5-3"/><path d="M12 7v1"/></svg></span>
           <h3>Gestão: o painel do prefeito.</h3>
-          <p>A foto de hoje da carteira e dos recursos. Cada número abre o detalhe. A central de alertas põe o vermelho primeiro e diz o que fazer.</p>
+          <p>A foto de hoje da carteira e dos recursos. Cada número abre o detalhe. A central de alertas põe o urgente primeiro e diz o que fazer.</p>
         </article>
         <article class="gx-glass gx-lit gx-tile gx-t-doc">
           <span class="gx-ico"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 14h6M10 17h4"/></svg></span>
@@ -155,7 +155,7 @@ import '../styles/home.css';
       <div class="gx-sec-head">
         <p class="gx-eyebrow">Como o GovNexa pensa</p>
         <h2>Calcular, não digitar.</h2>
-        <p>Status, percentual, farol e entrega projetada saem de regras. A equipe só registra o que aconteceu.</p>
+        <p>Status, percentual, dias de atraso e entrega projetada saem de regras. A equipe só registra o que aconteceu.</p>
       </div>
       <div class="gx-rules">
         <div class="gx-rule"><h3>Uma fonte da verdade</h3><p>O projeto é único. Os módulos se ligam a ele por referência.</p></div>
@@ -231,13 +231,13 @@ gsap.registerPlugin(ScrollTrigger);
 
 // Ficha do projeto: o que muda em cada macroetapa (dados de exemplo, fictícios).
 const ETAPAS = [
-  { n: '00', nome: 'Em estruturação', quem: 'Gestão de portfólio', dias: '2 dias', entrega: 'a calcular', fonte: 'a definir', farol: 'no prazo', faz: 'O sistema cria a ficha, o histórico e o lugar do projeto em todas as telas.' },
-  { n: '01', nome: 'Planejamento', quem: 'Órgão executor', dias: '11 dias', entrega: 'dez/2027', fonte: 'buscando convênio', farol: 'no prazo', faz: 'O sistema calcula a entrega projetada e sugere oportunidades de recurso para o projeto.' },
-  { n: '02', nome: 'Preparatório para contratação', quem: 'Jurídico', dias: '23 dias', entrega: 'jan/2028', fonte: 'convênio em análise', farol: 'atenção', faz: 'O sistema mostra que o parecer está parado há 23 dias e com quem.' },
-  { n: '03', nome: 'Contratação', quem: 'Comissão de contratação', dias: '6 dias', entrega: 'jan/2028', fonte: 'convênio assinado', farol: 'no prazo', faz: 'O sistema conta os prazos da Lei 14.133 em dias úteis e alerta antes do teto legal.' },
-  { n: '04', nome: 'Mobilização', quem: 'Empresa contratada', dias: '4 dias', entrega: 'jan/2028', fonte: '1º repasse liberado', farol: 'no prazo', faz: 'O sistema cobra a ordem de serviço se ela não sair em 15 dias.' },
-  { n: '05', nome: 'Execução', quem: 'Fiscalização da obra', dias: '58 dias', entrega: 'fev/2028', fonte: 'repasses em dia', farol: 'atenção', faz: 'O sistema monta a pauta da reunião semanal e mostra o atraso projetado de 30 dias.' },
-  { n: '06', nome: 'Conclusão', quem: 'Gabinete', dias: 'entregue', entrega: 'fev/2028', fonte: 'prestação de contas', farol: 'concluído', faz: 'O sistema guarda o histórico completo e as lições aprendidas.' },
+  { n: '00', nome: 'Em estruturação', quem: 'Gestão de portfólio', dias: '2 dias', entrega: 'a calcular', fonte: 'a definir', prazo: 'no prazo', faz: 'O sistema cria a ficha, o histórico e o lugar do projeto em todas as telas.' },
+  { n: '01', nome: 'Planejamento', quem: 'Órgão executor', dias: '11 dias', entrega: 'dez/2027', fonte: 'buscando convênio', prazo: 'no prazo', faz: 'O sistema calcula a entrega projetada e sugere oportunidades de recurso para o projeto.' },
+  { n: '02', nome: 'Preparatório para contratação', quem: 'Jurídico', dias: '23 dias', entrega: 'jan/2028', fonte: 'convênio em análise', prazo: 'parado há 23 dias', faz: 'O sistema mostra que o parecer está parado há 23 dias e com quem.' },
+  { n: '03', nome: 'Contratação', quem: 'Comissão de contratação', dias: '6 dias', entrega: 'jan/2028', fonte: 'convênio assinado', prazo: 'no prazo', faz: 'O sistema conta os prazos da Lei 14.133 em dias úteis e alerta antes do teto legal.' },
+  { n: '04', nome: 'Mobilização', quem: 'Empresa contratada', dias: '4 dias', entrega: 'jan/2028', fonte: '1º repasse liberado', prazo: 'no prazo', faz: 'O sistema cobra a ordem de serviço se ela não sair em 15 dias.' },
+  { n: '05', nome: 'Execução', quem: 'Fiscalização da obra', dias: '58 dias', entrega: 'fev/2028', fonte: 'repasses em dia', prazo: '30 dias de atraso projetado', faz: 'O sistema monta a pauta da reunião semanal e mostra o atraso projetado de 30 dias.' },
+  { n: '06', nome: 'Conclusão', quem: 'Gabinete', dias: 'entregue', entrega: 'fev/2028', fonte: 'prestação de contas', prazo: 'concluído', faz: 'O sistema guarda o histórico completo e as lições aprendidas.' },
 ];
 
 let contexto: gsap.Context | undefined;
@@ -258,7 +258,7 @@ function iniciar() {
     atual = i;
     $('fNum').textContent = e.n; $('fNome').textContent = e.nome; $('fQuem').textContent = e.quem;
     $('fDias').textContent = e.dias; $('fEntrega').textContent = e.entrega; $('fFonte').textContent = e.fonte;
-    $('fFaz').textContent = e.faz; $('fFarol').textContent = e.farol;
+    $('fFaz').textContent = e.faz; $('fPrazo').textContent = e.prazo;
     trilho.forEach((el, k) => { el.className = k < i ? 'gx-on' : k === i ? 'gx-now' : ''; });
     passos.forEach((p) => p.classList.toggle('gx-active', Number(p.dataset.i) === i));
     if (!calmo) gsap.fromTo('#fNum,#fNome', { y: 10 }, { y: 0, duration: 0.45, ease: 'power2.out', stagger: 0.05 });

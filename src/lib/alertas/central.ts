@@ -12,6 +12,8 @@ import { adicionarDias, diasUteisEntre, formatarData } from '../prazos/calendari
 import { avaliarPrazo, buscarPrazo } from '../prazos/lei14133.ts';
 
 export type Gravidade = 'vermelho' | 'amarelo';
+/** Rótulo da gravidade na tela (o valor interno continua 'vermelho' | 'amarelo'; as cores de situação saíram da tela em 23/11/2026). */
+export const ROTULO_GRAVIDADE: Record<Gravidade, string> = { vermelho: 'Urgente', amarelo: 'Atenção' };
 export type TipoAlerta =
   | 'clausula'
   | 'vigencia'
@@ -202,7 +204,7 @@ export function alertasConvenios(convenios: ConvenioEntrada[], hoje: string): Ba
         gravidade: vermelho ? 'vermelho' : 'amarelo',
         titulo: `Convênio ${nr} assinado há ${semDesembolso} dias e sem nenhum desembolso`,
         detalhe: `${objeto}. Concedente: ${c.orgao_superior ?? 'não informado'}. Repasse pactuado: ${reais(c.valor_repasse ?? 0)}.`,
-        regra: `Sem nenhum desembolso há mais de ${DIAS_SEM_DESEMBOLSO} dias costuma indicar cláusula suspensiva não cumprida. Fica vermelho quando a vigência termina em ${DIAS_VIGENCIA_AVISO} dias ou menos (risco de perder o recurso).`,
+        regra: `Sem nenhum desembolso há mais de ${DIAS_SEM_DESEMBOLSO} dias costuma indicar cláusula suspensiva não cumprida. Fica urgente quando a vigência termina em ${DIAS_VIGENCIA_AVISO} dias ou menos (risco de perder o recurso).`,
         projeto: null,
         convenio: nr,
         orgao: null,
@@ -220,7 +222,7 @@ export function alertasConvenios(convenios: ConvenioEntrada[], hoje: string): Ba
         gravidade: faltam <= DIAS_VIGENCIA_VERMELHO ? 'vermelho' : 'amarelo',
         titulo: vencida ? `Vigência do convênio ${nr} já terminou` : `Vigência do convênio ${nr} termina em ${pl(faltam, 'dia', 'dias')}`,
         detalhe: `${objeto}. Vigência até ${formatarData(fim as string)}.`,
-        regra: `Avisar quando faltarem ${DIAS_VIGENCIA_AVISO} dias ou menos para o fim da vigência; vermelho com ${DIAS_VIGENCIA_VERMELHO} dias ou menos.`,
+        regra: `Avisar quando faltarem ${DIAS_VIGENCIA_AVISO} dias ou menos para o fim da vigência; urgente com ${DIAS_VIGENCIA_VERMELHO} dias ou menos.`,
         projeto: null,
         convenio: nr,
         orgao: null,
@@ -237,7 +239,7 @@ export function alertasConvenios(convenios: ConvenioEntrada[], hoje: string): Ba
 export function alertasObra(carteira: Carteira, hoje: string): Base[] {
   const saida: Base[] = [];
   const aviso = adicionarDias(hoje, DIAS_AVISO_OBRA);
-  const regra = (marco: string) => `Data prevista de ${marco} (planilha): vermelho quando já passou; amarelo quando faltam ${DIAS_AVISO_OBRA} dias ou menos.`;
+  const regra = (marco: string) => `Data prevista de ${marco} (planilha): urgente quando já passou; atenção quando faltam ${DIAS_AVISO_OBRA} dias ou menos.`;
   const gravidade = (data: string): Gravidade | null => (data < hoje ? 'vermelho' : data <= aviso ? 'amarelo' : null);
   for (const p of carteira.projetos) {
     const base = { projeto: { id: p.id, nome: p.nome }, convenio: null, orgao: p.orgao, link: linkProjeto(p) };
@@ -294,7 +296,7 @@ export function alertasSemFonte(carteira: Carteira): Base[] {
       id: `sem-fonte-${p.id}`, tipo: 'sem-fonte', gravidade: avancado ? 'vermelho' : 'amarelo',
       titulo: `${reais(saldo)} ainda sem fonte de recurso`,
       detalhe: `Em ${nomeMacroetapa(p.macroetapa)}. O total do projeto não está coberto por recurso captado, contrapartida e custeio do município.`,
-      regra: 'Vermelho quando o projeto já está em contratação, mobilização ou execução (não pode seguir sem fonte); amarelo nas fases anteriores.',
+      regra: 'Urgente quando o projeto já está em contratação, mobilização ou execução (não pode seguir sem fonte); atenção nas fases anteriores.',
       projeto: { id: p.id, nome: p.nome }, convenio: null, orgao: p.orgao, prazo: fimDaMacroetapaAtual(p),
       acao: 'Definir a fonte (captação externa, contrapartida ou custeio) antes da próxima etapa.',
       link: linkProjeto(p),
@@ -315,7 +317,7 @@ export function alertasParadas(cronogramas: Cronograma[], carteira: Carteira, ho
       id: `parada-${c.id}`, tipo: 'parada', gravidade: antigo.dias > DIAS_PARADA_VERMELHO ? 'vermelho' : 'amarelo',
       titulo: `${pl(doCrono.length, 'etapa atrasada', 'etapas atrasadas')} no cronograma`,
       detalhe: `${curto(c.titulo, 90)}. Mais antiga: "${antigo.etapa}"${antigo.unidade ? ` (com ${antigo.unidade})` : ''}, atrasada há ${pl(antigo.dias, 'dia', 'dias')}.`,
-      regra: `Etapa com fim previsto vencido (ou início previsto vencido sem começar). Vermelho quando a mais antiga passa de ${DIAS_PARADA_VERMELHO} dias.`,
+      regra: `Etapa com fim previsto vencido (ou início previsto vencido sem começar). Urgente quando a mais antiga passa de ${DIAS_PARADA_VERMELHO} dias.`,
       projeto: p ? { id: p.id, nome: p.nome } : null, convenio: null, orgao: p?.orgao ?? null,
       prazo: adicionarDias(hoje, -antigo.dias),
       acao: 'Cobrar a unidade com a etapa mais antiga e redistribuir a carga se preciso (sem punição).',
@@ -334,7 +336,7 @@ export function alertasDefasados(fontes: FonteAvaliada[], cargas: { nome: string
       id: `defasado-${f.id}`, tipo: 'defasado', gravidade: critico ? 'vermelho' : 'amarelo',
       titulo: `Fonte ${f.nome}: ${f.situacao.replace(/^[^:]+: /, '').toLowerCase()}${f.idade !== null ? ` (coleta há ${pl(f.idade, 'dia', 'dias')})` : ''}`,
       detalhe: f.motivo,
-      regra: `Limite desta fonte: ${pl(f.limite, 'dia', 'dias')}; vermelho acima do dobro ou sem nenhuma carga.`,
+      regra: `Limite desta fonte: ${pl(f.limite, 'dia', 'dias')}; urgente acima do dobro ou sem nenhuma carga.`,
       projeto: null, convenio: null, orgao: null, prazo: null, acao: f.acao, link: URL.qualidade,
     });
   }
@@ -348,7 +350,7 @@ export function alertasDefasados(fontes: FonteAvaliada[], cargas: { nome: string
       gravidade: idade > DIAS_CARTEIRA_DEFASADA * 2 ? 'vermelho' : 'amarelo',
       titulo: `${c.nome} sem nova carga há ${pl(idade, 'dia', 'dias')}`,
       detalhe: `Última importação da planilha: ${formatarData(importado)}. Datas e valores podem estar desatualizados.`,
-      regra: `A planilha deve ser importada pelo menos a cada ${DIAS_CARTEIRA_DEFASADA} dias; vermelho acima de ${DIAS_CARTEIRA_DEFASADA * 2}.`,
+      regra: `A planilha deve ser importada pelo menos a cada ${DIAS_CARTEIRA_DEFASADA} dias; urgente acima de ${DIAS_CARTEIRA_DEFASADA * 2}.`,
       projeto: null, convenio: null, orgao: null, prazo: adicionarDias(importado, DIAS_CARTEIRA_DEFASADA),
       acao: 'Importar a versão mais recente da planilha e conferir o histórico de alterações.',
       link: URL.log,
@@ -372,7 +374,7 @@ export function alertasPrazoLei(eventos: EventoPrazo[], carteira: Carteira, hoje
       id: `prazo-lei-${e.prazoId}-${e.projetoId ?? 'sem'}-${e.inicio}`, tipo: 'prazo-lei', gravidade: g,
       titulo: `${prazo.nome}: ${g === 'vermelho' ? 'passou do limite da lei' : 'passou da meta da prefeitura'}`,
       detalhe: `${e.descricao}. ${av.texto}`,
-      regra: `${prazo.referencia}: ${prazo.dias} dias úteis (teto). Meta da prefeitura menor que a lei; passar do teto é vermelho, passar só da meta é amarelo.`,
+      regra: `${prazo.referencia}: ${prazo.dias} dias úteis (teto). Meta da prefeitura menor que a lei; passar do teto é urgente, passar só da meta é atenção.`,
       projeto: p ? { id: p.id, nome: p.nome } : null, convenio: null, orgao: p?.orgao ?? null,
       prazo: g === 'vermelho' ? av.limiteLegal : (av.limiteMeta as string),
       acao: g === 'vermelho' ? 'Concluir o ato imediatamente e registrar a justificativa do atraso.' : 'Concluir o ato antes do limite da lei.',

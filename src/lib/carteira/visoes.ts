@@ -1,5 +1,6 @@
-// Visões da Carteira de Projetos (Kanban, Gantt, por órgão, farol). Funções puras: sem leitura de arquivo nem relógio global.
+// Visões da Carteira de Projetos (Kanban, Gantt, por órgão, prazo). Funções puras: sem leitura de arquivo nem relógio global.
 import { MACROETAPAS } from './macroetapas.ts';
+import { situacaoPrazoDe, type SituacaoPrazo } from './prazo.ts';
 import type { Carteira, CodigoMacroetapa, Projeto } from './tipos.ts';
 
 export const valorProjeto = (p: Projeto): number | null => p.valores.total ?? p.valores.obra ?? null;
@@ -75,23 +76,10 @@ export function resumoPorOrgao(c: Carteira): GrupoOrgao[] {
     .sort((a, b) => b.valor - a.valor);
 }
 
-const diasEntre = (de: string, ate: string): number => Math.round((Date.parse(`${ate.slice(0, 10)}T00:00:00Z`) - Date.parse(`${de.slice(0, 10)}T00:00:00Z`)) / 86400000);
-
-export interface Farol {
-  cor: 'vermelho' | 'amarelo' | 'verde';
-  motivo: string;
-}
-
-/** Semáforo do projeto. `hoje` em ISO 'AAAA-MM-DD' (injetável para teste). */
-export function farol(p: Projeto, hoje: string = new Date().toISOString().slice(0, 10)): Farol {
-  const fim = fimDaMacroetapaAtual(p);
-  if (p.macroetapa !== '06') {
-    if (fim && fim < hoje) return { cor: 'vermelho', motivo: 'Prazo da macroetapa vencido' };
-    if (p.datas.encerramento && p.datas.encerramento < hoje) return { cor: 'vermelho', motivo: 'Entrega prevista vencida' };
-  }
-  if (p.pendencias.length) return { cor: 'amarelo', motivo: `Dados incompletos: ${p.pendencias.length} pendência(s)` };
-  if (p.macroetapa !== '06' && fim && diasEntre(hoje, fim) <= 15) return { cor: 'amarelo', motivo: 'Prazo da macroetapa em até 15 dias' };
-  return { cor: 'verde', motivo: 'No prazo' };
+export type { SituacaoPrazo } from './prazo.ts';
+/** Situação de prazo do projeto em texto. `hoje` em ISO 'AAAA-MM-DD' (injetável para teste). */
+export function situacaoPrazo(p: Projeto, hoje: string = new Date().toISOString().slice(0, 10)): SituacaoPrazo {
+  return situacaoPrazoDe({ macroetapa: p.macroetapa, fimEtapa: fimDaMacroetapaAtual(p), encerramento: p.datas.encerramento, pendencias: p.pendencias.length }, hoje);
 }
 
 /** Valor do projeto que ainda não tem fonte (captado + contrapartida + custeio do município); null se não dá para estimar. */

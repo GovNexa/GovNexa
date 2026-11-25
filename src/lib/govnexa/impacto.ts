@@ -5,7 +5,7 @@
 /** Partes usadas por TODAS as telas: mudança aqui afeta o sistema inteiro. */
 export const TRANSVERSAL = [
   'src/layouts/**', 'src/styles/**', 'src/components/DataTable.astro', 'src/components/Icon.astro',
-  'src/lib/govnexa/catalogo.ts', 'src/lib/marca.ts', 'src/lib/municipio-ativo.ts', 'src/pages/plataforma/[...module].astro',
+  'src/lib/govnexa/catalogo.ts', 'src/lib/marca.ts', 'src/lib/datas.ts', 'src/lib/municipio-ativo.ts', 'src/pages/plataforma/[...module].astro',
   'worker/**', 'wrangler.jsonc', 'public/_headers', 'astro.config.*', 'package.json',
   'src/middleware.ts', 'src/lib/repositorio/cache.ts', // lê o banco e entrega os dados a todas as telas da plataforma
   'src/lib/navegacao/**', 'src/components/navegacao/**', // volta à tela de origem (E15): todas as telas
@@ -45,13 +45,13 @@ export const COMPONENTES: Record<string, string[]> = {
   fim: ['src/lib/log/**'],
   reuniao: ['src/lib/reuniao/**', 'src/components/reuniao/**'],
   movimentacao: ['src/lib/carteira/movimentacao.ts', 'src/lib/carteira/simulacao.ts', 'src/components/carteira/Kanban.astro', 'src/components/carteira/PendenciasEtapa.astro', 'src/lib/carteira/kanban.ts', 'src/lib/carteira/mover.ts', 'src/lib/carteira/mover-cliente.ts', 'src/pages/plataforma/projeto/mover/**', 'src/styles/kanban.css'],
-  alertas: ['src/lib/alertas/**', 'src/components/alertas/**', 'src/lib/dados/alertas.ts', 'src/lib/carteira/visoes.ts', 'src/lib/cronograma/visoes.ts', 'src/lib/dados/qualidade.ts', 'src/lib/prazos/**', 'src/components/prazos/**', 'data/config/feriados.json', 'data/config/prazos-internos.json'],
+  alertas: ['src/lib/alertas/**', 'src/components/alertas/**', 'src/lib/dados/alertas.ts', 'src/lib/carteira/visoes.ts', 'src/lib/carteira/prazo.ts', 'src/lib/cronograma/visoes.ts', 'src/lib/dados/qualidade.ts', 'src/lib/prazos/**', 'src/components/prazos/**', 'data/config/feriados.json', 'data/config/prazos-internos.json'],
   parado: ['src/lib/cronograma/visoes.ts', 'src/lib/cronograma/dependencias.ts', 'src/components/cronograma/Parado.astro', 'src/lib/cronograma/responsaveis.ts', 'src/lib/cronograma/painel-responsaveis.ts', 'src/pages/plataforma/gestao-responsaveis/**', 'src/styles/responsaveis.css'],
   sala: ['src/lib/sala/**', 'src/components/sala/**', 'src/pages/plataforma/sala-de-guerra/**'],
   painel: ['src/components/carteira/VisaoOrgaos.astro', 'src/lib/govnexa/catalogo.ts', 'src/lib/gestao/**', 'src/components/gestao/**', 'src/pages/plataforma/index.astro', 'src/styles/prioritarios.css', 'src/pages/plataforma/gestao-licitacoes/**', ...MAPA],
   log: ['src/lib/log/**', 'src/components/log/**', 'db/migracoes/002_*'],
   equipe: ['src/lib/gestao/equipe.ts', 'src/lib/gestao/inconsistencias*.ts', 'src/lib/gestao/dashboard.ts', 'src/components/dashboard/**', 'src/styles/dashboard.css', 'src/styles/inconsistencias.css', 'src/pages/plataforma/gestao-equipe/**', 'src/pages/plataforma/gestao-inconsistencias/**', 'src/lib/alertas/central.ts'],
-  whatsapp: ['src/lib/whatsapp/**', 'src/components/whatsapp/**', 'src/lib/gestao/painel.ts', 'src/lib/carteira/visoes.ts'],
+  whatsapp: ['src/lib/whatsapp/**', 'src/components/whatsapp/**', 'src/lib/gestao/painel.ts', 'src/lib/carteira/visoes.ts', 'src/lib/carteira/prazo.ts'],
 };
 
 /** O próprio mapa: mudar estes arquivos é mudar o Fluxo (sem exigir outra atualização). */

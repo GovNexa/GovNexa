@@ -274,3 +274,13 @@ test('média ponderada informa cobertura dos pares válidos, independente da som
   assert.deepEqual(r.detalhe.coberturas, { valor: { comValor: 2, total: 3 }, percentual: { comValor: 1, total: 3 } });
   assert.match(r.secundario, /50.0% executado · 1 de 3 projetos com valor/);
 });
+
+test('cartão da carteira: o item de projeto só tem situação crítica (prazo vencido) ou neutra, sem situação por cor', () => {
+  const vencido = projeto('P-V', { macroetapa: '04' }); vencido.datas.mobilizacao = '2026-10-01';
+  const emDia = projeto('P-D', { pendencias: ['Falta valor'] });
+  const c = cartao(entrada([vencido, emDia]), 'carteira');
+  const porId = new Map(c.detalhe.itens.map(i => [i.id, i.situacao]));
+  assert.equal(porId.get('P-V'), 'critico');
+  assert.equal(porId.get('P-D'), 'neutro');
+  for (const i of c.detalhe.itens) assert.ok(i.situacao === 'critico' || i.situacao === 'neutro');
+});
