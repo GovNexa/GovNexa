@@ -166,7 +166,7 @@ document.addEventListener('astro:page-load', () => {
     h3.append(a, document.createTextNode(' '), el('span', `(${item.projeto_id})`, 'muted'));
     const meta = el('p', `${item.orgao ?? 'Sem órgão'} · ${item.macroetapa}${item.prioridade ? ` · Prioridade ${item.prioridade}` : ''}`, 'ru-meta');
     const prazo = el('p', undefined, 'ru-prazo');
-    prazo.append(el('strong', 'Prazo: '), document.createTextNode(item.prazo.texto));
+    prazo.append(el('strong', 'Situação: '), document.createTextNode(item.prazo.texto));
 
     const motivos = el('div', undefined, 'ru-bloco');
     motivos.append(el('h4', 'Na pauta porque'));

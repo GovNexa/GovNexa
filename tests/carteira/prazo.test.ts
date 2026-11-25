@@ -46,3 +46,14 @@ test('textos com número de dias e singular', () => {
   assert.equal(situacaoPrazoDe({ ...base, pendencias: 2 }, '2026-11-15').texto, 'Dados incompletos: 2 pendências');
   assert.equal(situacaoPrazoDe({ ...base, macroetapa: '06', fimEtapa: '2020-01-01' }, '2026-11-15').codigo, 'no-prazo');
 });
+
+test('limites do prazo próximo, entrega vencida e concluído com pendência', () => {
+  const hoje = '2026-11-15';
+  const base = { macroetapa: '01', fimEtapa: null as string | null, encerramento: null as string | null, pendencias: 0 };
+  assert.equal(situacaoPrazoDe({ ...base, fimEtapa: '2026-11-30' }, hoje).codigo, 'etapa-vencendo'); // hoje + 15
+  assert.equal(situacaoPrazoDe({ ...base, fimEtapa: '2026-12-01' }, hoje).codigo, 'no-prazo'); // hoje + 16
+  const entrega = situacaoPrazoDe({ ...base, fimEtapa: '2027-06-01', encerramento: '2026-11-14' }, hoje);
+  assert.equal(entrega.codigo, 'entrega-vencida');
+  assert.equal(prazoVencido(entrega.codigo), true);
+  assert.equal(situacaoPrazoDe({ ...base, macroetapa: '06', pendencias: 1 }, hoje).codigo, 'dados-incompletos');
+});

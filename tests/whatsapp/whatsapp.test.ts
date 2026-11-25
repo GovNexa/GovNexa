@@ -82,6 +82,14 @@ test('relatório só fala dos projetos visíveis (órgão de fora nunca aparece)
   assert.match(resumo, /Em execução: \d+ · entregas em 30 dias: \d+/);
 });
 
+test('resumo: a linha de prazo conta os vencidos e os com prazo da etapa em até 15 dias', () => {
+  const ativos = base.filter((p) => p.macroetapa !== '06');
+  const vencidos = ativos.filter((p) => prazoVencido(p.prazo)).length;
+  const vencendo = ativos.filter((p) => p.prazo === 'etapa-vencendo').length;
+  const resumo = montarRelatorio(contato(), base, CAPTACAO, HOJE, 'resumo');
+  assert.ok(resumo.includes(`⏰ ${vencidos} com prazo vencido · ${vencendo} com prazo da etapa em até 15 dias`), resumo);
+});
+
 test('pergunta sobre projeto de outro órgão recebe a MESMA resposta de inexistente (não revela que existe)', () => {
   const c = contato({ orgaos: ['SEINFRA'] });
   const outro = base.find((p) => p.orgao === 'SMS')!;

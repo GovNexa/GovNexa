@@ -33,7 +33,7 @@ const projetos = s.projetos.map((id) => ({
 const projetosSala = s.projetos.map((id) => {
   const p = carteira.projetos.find((x) => x.id === id);
   const s = p ? situacaoPrazo(p, hoje) : null;
-  return { id, nome: p?.nome ?? id, orgao: p?.orgao ?? 'sem órgão', etapa: nomeEtapa(p?.macroetapa ?? null), prazo: s ? `Prazo: ${s.texto}` : 'Prazo não disponível' };
+  return { id, nome: p?.nome ?? id, orgao: p?.orgao ?? 'sem órgão', etapa: nomeEtapa(p?.macroetapa ?? null), prazo: s ? `Situação: ${s.texto}` : 'Situação não disponível' };
 });
 const dadosBusca = JSON.stringify(carteira.projetos.map((p) => ({ id: p.id, nome: p.nome, orgao: p.orgao, sei: p.sei, macroetapa: p.macroetapa }))).replace(/</g, '\\u003c');
 const colunas: { tipo: TipoRaid; titulo: string; unico: string; novo: string }[] = [
@@ -468,7 +468,7 @@ document.addEventListener('astro:page-load', () => {
     forte.textContent = `${id} · ${p?.nome ?? id}`;
     const det = document.createElement('span');
     det.className = 'muted';
-    det.textContent = `${p?.orgao ?? 'sem órgão'} · ${nomeEtapa((p?.macroetapa ?? null) as Parameters<typeof nomeEtapa>[0])} · Prazo: será calculado quando a mudança for gravada`;
+    det.textContent = `${p?.orgao ?? 'sem órgão'} · ${nomeEtapa((p?.macroetapa ?? null) as Parameters<typeof nomeEtapa>[0])} · Situação: será calculado quando a mudança for gravada`;
     par.append(forte, document.createElement('br'), det);
     const bt = document.createElement('button');
     bt.type = 'button';

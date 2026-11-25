@@ -535,6 +535,7 @@ Centros dos bairros: migração 0005 e carga publicadas em 18/11/2026. Parte dos
 
 ### Próximos passos
 
+- **Dia de referência (E19):** `modulos.ts` usa `hojeEmBrasilia()` em vez do dia em UTC (pode mudar o dia entre 21h e 0h); as páginas com "há N dias" são `prerender = false`.
 - **Limpeza futura:** renomear os valores internos de gravidade `vermelho/amarelo` para `urgente/atencao` (só código; sem efeito na tela).
 0. **Requisitos dos áudios de 20/11/2026 (visão do prefeito, gestão e governança):** plano completo em [docs/govnexa/plano-requisitos-audios.md](docs/govnexa/plano-requisitos-audios.md), com 40 pedidos rastreados (conferência de 23/11/2026 contra a transcrição dos 31 áudios), entregas E1 a E18, ordem e % por fase. Decisões D1 a D6 respondidas em 22/11/2026 e as de E12 e E13 em 23/11/2026 (seção 7). **Situação em 23/11/2026:** E1 a E13 e E15 a E18 no ar em produção (100%), aguardando o teste do dono (a última publicação, de E18, E14a e E16, usou a versão do Worker 6e5fd492-3904-46ab-94cb-cbf76cb3da16, com as migrações 0011 e 0003 aplicadas antes do código); E14 (PNCP) em 70%: E14a no ar, E14b a E14d a fazer, E14e opcional.
    - **Varredura pendente (princípio "o sistema substitui a planilha"):** conferir módulo a módulo o que ainda depende de planilha para continuar o trabalho (os cronogramas eram só leitura e viraram a E13; falta olhar Reunião semanal, Sala de guerra, importação de projetos e demais telas em simulação) e abrir uma entrega para cada achado.
