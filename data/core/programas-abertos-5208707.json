@@ -2,9 +2,9 @@
  "proveniencia": {
   "fonte": "Transferegov — arquivo aberto siconv_programa.zip (Discricionárias e Legais)",
   "url_origem": "https://api-publica.transferegov.gestao.gov.br/downloads/dadosgov/siconv_programa.zip",
-  "data_referencia": "Mon, 23 Nov 2026 11:15:16 GMT",
-  "data_coleta": "2026-11-23T14:06:16.881Z",
-  "id_carga": "programas-abertos-2026-11-23"
+  "data_referencia": "Tue, 24 Nov 2026 11:14:06 GMT",
+  "data_coleta": "2026-11-24T13:58:51.911Z",
+  "id_carga": "programas-abertos-2026-11-24"
  },
  "criterio": "situação DISPONIBILIZADO, com algum prazo (proposta, emendas ou beneficiário específico) igual ou posterior à data da coleta, aberto a \"Administração Pública Municipal\" na UF do município (ou sem UF). Classificação por tema = correspondência de palavras-chave de data/config/temas.json (rascunho, a validar).",
  "municipio": {
@@ -12,12 +12,117 @@
   "uf": "GO"
  },
  "resumo": {
-  "linhas_lidas": 1259550,
-  "programas_abertos_no_pais": 176,
-  "programas_elegiveis_ao_municipio": 58,
-  "sem_tema_classificado": 1
+  "linhas_lidas": 1259659,
+  "programas_abertos_no_pais": 183,
+  "programas_elegiveis_ao_municipio": 61,
+  "sem_tema_classificado": 2
  },
  "programas": [
+  {
+   "codigo": "4200020260003",
+   "nome": "Emenda de Comissao - Publico",
+   "orgao_superior": "MINISTERIO DA CULTURA",
+   "modalidade": "CONVENIO",
+   "acao_orcamentaria": "00000001",
+   "disponibilizado_em": "2026-05-04",
+   "prazos": {
+    "proposta_ate": null,
+    "emendas_ate": "2026-11-27",
+    "beneficiario_especifico_ate": null
+   },
+   "publico": [
+    "Consórcio Público",
+    "Administração Pública Estadual ou do Distrito Federal",
+    "Administração Pública Municipal"
+   ],
+   "ufs": [
+    "AC",
+    "AL",
+    "AM",
+    "AP",
+    "BA",
+    "CE",
+    "DF",
+    "ES",
+    "GO",
+    "MA",
+    "MG",
+    "MS",
+    "MT",
+    "PA",
+    "PB",
+    "PE",
+    "PI",
+    "PR",
+    "RJ",
+    "RN",
+    "RO",
+    "RR",
+    "RS",
+    "SC",
+    "SE",
+    "SP",
+    "TO"
+   ],
+   "temas": [
+    "cultura"
+   ],
+   "texto_oficial": {
+    "descricao": "Programa destinado a inclusao e execucao de propostas de emendas de comissao, no exerccio de 2026, no ambito do Ministerio da Cultura. Projetos recebidos neste programa serao executados unicamente por Entes Publicos, conforme Portaria Conjunta MGI/MF/CGU n 33, de 30 de agosto de 2023.",
+    "observacao": "",
+    "criterios": "",
+    "chamamento": "NÃO",
+    "qualificacao": "Proposta de Proponente de Emenda Parlamentar",
+    "links": [],
+    "mencoes": []
+   },
+   "subtipo": null,
+   "subtipo_descricao": null,
+   "historico": {
+    "propostas_total": 139,
+    "propostas_municipais": 128,
+    "valor_global_municipal": {
+     "minimo": 0.01,
+     "mediana": 466338,
+     "maximo": 1060000
+    },
+    "contrapartida_pct_mediana": 1.2,
+    "valor_repasse_municipal": {
+     "minimo": 0.01,
+     "mediana": 461338,
+     "maximo": 1046133
+    },
+    "municipios_do_estado": [
+     {
+      "municipio": "APARECIDA DE GOIÂNIA",
+      "valor": 584795,
+      "situacao": "Proposta/Plano de Trabalho Aprovados"
+     },
+     {
+      "municipio": "CRIXÁS",
+      "valor": 530000,
+      "situacao": "Proposta/Plano de Trabalho Complementado Enviado para Análise"
+     },
+     {
+      "municipio": "GOIÂNIA",
+      "valor": 461338,
+      "situacao": "Proposta/Plano de Trabalho Aprovados"
+     },
+     {
+      "municipio": "APARECIDA DE GOIÂNIA",
+      "valor": 461338,
+      "situacao": "Proposta/Plano de Trabalho Aprovados"
+     }
+    ],
+    "municipios_do_estado_total": 4,
+    "capitais_que_propuseram": [
+     "PORTO ALEGRE/RS",
+     "CURITIBA/PR",
+     "GOIÂNIA/GO",
+     "ARACAJU/SE"
+    ]
+   }
+  },
   {
    "codigo": "5400020260005",
    "nome": "APOIO A PROJETOS DE INFRAESTRUTURA TURÍSTICA - CONTRATO DE REPASSE - EMENDA DE COMISSÃO - RP8",
@@ -31,10 +136,10 @@
     "beneficiario_especifico_ate": null
    },
    "publico": [
-    "Empresa pública/Sociedade de economia mista",
-    "Administração Pública Municipal",
     "Administração Pública Estadual ou do Distrito Federal",
-    "Consórcio Público"
+    "Consórcio Público",
+    "Empresa pública/Sociedade de economia mista",
+    "Administração Pública Municipal"
    ],
    "ufs": [
     "AC",
@@ -80,8 +185,8 @@
    "subtipo": null,
    "subtipo_descricao": null,
    "historico": {
-    "propostas_total": 703,
-    "propostas_municipais": 683,
+    "propostas_total": 706,
+    "propostas_municipais": 686,
     "valor_global_municipal": {
      "minimo": 0.01,
      "mediana": 554588,
@@ -148,10 +253,12 @@
     "municipios_do_estado_total": 27,
     "capitais_que_propuseram": [
      "MACAPÁ/AP",
+     "PORTO VELHO/RO",
      "MANAUS/AM",
      "JOÃO PESSOA/PB",
      "FORTALEZA/CE",
-     "PORTO VELHO/RO",
+     "FLORIANÓPOLIS/SC",
+     "RIO BRANCO/AC",
      "RIO DE JANEIRO/RJ",
      "SALVADOR/BA",
      "PORTO ALEGRE/RS",
@@ -173,10 +280,10 @@
     "beneficiario_especifico_ate": "2026-11-27"
    },
    "publico": [
-    "Administração Pública Estadual ou do Distrito Federal",
-    "Consórcio Público",
     "Empresa pública/Sociedade de economia mista",
-    "Administração Pública Municipal"
+    "Consórcio Público",
+    "Administração Pública Municipal",
+    "Administração Pública Estadual ou do Distrito Federal"
    ],
    "ufs": [
     "AC",
@@ -222,11 +329,11 @@
    "subtipo": null,
    "subtipo_descricao": null,
    "historico": {
-    "propostas_total": 563,
-    "propostas_municipais": 481,
+    "propostas_total": 561,
+    "propostas_municipais": 482,
     "valor_global_municipal": {
      "minimo": 0.01,
-     "mediana": 310000,
+     "mediana": 315000,
      "maximo": 6747480
     },
     "contrapartida_pct_mediana": 1.2,
@@ -244,11 +351,6 @@
      {
       "municipio": "TEREZÓPOLIS DE GOIÁS",
       "valor": 125000,
-      "situacao": "Proposta/Plano de Trabalho Complementado Enviado para Análise"
-     },
-     {
-      "municipio": "AVELINÓPOLIS",
-      "valor": 200000,
       "situacao": "Proposta/Plano de Trabalho Complementado Enviado para Análise"
      },
      {
@@ -279,6 +381,11 @@
      {
       "municipio": "CRIXÁS",
       "valor": 125000,
+      "situacao": "Proposta/Plano de Trabalho em Complementação"
+     },
+     {
+      "municipio": "AVELINÓPOLIS",
+      "valor": 200000,
       "situacao": "Proposta/Plano de Trabalho em Complementação"
      },
      {
@@ -447,9 +554,9 @@
     "beneficiario_especifico_ate": "2026-11-30"
    },
    "publico": [
-    "Consórcio Público",
     "Administração Pública Municipal",
     "Administração Pública Estadual ou do Distrito Federal",
+    "Consórcio Público",
     "Empresa pública/Sociedade de economia mista"
    ],
    "ufs": [
@@ -496,11 +603,11 @@
    "subtipo": null,
    "subtipo_descricao": null,
    "historico": {
-    "propostas_total": 802,
-    "propostas_municipais": 787,
+    "propostas_total": 803,
+    "propostas_municipais": 788,
     "valor_global_municipal": {
      "minimo": 191191.19,
-     "mediana": 603000,
+     "mediana": 604114.5,
      "maximo": 23786655
     },
     "contrapartida_pct_mediana": 1,
@@ -511,23 +618,28 @@
     },
     "municipios_do_estado": [
      {
-      "municipio": "NIQUELÂNDIA",
-      "valor": 387571,
-      "situacao": "Proposta/Plano de Trabalho Aprovados"
-     },
-     {
-      "municipio": "PLANALTINA",
-      "valor": 859500,
-      "situacao": "Proposta/Plano de Trabalho Aprovados"
-     },
-     {
       "municipio": "ÁGUAS LINDAS DE GOIÁS",
       "valor": 1343808,
       "situacao": "Proposta/Plano de Trabalho Enviado para Análise"
      },
      {
+      "municipio": "ITAUÇU",
+      "valor": 1050500,
+      "situacao": "Proposta/Plano de Trabalho Aprovados"
+     },
+     {
       "municipio": "PORTEIRÃO",
       "valor": 533797,
+      "situacao": "Proposta/Plano de Trabalho Aprovados"
+     },
+     {
+      "municipio": "NIQUELÂNDIA",
+      "valor": 387571,
+      "situacao": "Proposta/Plano de Trabalho Aprovados"
+     },
+     {
+      "municipio": "FAZENDA NOVA",
+      "valor": 382000,
       "situacao": "Proposta/Plano de Trabalho Aprovados"
      },
      {
@@ -536,8 +648,8 @@
       "situacao": "Proposta/Plano de Trabalho Aprovados"
      },
      {
-      "municipio": "FAZENDA NOVA",
-      "valor": 382000,
+      "municipio": "PLANALTINA",
+      "valor": 859500,
       "situacao": "Proposta/Plano de Trabalho Aprovados"
      },
      {
@@ -554,20 +666,15 @@
       "municipio": "TAQUARAL DE GOIÁS",
       "valor": 484308,
       "situacao": "Proposta/Plano de Trabalho Aprovados"
-     },
-     {
-      "municipio": "GOIANÉSIA",
-      "valor": 769571,
-      "situacao": "Proposta/Plano de Trabalho Aprovados"
      }
     ],
     "municipios_do_estado_total": 11,
     "capitais_que_propuseram": [
-     "SÃO PAULO/SP",
-     "PORTO ALEGRE/RS",
      "MANAUS/AM",
      "MACAPÁ/AP",
-     "PORTO VELHO/RO"
+     "PORTO VELHO/RO",
+     "SÃO PAULO/SP",
+     "PORTO ALEGRE/RS"
     ]
    }
   },
@@ -584,10 +691,10 @@
     "beneficiario_especifico_ate": null
    },
    "publico": [
-    "Administração Pública Municipal",
-    "Consórcio Público",
     "Administração Pública Estadual ou do Distrito Federal",
-    "Empresa pública/Sociedade de economia mista"
+    "Empresa pública/Sociedade de economia mista",
+    "Administração Pública Municipal",
+    "Consórcio Público"
    ],
    "ufs": [
     "AC",
@@ -668,11 +775,6 @@
       "situacao": "Proposta/Plano de Trabalho Aprovados"
      },
      {
-      "municipio": "VALPARAÍSO DE GOIÁS",
-      "valor": 955000,
-      "situacao": "Proposta Aprovada e Plano de Trabalho Complementado em Análise"
-     },
-     {
       "municipio": "FLORES DE GOIÁS",
       "valor": 191000,
       "situacao": "Proposta/Plano de Trabalho Aprovados"
@@ -691,6 +793,11 @@
       "municipio": "MORRO AGUDO DE GOIÁS",
       "valor": 539618,
       "situacao": "Proposta/Plano de Trabalho Aprovados"
+     },
+     {
+      "municipio": "VALPARAÍSO DE GOIÁS",
+      "valor": 955000,
+      "situacao": "Proposta Aprovada e Plano de Trabalho Complementado em Análise"
      }
     ],
     "municipios_do_estado_total": 9,
@@ -713,8 +820,8 @@
    },
    "publico": [
     "Empresa pública/Sociedade de economia mista",
-    "Administração Pública Estadual ou do Distrito Federal",
     "Administração Pública Municipal",
+    "Administração Pública Estadual ou do Distrito Federal",
     "Consórcio Público"
    ],
    "ufs": [
@@ -761,8 +868,8 @@
    "subtipo": null,
    "subtipo_descricao": null,
    "historico": {
-    "propostas_total": 5695,
-    "propostas_municipais": 5592,
+    "propostas_total": 5703,
+    "propostas_municipais": 5599,
     "valor_global_municipal": {
      "minimo": 5000,
      "mediana": 1498000,
@@ -771,7 +878,7 @@
     "contrapartida_pct_mediana": 0.2,
     "valor_repasse_municipal": {
      "minimo": 4500,
-     "mediana": 1485100,
+     "mediana": 1485700,
      "maximo": 118800000
     },
     "municipios_do_estado": [
@@ -849,10 +956,10 @@
     "beneficiario_especifico_ate": null
    },
    "publico": [
+    "Administração Pública Estadual ou do Distrito Federal",
     "Empresa pública/Sociedade de economia mista",
-    "Administração Pública Municipal",
     "Consórcio Público",
-    "Administração Pública Estadual ou do Distrito Federal"
+    "Administração Pública Municipal"
    ],
    "ufs": [
     "AC",
@@ -929,11 +1036,11 @@
     "beneficiario_especifico_ate": null
    },
    "publico": [
-    "Administração Pública Municipal",
-    "Consórcio Público",
+    "Organização da Sociedade Civil",
     "Empresa pública/Sociedade de economia mista",
+    "Administração Pública Municipal",
     "Administração Pública Estadual ou do Distrito Federal",
-    "Organização da Sociedade Civil"
+    "Consórcio Público"
    ],
    "ufs": [
     "AC",
@@ -979,8 +1086,8 @@
    "subtipo": null,
    "subtipo_descricao": null,
    "historico": {
-    "propostas_total": 1036,
-    "propostas_municipais": 1001,
+    "propostas_total": 1045,
+    "propostas_municipais": 1010,
     "valor_global_municipal": {
      "minimo": 200000,
      "mediana": 1500000,
@@ -988,7 +1095,7 @@
     },
     "contrapartida_pct_mediana": 0.2,
     "valor_repasse_municipal": {
-     "minimo": 199000,
+     "minimo": 195000,
      "mediana": 1498500,
      "maximo": 42576321.68
     },
@@ -1014,6 +1121,11 @@
       "situacao": "Proposta/Plano de Trabalho Enviado para Análise"
      },
      {
+      "municipio": "GOIÁS",
+      "valor": 2000000,
+      "situacao": "Proposta/Plano de Trabalho Enviado para Análise"
+     },
+     {
       "municipio": "GUARAÍTA",
       "valor": 599400,
       "situacao": "Proposta/Plano de Trabalho Enviado para Análise"
@@ -1034,21 +1146,96 @@
       "situacao": "Proposta/Plano de Trabalho Enviado para Análise"
      },
      {
-      "municipio": "ITAGUARU",
-      "valor": 1490000,
-      "situacao": "Proposta/Plano de Trabalho Cadastrados"
-     },
-     {
-      "municipio": "ITAGUARU",
-      "valor": 1490000,
+      "municipio": "GOIÁS",
+      "valor": 500000,
       "situacao": "Proposta/Plano de Trabalho Enviado para Análise"
      }
     ],
-    "municipios_do_estado_total": 12,
+    "municipios_do_estado_total": 15,
     "capitais_que_propuseram": [
      "BOA VISTA/RR",
      "ARACAJU/SE"
     ]
+   }
+  },
+  {
+   "codigo": "5400020260019",
+   "nome": "Fomento a Eventos Turísticos - Emendas Parlamentares de Bancada",
+   "orgao_superior": "MINISTERIO DO TURISMO",
+   "modalidade": "CONVENIO",
+   "acao_orcamentaria": "232320Y3",
+   "disponibilizado_em": "2026-04-13",
+   "prazos": {
+    "proposta_ate": null,
+    "emendas_ate": "2026-12-15",
+    "beneficiario_especifico_ate": null
+   },
+   "publico": [
+    "Empresa pública/Sociedade de economia mista",
+    "Administração Pública Estadual ou do Distrito Federal",
+    "Administração Pública Municipal",
+    "Consórcio Público"
+   ],
+   "ufs": [
+    "AC",
+    "AL",
+    "AM",
+    "AP",
+    "BA",
+    "CE",
+    "DF",
+    "ES",
+    "GO",
+    "MA",
+    "MG",
+    "MS",
+    "MT",
+    "PA",
+    "PB",
+    "PE",
+    "PI",
+    "PR",
+    "RJ",
+    "RN",
+    "RO",
+    "RR",
+    "RS",
+    "SC",
+    "SE",
+    "SP",
+    "TO"
+   ],
+   "temas": [
+    "turismo"
+   ],
+   "texto_oficial": {
+    "descricao": "A ação Fomento a Eventos Turísticos visa apoiar a realização de eventos que contribuam para a promoção, o posicionamento, do destino no mercado turístico e o fomento da atividade turísticas. O apoio do Ministério do Turismo está restrito ao pagamento de cachês para artistas e/ou bandas musicais; divulgação do evento; locação de itens de estrutura e espaço e; locação ou produção de materiais, conforme discriminados na Portaria MTur nº 06/2025. Os recursos serão destinados a eventos turísticos de abrangência municipal, estadual, regional ou macrorregional, formalmente reconhecidos pelo Órgão Oficial de Turismo do Estado. No caso de divulgação e locação de espaços, os limites máximos são, respectivamente, de 20% e 15% do valor de repasse do convênio. A veracidade da documentação, inserida na Plataforma TRANSFEREGOV, será de responsabilidade do proponente.",
+    "observacao": "O proponente deverá enviar sua proposta para análise, por meio da Plataforma TRANSFEREGOV, com antecedência mínima de 60 (sessenta) dias da data de início da vigência do convênio e a proposta não deve possuir pendências no prazo máximo de 30 (trinta) dias antes do início da execução do objeto, de acordo com a Portaria MTur nº 06/2025.",
+    "criterios": "Consideram-se eventos de caráter tradicional e de notório conhecimento popular, aqueles de abrangência Municipal, Estadual, Regional ou Macrorregional, formalmente reconhecidos pelo Órgão Oficial de Turismo do Estado. O apoio será para pagamento de cachês artísticos, para divulgação do evento na mídia e para estrutura, espaço e materiais desde que não haja cobrança de ingresso para acesso dos mesmos.",
+    "chamamento": "NÃO",
+    "qualificacao": "Proposta de Proponente de Emenda Parlamentar",
+    "links": [],
+    "mencoes": []
+   },
+   "subtipo": null,
+   "subtipo_descricao": null,
+   "historico": {
+    "propostas_total": 192,
+    "propostas_municipais": 0,
+    "valor_global_municipal": {
+     "minimo": null,
+     "mediana": null,
+     "maximo": null
+    },
+    "contrapartida_pct_mediana": null,
+    "valor_repasse_municipal": {
+     "minimo": null,
+     "mediana": null,
+     "maximo": null
+    },
+    "municipios_do_estado": [],
+    "municipios_do_estado_total": 0,
+    "capitais_que_propuseram": []
    }
   },
   {
@@ -1065,9 +1252,9 @@
    },
    "publico": [
     "Administração Pública Estadual ou do Distrito Federal",
-    "Empresa pública/Sociedade de economia mista",
+    "Administração Pública Municipal",
     "Consórcio Público",
-    "Administração Pública Municipal"
+    "Empresa pública/Sociedade de economia mista"
    ],
    "ufs": [
     "AC",
@@ -1148,8 +1335,8 @@
    },
    "publico": [
     "Organização da Sociedade Civil",
-    "Administração Pública Estadual ou do Distrito Federal",
-    "Administração Pública Municipal"
+    "Administração Pública Municipal",
+    "Administração Pública Estadual ou do Distrito Federal"
    ],
    "ufs": [
     "AC",
@@ -1227,10 +1414,10 @@
     "beneficiario_especifico_ate": null
    },
    "publico": [
-    "Administração Pública Municipal",
     "Consórcio Público",
     "Organização da Sociedade Civil",
-    "Administração Pública Estadual ou do Distrito Federal"
+    "Administração Pública Estadual ou do Distrito Federal",
+    "Administração Pública Municipal"
    ],
    "ufs": [
     "AC",
@@ -1307,9 +1494,9 @@
     "beneficiario_especifico_ate": null
    },
    "publico": [
-    "Administração Pública Municipal",
-    "Empresa pública/Sociedade de economia mista",
     "Administração Pública Estadual ou do Distrito Federal",
+    "Empresa pública/Sociedade de economia mista",
+    "Administração Pública Municipal",
     "Consórcio Público"
    ],
    "ufs": [
@@ -1356,8 +1543,8 @@
    "subtipo": null,
    "subtipo_descricao": null,
    "historico": {
-    "propostas_total": 4534,
-    "propostas_municipais": 4497,
+    "propostas_total": 4564,
+    "propostas_municipais": 4526,
     "valor_global_municipal": {
      "minimo": 1,
      "mediana": 1000000,
@@ -1370,6 +1557,11 @@
      "maximo": 70793471.37
     },
     "municipios_do_estado": [
+     {
+      "municipio": "ARAGOIÂNIA",
+      "valor": 250000,
+      "situacao": "Proposta/Plano de Trabalho Enviado para Análise"
+     },
      {
       "municipio": "BRAZABRANTES",
       "valor": 200000,
@@ -1391,6 +1583,11 @@
       "situacao": "Proposta/Plano de Trabalho Enviado para Análise"
      },
      {
+      "municipio": "ARAGOIÂNIA",
+      "valor": 400000,
+      "situacao": "Proposta/Plano de Trabalho Enviado para Análise"
+     },
+     {
       "municipio": "JARAGUÁ",
       "valor": 845000,
       "situacao": "Proposta/Plano de Trabalho Enviado para Análise"
@@ -1406,22 +1603,12 @@
       "situacao": "Proposta/Plano de Trabalho Enviado para Análise"
      },
      {
-      "municipio": "MORRINHOS",
-      "valor": 750000,
-      "situacao": "Proposta/Plano de Trabalho Enviado para Análise"
-     },
-     {
-      "municipio": "BRAZABRANTES",
-      "valor": 400000,
-      "situacao": "Proposta/Plano de Trabalho Enviado para Análise"
-     },
-     {
-      "municipio": "JARAGUÁ",
-      "valor": 645000,
+      "municipio": "ARAGOIÂNIA",
+      "valor": 490000,
       "situacao": "Proposta/Plano de Trabalho Enviado para Análise"
      }
     ],
-    "municipios_do_estado_total": 82,
+    "municipios_do_estado_total": 98,
     "capitais_que_propuseram": [
      "FLORIANÓPOLIS/SC",
      "BOA VISTA/RR",
@@ -1577,9 +1764,9 @@
    },
    "publico": [
     "Administração Pública Municipal",
-    "Consórcio Público",
     "Empresa pública/Sociedade de economia mista",
-    "Administração Pública Estadual ou do Distrito Federal"
+    "Administração Pública Estadual ou do Distrito Federal",
+    "Consórcio Público"
    ],
    "ufs": [
     "AC",
@@ -1627,8 +1814,8 @@
    "subtipo": null,
    "subtipo_descricao": null,
    "historico": {
-    "propostas_total": 2773,
-    "propostas_municipais": 2730,
+    "propostas_total": 2779,
+    "propostas_municipais": 2736,
     "valor_global_municipal": {
      "minimo": 100000,
      "mediana": 1522500,
@@ -1793,9 +1980,9 @@
     "beneficiario_especifico_ate": null
    },
    "publico": [
-    "Administração Pública Municipal",
     "Empresa pública/Sociedade de economia mista",
-    "Administração Pública Estadual ou do Distrito Federal"
+    "Administração Pública Estadual ou do Distrito Federal",
+    "Administração Pública Municipal"
    ],
    "ufs": [
     "AC",
@@ -1942,7 +2129,7 @@
    "codigo": "2200020260013",
    "nome": "Fomento ao Setor Agropecu?rio - Emendas de Comiss?o SF",
    "orgao_superior": "MINISTÉRIO DA AGRICULTURA E PECUÁRIA",
-   "modalidade": "CONVENIO",
+   "modalidade": "CONTRATO DE REPASSE",
    "acao_orcamentaria": "114420ZV",
    "disponibilizado_em": "2026-02-09",
    "prazos": {
@@ -1951,10 +2138,10 @@
     "beneficiario_especifico_ate": null
    },
    "publico": [
-    "Administração Pública Estadual ou do Distrito Federal",
     "Empresa pública/Sociedade de economia mista",
-    "Consórcio Público",
-    "Administração Pública Municipal"
+    "Administração Pública Municipal",
+    "Administração Pública Estadual ou do Distrito Federal",
+    "Consórcio Público"
    ],
    "ufs": [
     "AC",
@@ -2030,11 +2217,6 @@
       "situacao": "Proposta/Plano de Trabalho Aprovados"
      },
      {
-      "municipio": "MUNDO NOVO",
-      "valor": 573000,
-      "situacao": "Proposta/Plano de Trabalho Complementado em Análise"
-     },
-     {
       "municipio": "SIMOLÂNDIA",
       "valor": 126122.08,
       "situacao": "Proposta/Plano de Trabalho Rejeitados por Impedimento técnico"
@@ -2063,6 +2245,11 @@
       "municipio": "GUARAÍTA",
       "valor": 287416.8,
       "situacao": "Proposta/Plano de Trabalho Rejeitados por Impedimento técnico"
+     },
+     {
+      "municipio": "MUNDO NOVO",
+      "valor": 573000,
+      "situacao": "Proposta Aprovada e Plano de Trabalho em Análise"
      }
     ],
     "municipios_do_estado_total": 21,
@@ -2082,9 +2269,9 @@
     "beneficiario_especifico_ate": null
    },
    "publico": [
+    "Consórcio Público",
     "Administração Pública Municipal",
-    "Administração Pública Estadual ou do Distrito Federal",
-    "Consórcio Público"
+    "Administração Pública Estadual ou do Distrito Federal"
    ],
    "ufs": [
     "AC",
@@ -2132,8 +2319,8 @@
    "subtipo": null,
    "subtipo_descricao": null,
    "historico": {
-    "propostas_total": 1049,
-    "propostas_municipais": 1031,
+    "propostas_total": 1050,
+    "propostas_municipais": 1032,
     "valor_global_municipal": {
      "minimo": 0.01,
      "mediana": 682950,
@@ -2197,7 +2384,7 @@
       "situacao": "Proposta/Plano de Trabalho em Complementação"
      }
     ],
-    "municipios_do_estado_total": 45,
+    "municipios_do_estado_total": 46,
     "capitais_que_propuseram": [
      "NATAL/RN",
      "FORTALEZA/CE",
@@ -2215,7 +2402,7 @@
    "codigo": "2200020260014",
    "nome": "Fomento ao Setor Agropecuário - Emendas de Comissão CD",
    "orgao_superior": "MINISTÉRIO DA AGRICULTURA E PECUÁRIA",
-   "modalidade": "CONTRATO DE REPASSE",
+   "modalidade": "CONVENIO",
    "acao_orcamentaria": "114420ZV",
    "disponibilizado_em": "2026-02-09",
    "prazos": {
@@ -2224,10 +2411,10 @@
     "beneficiario_especifico_ate": null
    },
    "publico": [
-    "Empresa pública/Sociedade de economia mista",
+    "Administração Pública Estadual ou do Distrito Federal",
     "Administração Pública Municipal",
     "Consórcio Público",
-    "Administração Pública Estadual ou do Distrito Federal"
+    "Empresa pública/Sociedade de economia mista"
    ],
    "ufs": [
     "AC",
@@ -2322,9 +2509,9 @@
     "beneficiario_especifico_ate": null
    },
    "publico": [
+    "Administração Pública Municipal",
     "Administração Pública Estadual ou do Distrito Federal",
-    "Consórcio Público",
-    "Administração Pública Municipal"
+    "Consórcio Público"
    ],
    "ufs": [
     "AC",
@@ -2406,8 +2593,8 @@
     "beneficiario_especifico_ate": null
    },
    "publico": [
-    "Administração Pública Municipal",
-    "Administração Pública Estadual ou do Distrito Federal"
+    "Administração Pública Estadual ou do Distrito Federal",
+    "Administração Pública Municipal"
    ],
    "ufs": [
     "AC",
@@ -2484,9 +2671,9 @@
     "beneficiario_especifico_ate": null
    },
    "publico": [
-    "Empresa pública/Sociedade de economia mista",
+    "Administração Pública Estadual ou do Distrito Federal",
     "Administração Pública Municipal",
-    "Administração Pública Estadual ou do Distrito Federal"
+    "Empresa pública/Sociedade de economia mista"
    ],
    "ufs": [
     "AC",
@@ -2563,9 +2750,9 @@
     "beneficiario_especifico_ate": null
    },
    "publico": [
-    "Administração Pública Municipal",
+    "Administração Pública Estadual ou do Distrito Federal",
     "Organização da Sociedade Civil",
-    "Administração Pública Estadual ou do Distrito Federal"
+    "Administração Pública Municipal"
    ],
    "ufs": [
     "AC",
@@ -2644,9 +2831,9 @@
    },
    "publico": [
     "Administração Pública Municipal",
+    "Consórcio Público",
     "Administração Pública Estadual ou do Distrito Federal",
-    "Empresa pública/Sociedade de economia mista",
-    "Consórcio Público"
+    "Empresa pública/Sociedade de economia mista"
    ],
    "ufs": [
     "AC",
@@ -2692,8 +2879,8 @@
    "subtipo": null,
    "subtipo_descricao": null,
    "historico": {
-    "propostas_total": 924,
-    "propostas_municipais": 916,
+    "propostas_total": 933,
+    "propostas_municipais": 925,
     "valor_global_municipal": {
      "minimo": 100000,
      "mediana": 1499000,
@@ -2702,7 +2889,7 @@
     "contrapartida_pct_mediana": 0.1,
     "valor_repasse_municipal": {
      "minimo": 99900,
-     "mediana": 1495500,
+     "mediana": 1495000,
      "maximo": 31796277.56
     },
     "municipios_do_estado": [
@@ -2776,10 +2963,10 @@
     "beneficiario_especifico_ate": null
    },
    "publico": [
+    "Empresa pública/Sociedade de economia mista",
     "Administração Pública Municipal",
-    "Consórcio Público",
     "Administração Pública Estadual ou do Distrito Federal",
-    "Empresa pública/Sociedade de economia mista"
+    "Consórcio Público"
    ],
    "ufs": [
     "AC",
@@ -2858,8 +3045,8 @@
     "beneficiario_especifico_ate": null
    },
    "publico": [
-    "Administração Pública Estadual ou do Distrito Federal",
     "Empresa pública/Sociedade de economia mista",
+    "Administração Pública Estadual ou do Distrito Federal",
     "Administração Pública Municipal"
    ],
    "ufs": [
@@ -2937,10 +3124,10 @@
     "beneficiario_especifico_ate": null
    },
    "publico": [
-    "Administração Pública Municipal",
-    "Organização da Sociedade Civil",
     "Consórcio Público",
-    "Administração Pública Estadual ou do Distrito Federal"
+    "Administração Pública Municipal",
+    "Administração Pública Estadual ou do Distrito Federal",
+    "Organização da Sociedade Civil"
    ],
    "ufs": [
     "AC",
@@ -3019,8 +3206,8 @@
     "beneficiario_especifico_ate": null
    },
    "publico": [
-    "Administração Pública Estadual ou do Distrito Federal",
-    "Administração Pública Municipal"
+    "Administração Pública Municipal",
+    "Administração Pública Estadual ou do Distrito Federal"
    ],
    "ufs": [
     "AC",
@@ -3166,8 +3353,8 @@
    },
    "publico": [
     "Empresa pública/Sociedade de economia mista",
-    "Administração Pública Estadual ou do Distrito Federal",
-    "Administração Pública Municipal"
+    "Administração Pública Municipal",
+    "Administração Pública Estadual ou do Distrito Federal"
    ],
    "ufs": [
     "GO"
@@ -3202,11 +3389,6 @@
     },
     "municipios_do_estado": [
      {
-      "municipio": "GOIATUBA",
-      "valor": 1528000,
-      "situacao": "Proposta/Plano de Trabalho em Análise"
-     },
-     {
       "municipio": "PORTELÂNDIA",
       "valor": 1432500,
       "situacao": "Proposta/Plano de Trabalho Aprovados"
@@ -3224,6 +3406,11 @@
      {
       "municipio": "CAMPO ALEGRE DE GOIÁS",
       "valor": 1432500,
+      "situacao": "Proposta/Plano de Trabalho Aprovados"
+     },
+     {
+      "municipio": "GOIATUBA",
+      "valor": 1528000,
       "situacao": "Proposta/Plano de Trabalho Aprovados"
      },
      {
@@ -3269,8 +3456,8 @@
     "beneficiario_especifico_ate": null
    },
    "publico": [
-    "Empresa pública/Sociedade de economia mista",
     "Administração Pública Municipal",
+    "Empresa pública/Sociedade de economia mista",
     "Administração Pública Estadual ou do Distrito Federal"
    ],
    "ufs": [
@@ -3313,7 +3500,7 @@
    "codigo": "2200020260017",
    "nome": "Fomento ao Setor Agropecuário - Proponente Específico",
    "orgao_superior": "MINISTÉRIO DA AGRICULTURA E PECUÁRIA",
-   "modalidade": "CONTRATO DE REPASSE",
+   "modalidade": "CONVENIO",
    "acao_orcamentaria": "114420ZV",
    "disponibilizado_em": "2026-02-09",
    "prazos": {
@@ -3322,10 +3509,10 @@
     "beneficiario_especifico_ate": "2026-12-31"
    },
    "publico": [
-    "Empresa pública/Sociedade de economia mista",
     "Consórcio Público",
-    "Administração Pública Municipal",
-    "Administração Pública Estadual ou do Distrito Federal"
+    "Administração Pública Estadual ou do Distrito Federal",
+    "Empresa pública/Sociedade de economia mista",
+    "Administração Pública Municipal"
    ],
    "ufs": [
     "AC",
@@ -3402,10 +3589,10 @@
     "beneficiario_especifico_ate": "2026-12-31"
    },
    "publico": [
-    "Administração Pública Municipal",
-    "Administração Pública Estadual ou do Distrito Federal",
+    "Consórcio Público",
     "Empresa pública/Sociedade de economia mista",
-    "Consórcio Público"
+    "Administração Pública Municipal",
+    "Administração Pública Estadual ou do Distrito Federal"
    ],
    "ufs": [
     "AC",
@@ -3482,8 +3669,8 @@
     "beneficiario_especifico_ate": "2026-12-31"
    },
    "publico": [
-    "Consórcio Público",
     "Administração Pública Estadual ou do Distrito Federal",
+    "Consórcio Público",
     "Administração Pública Municipal"
    ],
    "ufs": [
@@ -3561,9 +3748,9 @@
     "beneficiario_especifico_ate": "2026-12-31"
    },
    "publico": [
+    "Administração Pública Municipal",
     "Administração Pública Estadual ou do Distrito Federal",
     "Consórcio Público",
-    "Administração Pública Municipal",
     "Empresa pública/Sociedade de economia mista"
    ],
    "ufs": [
@@ -3641,10 +3828,10 @@
     "beneficiario_especifico_ate": "2026-12-31"
    },
    "publico": [
+    "Consórcio Público",
     "Administração Pública Estadual ou do Distrito Federal",
-    "Empresa pública/Sociedade de economia mista",
     "Administração Pública Municipal",
-    "Consórcio Público"
+    "Empresa pública/Sociedade de economia mista"
    ],
    "ufs": [
     "AC",
@@ -3801,8 +3988,8 @@
    },
    "publico": [
     "Administração Pública Municipal",
-    "Administração Pública Estadual ou do Distrito Federal",
-    "Empresa pública/Sociedade de economia mista"
+    "Empresa pública/Sociedade de economia mista",
+    "Administração Pública Estadual ou do Distrito Federal"
    ],
    "ufs": [
     "AC",
@@ -3882,9 +4069,9 @@
    },
    "publico": [
     "Administração Pública Estadual ou do Distrito Federal",
+    "Empresa pública/Sociedade de economia mista",
     "Administração Pública Municipal",
-    "Consórcio Público",
-    "Empresa pública/Sociedade de economia mista"
+    "Consórcio Público"
    ],
    "ufs": [
     "AC",
@@ -4277,8 +4464,8 @@
     "beneficiario_especifico_ate": "2026-12-23"
    },
    "publico": [
-    "Administração Pública Estadual ou do Distrito Federal",
-    "Administração Pública Municipal"
+    "Administração Pública Municipal",
+    "Administração Pública Estadual ou do Distrito Federal"
    ],
    "ufs": [
     "AC",
@@ -4357,8 +4544,8 @@
     "beneficiario_especifico_ate": "2026-12-31"
    },
    "publico": [
-    "Consórcio Público",
     "Administração Pública Municipal",
+    "Consórcio Público",
     "Organização da Sociedade Civil",
     "Administração Pública Estadual ou do Distrito Federal"
    ],
@@ -4437,9 +4624,9 @@
     "beneficiario_especifico_ate": "2026-12-31"
    },
    "publico": [
-    "Administração Pública Estadual ou do Distrito Federal",
+    "Administração Pública Municipal",
     "Consórcio Público",
-    "Administração Pública Municipal"
+    "Administração Pública Estadual ou do Distrito Federal"
    ],
    "ufs": [
     "AC",
@@ -4516,10 +4703,10 @@
     "beneficiario_especifico_ate": "2026-12-15"
    },
    "publico": [
-    "Consórcio Público",
-    "Administração Pública Estadual ou do Distrito Federal",
     "Administração Pública Municipal",
-    "Empresa pública/Sociedade de economia mista"
+    "Empresa pública/Sociedade de economia mista",
+    "Consórcio Público",
+    "Administração Pública Estadual ou do Distrito Federal"
    ],
    "ufs": [
     "AC",
@@ -4565,8 +4752,8 @@
    "subtipo": null,
    "subtipo_descricao": null,
    "historico": {
-    "propostas_total": 289,
-    "propostas_municipais": 269,
+    "propostas_total": 291,
+    "propostas_municipais": 271,
     "valor_global_municipal": {
      "minimo": 0.01,
      "mediana": 501000,
@@ -4597,6 +4784,93 @@
    }
   },
   {
+   "codigo": "5600020260025",
+   "nome": "Novo PAC Áreas da União",
+   "orgao_superior": "MINISTERIO DAS CIDADES",
+   "modalidade": "TERMO DE COMPROMISSO",
+   "acao_orcamentaria": "560200SW",
+   "disponibilizado_em": "2026-04-01",
+   "prazos": {
+    "proposta_ate": null,
+    "emendas_ate": null,
+    "beneficiario_especifico_ate": "2026-11-30"
+   },
+   "publico": [
+    "Administração Pública Municipal",
+    "Administração Pública Estadual ou do Distrito Federal",
+    "Empresa pública/Sociedade de economia mista"
+   ],
+   "ufs": [
+    "AC",
+    "AL",
+    "AM",
+    "AP",
+    "BA",
+    "CE",
+    "DF",
+    "ES",
+    "GO",
+    "MA",
+    "MG",
+    "MS",
+    "MT",
+    "PA",
+    "PB",
+    "PE",
+    "PI",
+    "PR",
+    "RJ",
+    "RN",
+    "RO",
+    "RR",
+    "RS",
+    "SC",
+    "SE",
+    "SP",
+    "TO"
+   ],
+   "temas": [],
+   "texto_oficial": {
+    "descricao": "o Programa consiste em processo de tomada de recursos para que estados, Distrito Federal, municípios e consórcios intermunicipais apresentem manifestação de interesse para acesso aos recursos do PAC, destinados ao apoio à Regularização Fundiária Urbana de Interesse Social (Reurb-S) em áreas pertencentes ou vinculadas ao patrimônio da União definidas pela Secretaria do Patrimônio da União do Ministério da Gestão e da Inovação em Serviços Públicos por meio da Portaria SPU/MGI nº 10.147, de 12 de novembro de 2025 e Portaria SPU/MGI 1402, de 24 de Fevereiro de 2026.A iniciativa integra o Programa Periferia Viva e o Programa de Democratização de Imóveis da União, com o objetivo de garantir segurança da posse e titulação às famílias que vivem em territórios periféricos localizados em áreas públicas federais.",
+    "observacao": "As manifestações de interesse deverão observar o valor máximo de referência de R$ 1.413,00 (um mil, quatrocentos e treze reais) por lote registrado ou titulado, conforme detalhado no Anexo I. § 1º O valor deverá abranger a integralidade das atividades necessárias à regularização fundiária por lote, incluída averbação de edificações, compreendendo medidas de natureza jurídica, urbanística, ambiental e social, bem como despesas cartorárias não alcançadas pela gratuidade legal e taxas administrativas eventualmente devidas. § 2º Os custos que eventualmente excederem o valor máximo de repasse da União, inclusive aqueles decorrentes de alteração na estimativa dos lotes do núcleo informada na manifestação de interesse, deverão ser assumidos pelo estado, município ou consórcio público intermunicipal como contrapartida. Art. 5º As manifestações de interesse serão admitidas até o limite dos recursos disponibilizados pela União e desde que atendam integralmente aos requisitos e critérios estabelecidos nesta Portaria Conjunta, observado os termos de compromisso a serem firmados segundo a ordem cronológica de apresentação das referidas manifestações pelos interessados.",
+    "criterios": "Para participar do programa, o ente deverá estar relacionado em Portaria SPU/MGI 1402, de 24 de Fevereiro de 2026, da Secretaria do Patrimônio da União do Ministério da Gestão e da Inovação em Serviços Públicos, que conterá a discriminação das áreas passíveis de adesão ao apoio à Reurb-S.",
+    "chamamento": "NÃO",
+    "qualificacao": "Proposta de Proponente Específico do Concedente",
+    "links": [],
+    "mencoes": [
+     "As manifestações de interesse deverão observar o valor máximo de referência de R$ 1.413,00 (um mil, quatrocentos e treze reais) por lote registrado ou titulado, conforme detalhado no Anexo I.",
+     "§ 2º Os custos que eventualmente excederem o valor máximo de repasse da União, inclusive aqueles decorrentes de alteração na estimativa dos lotes do núcleo informada na manifestação de interesse, deverão ser assumidos pelo estado, município ou consórcio público intermunicipal como contrapartida."
+    ]
+   },
+   "subtipo": "NOVO PAC - FORMALIZAÇÃO",
+   "subtipo_descricao": "DECRETO Nº 11.855, DE 26 DE DEZEMBRO DE 2023. Dispõe sobre termos de compromisso relativos às transferências obrigatórias de recursos da União para a execução de ações do Programa de Aceleração do Crescimento - Novo PAC.",
+   "historico": {
+    "propostas_total": 29,
+    "propostas_municipais": 24,
+    "valor_global_municipal": {
+     "minimo": 424800,
+     "mediana": 991100,
+     "maximo": 6660882
+    },
+    "contrapartida_pct_mediana": 0,
+    "valor_repasse_municipal": {
+     "minimo": 423900,
+     "mediana": 989100,
+     "maximo": 6660882
+    },
+    "municipios_do_estado": [],
+    "municipios_do_estado_total": 0,
+    "capitais_que_propuseram": [
+     "NATAL/RN",
+     "PORTO VELHO/RO",
+     "ARACAJU/SE",
+     "SALVADOR/BA",
+     "MANAUS/AM",
+     "FORTALEZA/CE"
+    ]
+   }
+  },
+  {
    "codigo": "5500020260021",
    "nome": "ESTRUTURACAO DA REDE DE SERVICOS DO SISTEMA UNICO DE ASSISTENCIA SOCIAL (SUAS) - POLITICAS PUBLICAS",
    "orgao_superior": "MINISTÉRIO DO DESENVOLVIMENTO E ASSISTÊNCIA SOCIAL, FAMÍLIA E COMBATE FOME",
@@ -4609,8 +4883,8 @@
     "beneficiario_especifico_ate": "2026-12-31"
    },
    "publico": [
-    "Administração Pública Municipal",
-    "Administração Pública Estadual ou do Distrito Federal"
+    "Administração Pública Estadual ou do Distrito Federal",
+    "Administração Pública Municipal"
    ],
    "ufs": [
     "AC",
@@ -4687,10 +4961,10 @@
     "beneficiario_especifico_ate": "2026-12-31"
    },
    "publico": [
-    "Administração Pública Estadual ou do Distrito Federal",
     "Organização da Sociedade Civil",
     "Administração Pública Municipal",
-    "Consórcio Público"
+    "Consórcio Público",
+    "Administração Pública Estadual ou do Distrito Federal"
    ],
    "ufs": [
     "AC",
@@ -4767,10 +5041,10 @@
     "beneficiario_especifico_ate": "2026-12-31"
    },
    "publico": [
+    "Administração Pública Municipal",
     "Administração Pública Estadual ou do Distrito Federal",
-    "Organização da Sociedade Civil",
     "Consórcio Público",
-    "Administração Pública Municipal"
+    "Organização da Sociedade Civil"
    ],
    "ufs": [
     "AC",
@@ -4847,10 +5121,10 @@
     "beneficiario_especifico_ate": "2026-11-30"
    },
    "publico": [
-    "Administração Pública Estadual ou do Distrito Federal",
-    "Administração Pública Municipal",
     "Empresa pública/Sociedade de economia mista",
-    "Consórcio Público"
+    "Administração Pública Municipal",
+    "Consórcio Público",
+    "Administração Pública Estadual ou do Distrito Federal"
    ],
    "ufs": [
     "AC",
@@ -4928,10 +5202,10 @@
     "beneficiario_especifico_ate": "2026-12-31"
    },
    "publico": [
-    "Organização da Sociedade Civil",
-    "Consórcio Público",
     "Administração Pública Estadual ou do Distrito Federal",
-    "Administração Pública Municipal"
+    "Administração Pública Municipal",
+    "Consórcio Público",
+    "Organização da Sociedade Civil"
    ],
    "ufs": [
     "AC",
@@ -5008,8 +5282,8 @@
     "beneficiario_especifico_ate": "2026-12-01"
    },
    "publico": [
-    "Administração Pública Estadual ou do Distrito Federal",
-    "Administração Pública Municipal"
+    "Administração Pública Municipal",
+    "Administração Pública Estadual ou do Distrito Federal"
    ],
    "ufs": [
     "AC",
@@ -5086,8 +5360,8 @@
     "beneficiario_especifico_ate": "2026-12-31"
    },
    "publico": [
-    "Administração Pública Estadual ou do Distrito Federal",
-    "Administração Pública Municipal"
+    "Administração Pública Municipal",
+    "Administração Pública Estadual ou do Distrito Federal"
    ],
    "ufs": [
     "AC",
@@ -5164,8 +5438,8 @@
     "beneficiario_especifico_ate": "2026-12-31"
    },
    "publico": [
-    "Administração Pública Estadual ou do Distrito Federal",
-    "Administração Pública Municipal"
+    "Administração Pública Municipal",
+    "Administração Pública Estadual ou do Distrito Federal"
    ],
    "ufs": [
     "AC",
@@ -5242,8 +5516,8 @@
     "beneficiario_especifico_ate": "2026-12-31"
    },
    "publico": [
-    "Administração Pública Estadual ou do Distrito Federal",
-    "Administração Pública Municipal"
+    "Administração Pública Municipal",
+    "Administração Pública Estadual ou do Distrito Federal"
    ],
    "ufs": [
     "AC",
