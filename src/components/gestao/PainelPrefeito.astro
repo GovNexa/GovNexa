@@ -34,7 +34,7 @@ const cartoes = [
   { rotulo: 'Valor total', valor: reaisAbreviado(p.carteira.valor), nota: reais(p.carteira.valor), href: URL.orgaos },
   { rotulo: 'Em contratação', valor: String(p.contratacao.qtd), nota: reaisAbreviado(p.contratacao.valor), href: URL.kanban },
   { rotulo: 'Em execução', valor: String(p.execucao.qtd), nota: reaisAbreviado(p.execucao.valor), href: URL.kanban },
-  { rotulo: 'Em atenção', valor: String(p.atencao.vermelhos.qtd), nota: 'com prazo vencido', href: URL.parado },
+  { rotulo: 'Em atenção', valor: String(p.atencao.vencidos.qtd), nota: 'com prazo vencido', href: URL.parado },
   { rotulo: 'Entregas em 90 dias', valor: String(p.entregas.qtd), nota: 'previstas até 3 meses', href: URL.gantt },
 ];
 const r = p.recursos;
@@ -138,10 +138,10 @@ const mapaSemLocal = obrasSemLocal(carteira, geo, hoje, { areas });
 
     <section class="pn-bloco" aria-labelledby="pn-atencao">
       <h2 id="pn-atencao">Atenção</h2>
-      <p class="pn-total"><a href={URL.parado}>{p.atencao.vermelhos.qtd} {p.atencao.vermelhos.qtd === 1 ? 'projeto atrasado' : 'projetos atrasados'}</a> · <a href={URL.sala}>{p.atencao.salasAbertas} {p.atencao.salasAbertas === 1 ? 'sala de guerra aberta' : 'salas de guerra abertas'}</a></p>
-      {p.atencao.vermelhos.top.length === 0 ? <p class="pn-vazio">Nenhum projeto com prazo vencido.</p> : (
+      <p class="pn-total"><a href={URL.parado}>{p.atencao.vencidos.qtd} {p.atencao.vencidos.qtd === 1 ? 'projeto atrasado' : 'projetos atrasados'}</a> · <a href={URL.sala}>{p.atencao.salasAbertas} {p.atencao.salasAbertas === 1 ? 'sala de guerra aberta' : 'salas de guerra abertas'}</a></p>
+      {p.atencao.vencidos.top.length === 0 ? <p class="pn-vazio">Nenhum projeto com prazo vencido.</p> : (
         <ul class="pn-lista">
-          {p.atencao.vermelhos.top.map((i) => (
+          {p.atencao.vencidos.top.map((i) => (
             <li>
               <a href={busca(i.nome)}>{i.nome}</a>
               <span>Atrasado: {i.motivo}{i.prioridade ? ` · prioridade ${i.prioridade.toLowerCase()}` : ''}</span>

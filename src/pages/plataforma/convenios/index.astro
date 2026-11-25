@@ -4,11 +4,10 @@
 import Platform from '../../../layouts/Platform.astro';
 import '../../../styles/convenios.css';
 import { dados } from '../../../lib/dados/index.ts';
-import { dataBr, dataOuDataHoraBr } from '../../../lib/datas.ts';
+import { dataBr, dataOuDataHoraBr, hojeEmBrasilia } from '../../../lib/datas.ts';
 import { textoDias } from '../../../lib/alertas/central.ts';
 import { DIAS_RISCO_VIGENCIA, ROTA_ACOMPANHAMENTO, ROTA_ALERTAS_CAPTACAO, ROTA_CAPTACAO, montarVisaoConvenios } from '../../../lib/convenios/visao.ts';
 import { municipioAtivo } from '../../../lib/municipio-ativo.ts';
-import { hojeEmBrasilia } from '../../../lib/whatsapp/farol.ts';
 
 export const prerender = false;
 const municipio = municipioAtivo();

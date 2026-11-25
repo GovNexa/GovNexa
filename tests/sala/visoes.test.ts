@@ -1,5 +1,5 @@
 process.env.GOVNEXA_EXEMPLO = '1'; // usa os dados fictícios de data/exemplo
-// Testes das regras da Sala de guerra: candidatos, indicadores/farol e pauta da reunião (data de referência fixa).
+// Testes das regras da Sala de guerra: candidatos, indicadores/situação e pauta da reunião (data de referência fixa).
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
@@ -49,12 +49,12 @@ test('candidato: prioridade alta com prazo vencido (+3) entra sozinho; prioridad
   assert.equal(r[0].peso, 3);
 });
 
-test('candidato: ritmo vermelho (+2) e etapa parada há mais de 30 dias (+2) somam 4', () => {
+test('candidato: cronograma bem abaixo do previsto (+2) e etapa parada há mais de 30 dias (+2) somam 4', () => {
   const p = proj('P-3');
   const c = crono('P-3', etapa('Parecer jurídico', '2026-09-01'));
   const r = candidatosSala(cart(p), [c], HOJE);
   assert.equal(r.length, 1);
-  assert.deepEqual(r[0].motivos, ['Cronograma em ritmo vermelho (realizado abaixo do previsto)', 'Etapa parada há mais de 30 dias: Parecer jurídico (PGM)']);
+  assert.deepEqual(r[0].motivos, ['Cronograma bem abaixo do previsto (realizado abaixo de 85% do previsto)', 'Etapa parada há mais de 30 dias: Parecer jurídico (PGM)']);
   assert.equal(r[0].peso, 4);
 });
 
@@ -78,14 +78,14 @@ test('candidato: contratação com saldo sem fonte (+2) sozinho fica abaixo do c
   assert.equal(r[0].peso, 3);
 });
 
-test('candidato: entrega próxima só vale para Muito Alta, em até 90 dias e com farol diferente de verde', () => {
+test('candidato: entrega próxima só vale para Muito Alta, em até 90 dias e com a situação de prazo diferente de "no prazo"', () => {
   const base = (mudar: (p: Projeto) => void) => proj('P-7', (p) => { p.prioridade = 'Muito Alta'; p.datas.encerramento = '2027-01-10'; p.pendencias = ['x']; mudar(p); });
   const peso = (p: Projeto) => candidatosSala(cart(p), [], HOJE).length;
   assert.equal(peso(base(() => {})), 0); // só +1: abaixo do corte
   const doisMotivos = (p: Projeto) => { p.macroetapa = '03'; p.valores.captado = null; p.valores.custeio_municipio = 100; p.datas.contratacao = '2027-03-01'; };
   assert.equal(peso(base(doisMotivos)), 1); // +2 +1 = 3
   assert.equal(peso(base((p) => { doisMotivos(p); p.datas.encerramento = '2027-03-01'; })), 0); // entrega a mais de 90 dias
-  assert.equal(peso(base((p) => { doisMotivos(p); p.pendencias = []; })), 0); // farol verde
+  assert.equal(peso(base((p) => { doisMotivos(p); p.pendencias = []; })), 0); // no prazo
   assert.equal(peso(base((p) => { doisMotivos(p); p.prioridade = 'Alta'; })), 0); // não é Muito Alta
 });
 
@@ -114,7 +114,7 @@ const salaCom = (raid: ItemRaid[], extra: Partial<Sala> = {}): Sala => ({
   ...salasExemplo[0], projetos: ['P-903'], aberta_em: '2026-11-01', prazo: '2027-03-01', escalonamento: 2, raid, reunioes: [], marcos: [], ...extra,
 });
 
-test('indicadores: contagens e farol vermelho por ação vencida', () => {
+test('indicadores: contagens e situação urgente por ação vencida', () => {
   const s = salaCom([
     item('A1', 'acao', { prazo: '2026-11-10' }),
     item('A2', 'acao', { prazo: '2026-11-30', situacao: 'em_andamento' }),
@@ -129,22 +129,24 @@ test('indicadores: contagens e farol vermelho por ação vencida', () => {
   assert.equal(i.problemasAbertos, 1);
   assert.equal(i.riscosAltos, 1);
   assert.equal(i.diasParaPrazo, 106);
-  assert.equal(i.farol.cor, 'vermelho');
-  assert.match(i.farol.motivo, /vencida/);
+  assert.equal(i.situacao.urgente, true);
+  assert.equal(i.situacao.texto, '1 ação vencida');
 });
 
-test('indicadores: farol vermelho por prazo vencido e por problema aberto no gabinete', () => {
-  assert.equal(indicadoresSala(salaCom([], { prazo: '2026-11-14' }), carteira, [], HOJE).farol.cor, 'vermelho');
-  assert.equal(indicadoresSala(salaCom([item('P1', 'problema')], { escalonamento: 3 }), carteira, [], HOJE).farol.cor, 'vermelho');
-  assert.equal(indicadoresSala(salaCom([item('P1', 'problema')], { escalonamento: 2 }), carteira, [], HOJE).farol.cor, 'verde');
+test('indicadores: urgente por prazo vencido e por problema aberto no gabinete', () => {
+  const vencida = indicadoresSala(salaCom([], { prazo: '2026-11-14' }), carteira, [], HOJE).situacao;
+  assert.deepEqual(vencida, { urgente: true, texto: 'Prazo da sala vencido há 1 dia' });
+  assert.equal(indicadoresSala(salaCom([], { prazo: '2026-11-05' }), carteira, [], HOJE).situacao.texto, 'Prazo da sala vencido há 10 dias');
+  assert.deepEqual(indicadoresSala(salaCom([item('P1', 'problema')], { escalonamento: 3 }), carteira, [], HOJE).situacao, { urgente: true, texto: 'Problema aberto com a sala no gabinete' });
+  assert.deepEqual(indicadoresSala(salaCom([item('P1', 'problema')], { escalonamento: 2 }), carteira, [], HOJE).situacao, { urgente: false, texto: 'No prazo, sem ação vencida' });
 });
 
-test('indicadores: amarelo por prazo em até 7 dias ou risco alto; verde no resto; prazo no dia não está vencido', () => {
-  assert.equal(indicadoresSala(salaCom([], { prazo: '2026-11-22' }), carteira, [], HOJE).farol.cor, 'amarelo');
-  assert.equal(indicadoresSala(salaCom([], { prazo: '2026-11-23' }), carteira, [], HOJE).farol.cor, 'verde');
-  assert.equal(indicadoresSala(salaCom([item('R1', 'risco', { impacto: 'alto' })]), carteira, [], HOJE).farol.cor, 'amarelo');
-  assert.equal(indicadoresSala(salaCom([], { prazo: HOJE }), carteira, [], HOJE).farol.cor, 'amarelo');
-  assert.equal(indicadoresSala(salaCom([item('A1', 'acao', { prazo: HOJE })]), carteira, [], HOJE).farol.cor, 'verde');
+test('indicadores: atenção por prazo em até 7 dias ou risco alto; no prazo no resto; prazo no dia não está vencido', () => {
+  assert.deepEqual(indicadoresSala(salaCom([], { prazo: '2026-11-22' }), carteira, [], HOJE).situacao, { urgente: false, texto: 'Prazo da sala vence em 7 dias' });
+  assert.deepEqual(indicadoresSala(salaCom([], { prazo: '2026-11-23' }), carteira, [], HOJE).situacao, { urgente: false, texto: 'No prazo, sem ação vencida' });
+  assert.deepEqual(indicadoresSala(salaCom([item('R1', 'risco', { impacto: 'alto' })]), carteira, [], HOJE).situacao, { urgente: false, texto: '1 risco de impacto alto' });
+  assert.deepEqual(indicadoresSala(salaCom([], { prazo: HOJE }), carteira, [], HOJE).situacao, { urgente: false, texto: 'Prazo da sala vence hoje' });
+  assert.deepEqual(indicadoresSala(salaCom([item('A1', 'acao', { prazo: HOJE })]), carteira, [], HOJE).situacao, { urgente: false, texto: 'No prazo, sem ação vencida' });
 });
 
 test('indicadores: soma as etapas atrasadas dos cronogramas dos projetos da sala', () => {
@@ -201,14 +203,14 @@ test('salas de exemplo: 3 salas fictícias, projetos existentes na carteira e pa
 
 test('porqueSugerido: cada motivo vira uma frase simples e a junção usa vírgula e "e"', () => {
   assert.equal(porqueSugerido(['Prioridade alta com prazo de etapa vencido']), 'Sugerido porque a prioridade é alta e o prazo da etapa já venceu.');
-  assert.equal(porqueSugerido(['Cronograma em ritmo vermelho (realizado abaixo do previsto)']), 'Sugerido porque o cronograma está andando abaixo do previsto.');
+  assert.equal(porqueSugerido(['Cronograma bem abaixo do previsto (realizado abaixo de 85% do previsto)']), 'Sugerido porque o cronograma está andando abaixo do previsto.');
   assert.equal(porqueSugerido(['Etapa parada há mais de 30 dias: Parecer jurídico (PGM)']), 'Sugerido porque a etapa Parecer jurídico está parada há mais de 30 dias com PGM.');
   assert.equal(porqueSugerido(['Em contratação com saldo sem fonte']), 'Sugerido porque está em contratação sem fonte para todo o valor.');
   assert.equal(porqueSugerido(['Entrega próxima e em risco']), 'Sugerido porque a entrega está próxima e em risco.');
   assert.equal(porqueSugerido(['Outro Motivo Qualquer']), 'Sugerido porque outro motivo qualquer.');
   assert.equal(porqueSugerido(['Entrega próxima e em risco', 'Em contratação com saldo sem fonte']), 'Sugerido porque a entrega está próxima e em risco e está em contratação sem fonte para todo o valor.');
   assert.equal(
-    porqueSugerido(['Prioridade alta com prazo de etapa vencido', 'Cronograma em ritmo vermelho (realizado abaixo do previsto)', 'Entrega próxima e em risco']),
+    porqueSugerido(['Prioridade alta com prazo de etapa vencido', 'Cronograma bem abaixo do previsto (realizado abaixo de 85% do previsto)', 'Entrega próxima e em risco']),
     'Sugerido porque a prioridade é alta e o prazo da etapa já venceu, o cronograma está andando abaixo do previsto e a entrega está próxima e em risco.',
   );
   assert.equal(porqueSugerido([]), '');

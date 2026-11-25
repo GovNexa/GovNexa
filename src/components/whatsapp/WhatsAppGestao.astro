@@ -5,7 +5,7 @@ import { carregarCarteira } from '../../lib/carteira/carga.ts';
 import { resumoCaptacao } from '../../lib/gestao/painel.ts';
 import { montarBase } from '../../lib/whatsapp/base.ts';
 import { contatosExemplo } from '../../lib/whatsapp/exemplo.ts';
-import { hojeEmBrasilia } from '../../lib/whatsapp/farol.ts';
+import { hojeEmBrasilia } from '../../lib/datas.ts';
 import { DIAS_SEMANA, ROTULO_FREQUENCIA, ROTULO_MODELO, ROTULO_PERFIL } from '../../lib/whatsapp/permissoes.ts';
 import { MODELOS_META, preencherModelo } from '../../lib/whatsapp/modelos.ts';
 
@@ -129,7 +129,8 @@ const sugestoes = ['Relatório', 'O que está atrasado?', 'Próximas entregas', 
 <script>
 import { descreverPermissao, descreverRelatorio, LIMITE_CONTATOS, mascararTelefone, normalizarTelefone, permissaoDoPerfil, ROTULO_PERFIL, validarContato } from '../../lib/whatsapp/permissoes.ts';
 import { montarRelatorio, responderPergunta } from '../../lib/whatsapp/mensagens.ts';
-import { farolWhats, hojeEmBrasilia } from '../../lib/whatsapp/farol.ts';
+import { hojeEmBrasilia } from '../../lib/datas.ts';
+import { prazoWhats } from '../../lib/whatsapp/prazo.ts';
 import { guardarContatos, lerContatos } from '../../lib/whatsapp/simulacao.ts';
 import type { CaptacaoWhats, Contato, PerfilContato, ProjetoWhats } from '../../lib/whatsapp/tipos.ts';
 
@@ -157,9 +158,9 @@ const iniciar = (): void => {
   } catch {
     dados = { base: [], captacao: null, hoje: new Date().toISOString().slice(0, 10), orgaos: [], exemplos: [] };
   }
-  // Página estática: a data e o farol são recalculados AGORA, no fuso de Brasília (não ficam com a data da publicação).
+  // Página estática: a data e a situação de prazo são recalculadas AGORA, no fuso de Brasília (não ficam com a data da publicação).
   dados.hoje = hojeEmBrasilia();
-  const base = (dados.base ?? []).map((p) => ({ ...p, ...farolWhats(p, dados.hoje) }));
+  const base = (dados.base ?? []).map((p) => ({ ...p, ...prazoWhats(p, dados.hoje) }));
   const orgaos = dados.orgaos ?? [];
   const ids = new Set(base.map((p) => p.id));
   const valido = (c: unknown, outros: Contato[]): boolean => validarContato(c, orgaos, ids, outros).length === 0;

@@ -12,7 +12,8 @@
  * Quebras municipais sem dimensão conhecida ficam vazias; não se inventa localização.
  */
 import type { Carteira, Projeto } from '../carteira/tipos.ts';
-import { farol, saldoSemFonte, valorProjeto } from '../carteira/visoes.ts';
+import { prazoVencido } from '../carteira/prazo.ts';
+import { saldoSemFonte, situacaoPrazo, valorProjeto } from '../carteira/visoes.ts';
 import { MACROETAPAS, nomeMacroetapa } from '../carteira/macroetapas.ts';
 import type { Cronograma } from '../cronograma/tipos.ts';
 import { diasEntre } from '../cronograma/visoes.ts';
@@ -83,7 +84,6 @@ function agrupar<T>(itens: T[], nome: (v: T) => string, valor: (v: T) => number 
   return [...grupos].sort(([a], [b]) => comparar(a, b)).map(([nome, l]) => ({ nome, qtd: l.length, valor: soma(l.map(valor)), cobertura: cobertura(l.map(valor)) }));
 }
 const porPrazo = (a: ItemDetalhe, b: ItemDetalhe) => comparar(a.prazo ?? '9999-12-31', b.prazo ?? '9999-12-31') || comparar(a.nome, b.nome);
-const cor = (v: 'verde' | 'amarelo' | 'vermelho'): Situacao => v === 'vermelho' ? 'critico' : v === 'amarelo' ? 'atencao' : 'ok';
 
 export function montarDashboard(e: EntradaDashboard, hoje: string, filtros: Filtros = {}) {
   const carteira = filtrarCarteira(e.carteira, filtros); const projetos = carteira.projetos;
@@ -96,7 +96,7 @@ export function montarDashboard(e: EntradaDashboard, hoje: string, filtros: Filt
     const valores = lista.map(valorProjeto); const valor = soma(valores); const coberturaValor = cobertura(valores);
     const c: Cartao = { id, titulo, valorPrincipal: lista.length, unidade: 'qtd', secundario: dinheiro(valor) + textoCobertura(coberturaValor), cobertura: coberturaValor, situacao, fonte: 'Carteira', abrangencia: 'carteira', detalhe: {
       resumo: { qtd: lista.length, valor }, coberturas: { valor: coberturaValor }, quebras: { porOrgao: agrupar(lista, p => p.orgao ?? 'Sem órgão', valorProjeto), porRegiao: agrupar(lista, p => p.regiao ?? 'Sem região', valorProjeto), porMacroetapa: agrupar(lista, p => nomeMacroetapa(p.macroetapa), valorProjeto) },
-      itens: lista.map(p => ({ id: p.id, nome: p.nome, linha1: p.orgao ?? 'Sem órgão', linha2: nomeMacroetapa(p.macroetapa), valor: valorProjeto(p), situacao: cor(farol(p, hoje).cor), link: urlCom(filtros, id, p.id) })) } };
+      itens: lista.map(p => ({ id: p.id, nome: p.nome, linha1: p.orgao ?? 'Sem órgão', linha2: nomeMacroetapa(p.macroetapa), valor: valorProjeto(p), situacao: prazoVencido(situacaoPrazo(p, hoje).codigo) ? 'critico' : 'neutro', link: urlCom(filtros, id, p.id) })) } };
     cartoes.push(c); return c;
   };
   adicionar('carteira', 'Carteira de projetos', projetos);
@@ -119,9 +119,9 @@ export function montarDashboard(e: EntradaDashboard, hoje: string, filtros: Filt
   });
   const entregas = adicionar('entregas', 'Entregas em 90 dias', projetos.filter(p => painel.entregas.lista.some(i => i.id === p.id)));
   entregas.detalhe.itens = entregas.detalhe.itens.map(i => { const prazo = projetos.find(p => p.id === i.id)!.datas.encerramento; return { ...i, prazo, linha2: prazo! }; }).sort(porPrazo);
-  const vermelhos = projetos.filter(p => p.macroetapa !== '06' && farol(p, hoje).cor === 'vermelho').sort((a, b) => rankPrioridade(a.prioridade) - rankPrioridade(b.prioridade) || comparar(a.nome, b.nome));
-  const atencao = adicionar('atencao', 'Projetos em atenção', vermelhos, vermelhos.length ? 'critico' : 'ok');
-  atencao.detalhe.itens = atencao.detalhe.itens.map(i => { const p = projetos.find(p => p.id === i.id)!; return { ...i, linha1: farol(p, hoje).motivo, linha2: p.prioridade ?? 'Sem prioridade' }; });
+  const vencidos = projetos.filter(p => p.macroetapa !== '06' && prazoVencido(situacaoPrazo(p, hoje).codigo)).sort((a, b) => rankPrioridade(a.prioridade) - rankPrioridade(b.prioridade) || comparar(a.nome, b.nome));
+  const atencao = adicionar('atencao', 'Projetos em atenção', vencidos, vencidos.length ? 'critico' : 'ok');
+  atencao.detalhe.itens = atencao.detalhe.itens.map(i => { const p = projetos.find(p => p.id === i.id)!; return { ...i, linha1: situacaoPrazo(p, hoje).texto, linha2: p.prioridade ?? 'Sem prioridade' }; });
   const semFonte = new Set(alertasSemFonte(carteira).map(a => a.projeto?.id));
   const falta = adicionar('falta_financiar', 'Falta financiar', projetos.filter(p => semFonte.has(p.id)), semFonte.size ? 'atencao' : 'neutro');
   const elegiveis = projetos.filter(p => p.macroetapa !== '06'); const saldo = soma(elegiveis.map(saldoSemFonte));
@@ -169,6 +169,6 @@ export function montarDashboard(e: EntradaDashboard, hoje: string, filtros: Filt
   return { atualizadoEm: hoje, fontes, cartoes,
     funil: MACROETAPAS.map(m => { const l = projetos.filter(p => p.macroetapa === m.codigo); return { codigo: m.codigo, nome: m.nome, qtd: l.length, valor: soma(l.map(valorProjeto)), cobertura: cobertura(l.map(valorProjeto)) }; }),
     parado: painel.parado, regioes: agrupar(projetos, p => p.regiao ?? 'Sem região', valorProjeto),
-    decisoes: painel.atencao.vermelhos.top.map(p => ({ ...p, motivo: p.motivo.replace(/\s+/g, ' ') })),
+    decisoes: painel.atencao.vencidos.top.map(p => ({ ...p, motivo: p.motivo.replace(/\s+/g, ' ') })),
   };
 }

@@ -1,6 +1,7 @@
 // Textos do WhatsApp: relatório automático e respostas a perguntas, sempre montados com os projetos JÁ filtrados pela permissão.
 // Simulação sem IA: as perguntas são entendidas por palavras-chave. Na versão real, uma IA entende a pergunta livre,
 // mas só recebe o resultado de projetosVisiveis() — nunca a carteira inteira.
+import { prazoVencido } from '../carteira/prazo.ts';
 import { projetosVisiveis } from './permissoes.ts';
 import type { CaptacaoWhats, Contato, ModeloRelatorio, ProjetoWhats } from './tipos.ts';
 
@@ -16,7 +17,6 @@ const RANK: Record<string, number> = { 'Muito Alta': 0, Alta: 1, 'Média': 2, Ba
 const rank = (p: ProjetoWhats): number => (p.prioridade !== null && p.prioridade in RANK ? RANK[p.prioridade] : 4);
 const porPrioridade = (a: ProjetoWhats, b: ProjetoWhats): number => rank(a) - rank(b) || a.nome.localeCompare(b.nome, 'pt-BR');
 const porEntrega = (a: ProjetoWhats, b: ProjetoWhats): number => (a.encerramento ?? '9999') < (b.encerramento ?? '9999') ? -1 : (a.encerramento ?? '9999') > (b.encerramento ?? '9999') ? 1 : a.nome.localeCompare(b.nome, 'pt-BR');
-const EMOJI = { vermelho: '🔴', amarelo: '🟡', verde: '🟢' } as const;
 
 /** R$ abreviado: 'R$ 1,3 bi', 'R$ 350 mi', 'R$ 12,5 mil'. */
 export function reaisCurto(n: number): string {
@@ -57,9 +57,8 @@ function blocoCaptacao(contato: Contato, captacao: CaptacaoWhats | null): string
 export function montarRelatorio(contato: Contato, base: ProjetoWhats[], captacao: CaptacaoWhats | null, hoje: string, modelo: ModeloRelatorio = contato.relatorio.modelo): string {
   const visiveis = projetosVisiveis(base, contato.permissao);
   const ativos = visiveis.filter((p) => p.macroetapa !== '06').sort(porPrioridade);
-  const vermelhos = ativos.filter((p) => p.farol === 'vermelho');
-  const amarelos = ativos.filter((p) => p.farol === 'amarelo');
-  const verdes = ativos.filter((p) => p.farol === 'verde');
+  const vencidos = ativos.filter((p) => prazoVencido(p.prazo));
+  const vencendo = ativos.filter((p) => p.prazo === 'etapa-vencendo');
   const execucao = ativos.filter((p) => p.macroetapa === '05').sort(porEntrega);
   const limite = somaDias(hoje, DIAS_ENTREGA);
   const entregas = ativos.filter((p) => p.encerramento !== null && p.encerramento >= hoje && p.encerramento <= limite).sort(porEntrega);
@@ -71,12 +70,12 @@ export function montarRelatorio(contato: Contato, base: ProjetoWhats[], captacao
     return caber([...l, ...blocoCaptacao(contato, captacao)].join('\n'));
   }
   l.push(`📊 *${qtd(ativos.length, 'projeto em andamento', 'projetos em andamento')}*${contato.permissao.verValores && total > 0 ? ` · ${reaisCurto(total)}` : ''}`);
-  l.push(`${EMOJI.vermelho} ${vermelhos.length} com prazo vencido · ${EMOJI.amarelo} ${amarelos.length} em atenção · ${EMOJI.verde} ${verdes.length} no prazo`);
+  l.push(`⏰ ${qtd(vencidos.length, 'com prazo vencido', 'com prazo vencido')} · ${qtd(vencendo.length, 'com prazo da etapa em até 15 dias', 'com prazo da etapa em até 15 dias')}`);
 
   if (modelo === 'resumo') {
     l.push(`Em execução: ${execucao.length} · entregas em ${DIAS_ENTREGA} dias: ${entregas.length}`);
   } else {
-    if (vermelhos.length) l.push('', '*Atenção (prazo vencido)*', ...lista(vermelhos, (p) => `${comOrgao(p)}: ${p.motivo.toLowerCase()}`));
+    if (vencidos.length) l.push('', '*Prazo vencido*', ...lista(vencidos, (p) => `${comOrgao(p)}: ${p.motivo.toLowerCase()}`));
     if (execucao.length) l.push('', '*Em execução*', ...lista(execucao, (p) => `${p.nome}: ${p.percentual !== null ? `${pct(p.percentual)} executado` : 'execução sem medição'}${p.encerramento ? ` · entrega ${dataBR(p.encerramento)}` : ''}`));
     if (entregas.length) l.push('', `*Entregas nos próximos ${DIAS_ENTREGA} dias*`, ...lista(entregas, (p) => `${p.nome}: ${dataBR(p.encerramento as string)}`));
   }
@@ -101,7 +100,7 @@ export const SEM_CAPTACAO = 'Seu número não tem permissão para consultar a ca
 const PALAVRAS_VAZIAS = new Set(['como', 'esta', 'estao', 'qual', 'quais', 'obra', 'obras', 'projeto', 'projetos', 'sobre', 'andamento', 'situacao', 'quero', 'saber', 'para', 'pela', 'pelo', 'esse', 'essa', 'isso', 'informacao', 'informacoes', 'favor', 'status', 'anda', 'andando', 'mais']);
 
 export function detalheProjeto(p: ProjetoWhats): string {
-  const l = [`*${p.nome}*`, [p.orgao, p.etapa].filter(Boolean).join(' · '), `Situação: ${EMOJI[p.farol]} ${p.motivo}`];
+  const l = [`*${p.nome}*`, [p.orgao, p.etapa].filter(Boolean).join(' · '), `Situação: ${p.motivo}`];
   if (p.prioridade) l.push(`Prioridade: ${p.prioridade}`);
   if (p.percentual !== null) l.push(`Executado: ${pct(p.percentual)}`);
   if (p.encerramento) l.push(`Entrega prevista: ${dataBR(p.encerramento)}`);
@@ -179,8 +178,8 @@ export function responderPergunta(texto: string, contato: Contato, base: Projeto
     return caber([...blocoCaptacao(contato, captacao).slice(1), '', 'Emendas parlamentares entram quando a coleta de emendas estiver ligada ao GovNexa.'].join('\n'));
   }
   if (/(atrasad|vencid|vermelh|parad)/.test(t)) {
-    const v = ativos.filter((p) => p.farol === 'vermelho').sort(porPrioridade);
-    if (!v.length) return 'Nenhum projeto com prazo vencido entre os que você acompanha. 🟢';
+    const v = ativos.filter((p) => prazoVencido(p.prazo)).sort(porPrioridade);
+    if (!v.length) return 'Nenhum projeto com prazo vencido entre os que você acompanha.';
     return caber([`*${qtd(v.length, 'projeto com prazo vencido', 'projetos com prazo vencido')}*`, ...v.slice(0, 10).map((p) => `• ${comOrgao(p)}: ${p.motivo.toLowerCase()}`), ...(v.length > 10 ? [`  e mais ${v.length - 10}`] : [])].join('\n'));
   }
   if (/(entrega|inaugur|proxim|termina)/.test(t)) {

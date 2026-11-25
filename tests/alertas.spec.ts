@@ -23,7 +23,7 @@ test('govnexa: Gestão › Alertas: resumo, filtros sem recarregar, sem fonte e 
  if(primeiroAmarelo>=0)expect(gravidades.slice(primeiroAmarelo).every(g=>g==='amarelo')).toBeTruthy();
  // cada alerta tem gravidade escrita, ação recomendada e link para a tela de origem
  const primeiro=itens.first();
- await expect(primeiro.locator('.al-grav')).toHaveText(/Vermelho|Amarelo/);
+ await expect(primeiro.locator('.al-grav')).toHaveText(/Urgente|Atenção/);
  await expect(primeiro.locator('.al-acao')).toContainText('O que fazer:');
  await expect(primeiro.locator('.al-link a')).toHaveAttribute('href',/^\/plataforma\//);
  // marcador para garantir que os filtros não recarregam a página

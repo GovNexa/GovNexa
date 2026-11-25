@@ -4,7 +4,7 @@ import type { APIRoute } from 'astro';
 import { ID_CRONOGRAMA } from '../../../../lib/cronograma/edicao.ts';
 import { nomeArquivoCsvRecursos, paraCsvRecursos } from '../../../../lib/cronograma/recursos-csv.ts';
 import { usuarioPode } from '../../../../lib/usuarios/index.ts';
-import { hojeEmBrasilia } from '../../../../lib/whatsapp/farol.ts';
+import { hojeEmBrasilia } from '../../../../lib/datas.ts';
 
 const SEM_CACHE = { 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' };
 const texto = (status: number, corpo: string): Response => new Response(corpo, { status, headers: { ...SEM_CACHE, 'Content-Type': 'text/plain; charset=utf-8' } });

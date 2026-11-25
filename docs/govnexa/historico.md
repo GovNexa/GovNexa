@@ -40,6 +40,7 @@ A versão integral do histórico é privada e fica fora do repositório público
 | 18/11/2026 | Copilot CLI sai do fluxo (consumo alto): executores passam a ser só o Codex; o Claude assume o que for pequeno ou quando o Codex estiver sem cota. |
 | 22/11/2026 | Três visões no sistema (áudio 31): Gerencial (o que o prefeito vê), Governança da execução (o trabalho da equipe) e Convênios (captação e repasses). A tela do prefeito mostra grandes números, mapa, linha do tempo e principais obras; farol, prazos, "onde está parado", decisões pendentes e convênios vão para a equipe. |
 | 23/11/2026 | O sistema substitui a planilha: a planilha é só orientação e carga inicial; a continuidade é só no sistema; todo processo com início, meio e fim na tela (criar, editar, avançar, concluir, Histórico); depois da carga, a tela vence a planilha. Varredura pendente do que ainda depende de planilha. |
+| 23/11/2026 | Farol: tirar (áudio 19). O farol de cores (vermelho, amarelo, verde) sai de todo o sistema; os fatos ficam em texto com o número de dias; a gravidade dos alertas vira Urgente ou Atenção. Entrega E19. |
 | 23/11/2026 | Sempre poder voltar: toda tela aberta a partir de outra oferece voltar à origem, com os filtros; conferido em toda entrega, com teste. |
 | 23/11/2026 | Plano de E12 e E13 aprovado com o padrão: tempo na mão por pessoa e por área, relógio a partir do início real, atenção acima da duração prevista e urgente acima do dobro; licitações em 6 etapas; editor ou acima edita e o prefeito só vê. O modelo de planilha das licitações deixou de ser bloqueio (só carga inicial). |
 | 22/11/2026 | Decisões D1 a D6 dos áudios: carteira inteira com marca de prioritário; áreas sugeridas pelo órgão até a lista oficial; códigos da tela a partir de 9000; busca de endereço gratuita (OpenStreetMap) com confirmação; modelo das licitações a enviar; "próximo marco aguardando" só no detalhe. |
@@ -244,6 +245,7 @@ O dono informou (16/11/2026) que o projeto será copiado para **outro repositór
 | novo #48 | 22/11/2026 | E7: Kanban e Pendências gravando (B3) |
 | novo #49 | 22/11/2026 | E10: Painel da equipe e relatório de inconsistências |
 | novo (a numerar) | 22/11/2026 | E11: menu nas três visões e Visão Convênios |
+| novo (a numerar) | 23/11/2026 | E19: farol retirado de todo o sistema (fatos em texto, alertas Urgente/Atenção) |
 
 #### novo #1 — Etapa 0: regras do fluxo com executores e preparo para a Cloudflare
 

@@ -4,7 +4,7 @@ import { ID_FICHA } from '../carteira/ficha.ts';
 import { texto } from '../carteira/cadastro.ts';
 import type { RepositorioProjetos } from '../repositorio/tipos.ts';
 import { usuarioPode, type Usuario } from '../usuarios/index.ts';
-import { hojeEmBrasilia } from '../whatsapp/farol.ts';
+import { hojeEmBrasilia } from '../datas.ts';
 import { CAMPOS_TAREFA, type DadosTarefa, type OperacaoCronograma } from './planejar.ts';
 import { ACOES_ITEM, ehAcaoItem, type OperacaoItem } from './recursos.ts';
 import { normalizarOperacaoItem } from './recursos-regras.ts';

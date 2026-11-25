@@ -70,7 +70,6 @@ import { pautaDaBase, type ItemBase, type ItemPauta } from '../../lib/reuniao/vi
 import { dataBr, faltandoNaReuniao, guardarRegistrosReuniao, montarRegistrosReuniao, type AcaoReuniao, type ItemDiscutido } from '../../lib/reuniao/simulacao.ts';
 
 interface Estado { discutido: boolean; discussao: string; decisao: string; acoes: AcaoReuniao[] }
-const ROTULO_FAROL = { vermelho: 'Vermelho', amarelo: 'Amarelo', verde: 'Verde' } as const;
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, texto?: string, classe?: string): HTMLElementTagNameMap[K] {
   const e = document.createElement(tag);
@@ -166,12 +165,8 @@ document.addEventListener('astro:page-load', () => {
     a.href = ID_FICHA.test(item.projeto_id) ? hrefFicha(item.projeto_id, aquiDe(new URL(location.href))) : `/plataforma/projetos-carteira/?q=${encodeURIComponent(item.projeto_id)}`;
     h3.append(a, document.createTextNode(' '), el('span', `(${item.projeto_id})`, 'muted'));
     const meta = el('p', `${item.orgao ?? 'Sem órgão'} · ${item.macroetapa}${item.prioridade ? ` · Prioridade ${item.prioridade}` : ''}`, 'ru-meta');
-    const farol = el('p', undefined, 'ru-farol');
-    const ponto = el('span', undefined, `cart-ponto ${item.farol.cor}`);
-    ponto.setAttribute('aria-hidden', 'true');
-    const textoFarol = el('span');
-    textoFarol.append(el('strong', `Farol ${ROTULO_FAROL[item.farol.cor]}: `), document.createTextNode(item.farol.motivo));
-    farol.append(ponto, textoFarol);
+    const prazo = el('p', undefined, 'ru-prazo');
+    prazo.append(el('strong', 'Situação: '), document.createTextNode(item.prazo.texto));
 
     const motivos = el('div', undefined, 'ru-bloco');
     motivos.append(el('h4', 'Na pauta porque'));
@@ -235,14 +230,14 @@ document.addEventListener('astro:page-load', () => {
     marca.append(cx, document.createTextNode(' Discutido'));
     edicao.append(area('Discussão', 'discussao'), area('Decisão', 'decisao'), acoes, marca);
 
-    li.append(h3, meta, farol, motivos, mudou, planilha, edicao, impressao);
+    li.append(h3, meta, prazo, motivos, mudou, planilha, edicao, impressao);
     return li;
   }
 
   function desenhar(): void {
     const pauta = pautaDaBase(dados.base, campoDesde.value || dados.desdePadrao);
     const r = pauta.resumo;
-    resumo.replaceChildren(cartaoResumo(r.total, 'projetos na pauta'), cartaoResumo(r.vermelhos, 'com prazo vencido'), cartaoResumo(r.mudaramDeEtapa, 'mudaram de etapa'), cartaoResumo(r.novos, 'novos projetos'));
+    resumo.replaceChildren(cartaoResumo(r.total, 'projetos na pauta'), cartaoResumo(r.vencidos, 'com prazo vencido'), cartaoResumo(r.mudaramDeEtapa, 'mudaram de etapa'), cartaoResumo(r.novos, 'novos projetos'));
     for (const g of r.porMacroetapa) resumo.append(cartaoResumo(g.qtd, g.nome));
     const visiveis = pauta.itens.filter((i) => (!campoOrgao.value || (i.orgao ?? 'Sem órgão') === campoOrgao.value) && (!campoMotivo.value || i.motivosNaPauta.includes(campoMotivo.value)));
     lista.replaceChildren(...visiveis.map(cartao));

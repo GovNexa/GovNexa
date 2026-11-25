@@ -1,6 +1,6 @@
 // Dados do mapa das obras: lê a geocodificação por bairro e monta a lista de obras com localização.
 // E4: cada obra leva a ÁREA (a mesma da tela do prefeito, E3: gravada ou sugerida pelo órgão), a cor da área e a
-// macroetapa da E3. Saíram o farol, o prazo da etapa e o tipo de obra: o mapa não mostra situação de prazo.
+// macroetapa da E3. Saíram a situação de prazo, o prazo da etapa e o tipo de obra: o mapa não mostra situação de prazo.
 import geoExemplo from '../../../data/exemplo/carteira/geo-bairros.json' with { type: 'json' };
 import { contextoDados } from '../repositorio/contexto.ts';
 import { AREAS_PADRAO, type Area } from '../carteira/area.ts';
@@ -84,7 +84,7 @@ const preparar = (carteira: Carteira, opcoes: OpcoesMapa): { areas: readonly Are
   return { areas, cores: opcoes.cores ?? coresDasAreas(carteira.projetos, areas) };
 };
 
-/** `_hoje` ficou por compatibilidade com quem já chama (o farol saiu do mapa na E4). */
+/** `_hoje` ficou por compatibilidade com quem já chama (a situação de prazo saiu do mapa na E4). */
 export function obrasDoMapa(carteira: Carteira, geo: GeoBairros, _hoje?: string, opcoes: OpcoesMapa = {}): { obras: ObraMapa[]; semLocal: number } {
   const { areas, cores } = preparar(carteira, opcoes);
   const obras: ObraMapa[] = [];

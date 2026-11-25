@@ -8,10 +8,9 @@ import { carregarCronogramas } from '../../../lib/cronograma/carga.ts';
 import { ROTA_RESPONSAVEIS, urlCronograma } from '../../../lib/cronograma/navegacao.ts';
 import { montarPainel, ROTULO_SEM_AREA, ROTULO_SEM_PESSOA, SEM, situacaoDoItem, urlCsvResponsaveis, urlPainel } from '../../../lib/cronograma/painel-responsaveis.ts';
 import { chaveNome } from '../../../lib/cronograma/responsaveis.ts';
-import { dataBr } from '../../../lib/datas.ts';
+import { dataBr, hojeEmBrasilia } from '../../../lib/datas.ts';
 import { municipioAtivo } from '../../../lib/municipio-ativo.ts';
 import { usuarioPode } from '../../../lib/usuarios/index.ts';
-import { hojeEmBrasilia } from '../../../lib/whatsapp/farol.ts';
 
 export const prerender = false;
 const pode = usuarioPode(Astro.locals.usuario, 'ver');

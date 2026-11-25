@@ -1,12 +1,12 @@
 // Contrato do WhatsApp da Gestão (Fase 5, em simulação): números autorizados, permissão de cada um e relatórios.
 // Regra de segurança: toda resposta é montada SÓ com os projetos que a permissão libera (o filtro vem antes de qualquer texto;
 // na versão real, antes de a IA receber os dados). Nunca entra o nome de pessoas (campo `responsavel` fica de fora).
+import type { CodigoPrazo } from '../carteira/prazo.ts';
 import type { CodigoMacroetapa } from '../carteira/tipos.ts';
 
 export type PerfilContato = 'prefeito' | 'secretario' | 'equipe' | 'personalizado';
 export type Frequencia = 'semanal' | 'diario' | 'nenhum';
 export type ModeloRelatorio = 'prioritarios' | 'resumo';
-export type CorFarol = 'vermelho' | 'amarelo' | 'verde';
 
 export interface Permissao {
   /** '*' = todos os órgãos; senão, as siglas liberadas (ao menos uma). */
@@ -58,11 +58,12 @@ export interface ProjetoWhats {
   /** Executado ÷ total (0 a 100, 1 casa) quando coerente; senão null. */
   percentual: number | null;
   encerramento: string | null;
-  /** Fim previsto da macroetapa atual (para recalcular o farol no dia de hoje, no navegador). */
+  /** Fim previsto da macroetapa atual (para recalcular a situação de prazo no dia de hoje, no navegador). */
   fimEtapa: string | null;
   /** Quantidade de problemas de dado (o texto das pendências não sai daqui). */
   pendencias: number;
-  farol: CorFarol;
+  /** Código da situação de prazo (texto em `motivo`). */
+  prazo: CodigoPrazo;
   motivo: string;
 }
 

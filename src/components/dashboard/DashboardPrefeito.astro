@@ -1,18 +1,17 @@
 ---
 // Painel da equipe (E10, rota /plataforma/gestao-equipe/): visão operacional que saiu da tela do prefeito na E3
-// (farol, prazos, onde está parado, decisões pendentes, alertas, convênios e valores por região). Sem mapa: o mapa por área é da E4.
+// (prazos vencidos, onde está parado, decisões pendentes, alertas, convênios e valores por região). Sem mapa: o mapa por área é da E4.
 import Icon from '../Icon.astro';
 import '../../styles/dashboard.css';
-import { dataHoraBr, dataOuDataHoraBr } from '../../lib/datas.ts';
+import { dataHoraBr, dataOuDataHoraBr, hojeEmBrasilia } from '../../lib/datas.ts';
 import { carregarCarteira } from '../../lib/carteira/carga.ts';
 import { hrefFicha } from '../../lib/carteira/ficha.ts';
 import { aquiDe, comVolta } from '../../lib/navegacao/volta.ts';
 import { carregarCronogramas } from '../../lib/cronograma/carga.ts';
 import { dados } from '../../lib/dados/index.ts';
 import { avaliarFontes } from '../../lib/dados/qualidade.ts';
-import { montarCentral, type ConvenioEntrada } from '../../lib/alertas/central.ts';
+import { montarCentral, ROTULO_GRAVIDADE, type ConvenioEntrada } from '../../lib/alertas/central.ts';
 import { municipioAtivo } from '../../lib/municipio-ativo.ts';
-import { hojeEmBrasilia } from '../../lib/whatsapp/farol.ts';
 import { montarDashboard, opcoesFiltros, parametrosDaUrl, urlCom } from '../../lib/gestao/dashboard.ts';
 import { ROTA_PAINEL_EQUIPE } from '../../lib/gestao/equipe.ts';
 import type { Cartao, Filtros, IdCartao, Quebra, Situacao } from '../../lib/gestao/dashboard.ts';
@@ -114,7 +113,7 @@ carteira: 'Quantidade de projetos nos filtros atuais.',
 execucao: 'Projetos na macroetapa 05; percentual ponderado pelos valores conhecidos.',
 contratacao: 'Projetos nas macroetapas 02 e 03; alertas dos prazos legais cadastrados.',
 entregas: 'Projetos com encerramento previsto nos próximos 90 dias.',
-atencao: 'Projetos não concluídos com farol vermelho.',
+atencao: 'Projetos não concluídos com o prazo da macroetapa ou a entrega prevista vencidos.',
 falta_financiar: 'Soma dos saldos sem fonte identificáveis dos projetos não concluídos.',
 convenios: 'Quantidade em execução informada no resumo da coleta.',
 convenios_risco: 'Convênios em execução com alerta ou vigência futura em até 180 dias; saldo não desembolsado.',
@@ -260,11 +259,11 @@ const linkEtapa = '/plataforma/projetos-kanban/';
 
   <section class="pd-secao" aria-labelledby="pd-alertas-central" data-pd-alertas>
     <h2 id="pd-alertas-central">Alertas</h2>
-    <p class="pd-legenda">Toda a prefeitura: {inteiro(central.totais.vermelho)} vermelhos e {inteiro(central.totais.amarelo)} amarelos. <a href="/plataforma/gestao-alertas/">Abrir a central de alertas</a></p>
+    <p class="pd-legenda">Toda a prefeitura: {inteiro(central.totais.vermelho)} {central.totais.vermelho === 1 ? 'urgente' : 'urgentes'} e {inteiro(central.totais.amarelo)} em atenção. <a href="/plataforma/gestao-alertas/">Abrir a central de alertas</a></p>
     {alertasTopo.length
       ? <ul class="pd-lista">
           {alertasTopo.map((alerta) => (
-            <li><a href={comVolta(alerta.link, voltaFicha)}>{textoBR(alerta.titulo)}</a><span>{alerta.gravidade === 'vermelho' ? 'Vermelho' : 'Amarelo'} · {textoBR(alerta.detalhe)}</span></li>
+            <li><a href={comVolta(alerta.link, voltaFicha)}>{textoBR(alerta.titulo)}</a><span>{ROTULO_GRAVIDADE[alerta.gravidade]} · {textoBR(alerta.detalhe)}</span></li>
           ))}
         </ul>
       : <p class="pd-vazio">Nenhum alerta hoje.</p>}

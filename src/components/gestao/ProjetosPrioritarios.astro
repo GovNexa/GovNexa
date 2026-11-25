@@ -1,15 +1,14 @@
 ---
 // Tela inicial do prefeito: "Projetos prioritários" (E3). Só leitura.
-// Sem farol, prazos, "onde está parado", decisões pendentes nem convênios: essa visão continua em
+// Sem situação de prazo, prazos, "onde está parado", decisões pendentes nem convênios: essa visão continua em
 // src/components/dashboard/DashboardPrefeito.astro + src/lib/gestao/dashboard.ts e vai para o painel da equipe na E10.
 import '../../styles/prioritarios.css';
 import { carregarCarteira } from '../../lib/carteira/carga.ts';
 import { AREAS_PADRAO, areasDaPrefeitura, type Area } from '../../lib/carteira/area.ts';
-import { dataBr, dataHoraBr } from '../../lib/datas.ts';
+import { dataBr, dataHoraBr, hojeEmBrasilia } from '../../lib/datas.ts';
 import { hrefFicha } from '../../lib/carteira/ficha.ts';
 import { aquiDe, comVolta } from '../../lib/navegacao/volta.ts';
 import { municipioAtivo } from '../../lib/municipio-ativo.ts';
-import { hojeEmBrasilia } from '../../lib/whatsapp/farol.ts';
 import {
   ETAPAS, FILTROS_PRIORITARIOS_VAZIOS, FIM_LINHA_TEMPO, OUTRAS, SEM_AREA, alternar, alternarMes, montarPrioritarios, nomeEtapa,
   reaisCurtos, rotuloMes, rotulosDoEixo, urlPrioritarios,

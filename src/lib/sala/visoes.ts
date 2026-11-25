@@ -1,6 +1,7 @@
-// Regras da Sala de guerra: quem merece uma sala (candidatos), indicadores e farol da sala e pauta da reunião.
+// Regras da Sala de guerra: quem merece uma sala (candidatos), indicadores e situação da sala e pauta da reunião.
 // Funções puras: `hoje` (ISO 'AAAA-MM-DD') é sempre injetável; o histórico também (padrão: o carregado do disco).
-import { farol, saldoSemFonte } from '../carteira/visoes.ts';
+import { prazoVencido, textoDias } from '../carteira/prazo.ts';
+import { saldoSemFonte, situacaoPrazo } from '../carteira/visoes.ts';
 import type { Carteira, Projeto } from '../carteira/tipos.ts';
 import { diasEntre, itensParados, resumoCronograma } from '../cronograma/visoes.ts';
 import type { Cronograma } from '../cronograma/tipos.ts';
@@ -42,9 +43,9 @@ export function candidatosSala(carteira: Carteira, cronogramas: Cronograma[], ho
     if (p.macroetapa === '06' || ocupados.has(p.id)) continue;
     const motivos: MotivoCandidato[] = [];
     const cs = cronogramas.filter((c) => c.projeto_id === p.id);
-    if (prioridadeAlta(p) && farol(p, hoje).cor === 'vermelho') motivos.push({ texto: 'Prioridade alta com prazo de etapa vencido', peso: 3 });
+    if (prioridadeAlta(p) && prazoVencido(situacaoPrazo(p, hoje).codigo)) motivos.push({ texto: 'Prioridade alta com prazo de etapa vencido', peso: 3 });
     if (cs.some((c) => { const spi = resumoCronograma(c, hoje).spi; return spi !== null && spi < 0.85; })) {
-      motivos.push({ texto: 'Cronograma em ritmo vermelho (realizado abaixo do previsto)', peso: 2 });
+      motivos.push({ texto: 'Cronograma bem abaixo do previsto (realizado abaixo de 85% do previsto)', peso: 2 });
     }
     const parados = itensParados(cs, hoje).filter((i) => i.dias > 30);
     if (parados.length) {
@@ -56,7 +57,7 @@ export function candidatosSala(carteira: Carteira, cronogramas: Cronograma[], ho
     const entrega = p.datas.encerramento;
     if (p.prioridade === 'Muito Alta' && entrega) {
       const d = diasEntre(hoje, entrega);
-      if (d >= 0 && d <= 90 && farol(p, hoje).cor !== 'verde') motivos.push({ texto: 'Entrega próxima e em risco', peso: 1 });
+      if (d >= 0 && d <= 90 && situacaoPrazo(p, hoje).codigo !== 'no-prazo') motivos.push({ texto: 'Entrega próxima e em risco', peso: 1 });
     }
     const peso = motivos.reduce((s, m) => s + m.peso, 0);
     if (peso >= 3) lista.push({ projeto: p, motivos: motivos.map((m) => m.texto), peso });
@@ -69,7 +70,7 @@ export function candidatosSala(carteira: Carteira, cronogramas: Cronograma[], ho
 export function porqueSugerido(motivos: string[]): string {
   const frases = motivos.map((m) => {
     if (m === 'Prioridade alta com prazo de etapa vencido') return 'a prioridade é alta e o prazo da etapa já venceu';
-    if (m === 'Cronograma em ritmo vermelho (realizado abaixo do previsto)') return 'o cronograma está andando abaixo do previsto';
+    if (m === 'Cronograma bem abaixo do previsto (realizado abaixo de 85% do previsto)') return 'o cronograma está andando abaixo do previsto';
     const parada = /^Etapa parada há mais de 30 dias: (.*) \(([^()]*)\)$/.exec(m);
     if (parada) return `a etapa ${parada[1]} está parada há mais de 30 dias com ${parada[2]}`;
     if (m === 'Em contratação com saldo sem fonte') return 'está em contratação sem fonte para todo o valor';
@@ -92,7 +93,7 @@ export interface IndicadoresSala {
   problemasAbertos: number;
   riscosAltos: number;
   etapasAtrasadas: number;
-  farol: { cor: 'vermelho' | 'amarelo' | 'verde'; motivo: string };
+  situacao: { urgente: boolean; texto: string };
 }
 
 export function indicadoresSala(sala: Sala, _carteira: Carteira, cronogramas: Cronograma[], hoje: string = hojePadrao()): IndicadoresSala {
@@ -102,14 +103,14 @@ export function indicadoresSala(sala: Sala, _carteira: Carteira, cronogramas: Cr
   const problemasAbertos = sala.raid.filter((i) => i.tipo === 'problema' && aberto(i)).length;
   const riscosAltos = sala.raid.filter((i) => i.tipo === 'risco' && aberto(i) && i.impacto === 'alto').length;
   const etapasAtrasadas = cronogramas.filter((c) => c.projeto_id && sala.projetos.includes(c.projeto_id)).reduce((s, c) => s + resumoCronograma(c, hoje).atrasadas, 0);
-  let f: IndicadoresSala['farol'];
-  if (diasParaPrazo < 0) f = { cor: 'vermelho', motivo: 'Prazo da sala vencido' };
-  else if (acoesVencidas > 0) f = { cor: 'vermelho', motivo: `${acoesVencidas} ação(ões) vencida(s)` };
-  else if (problemasAbertos > 0 && sala.escalonamento === 3) f = { cor: 'vermelho', motivo: 'Problema aberto com a sala no gabinete' };
-  else if (diasParaPrazo <= 7) f = { cor: 'amarelo', motivo: 'Prazo da sala em até 7 dias' };
-  else if (riscosAltos > 0) f = { cor: 'amarelo', motivo: `${riscosAltos} risco(s) de impacto alto` };
-  else f = { cor: 'verde', motivo: 'No prazo, sem ação vencida' };
-  return { diasParaPrazo, acoesAbertas: acoes.length, acoesVencidas, problemasAbertos, riscosAltos, etapasAtrasadas, farol: f };
+  let f: IndicadoresSala['situacao'];
+  if (diasParaPrazo < 0) f = { urgente: true, texto: `Prazo da sala vencido há ${textoDias(-diasParaPrazo)}` };
+  else if (acoesVencidas > 0) f = { urgente: true, texto: acoesVencidas === 1 ? '1 ação vencida' : `${acoesVencidas} ações vencidas` };
+  else if (problemasAbertos > 0 && sala.escalonamento === 3) f = { urgente: true, texto: 'Problema aberto com a sala no gabinete' };
+  else if (diasParaPrazo <= 7) f = { urgente: false, texto: diasParaPrazo === 0 ? 'Prazo da sala vence hoje' : `Prazo da sala vence em ${textoDias(diasParaPrazo)}` };
+  else if (riscosAltos > 0) f = { urgente: false, texto: riscosAltos === 1 ? '1 risco de impacto alto' : `${riscosAltos} riscos de impacto alto` };
+  else f = { urgente: false, texto: 'No prazo, sem ação vencida' };
+  return { diasParaPrazo, acoesAbertas: acoes.length, acoesVencidas, problemasAbertos, riscosAltos, etapasAtrasadas, situacao: f };
 }
 
 const porPrazo = (a: ItemRaid, b: ItemRaid): number => (a.prazo ?? '9999') < (b.prazo ?? '9999') ? -1 : (a.prazo ?? '9999') > (b.prazo ?? '9999') ? 1 : 0;

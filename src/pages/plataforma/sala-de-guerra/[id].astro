@@ -7,7 +7,7 @@ import { carregarSalas } from '../../../lib/sala/carga.ts';
 import { ROTULO_CADENCIA, ROTULO_ESCALONAMENTO, ROTULO_SITUACAO_RAID, ROTULO_SITUACAO_SALA, ROTULO_TIPO_SALA, type ItemRaid, type TipoRaid } from '../../../lib/sala/tipos.ts';
 import { AVISO_SIMULACAO_SALA } from '../../../lib/sala/simulacao.ts';
 import { nomeEtapa } from '../../../lib/carteira/simulacao.ts';
-import { farol } from '../../../lib/carteira/visoes.ts';
+import { situacaoPrazo } from '../../../lib/carteira/visoes.ts';
 import { dataBr, indicadoresSala, pautaReuniao, textoPrazo } from '../../../lib/sala/visoes.ts';
 import { diasEntre } from '../../../lib/cronograma/visoes.ts';
 import Voltar from '../../../components/navegacao/Voltar.astro';
@@ -25,17 +25,15 @@ const cronogramas = carregarCronogramas().cronogramas;
 const ind = indicadoresSala(s, carteira, cronogramas, hoje);
 const pauta = pautaReuniao(s, carteira, hoje);
 const encerrada = s.situacao === 'resolvida' || s.situacao === 'encerrada';
-const rotuloFarol = { vermelho: 'Vermelho', amarelo: 'Amarelo', verde: 'Verde' } as const;
 const projetos = s.projetos.map((id) => ({
   id,
   nome: carteira.projetos.find((p) => p.id === id)?.nome ?? id,
   cronogramas: cronogramas.filter((c) => c.projeto_id === id),
 }));
-const rotFarolProj = { vermelho: 'Vermelho', amarelo: 'Amarelo', verde: 'Verde' } as const;
 const projetosSala = s.projetos.map((id) => {
   const p = carteira.projetos.find((x) => x.id === id);
-  const f = p ? farol(p, hoje) : null;
-  return { id, nome: p?.nome ?? id, orgao: p?.orgao ?? 'sem órgão', etapa: nomeEtapa(p?.macroetapa ?? null), farol: f ? `Farol ${rotFarolProj[f.cor]}: ${f.motivo}` : 'Farol não disponível' };
+  const s = p ? situacaoPrazo(p, hoje) : null;
+  return { id, nome: p?.nome ?? id, orgao: p?.orgao ?? 'sem órgão', etapa: nomeEtapa(p?.macroetapa ?? null), prazo: s ? `Situação: ${s.texto}` : 'Situação não disponível' };
 });
 const dadosBusca = JSON.stringify(carteira.projetos.map((p) => ({ id: p.id, nome: p.nome, orgao: p.orgao, sei: p.sei, macroetapa: p.macroetapa }))).replace(/</g, '\\u003c');
 const colunas: { tipo: TipoRaid; titulo: string; unico: string; novo: string }[] = [
@@ -94,7 +92,7 @@ const ordenar = (l: ItemRaid[]) => [...l].sort((a, b) => (a.prazo ?? '9999') < (
       <ul class="sl-proj-lista" data-sl-proj-lista>
         {projetosSala.map((p) => (
           <li class="sl-proj" data-sl-proj data-projeto-id={p.id} data-projeto-nome={p.nome}>
-            <p><strong>{p.id} · {p.nome}</strong><br /><span class="muted">{p.orgao} · {p.etapa} · {p.farol}</span></p>
+            <p><strong>{p.id} · {p.nome}</strong><br /><span class="muted">{p.orgao} · {p.etapa} · {p.prazo}</span></p>
             {!encerrada && <button type="button" class="secondary sl-nao-imprimir" data-sl-retirar aria-label={`Retirar da sala: ${p.nome}`}>Retirar da sala</button>}
           </li>
         ))}
@@ -106,7 +104,7 @@ const ordenar = (l: ItemRaid[]) => [...l].sort((a, b) => (a.prazo ?? '9999') < (
 
     <section class="sl-secao" aria-labelledby="sl-ind-t">
       <h2 id="sl-ind-t">Indicadores</h2>
-      <p class="sl-farol"><span class={`cart-ponto ${ind.farol.cor}`} aria-hidden="true"></span><span><strong>Farol {rotuloFarol[ind.farol.cor]}:</strong> {ind.farol.motivo}</span></p>
+      <p class="sl-situacao"><strong>Situação:</strong> {ind.situacao.texto}</p>
       <ul class="sl-indicadores">
         <li><strong>{ind.diasParaPrazo >= 0 ? ind.diasParaPrazo : -ind.diasParaPrazo}</strong> {ind.diasParaPrazo >= 0 ? 'dias para o prazo' : 'dias de prazo vencido'}</li>
         <li><strong>{ind.acoesAbertas}</strong> ações abertas</li>
@@ -470,7 +468,7 @@ document.addEventListener('astro:page-load', () => {
     forte.textContent = `${id} · ${p?.nome ?? id}`;
     const det = document.createElement('span');
     det.className = 'muted';
-    det.textContent = `${p?.orgao ?? 'sem órgão'} · ${nomeEtapa((p?.macroetapa ?? null) as Parameters<typeof nomeEtapa>[0])} · Farol: será calculado quando a mudança for gravada`;
+    det.textContent = `${p?.orgao ?? 'sem órgão'} · ${nomeEtapa((p?.macroetapa ?? null) as Parameters<typeof nomeEtapa>[0])} · Situação: será calculado quando a mudança for gravada`;
     par.append(forte, document.createElement('br'), det);
     const bt = document.createElement('button');
     bt.type = 'button';

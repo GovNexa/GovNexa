@@ -9,7 +9,7 @@ import { lerPaginaProcesso } from '../../lib/sei/leitor.ts';
 import { marcosDoProcesso, ondeEsta, paralisacaoAberta, resumirProcesso, sugerirEtapa } from '../../lib/sei/analise.ts';
 import { paginaExemplo } from '../../lib/sei/exemplo.ts';
 import { HOSTS_SEI } from '../../lib/sei/link.ts';
-import { hojeEmBrasilia } from '../../lib/whatsapp/farol.ts';
+import { hojeEmBrasilia } from '../../lib/datas.ts';
 
 const rotulo = (c: CodigoMacroetapa | null) => MACROETAPAS.find((m) => m.codigo === c)?.rotulo ?? 'Sem macroetapa';
 const br = (iso: string | null) => (iso ? iso.slice(0, 10).split('-').reverse().join('/') : '—');
@@ -130,7 +130,7 @@ const semSei = carregarCarteira().projetos.length - projetos.length;
 <script>
 import { lerVinculos, guardarVinculos, LIMITE_VINCULOS, type Vinculos } from '../../lib/sei/simulacao.ts';
 import { mascararLinkSei, validarLinkSei } from '../../lib/sei/link.ts';
-import { hojeEmBrasilia } from '../../lib/whatsapp/farol.ts';
+import { hojeEmBrasilia } from '../../lib/datas.ts';
 
 const raiz = document.querySelector<HTMLElement>('[data-sei]');
 if (raiz) {

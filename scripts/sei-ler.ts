@@ -4,7 +4,7 @@
 import { validarLinkSei } from '../src/lib/sei/link.ts';
 import { lerPaginaProcesso } from '../src/lib/sei/leitor.ts';
 import { marcosDoProcesso, ondeEsta, paralisacaoAberta, resumirProcesso, sugerirEtapa } from '../src/lib/sei/analise.ts';
-import { hojeEmBrasilia } from '../src/lib/whatsapp/farol.ts';
+import { hojeEmBrasilia } from '../src/lib/datas.ts';
 
 const LIMITE_BYTES = 5_000_000; // a maior página real testada tinha ~400 KB
 const br = (iso: string | null): string => (iso ? iso.slice(0, 10).split('-').reverse().join('/') : '—');
