@@ -20,6 +20,16 @@ Vale para todos os desenvolvedores e para toda sessão do Claude Code: o outro d
 - Informar o resultado da conferência: quantos commits entraram, de quem e em que parte do sistema.
 - Nunca usar `git reset --hard`, `git push --force` nem descartar alterações para "ficar igual ao repositório".
 
+### 1.2 Atualização diária dos dados (regra do dono, 25/11/2026)
+No **primeiro processo do dia** (o primeiro pedido do dono no dia, em qualquer sessão), antes da tarefa pedida, atualizar tudo o que precisa ser atualizado: CAUC, Transferegov, SICONFI, FNS, IBGE, programas abertos e o resumo de acompanhamento. Avisar em uma linha que a atualização começou e seguir com o pedido do dono em paralelo.
+1. Depois do `git fetch` da seção 1, rodar `node scripts/coletas-do-dia.mjs`. Se houver PR aberto da branch `dados-atualizados`, conferir também o status dela: `git show origin/dados-atualizados:data/core/status-coletas.json > .tmp/status.json` e `node scripts/coletas-do-dia.mjs .tmp/status.json`. Se tudo estiver de hoje, não há o que fazer.
+2. **Fluxo diário do GitHub** (`atualizar-dados.yml`, todo dia às 9h30 de Brasília): se ainda não rodou hoje (`gh run list --workflow atualizar-dados.yml -L 1`), dispará-lo com `gh workflow run atualizar-dados.yml` e acompanhá-lo em segundo plano (cerca de 20 min). Ele abre ou atualiza o PR de dados `dados-atualizados`.
+3. **CAUC, sempre neste computador** (o site do Tesouro recusa o GitHub): numa branch `dados/cauc-<data>`, rodar `node coletores/rodar.ts cauc coletores/cauc.ts` e abrir o PR de dados. Não rodar `derivar-acompanhamento` localmente: ele depende de arquivos do Transferegov que só existem no GitHub e registraria uma falha.
+4. **Outro coletor com falha no GitHub:** tentar uma vez localmente (`node coletores/rodar.ts <nome> coletores/<script>.ts`); se falhar de novo, informar o dono com o motivo legível do `status-coletas.json`.
+5. Conferir também se os fluxos mensais e do Portal da Transparência tiveram falha (`gh run list -L 5`) e informar o dono.
+6. Merge do PR de dados é do dono. Depois do merge, com a ordem "publique os dados", rodar `npm run test:dados`, publicar e validar (só arquivos de `data/core/`, sem código).
+7. Informar no relatório: o que foi atualizado, o que falhou e o motivo, e o PR de dados aberto.
+
 ## 2. Manter o repositório sempre atualizado
 - Trabalhar em branch própria (nunca direto na `main`); enviar (push) com frequência.
 - PRs pequenos e frequentes, para o outro desenvolvedor sempre ter a versão mais recente. O merge na `main` exige PR (main protegida). A publicação na Cloudflare só acontece com ordem expressa do dono (seção "Publicação em produção").
