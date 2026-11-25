@@ -68,6 +68,8 @@ function upsert(tabela: string, pk: string[], cols: Record<string, string>, pres
   const nomes = Object.keys(cols);
   const atualiza = nomes.filter((c) => !pk.includes(c) && !preservar.includes(c)).map((c) => `${c} = EXCLUDED.${c}`);
   if (sqlite && tabela === 'projeto') atualiza.push('revisao = projeto.revisao + 1');
+  // E20: a carga também sobe a revisão do cronograma (só vale para o não editado na tela); uma gravação baseada em leitura anterior recebe 409.
+  if (sqlite && tabela === 'cronograma') atualiza.push('revisao = cronograma.revisao + 1');
   // Projeto cadastrado pela tela (origem.aba = CADASTRO) nunca é sobrescrito pela planilha, mesmo que ela traga o mesmo código.
   const protegeCadastro = sqlite && tabela === 'projeto' ? " WHERE json_extract(projeto.origem, '$.aba') IS NOT 'CADASTRO'"
     // E13: cronograma editado na tela fica congelado para a planilha (cabeçalho e tarefas); só a tela o altera.

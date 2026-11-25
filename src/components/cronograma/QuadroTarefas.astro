@@ -5,11 +5,16 @@ import { tempoNaMao, textoTempoNaMao } from '../../lib/cronograma/responsaveis.t
 import { ROTULO_STATUS, statusNaData } from '../../lib/cronograma/visoes.ts';
 import { br } from '../../lib/dados/formato.ts';
 
+import { urlEnvolvidos } from '../../lib/cronograma/navegacao.ts';
+import { textoResumoTarefa, type ResumoTarefaItens } from '../../lib/cronograma/recursos.ts';
+
 interface Props {
   cronograma: Cronograma;
   hoje: string;
+  porTarefa?: Map<string, ResumoTarefaItens>;
+  volta?: string | null;
 }
-const { cronograma: c, hoje } = Astro.props;
+const { cronograma: c, hoje, porTarefa, volta } = Astro.props;
 const ordem: StatusEtapa[] = ['a_fazer', 'inicio_atrasado', 'em_andamento', 'atrasada', 'concluida'];
 const etapas = c.fases.flatMap((f) => f.etapas).map((e) => ({ e, st: statusNaData(e, hoje) }));
 ---
@@ -23,11 +28,12 @@ const etapas = c.fases.flatMap((f) => f.etapas).map((e) => ({ e, st: statusNaDat
           <p>{lista.length} etapa{lista.length === 1 ? '' : 's'}</p>
         </header>
         <ul class="cr-lista">
-          {lista.map(({ e }) => { const tm = tempoNaMao(e, hoje); return (
+          {lista.map(({ e }) => { const tm = tempoNaMao(e, hoje); const itens = e.id ? textoResumoTarefa(porTarefa?.get(e.id)) : ''; return (
             <li class="cr-card">
               <strong>{e.nome}{e.ciclo ? <span class="cr-selo">{e.ciclo}ª entrega</span> : null}</strong>
               <span>{e.unidade ?? 'Sem unidade'}</span>
               <span>{e.responsavel ?? 'Sem responsável'}</span>
+              {e.id && itens && <a href={urlEnvolvidos(c.id, volta ?? null, e.id)} data-cr-card-itens>{itens}</a>}
               <span>{textoTempoNaMao(tm)}</span>
               {tm.alerta && <span class={`cr-selo-alerta cr-selo-${tm.alerta}`} title={tm.alerta === 'urgente' ? `Passou do dobro da duração prevista (${e.duracao_prevista} dias)` : `Passou da duração prevista (${e.duracao_prevista} dias)`}>{tm.alerta === 'urgente' ? 'Urgente' : 'Atenção'}</span>}
               <span>Previsto: {br(e.inicio_previsto)} a {br(e.fim_previsto)}</span>

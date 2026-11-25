@@ -51,6 +51,15 @@ test('filtrarLog: texto sem acento busca descrição, motivo, campos e nome', ()
   assert.deepEqual(ids(filtrarLog(regs, { texto: 'planejamento' })), ['a']); // nome da etapa no resumo
 });
 
+test('E20: registro de recurso com `campos` em formato de objeto não quebra a busca nem o resumo', () => {
+  const recurso = { ...base, id: 'r', projeto_id: 'P-900', projeto_nome: 'Unidade de Saúde Exemplo A', tipo: 'recurso_incluido', origem: 'cronograma', em: '2026-11-02T12:00:00Z',
+    descricao: 'Cronograma «Obra»: tarefa «Fundação»: recurso material «Cimento» incluído.', campos: { tarefa_id: 'C-x#1', item_id: 'R-x' } } as unknown as RegistroLog;
+  assert.doesNotThrow(() => resumoRegistro(recurso));
+  assert.equal(resumoRegistro(recurso), recurso.descricao);
+  assert.deepEqual(ids(filtrarLog([...regs, recurso], { texto: 'cimento' })), ['r']);
+  assert.doesNotThrow(() => filtrarLog([recurso], { texto: 'qualquer' }));
+});
+
 test('filtrarLog: combinação de filtros', () => {
   assert.deepEqual(ids(filtrarLog(regs, { projeto: 'P-900', origem: 'pendencia' })), ['e']);
   assert.deepEqual(ids(filtrarLog(regs, { projeto: 'P-900', origem: 'importacao' })), []);

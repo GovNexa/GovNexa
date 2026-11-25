@@ -1,5 +1,12 @@
 # Changelog
 
+## E20 · Envolvidos e recursos da tarefa (23/11/2026; pronta para revisão, não publicada)
+- Migração 0012 do banco da prefeitura: tabelas `tarefa_envolvido` e `tarefa_recurso` (chave por prefeitura, tarefa ativa do mesmo cronograma, remoção lógica, sem DELETE, limites de 50 envolvidos e 200 recursos ativos por tarefa e teto total de 200 e 800 com os removidos, valores inteiros em centavos até R$ 10 bilhões). Só cria tabelas, índices e gatilhos novos.
+- Aba "Envolvidos e recursos" do cronograma: envolvidos (nome e/ou área, papel, observação; não substituem o responsável nem contam no tempo na mão) e recursos (humano, material ou equipamento, financeiro; quantidade, unidade, valor estimado e utilizado, data de uso, observação). Criar, editar e remover na tela, com 6 tipos novos no Histórico do projeto (a observação não entra no Histórico). Resumo por tipo e total, filtro "só tarefas com itens", impressão, CSV (`/plataforma/cronograma/recursos-csv/<id>/`) e resumo na aba Cronograma da ficha. O perfil Leitura só vê. Aviso na tela para não informar dado pessoal.
+- Gravação pela mesma rota da E13, com 6 ações novas; qualquer gravação de item sobe a versão do cronograma e congela o cronograma para a planilha. A carga da planilha passou a subir a versão do cronograma que atualiza (corrige uma corrida existente desde a E13).
+- Erro do banco que escapar das regras vira 400 "Dados inválidos." (nunca 500). Sem importação por planilha. Fluxo do sistema: etapa Planejamento atualizada.
+- **Não mudou:** login, `wrangler.jsonc`, `_headers`, `middleware.ts`.
+
 ## Coletores: motivo da falha legível (23/11/2026)
 - A tela "Qualidade dos dados" mostrava como motivo da falha um trecho de código (ex.: `if (tentativa === 3) throw new Error(...)`), porque o Node imprime o código da linha que falhou antes da mensagem e o resumo pegava a primeira linha com "error". Novo `coletores/lib/resumir-erro.ts`: pega a linha `Error: ...` de verdade, nunca trecho de código, e continua sem gravar caminhos de disco. Teste novo `tests/coletores/resumir-erro.test.ts`. Só o registro das próximas falhas muda; nenhuma coleta, tela ou banco.
 ## E19 · Farol retirado do sistema (23/11/2026)

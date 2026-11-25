@@ -34,12 +34,13 @@
 .rp-bloco table td,.rp-bloco table th{overflow-wrap:anywhere}
 .rp-lista-pessoas tbody th{white-space:normal}
 @media (max-width:760px){
-  .cr-tarefas .inc-tabela thead,.rp-cel thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+  .cr-tarefas .inc-tabela thead,.ev .inc-tabela thead,.rp-cel thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
   .cr-tarefas .inc-tabela,.cr-tarefas .inc-tabela tbody,.cr-tarefas .inc-tabela tr,.cr-tarefas .inc-tabela td,
+  .ev .inc-tabela,.ev .inc-tabela tbody,.ev .inc-tabela tr,.ev .inc-tabela td,
   .rp-cel,.rp-cel tbody,.rp-cel tr,.rp-cel td,.rp-cel th{display:block;width:100%}
-  .cr-tarefas .inc-tabela tr,.rp-cel tr{padding:.5rem 0;border-bottom:1px solid var(--line)}
-  .cr-tarefas .inc-tabela td,.rp-cel td,.rp-cel tbody th{padding:.15rem 0;border:0}
-  .cr-tarefas .inc-tabela td::before,.rp-cel td::before{content:attr(data-rotulo) ": ";color:var(--muted);font-weight:650}
+  .cr-tarefas .inc-tabela tr,.ev .inc-tabela tr,.rp-cel tr{padding:.5rem 0;border-bottom:1px solid var(--line)}
+  .cr-tarefas .inc-tabela td,.ev .inc-tabela td,.rp-cel td,.rp-cel tbody th{padding:.15rem 0;border:0}
+  .cr-tarefas .inc-tabela td::before,.ev .inc-tabela td::before,.rp-cel td::before{content:attr(data-rotulo) ": ";color:var(--muted);font-weight:650}
   .cr-tarefas button{min-height:44px}
 }
 @media print{

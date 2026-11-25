@@ -6,6 +6,8 @@ import type { RepositorioProjetos } from '../repositorio/tipos.ts';
 import { usuarioPode, type Usuario } from '../usuarios/index.ts';
 import { hojeEmBrasilia } from '../datas.ts';
 import { CAMPOS_TAREFA, type DadosTarefa, type OperacaoCronograma } from './planejar.ts';
+import { ACOES_ITEM, ehAcaoItem, type OperacaoItem } from './recursos.ts';
+import { normalizarOperacaoItem } from './recursos-regras.ts';
 
 export const LIMITE_CORPO_CRONOGRAMA = 16_384;
 export const ID_CRONOGRAMA = /^C-[A-Za-z0-9_-]{1,80}$/;
@@ -15,7 +17,7 @@ export type ResultadoServico<T> = ({ ok: true } & T) | { ok: false; status: numb
 
 const ehObjeto = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const AUSENTE = 'Versão do cronograma ausente: recarregue a página e tente de novo.';
-const ACOES = ['incluir_tarefa', 'editar_tarefa', 'trocar_responsavel', 'reordenar', 'remover_tarefa'] as const;
+const ACOES = ['incluir_tarefa', 'editar_tarefa', 'trocar_responsavel', 'reordenar', 'remover_tarefa', ...ACOES_ITEM] as const;
 const ROTULO_CAMPO: Record<string, string> = {
   nome: 'Nome', fase: 'Fase', duracao_prevista: 'Duração prevista', inicio_previsto: 'Início previsto', fim_previsto: 'Fim previsto', inicio_real: 'Início real', fim_real: 'Fim real',
 };
@@ -38,7 +40,7 @@ function duracao(v: unknown): number | null | undefined {
   return typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 3650 ? v : undefined;
 }
 
-export function normalizarPedido(bruto: unknown): { ok: true; revisao: number; op: OperacaoCronograma } | { ok: false; erros: string[] } {
+export function normalizarPedido(bruto: unknown): { ok: true; revisao: number; op: OperacaoCronograma | OperacaoItem } | { ok: false; erros: string[] } {
   if (!ehObjeto(bruto)) return { ok: false, erros: ['Pedido inválido.'] };
   const { revisao, acao } = bruto;
   if (typeof revisao !== 'number' || !Number.isSafeInteger(revisao) || revisao < 0) return { ok: false, erros: [AUSENTE] };
@@ -59,6 +61,10 @@ export function normalizarPedido(bruto: unknown): { ok: true; revisao: number; o
     erros.push('Tarefa inválida.');
     return '';
   };
+  if (ehAcaoItem(acao)) {
+    const opItem = normalizarOperacaoItem(acao, bruto, idTarefa, erros);
+    return erros.length ? { ok: false, erros } : { ok: true, revisao, op: opItem };
+  }
   let op: OperacaoCronograma | null = null;
 
   if (acao === 'incluir_tarefa') {
@@ -110,7 +116,7 @@ export function normalizarPedido(bruto: unknown): { ok: true; revisao: number; o
 
 export async function gravarCronograma(
   c: ContextoCronograma, cronogramaId: string, bruto: unknown, relogio?: { agora: string; hoje: string },
-): Promise<ResultadoServico<{ mudou: boolean; revisao: number; tarefa_id?: string }>> {
+): Promise<ResultadoServico<{ mudou: boolean; revisao: number; tarefa_id?: string; item_id?: string }>> {
   const pode = podeEditarCronograma(c);
   if (!pode.ok) return pode;
   if (!ID_CRONOGRAMA.test(cronogramaId)) return { ok: false, status: 404, erro: 'Cronograma não encontrado.' };
@@ -118,7 +124,15 @@ export async function gravarCronograma(
   if (!n.ok) return { ok: false, status: 400, erro: 'Pedido inválido.', erros: n.erros };
   const agora = relogio?.agora ?? new Date().toISOString();
   const hoje = relogio?.hoje ?? hojeEmBrasilia();
-  const r = await c.repositorio.gravarCronograma!(cronogramaId, n.revisao, n.op, { autor: c.usuario.email, agora, hoje });
+  if (ehAcaoItem(n.op.acao)) {
+    if (!c.repositorio.gravarItemTarefa) return { ok: false, status: 503, erro: 'Gravação indisponível no momento.' };
+    const ri = await c.repositorio.gravarItemTarefa(cronogramaId, n.revisao, n.op as OperacaoItem, { autor: c.usuario.email, agora });
+    if (ri.ok) return { ok: true, mudou: ri.mudou, revisao: ri.revisao, ...(ri.item_id ? { item_id: ri.item_id } : {}) };
+    if (ri.codigo === 'inexistente') return { ok: false, status: 404, erro: ri.erro };
+    if (ri.codigo === 'conflito') return { ok: false, status: 409, erro: 'O cronograma foi alterado por outra pessoa. Recarregue a página e tente de novo.' };
+    return { ok: false, status: 400, erro: ri.erro, erros: [ri.erro] };
+  }
+  const r = await c.repositorio.gravarCronograma!(cronogramaId, n.revisao, n.op as OperacaoCronograma, { autor: c.usuario.email, agora, hoje });
   if (r.ok) return { ok: true, mudou: r.mudou, revisao: r.revisao, ...(r.tarefa_id ? { tarefa_id: r.tarefa_id } : {}) };
   if (r.codigo === 'inexistente') return { ok: false, status: 404, erro: r.erro };
   if (r.codigo === 'conflito') return { ok: false, status: 409, erro: 'O cronograma foi alterado por outra pessoa. Recarregue a página e tente de novo.' };

@@ -104,7 +104,7 @@ export function resumoRegistro(r: RegistroLog): string {
 
 /** Texto de busca de um registro (sem acento, minúsculas): descrição, motivo, campos, nome e o resumo mostrado. */
 function textoBusca(r: RegistroLog): string {
-  const campos = (r.campos ?? []).map((c) => `${c.campo} ${rotuloCampo(c.campo)} ${valorLegivel(c.campo, c.antes)} ${valorLegivel(c.campo, c.depois)}`).join(' ');
+  const campos = (Array.isArray(r.campos) ? r.campos : []).map((c) => `${c.campo} ${rotuloCampo(c.campo)} ${valorLegivel(c.campo, c.antes)} ${valorLegivel(c.campo, c.depois)}`).join(' ');
   return norm([r.descricao, r.motivo, campos, r.projeto_nome, resumoRegistro(r)].filter(Boolean).join(' '));
 }
 

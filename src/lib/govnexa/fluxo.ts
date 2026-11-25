@@ -120,8 +120,8 @@ export const NOS: NoFluxo[] = [
   // ——— Planejamento e preparação
   { id: 'planejamento', raia: 'projetos', linha: 5, tipo: 'tarefa', titulo: '01 – Planejamento',
     oQue: 'Projeto (arquitetônico, complementares), orçamento por tabela oficial (SINAPI/GOINFRA), licenças e aprovações externas; acompanhado pelo cronograma do GEPP, que mostra de qual etapa cada uma depende, quais estão travadas esperando a anterior e o atraso em cascata (fim projetado).',
-    valida: ['Projeto entregue e aceito (ART)', 'Orçamento com data-base', 'Licenças e aprovações (Bombeiros, SANEAGO, Equatorial)', 'Cronograma criado e mantido na tela: fases, tarefas, início e fim reais, ordem e remoção com Histórico; a planilha só carrega o que nunca foi editado na tela (E13)'], quem: 'Engenharia; parceiros externos; órgãos externos',
-    situacao: 'disponivel', fase: 'Fase 2 (cronogramas) · E13', telas: [T.cronogramas, T.gantt] },
+    valida: ['Projeto entregue e aceito (ART)', 'Orçamento com data-base', 'Licenças e aprovações (Bombeiros, SANEAGO, Equatorial)', 'Cronograma criado e mantido na tela: fases, tarefas, início e fim reais, ordem e remoção com Histórico; a planilha só carrega o que nunca foi editado na tela (E13)', 'Envolvidos e recursos de cada tarefa (pessoas e áreas além do responsável; recursos humanos, materiais e financeiros com valor estimado e utilizado), na tela e com Histórico (E20)'], quem: 'Engenharia; parceiros externos; órgãos externos',
+    situacao: 'disponivel', fase: 'Fase 2 (cronogramas) · E13 · E20',telas: [T.cronogramas, T.gantt] },
   { id: 'portao', raia: 'projetos', linha: 6, tipo: 'decisao', titulo: 'Portão: pronto para contratar?',
     oQue: 'O projeto só avança com os requisitos cumpridos; reprovado, volta uma etapa com motivo. Forçar exige motivo e fica no histórico.',
     valida: ['Tem projeto', 'Origem do recurso definida', 'Termo de compromisso se o recurso for federal'], quem: 'Gestão de portfólio',

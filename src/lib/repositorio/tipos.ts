@@ -2,6 +2,7 @@
 import type { Evento, RegistroHistorico } from '../carteira/movimentacao.ts';
 import type { CodigoMacroetapa, Projeto } from '../carteira/tipos.ts';
 import type { OperacaoCronograma } from '../cronograma/planejar.ts';
+import type { ItensCronograma, OperacaoItem } from '../cronograma/recursos.ts';
 import type { Cronograma } from '../cronograma/tipos.ts';
 import type { RegistroLog } from '../log/tipos.ts';
 
@@ -33,6 +34,9 @@ export type ResultadoMovimento =
 
 export type ResultadoGravacaoCronograma =
   | { ok: true; mudou: boolean; revisao: number; tarefa_id?: string }
+  | { ok: false; codigo: 'inexistente' | 'conflito' | 'invalido'; erro: string };
+export type ResultadoGravacaoItem =
+  | { ok: true; mudou: boolean; revisao: number; item_id?: string }
   | { ok: false; codigo: 'inexistente' | 'conflito' | 'invalido'; erro: string };
 export type ResultadoCriacaoCronograma =
   | { ok: true; id: string }
@@ -67,6 +71,10 @@ export interface RepositorioProjetos {
   gravarCronograma?(id: string, revisao: number, op: OperacaoCronograma, ctx: { autor: string; agora: string; hoje: string }): Promise<ResultadoGravacaoCronograma>;
   /** Cria o cronograma de um projeto da carteira, direto na tela (E13; só no D1). */
   criarCronograma?(dados: { projeto_id: string; titulo: string }, ctx: { autor: string; agora: string }): Promise<ResultadoCriacaoCronograma>;
+  /** Envolvidos e recursos ativos das tarefas ativas do cronograma (E20; só no D1). */
+  listarItensCronograma?(cronogramaId: string): Promise<ItensCronograma>;
+  /** Inclui, altera ou remove um envolvido/recurso de tarefa e grava o evento no mesmo lote; vale só se a versão do cronograma for a lida (E20; só no D1). */
+  gravarItemTarefa?(cronogramaId: string, revisao: number, op: OperacaoItem, ctx: { autor: string; agora: string }): Promise<ResultadoGravacaoItem>;
   /**
    * Grava a localização e o evento de histórico juntos (só no D1). `decidir` recebe a localização que está no banco e devolve
    * o novo valor com a frase do histórico, ou null se nada muda. A gravação só vale se o projeto não mudou desde essa leitura.

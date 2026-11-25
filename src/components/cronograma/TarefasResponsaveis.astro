@@ -4,7 +4,8 @@
 import '../../styles/inconsistencias.css';
 import '../../styles/responsaveis.css';
 import { dataBr, dataHoraBr } from '../../lib/datas.ts';
-import { ancoraTarefa } from '../../lib/cronograma/navegacao.ts';
+import { ancoraTarefa, urlEnvolvidos } from '../../lib/cronograma/navegacao.ts';
+import { textoResumoTarefa, type ResumoTarefaItens } from '../../lib/cronograma/recursos.ts';
 import { textoTempoNaMao, tempoNaMao } from '../../lib/cronograma/responsaveis.ts';
 import type { Cronograma, EtapaCronograma } from '../../lib/cronograma/tipos.ts';
 import { ROTULO_STATUS, statusNaData } from '../../lib/cronograma/visoes.ts';
@@ -15,8 +16,10 @@ interface Props {
   podeEditar: boolean;
   revisao: number | null;
   sugestoes: { fases: string[]; unidades: string[]; pessoas: string[] };
+  porTarefa?: Map<string, ResumoTarefaItens>;
+  volta?: string | null;
 }
-const { cronograma: c, hoje, podeEditar, revisao, sugestoes } = Astro.props;
+const { cronograma: c, hoje, podeEditar, revisao, sugestoes, porTarefa, volta } = Astro.props;
 const nDias = (n: number) => `${n} ${n === 1 ? 'dia' : 'dias'}`;
 const dia = (v: string | null) => (v ? dataBr(v) : '—');
 const previsto = (e: EtapaCronograma) => {
@@ -61,7 +64,7 @@ const total = c.fases.reduce((s, f) => s + f.etapas.length, 0);
             const dados = e.id ? JSON.stringify({ id: e.id, nome: e.nome, fase: f.nome, duracao_prevista: e.duracao_prevista, inicio_previsto: e.inicio_previsto, fim_previsto: e.fim_previsto, inicio_real: e.inicio_real, fim_real: e.fim_real, responsavel: tm.responsavel, unidade: tm.unidade }) : undefined;
             return (
               <tr id={e.id ? ancoraTarefa(e.id) : undefined} data-cr-tarefa={e.id ?? undefined} data-tarefa={dados}>
-                <td data-rotulo="Tarefa"><strong>{e.nome}</strong></td>
+                <td data-rotulo="Tarefa"><strong>{e.nome}</strong>{e.id && textoResumoTarefa(porTarefa?.get(e.id)) && <a class="cr-sub" href={urlEnvolvidos(c.id, volta ?? null, e.id)} data-cr-itens>{textoResumoTarefa(porTarefa?.get(e.id))}</a>}</td>
                 <td data-rotulo="Área">{tm.unidade ?? 'Sem área'}</td>
                 <td data-rotulo="Responsável e tempo na mão">
                   {tm.responsavel ?? 'Sem responsável'}
@@ -143,7 +146,7 @@ const total = c.fases.reduce((s, f) => s + f.etapas.length, 0);
           <fieldset data-cr-modo="remover" class="cr-grupo" hidden disabled>
             <p data-cr-remover-quem></p>
             <label>Motivo<textarea name="motivo_remover" maxlength="500" rows="3"></textarea></label>
-            <p class="cr-ajuda">A tarefa sai do cronograma, mas continua no Histórico.</p>
+            <p class="cr-ajuda">A tarefa sai do cronograma, mas continua no Histórico. Os envolvidos e recursos dela saem dos totais.</p>
           </fieldset>
           <div class="cr-erro" role="alert" data-cr-erro></div>
           <div class="actions">

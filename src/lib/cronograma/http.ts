@@ -45,7 +45,7 @@ export async function atenderGravacao(request: Request, contexto: ContextoCronog
   if ('resposta' in p) return p.resposta;
   const r = await gravarCronograma(contexto, cronogramaId, p.corpo);
   if (!r.ok) return json(r.status, { ok: false, erro: r.erro, ...(r.erros ? { erros: r.erros } : {}) });
-  return json(200, { ok: true, mudou: r.mudou, revisao: r.revisao, ...(r.tarefa_id ? { tarefa_id: r.tarefa_id } : {}) });
+  return json(200, { ok: true, mudou: r.mudou, revisao: r.revisao, ...(r.tarefa_id ? { tarefa_id: r.tarefa_id } : {}), ...(r.item_id ? { item_id: r.item_id } : {}) });
 }
 
 export async function atenderCriacao(request: Request, contexto: ContextoCronograma, limitador: Limitador): Promise<Response> {

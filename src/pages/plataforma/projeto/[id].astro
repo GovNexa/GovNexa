@@ -17,6 +17,7 @@ import { podeGravarNaTela } from '../../../lib/contratacoes/servico.ts';
 import { montarFicha } from '../../../lib/carteira/ficha-dados.ts';
 import { carregarCronogramas } from '../../../lib/cronograma/carga.ts';
 import { urlCronograma } from '../../../lib/cronograma/navegacao.ts';
+import { linhasResumoFicha, resumoItens } from '../../../lib/cronograma/recursos.ts';
 import { ID_PROJETO } from '../../../lib/documentos/regras.ts';
 import { hojeBrasilia } from '../../../lib/fotos/regras.ts';
 import { permissaoFotos } from '../../../lib/fotos/servico.ts';
@@ -66,6 +67,7 @@ const idEnc = encodeURIComponent(projeto.id);
 const contratacoes = repo.contratacoes ? await repo.contratacoes.listarDoProjeto(projeto.id) : [];
 const aquiFicha = hrefFicha(projeto.id, volta, 'contratacoes');
 const podeCadastrarContratacao = podeGravarNaTela(Astro.locals.usuario, repo) === 'ok';
+const itensFicha = new Map(await Promise.all(ficha.cronogramas.map(async (c) => [c.id, repo.listarItensCronograma ? resumoItens(await repo.listarItensCronograma(c.id)) : null] as const)));
 const podeCriarCronograma = usuarioPode(Astro.locals.usuario, 'editar_projeto') && !!repo.criarCronograma && !!repo.podeGravar;
 ---
 <Platform title="Projeto" slug="projetos-carteira">
@@ -129,6 +131,17 @@ const podeCriarCronograma = usuarioPode(Astro.locals.usuario, 'editar_projeto') 
           <div class="fp-cron" data-fp-cron>
             <h3>{c.titulo}</h3>
             <dl class="pj-lista">{c.linhas.map((l) => <div><dt>{l.rotulo}</dt><dd>{l.valor}</dd></div>)}</dl>
+            {itensFicha.get(c.id) && (() => {
+              const linhas = linhasResumoFicha(itensFicha.get(c.id)!);
+              return linhas.length === 0 ? (
+                <p data-fp-cron-itens-vazio>Nenhum envolvido ou recurso registrado nas tarefas.</p>
+              ) : (
+                <>
+                  <dl class="pj-lista" data-fp-cron-itens>{linhas.map((l) => <div><dt>{l.rotulo}</dt><dd>{l.valor}</dd></div>)}</dl>
+                  <p><a href={comVolta(urlCronograma(c.id, { aba: 'envolvidos' }), naAba('cronograma'))} data-fp-cron-itens-link>Ver envolvidos e recursos</a></p>
+                </>
+              );
+            })()}
             <p><a href={comVolta(`/plataforma/cronograma/${encodeURIComponent(c.id)}/`, naAba('cronograma'))}>Abrir o cronograma detalhado</a></p>
           </div>
         ))}
