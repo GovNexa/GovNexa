@@ -584,7 +584,7 @@ npm run cf:dev
 | Comando | Para quê |
 | --- | --- |
 | `npm run test:dados` | Testes de dados, D1, permissões, importação e regras |
-| `npx playwright test --project=chromium` | Testes de interface com dados fictícios (Mac e Windows; no Windows, se aparecer 429 em testes que gravam muito, repetir com `--last-failed --workers=1`) |
+| `npx playwright test --project=chromium` | Testes de interface com dados fictícios (Mac e Windows; os servidores de teste usam limite de 1000 gravações por minuto, só no local) |
 | `npx astro check` | Verificação de tipos do Astro |
 | `npm run build` | Gera o site e os artefatos do Worker |
 | `npm run impacto` | Mostra as etapas do Fluxo afetadas pelos arquivos alterados |

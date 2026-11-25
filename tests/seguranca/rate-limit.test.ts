@@ -1,8 +1,8 @@
 // Limite de requisições por pessoa (entrega 1.0; vetores 6 e 9). Todos falham sem src/lib/seguranca/limite.ts ou sem o limite nas rotas.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { JANELA_MS, LIMITE_POR_MINUTO, chaveLimite, criarLimitadorCloudflare, criarLimitadorMemoria, dentroDoLimite, type Limitador } from '../../src/lib/seguranca/limite.ts';
+import { readFileSync, readdirSync } from 'node:fs';
+import { JANELA_MS, LIMITE_POR_MINUTO, LIMITE_TESTE_LOCAL_MAX, chaveLimite, criarLimitadorCloudflare, criarLimitadorMemoria, dentroDoLimite, limiteTesteLocal, limitadorDoAmbiente, type Limitador } from '../../src/lib/seguranca/limite.ts';
 
 const P = 5208707;
 const relogio = (inicio = 0) => { let t = inicio; return { agora: () => t, ir: (ms: number) => { t = ms; } }; };
@@ -61,6 +61,47 @@ test('ligação com erro, ausente ou com resposta estranha recusa (fail-closed)'
   assert.equal(await dentroDoLimite(estranha, P, 'a@x.gov.br'), false);
   const lancaNoLimitador: Limitador = { async permitir() { throw new Error('x'); } };
   assert.equal(await dentroDoLimite(lancaNoLimitador, P, 'a@x.gov.br'), false);
+});
+test('medida 8: limite maior só com AMBIENTE=local E LIMITE_TESTE_LOCAL válido; senão a ligação da Cloudflare (fail-closed)', async () => {
+  const ligacao30 = () => { let n = 0; return { async limit() { n += 1; return { success: n <= LIMITE_POR_MINUTO }; } }; };
+  // Sem as duas variáveis, ou com valor inválido: ligação da Cloudflare (aqui, ausente = recusa).
+  for (const env of [{}, { AMBIENTE: 'local' }, { LIMITE_TESTE_LOCAL: '1000' }, { AMBIENTE: 'producao', LIMITE_TESTE_LOCAL: '1000' },
+    { AMBIENTE: 'local', LIMITE_TESTE_LOCAL: 'abc' }, { AMBIENTE: 'local', LIMITE_TESTE_LOCAL: '30' }, { AMBIENTE: 'local', LIMITE_TESTE_LOCAL: '0' },
+    { AMBIENTE: 'local', LIMITE_TESTE_LOCAL: '-5' }, { AMBIENTE: 'local', LIMITE_TESTE_LOCAL: '1e9' }, { AMBIENTE: 'local', LIMITE_TESTE_LOCAL: String(LIMITE_TESTE_LOCAL_MAX + 1) },
+    { AMBIENTE: 'local', LIMITE_TESTE_LOCAL: 1000 }, { AMBIENTE: ' local', LIMITE_TESTE_LOCAL: '1000' }, null, undefined]) {
+    assert.equal(limiteTesteLocal(env), null, JSON.stringify(env));
+    assert.equal(await dentroDoLimite(limitadorDoAmbiente(env), P, 'a@x.gov.br'), false, `sem ligação recusa: ${JSON.stringify(env)}`);
+  }
+  // Com a ligação e sem as variáveis de teste: continua 30 por minuto.
+  const prod = limitadorDoAmbiente({ LIMITE_API: ligacao30() });
+  for (let i = 0; i < LIMITE_POR_MINUTO; i++) assert.equal(await dentroDoLimite(prod, P, 'a@x.gov.br'), true);
+  assert.equal(await dentroDoLimite(prod, P, 'a@x.gov.br'), false, 'produção: 31ª recusada');
+  // Teste local: passa de 30 e para no limite configurado, mesmo com a ligação presente.
+  const env = { AMBIENTE: 'local', LIMITE_TESTE_LOCAL: '40', LIMITE_API: ligacao30() };
+  assert.equal(limiteTesteLocal(env), 40);
+  for (let i = 0; i < 40; i++) assert.equal(await dentroDoLimite(limitadorDoAmbiente(env), P, 'b@x.gov.br'), true, `local ${i + 1}`);
+  assert.equal(await dentroDoLimite(limitadorDoAmbiente(env), P, 'b@x.gov.br'), false, 'local: 41ª recusada');
+  assert.equal(limiteTesteLocal({ AMBIENTE: 'local', LIMITE_TESTE_LOCAL: String(LIMITE_TESTE_LOCAL_MAX) }), LIMITE_TESTE_LOCAL_MAX);
+});
+test('medida 8: o wrangler.jsonc (produção) nunca declara AMBIENTE nem LIMITE_TESTE_LOCAL, nem guarda variáveis do painel', () => {
+  const texto = readFileSync('wrangler.jsonc', 'utf8');
+  assert.doesNotMatch(texto, /LIMITE_TESTE_LOCAL/);
+  const cfg = JSON.parse(texto.replace(/^\s*\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, ''));
+  const blocos = [cfg, ...Object.values((cfg.env ?? {}) as Record<string, { vars?: object; keep_vars?: unknown }>)];
+  for (const b of blocos) {
+    assert.ok(!Object.hasOwn(b.vars ?? {}, 'AMBIENTE'), 'vars não pode ter AMBIENTE');
+    assert.ok(!Object.hasOwn(b.vars ?? {}, 'LIMITE_TESTE_LOCAL'), 'vars não pode ter LIMITE_TESTE_LOCAL');
+    assert.notEqual(b.keep_vars, true, 'keep_vars faria variáveis do painel sobreviverem à publicação');
+  }
+  for (const f of readdirSync('.github/workflows')) assert.doesNotMatch(readFileSync(`.github/workflows/${f}`, 'utf8'), /LIMITE_TESTE_LOCAL/, f);
+});
+test('medida 8: só o playwright.config.ts liga o limite de teste, sempre junto com AMBIENTE:local', () => {
+  const cfg = readFileSync('playwright.config.ts', 'utf8');
+  const servidores = cfg.match(/npx wrangler dev[^`]*/g) ?? [];
+  assert.ok(servidores.length >= 3);
+  for (const s of servidores) assert.match(s, /--var AMBIENTE:local[\s\S]*--var LIMITE_TESTE_LOCAL:[0-9]+/);
+  const pacote = readFileSync('package.json', 'utf8');
+  assert.doesNotMatch(pacote, /LIMITE_TESTE_LOCAL/);
 });
 test('wrangler.jsonc: ligação LIMITE_API com o mesmo limite e período do código', () => {
   const cfg = JSON.parse(readFileSync('wrangler.jsonc', 'utf8').replace(/^\s*\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, ''));

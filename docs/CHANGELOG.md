@@ -1,5 +1,11 @@
 # Changelog
 
+## Limite de gravações maior só nos testes locais (25/11/2026, medida 8)
+- `src/lib/seguranca/limite.ts`: com `AMBIENTE=local` **e** `LIMITE_TESTE_LOCAL` (inteiro de 31 a 100000), as rotas usam o limitador em memória com esse limite; em qualquer outro caso, a ligação `LIMITE_API` da Cloudflare (30 por minuto, recusa se falhar). Os três servidores do `playwright.config.ts` passam `LIMITE_TESTE_LOCAL:1000`, e a suíte de tela roda em paralelo sem 429.
+- Testes novos: variáveis ausentes ou inválidas mantêm o limite normal; produção recusa a 31ª; o `wrangler.jsonc` não pode declarar `AMBIENTE` nem `LIMITE_TESTE_LOCAL`; só o `playwright.config.ts` liga o limite de teste. Prova de mutação: retirar a exigência de `AMBIENTE` ou a faixa de valores derruba os testes.
+- No teste local, todas as rotas que usam `limitadorDoAmbiente` (gravações, envio de documentos e fotos, PNCP e busca de endereço) ficam com o limite de teste; o limitador avisa no log (`[limite] LIMITE_TESTE_LOCAL ativo`) quando é ligado.
+- **Não mudou:** produção (30 gravações por minuto por pessoa e prefeitura, recusa se a ligação falhar), limites de login e os limites por hora de documentos, fotos e coletas do PNCP.
+
 ## Testes de tela no Windows (25/11/2026)
 - `playwright.config.ts`: a espera pelo primeiro servidor local passou de `node -e '...'` (aspas simples, que o `cmd.exe` do Windows não aceita) para `scripts/esperar-servidor.mjs <porta>`. Com isso os servidores de login e de leitura sobem também no Windows; no Mac nada muda.
 - Validação no Windows: os 338 testes (chromium, login e leitura) passam. Com 10 processos em paralelo, testes que gravam muito (Kanban, documentos, fotos, licitações) podem receber 429 do limite de 30 gravações por minuto; nesse caso, repetir os que falharam com `--last-failed --workers=1`.
