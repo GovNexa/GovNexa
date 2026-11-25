@@ -60,7 +60,33 @@ export function criarLimitadorCloudflare(ligacao: LigacaoRateLimit | undefined):
   };
 }
 
-/** Limitador das rotas: usa a ligação `LIMITE_API` do ambiente do Worker. */
+/** Teto do limite dos testes locais. */
+export const LIMITE_TESTE_LOCAL_MAX = 100_000;
+
+/**
+ * Limite maior SÓ para os testes locais (medida 8, 25/11/2026): vale apenas com `AMBIENTE=local` E `LIMITE_TESTE_LOCAL`
+ * (inteiro de 31 a 100000), as duas passadas só na linha de comando do `wrangler dev` dos testes (playwright.config.ts).
+ * O wrangler.jsonc de produção não declara nenhuma das duas (um teste confere). Qualquer outro caso: null (limite normal).
+ */
+export function limiteTesteLocal(env: unknown): number | null {
+  const e = env as { AMBIENTE?: unknown; LIMITE_TESTE_LOCAL?: unknown } | undefined;
+  if (e?.AMBIENTE !== 'local' || typeof e.LIMITE_TESTE_LOCAL !== 'string' || !/^[0-9]{1,6}$/.test(e.LIMITE_TESTE_LOCAL)) return null;
+  const n = Number(e.LIMITE_TESTE_LOCAL);
+  return n > LIMITE_POR_MINUTO && n <= LIMITE_TESTE_LOCAL_MAX ? n : null;
+}
+
+let limitadorTeste: { limite: number; limitador: Limitador } | null = null;
+
+/** Limitador das rotas: usa a ligação `LIMITE_API` do ambiente do Worker (no teste local, a memória com o limite maior). */
 export function limitadorDoAmbiente(env: unknown): Limitador {
+  const teste = limiteTesteLocal(env);
+  if (teste !== null) {
+    if (limitadorTeste?.limite !== teste) {
+      // Aviso visível no `wrangler tail`: em produção esta linha nunca deve aparecer.
+      console.warn(`[limite] LIMITE_TESTE_LOCAL ativo: limite de teste em memória (${teste} por minuto)`);
+      limitadorTeste = { limite: teste, limitador: criarLimitadorMemoria({ limite: teste }) };
+    }
+    return limitadorTeste.limitador;
+  }
   return criarLimitadorCloudflare((env as { LIMITE_API?: LigacaoRateLimit } | undefined)?.LIMITE_API);
 }
