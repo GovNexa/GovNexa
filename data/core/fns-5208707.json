@@ -3,8 +3,8 @@
   "fonte": "Ministério da Saúde — Fundo Nacional de Saúde, Consulta Consolidada Fundo a Fundo",
   "url_origem": "https://consultafns.saude.gov.br/recursos/consulta-consolidada",
   "data_referencia": "exercícios 2026, 2025, 2024 (valores até a data da coleta)",
-  "data_coleta": "2026-11-23T13:57:26.771Z",
-  "id_carga": "fns-2026-11-23"
+  "data_coleta": "2026-11-24T13:51:20.251Z",
+  "id_carga": "fns-2026-11-24"
  },
  "municipio": {
   "codigo_ibge": 5208707,
@@ -18,8 +18,8 @@
     {
      "codigo": 10,
      "nome": "Manutenção das Ações e Serviços Públicos de Saúde",
-     "valor_bruto": 935469944.44,
-     "desconto": 86167567.07,
+     "valor_bruto": 939674558.28,
+     "desconto": 90372180.91,
      "valor_liquido": 849302377.37,
      "grupos": [
       {
@@ -32,8 +32,8 @@
       {
        "codigo": 14,
        "nome": "ATENÇÃO DE MÉDIA E ALTA COMPLEXIDADE AMBULATORIAL E HOSPITALAR",
-       "valor_bruto": 741109452.67,
-       "desconto": 86167567.07,
+       "valor_bruto": 745314066.51,
+       "desconto": 90372180.91,
        "valor_liquido": 654941885.6
       },
       {
@@ -83,7 +83,7 @@
      ]
     }
    ],
-   "total_bruto": 942305282.44,
+   "total_bruto": 946509896.28,
    "total_liquido": 856137715.37,
    "entidades": [
     {
