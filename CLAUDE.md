@@ -142,7 +142,7 @@ Aprovadas pelo dono para reduzir tempo e tokens sem perder qualidade nem seguran
 4. **Relato só quando há novidade:** aviso de uma linha enquanto agentes trabalham; o relatório completo (feito, falta, %, passos do dono) no fim do processo ou quando o dono precisa agir.
 5. **Documentação em lote:** cada PR atualiza só o `docs/CHANGELOG.md` e uma linha do README; o plano, o plano dos áudios e o histórico são atualizados uma vez por lote, num PR próprio.
 6. **Prévia, PR e publicação em lote** para entregas pequenas.
-7. **Testes de tela no Windows:** corrigir o `playwright.config.ts` (aguardando autorização do dono ou combinar com o Rudson, dono do arquivo).
+7. **Testes de tela no Windows:** `playwright.config.ts` corrigido em 25/11/2026 (autorizado pelo dono): a espera entre servidores usa `scripts/esperar-servidor.mjs`. No Windows, se testes que gravam muito receberem 429, repetir só os que falharam com `--last-failed --workers=1`.
 8. **Limite de gravações maior só no teste local**, por variável de teste; produção continua com 30 por minuto.
 9. **Portão roda os testes de tela da área alterada;** a suíte completa roda uma vez por lote, antes do PR.
 10. **Sessão nova por lote.** Quando for hora de fechar a sessão (contexto grande, fim de lote, mudança de assunto), avisar o dono com os passos: (1) o dono diz `fechar sessão` e o Claude salva o trabalho nas branches e registra as pendências; (2) no Claude Code, `/clear` ou conversa nova; (3) na conversa nova: `continuar a partir do README e das pendências`.
