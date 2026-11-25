@@ -1,5 +1,10 @@
 # Changelog
 
+## Atualização diária dos dados (25/11/2026)
+- Regra do dono (CLAUDE.md, seção 1.2): no primeiro processo do dia, o Claude confere e atualiza todos os coletores (CAUC à mão; os demais pelo fluxo diário do GitHub, disparado se ainda não rodou) e abre o PR de dados.
+- `scripts/coletas-do-dia.mjs`: lista cada coletor com o último sucesso no horário de Brasília e diz quais não foram atualizados hoje. Só lê o `status-coletas.json`.
+- **Não mudou:** coletores, fluxos do GitHub e código do sistema.
+
 ## CAUC coletado à mão (25/11/2026)
 - Decisão do dono: como o site do Tesouro recusa a coleta a partir do GitHub ("fetch failed" em 23, 24 e 25/11), o CAUC é coletado localmente quando pedido. Coleta de hoje: Goiânia regular, sem pendências (dado de 19/11/2026); 26 itens regulares e 2 sem informação.
 - **Não mudou:** o fluxo diário do GitHub e os demais coletores.
