@@ -27,7 +27,7 @@ No **primeiro processo do dia** (o primeiro pedido do dono no dia, em qualquer s
 3. **CAUC, sempre neste computador** (o site do Tesouro recusa o GitHub): numa branch `dados/cauc-<data>`, rodar `node coletores/rodar.ts cauc coletores/cauc.ts` e abrir o PR de dados. Não rodar `derivar-acompanhamento` localmente: ele depende de arquivos do Transferegov que só existem no GitHub e registraria uma falha.
 4. **Outro coletor com falha no GitHub:** tentar uma vez localmente (`node coletores/rodar.ts <nome> coletores/<script>.ts`); se falhar de novo, informar o dono com o motivo legível do `status-coletas.json`.
 5. Conferir também se os fluxos mensais e do Portal da Transparência tiveram falha (`gh run list -L 5`) e informar o dono.
-6. Merge do PR de dados é do dono. Depois do merge, com a ordem "publique os dados", rodar `npm run test:dados`, publicar e validar (só arquivos de `data/core/`, sem código).
+6. Merge do PR de dados é do dono. **Publicação dos dados autorizada de forma permanente (dono, 25/11/2026):** assim que o PR de dados for mesclado, sem esperar ordem, conferir que a diferença entre a versão no ar e a `main` só tem arquivos de `data/core/` (mais `docs/` ou `README.md`), rodar `npm run test:dados`, publicar e validar. Se a `main` tiver qualquer código ainda não publicado, NÃO publicar: avisar o dono, porque código continua exigindo ordem expressa.
 7. Informar no relatório: o que foi atualizado, o que falhou e o motivo, e o PR de dados aberto.
 
 ## 2. Manter o repositório sempre atualizado
