@@ -1,5 +1,5 @@
 {
- "atualizado_em": "2026-11-28T13:12:46.888Z",
+ "atualizado_em": "2026-11-28T13:13:24.620Z",
  "coletores": {
   "ibge": {
    "script": "coletores/ibge-municipios.ts",
@@ -11,11 +11,11 @@
   },
   "cauc": {
    "script": "coletores/cauc.ts",
-   "ultima_tentativa": "2026-11-28T12:56:07.235Z",
-   "resultado": "falha",
-   "tentativas": 3,
-   "erro": "Error: CAUC: fetch failed",
-   "ultimo_sucesso": "2026-11-25T14:45:00.931Z"
+   "ultima_tentativa": "2026-11-28T13:13:24.620Z",
+   "resultado": "ok",
+   "tentativas": 1,
+   "erro": null,
+   "ultimo_sucesso": "2026-11-28T13:13:24.620Z"
   },
   "siconfi": {
    "script": "coletores/siconfi.ts",
