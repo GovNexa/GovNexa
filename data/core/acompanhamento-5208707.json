@@ -3,22 +3,22 @@
   "fonte": "Transferegov — arquivos abertos (siconv_*.zip), módulo Discricionárias e Legais",
   "url_origem": "https://api-publica.transferegov.gestao.gov.br/downloads/dadosgov/",
   "data_referencia": {
-   "proposta": "Wed, 25 Nov 2026 11:17:09 GMT",
-   "convenio": "Wed, 25 Nov 2026 11:17:11 GMT",
-   "desembolso": "Wed, 25 Nov 2026 11:17:03 GMT",
-   "empenho": "Wed, 25 Nov 2026 11:17:04 GMT",
-   "termo_aditivo": "Wed, 25 Nov 2026 11:17:10 GMT",
-   "emenda": "Wed, 25 Nov 2026 11:16:54 GMT"
+   "proposta": "Sat, 28 Nov 2026 11:17:48 GMT",
+   "convenio": "Sat, 28 Nov 2026 11:17:28 GMT",
+   "desembolso": "Sat, 28 Nov 2026 11:17:52 GMT",
+   "empenho": "Sat, 28 Nov 2026 11:17:34 GMT",
+   "termo_aditivo": "Sat, 28 Nov 2026 11:17:49 GMT",
+   "emenda": "Sat, 28 Nov 2026 11:17:51 GMT"
   },
-  "data_coleta": "2026-11-25T14:07:25.289Z",
-  "id_carga": "transferegov-2026-11-25",
+  "data_coleta": "2026-11-28T13:12:11.417Z",
+  "id_carga": "transferegov-2026-11-28",
   "hash_arquivo": {
-   "proposta": "206420148|Wed, 25 Nov 2026 11:17:09 GMT|",
-   "convenio": "S4DHC8o03KPPGxzUIjRAIg==",
-   "desembolso": "OyeAQQoRAX88iMrMoIJ8og==",
-   "empenho": "DWOHPcHh1FHLxUhrRQ+PZA==",
-   "termo_aditivo": "hciKY6qqqRO0af8QhpB8rQ==",
-   "emenda": "koCSW2V5stpiEfpKsg5ObQ=="
+   "proposta": "206420148|Sat, 28 Nov 2026 11:17:48 GMT|",
+   "convenio": "oBb7fSbGo6/Y///oH/p6Kw==",
+   "desembolso": "cBhf4D9IZqOu2tdmzYtl1w==",
+   "empenho": "0/mid4R/1h0rvYrw56hZgg==",
+   "termo_aditivo": "BiNEMFUyjijH0sYGnW0hSQ==",
+   "emenda": "Eglq5/FPkpHGiEhmvqw08Q=="
   }
  },
  "municipio": {
