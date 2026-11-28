@@ -1,0 +1,36 @@
+% Capa institucional do manual (incluída por --include-before-body). Usa \dataGeracao e \dataConteudo, definidas em vars.tex.
+\begin{titlepage}
+\thispagestyle{empty}
+\begin{tikzpicture}[remember picture,overlay]
+  % Faixa azul-marinho no topo, com filete laranja embaixo.
+  \fill[gxazul] (current page.north west) rectangle ([yshift=-9.5cm]current page.north east);
+  \fill[gxlaranja] ([yshift=-9.5cm]current page.north west) rectangle ([yshift=-9.8cm]current page.north east);
+  % Faixa fina no rodapé.
+  \fill[gxazul] (current page.south west) rectangle ([yshift=1.1cm]current page.south east);
+  % Logo do GovNexa na faixa.
+  \node at ([yshift=-4.75cm]current page.north) {\includegraphics[width=11.5cm]{assets/logo-govnexa-claro.png}};
+\end{tikzpicture}
+
+\vspace*{10.6cm}
+\begin{center}
+  {\color{gxcinza}\fontsize{11}{14}\selectfont\textbf{PLATAFORMA DE GESTÃO PÚBLICA}\par}
+  \vspace{0.9cm}
+  {\color{gxazul}\fontsize{34}{40}\selectfont\textbf{\tituloManual}\par}
+  \vspace{0.35cm}
+  {\color{gxlaranja}\fontsize{20}{24}\selectfont\textbf{\subtituloManual}\par}
+  \vspace{0.5cm}
+  {\color{gxcinza}\fontsize{12}{16}\selectfont \lemaManual\par}
+  \vspace{1.6cm}
+  \includegraphics[height=1.9cm]{assets/prefeitura-goiania.png}\par
+  \vspace{0.35cm}
+  {\color{gxazul}\fontsize{13}{16}\selectfont\textbf{Prefeitura Municipal de Goiânia}\par}
+\end{center}
+
+\vfill
+\begin{center}
+  {\color{gxcinza}\small \notaDatas\par}
+\end{center}
+\vspace{1.6cm}
+\end{titlepage}
+\clearpage
+\pagenumbering{roman}

@@ -31,3 +31,8 @@ data/carga-real/
 .wrangler/
 .tmp/
 .claude/settings.local.json
+
+# Manual: arquivos gerados pelo build (regenerados por docs/manual/pdf/construir-*.sh)
+docs/manual/pdf/.construcao*/
+docs/manual/pdf/diagramas/
+docs/manual/pdf/assets/
