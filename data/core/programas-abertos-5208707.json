@@ -3,7 +3,7 @@
   "fonte": "Transferegov — arquivo aberto siconv_programa.zip (Discricionárias e Legais)",
   "url_origem": "https://api-publica.transferegov.gestao.gov.br/downloads/dadosgov/siconv_programa.zip",
   "data_referencia": "Sat, 28 Nov 2026 11:17:37 GMT",
-  "data_coleta": "2026-11-28T13:07:54.839Z",
+  "data_coleta": "2026-11-28T13:48:02.407Z",
   "id_carga": "programas-abertos-2026-11-28"
  },
  "criterio": "situação DISPONIBILIZADO, com algum prazo (proposta, emendas ou beneficiário específico) igual ou posterior à data da coleta, aberto a \"Administração Pública Municipal\" na UF do município (ou sem UF). Classificação por tema = correspondência de palavras-chave de data/config/temas.json (rascunho, a validar).",
