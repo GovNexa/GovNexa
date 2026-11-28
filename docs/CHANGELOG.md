@@ -1,5 +1,11 @@
 # Changelog
 
+## Manual funcional versionado (28/11/2026)
+- `docs/manual/`: capítulos 00 a 05 e 99 do manual funcional, gerados a partir do código pela skill `manual-sistema` (`.claude/skills/`), e os PDFs `manual-funcional-govnexa.pdf` e `manual-usuario.pdf` com os scripts que os constroem (Pandoc, MiKTeX e mermaid-cli).
+- `.gitignore`: os arquivos gerados no build (`pdf/.construcao*`, `pdf/diagramas`, `pdf/assets`) ficam fora do repositório. Os rascunhos por módulo, já consolidados nos capítulos, foram apagados.
+- Conferido antes de versionar (repositório público): sem nomes de pessoas, e-mails, CPF, processos do SEI, valores reais nem chaves.
+- **Não mudou:** código do sistema.
+
 ## Atualização diária dos dados (25/11/2026)
 - Regra do dono (CLAUDE.md, seção 1.2): no primeiro processo do dia, o Claude confere e atualiza todos os coletores (CAUC à mão; os demais pelo fluxo diário do GitHub, disparado se ainda não rodou) e abre o PR de dados.
 - `scripts/coletas-do-dia.mjs`: lista cada coletor com o último sucesso no horário de Brasília e diz quais não foram atualizados hoje. Só lê o `status-coletas.json`.

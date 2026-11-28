@@ -710,6 +710,7 @@ Ordem de leitura: README, [plano](docs/govnexa/plano.md), [histórico](docs/govn
 | [docs/arquitetura.md](docs/arquitetura.md) | Arquitetura do site, Worker, plataforma e D1 |
 | [docs/plano-execucao.md](docs/plano-execucao.md) | Plano e decisões do bloco Captação |
 | [docs/manual-usuario.md](docs/manual-usuario.md) | Manual do usuário |
+| [docs/manual/](docs/manual/) | Manual funcional completo (capítulos 00 a 05 e 99; PDF em `docs/manual/pdf/manual-funcional-govnexa.pdf`, gerado por `docs/manual/pdf/construir-manual-completo.sh`; skill `manual-sistema`) |
 | [docs/projetos-ia.md](docs/projetos-ia.md) | Parecer de elegibilidade e IA com revisão humana |
 | [docs/regras-alertas.md](docs/regras-alertas.md) | Regras dos alertas |
 | [docs/fontes/](docs/fontes/) | Fontes de dados |
